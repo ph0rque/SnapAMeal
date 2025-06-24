@@ -9,7 +9,6 @@ import 'package:snapameal/pages/view_snap_page.dart';
 import 'package:snapameal/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
-import 'package:snapameal/components/user_search.dart';
 import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:snapameal/pages/story_view_page.dart';
@@ -59,7 +58,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _notificationService.initialize(context);
+    _notificationService.initialize();
   }
 
   void logout() {
@@ -77,7 +76,7 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => UserSearch()),
+                MaterialPageRoute(builder: (context) => const FriendsPage()),
               );
             },
           ),
@@ -125,7 +124,7 @@ class _HomePageState extends State<HomePage> {
       case 2:
         return const ChatsPage();
       case 3:
-        return UserSearch(); // Your friends page/widget
+        return const FriendsPage(); // Your friends page/widget
       case 4:
          return const Center(child: Text("Discover Page")); // Placeholder
       default:

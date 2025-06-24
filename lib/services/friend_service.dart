@@ -146,4 +146,33 @@ class FriendService {
         .doc(friendId)
         .snapshots();
   }
+
+  // Get or create a one-on-one chat room
+  Future<String> getOrCreateOneOnOneChatRoom(String friendId) async {
+    final currentUserId = _auth.currentUser!.uid;
+    final members = [currentUserId, friendId]..sort(); // Sort to ensure consistent ordering
+    
+    // Check if a chat room already exists with these members
+    final existingChatQuery = await _firestore
+        .collection('chatRooms')
+        .where('members', isEqualTo: members)
+        .where('isGroup', isEqualTo: false)
+        .limit(1)
+        .get();
+    
+    if (existingChatQuery.docs.isNotEmpty) {
+      return existingChatQuery.docs.first.id;
+    }
+    
+    // Create a new chat room
+    final chatRoomDoc = await _firestore.collection('chatRooms').add({
+      'members': members,
+      'isGroup': false,
+      'createdAt': FieldValue.serverTimestamp(),
+      'lastMessage': '',
+      'lastMessageTime': FieldValue.serverTimestamp(),
+    });
+    
+    return chatRoomDoc.id;
+  }
 } 

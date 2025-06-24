@@ -73,13 +73,16 @@ class _FriendsPageState extends State<FriendsPage> {
                 return ListTile(
                   title: Text(friendData['username']),
                   leading: const Icon(Icons.person),
-                  onTap: () {
+                  onTap: () async {
+                    // Create or get chat room for one-on-one conversation
+                    final chatRoomId = await _friendService.getOrCreateOneOnOneChatRoom(friendId);
+                    if (!mounted) return;
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => ChatPage(
-                          receiverUsername: friendData['username'],
-                          receiverId: friendId,
+                          chatRoomId: chatRoomId,
+                          chatTitle: friendData['username'],
                         ),
                       ),
                     );

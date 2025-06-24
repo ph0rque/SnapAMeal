@@ -91,6 +91,7 @@ class ChatPage extends StatelessWidget {
             child: MyTextField(
               controller: _messageController,
               hintText: "Type a message",
+              obscureText: false,
             ),
           ),
           IconButton(
