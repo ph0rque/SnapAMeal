@@ -56,46 +56,51 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
           ),
         ),
         Expanded(
-          child: StreamBuilder(
-            stream: _usersStream,
-            builder: (context, snapshot) {
-              if (_searchController.text.isEmpty) {
-                return const Center(child: Text('Enter a username to find friends.'));
-              }
-              if (snapshot.hasError) {
-                return const Center(child: Text('Error loading users.'));
-              }
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No users found.'));
-              }
-              var users = snapshot.data!;
-              return ListView.builder(
-                itemCount: users.length,
-                itemBuilder: (context, index) {
-                  var user = users[index];
-                  final isRequestSent = _sentRequests.contains(user['uid']);
-                  return ListTile(
-                    leading: SnapAvatar(
-                      name: user['username'],
-                      imageUrl: user['profileImageUrl'],
-                    ),
-                    title: Text(user['username']),
-                    subtitle: Text(user['email']),
-                    trailing: IconButton(
-                      icon: isRequestSent
-                          ? const Icon(EvaIcons.checkmark, color: SnapUIColors.accentGreen)
-                          : const Icon(EvaIcons.personAddOutline),
-                      onPressed: isRequestSent
-                          ? null
-                          : () => _sendFriendRequest(user['uid']),
-                    ),
-                  );
-                },
-              );
-            },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: SnapUIDimensions.spacingS),
+            child: StreamBuilder(
+              stream: _usersStream,
+              builder: (context, snapshot) {
+                if (_searchController.text.isEmpty) {
+                  return const Center(child: Text('Enter a username to find friends.'));
+                }
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Error loading users.'));
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('No users found.'));
+                }
+                var users = snapshot.data!;
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    var user = users[index];
+                    final isRequestSent = _sentRequests.contains(user['uid']);
+                    return ListTile(
+                      leading: SnapAvatar(
+                        name: user['username'],
+                        imageUrl: user['profileImageUrl'],
+                      ),
+                      title: Text(user['username']),
+                      subtitle: Text(user['email']),
+                      trailing: IconButton(
+                        icon: isRequestSent
+                            ? const Icon(EvaIcons.checkmark, color: SnapUIColors.accentGreen)
+                            : const Icon(EvaIcons.personAddOutline),
+                        onPressed: isRequestSent
+                            ? null
+                            : () => _sendFriendRequest(user['uid']),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ),
       ],

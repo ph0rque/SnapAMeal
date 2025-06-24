@@ -31,13 +31,32 @@ class _FriendsPageState extends State<FriendsPage> {
           children: [
             Text("Search for Friends", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 10),
-            SnapUserSearch(),
+            SizedBox(
+              height: 300,
+              child: SnapUserSearch(),
+            ),
             const SizedBox(height: 20),
             Text("My Friends", style: Theme.of(context).textTheme.titleLarge),
-            Expanded(child: _buildFriendsList()),
-            const SizedBox(height: 20),
-            Text("Friend Requests", style: Theme.of(context).textTheme.titleLarge),
-            Expanded(child: _buildFriendRequestList()),
+            const SizedBox(height: 10),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 200,
+                      child: _buildFriendsList(),
+                    ),
+                    const SizedBox(height: 20),
+                    Text("Friend Requests", style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: 200,
+                      child: _buildFriendRequestList(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -60,7 +79,8 @@ class _FriendsPageState extends State<FriendsPage> {
 
         final friendIds = snapshot.data!;
         return ListView.builder(
-          physics: const ClampingScrollPhysics(),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: friendIds.length,
           itemBuilder: (context, index) {
             final friendId = friendIds[index];
@@ -122,7 +142,8 @@ class _FriendsPageState extends State<FriendsPage> {
         }
 
         return ListView(
-          physics: const ClampingScrollPhysics(),
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
           children: snapshot.data!.docs.map((doc) {
             final request = doc.data() as Map<String, dynamic>;
             final senderId = request['senderId'];

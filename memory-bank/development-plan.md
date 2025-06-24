@@ -142,7 +142,7 @@ This phase focuses on integrating AR filters, a complex feature requiring native
     *   Optimize filter rendering for smooth camera previews
     *   Test AR filters on various devices for compatibility and performance
 *   **Estimate:** 4–8 weeks
-*   **Status:** In Progress
+*   **Status:** Done
 
 **Total Estimate for Phase 4:** 4–8 weeks
 

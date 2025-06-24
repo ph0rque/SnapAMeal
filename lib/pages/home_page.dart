@@ -266,8 +266,11 @@ class _HomePageState extends State<HomePage> {
           itemCount: docs.length,
           itemBuilder: (context, index) {
             final doc = docs[index];
+            final snapData = doc.data() as Map<String, dynamic>;
+            final senderId = snapData['senderId'] as String;
+            
             return FutureBuilder<DocumentSnapshot>(
-              future: _snapService.getSenderData(doc.id),
+              future: _friendService.getUserData(senderId),
               builder: (context, userSnapshot) {
                 if (!userSnapshot.hasData) {
                   return const ListTile(
@@ -277,7 +280,6 @@ class _HomePageState extends State<HomePage> {
                 }
                 final senderData =
                     userSnapshot.data!.data() as Map<String, dynamic>;
-                final snapData = doc.data() as Map<String, dynamic>;
                 final isViewed = snapData['isViewed'] ?? false;
                 return ListTile(
                   leading: Icon(
@@ -292,7 +294,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   subtitle: Text(isViewed ? 'Tap to replay' : 'Tap to view'),
                   onTap: () {
-                    _viewSnap(doc.id, snapData);
+                    _viewSnap(doc, snapData);
                   },
                 );
               },
@@ -303,13 +305,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _viewSnap(String snapId, Map<String, dynamic> snapData) {
+  void _viewSnap(DocumentSnapshot snap, Map<String, dynamic> snapData) {
+    final isViewed = snapData['isViewed'] ?? false;
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ViewSnapPage(
-          snapId: snapId,
-          snapData: snapData,
+          snap: snap,
+          isReplay: isViewed,
         ),
       ),
     );

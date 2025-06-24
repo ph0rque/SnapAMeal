@@ -20,6 +20,11 @@
   - Fixed async context issues with proper mounted checks
   - Updated dependencies (camera package 0.10.6 → 0.11.1)
   - **Reduced from 49 issues to 3 minor warnings (94% improvement)**
+  - **RESOLVED: CocoaPods dependency conflict** (January 2025):
+    - Updated `google_mlkit_face_detection` from 0.11.0 to 0.13.1
+    - Updated `google_mlkit_commons` from 0.8.1 to 0.11.0
+    - Fixed GoogleMLKit/GoogleDataTransport version conflicts
+    - iOS pod installation now successful
 
 ## Current Status
 
@@ -30,6 +35,7 @@ SnapAMeal is now **production-ready** with:
 - ✅ Updated dependencies
 - ✅ Firebase properly configured
 - ✅ iOS push notifications enabled
+- ✅ iOS CocoaPods dependency conflicts resolved
 
 ## What's Left to Build
 
@@ -41,6 +47,17 @@ SnapAMeal is now **production-ready** with:
 ## Known Issues
 
 - **No critical issues remain** - All major bugs have been resolved
+- **RESOLVED: Additional code compilation errors** (January 2025):
+  - Fixed missing `getSenderData` method in SnapService - replaced with proper `getUserData` call to FriendService
+  - Fixed `ViewSnapPage` constructor parameter mismatch - updated to use DocumentSnapshot instead of separate snapId and snapData
+  - App now compiles and runs successfully on iOS
+- **RESOLVED: UI Layout Issues** (January 2025):
+  - Fixed multiple Expanded widgets conflict in FriendsPage causing RenderBox layout errors
+  - Restructured FriendsPage layout to use proper constraints and scrolling
+  - Fixed SnapUserSearch widget layout issues with shrinkWrap and proper physics
+  - Added missing `getOrCreateOneOnOneChatRoom` method to FriendService
+  - Resolved back button navigation issues in friends search functionality
+  - **Fixed duplicate method declaration**: Removed duplicate `getOrCreateOneOnOneChatRoom` method causing compilation error
 - 3 minor async context warnings (properly guarded with mounted checks)
 - The project currently uses temporary, open security rules for both Firestore and Firebase Storage. These must be properly secured before production deployment.
 
