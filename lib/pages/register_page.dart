@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:snapameal/services/auth_service.dart';
-import 'package:snapameal/components/my_button.dart';
-import 'package:snapameal/components/my_textfield.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 
 class RegisterPage extends StatelessWidget {
   final TextEditingController _usernameController = TextEditingController();
@@ -77,10 +77,9 @@ class RegisterPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // logo
-              Icon(
-                Icons.message,
+              const Icon(
+                EvaIcons.messageSquare,
                 size: 60,
-                color: Theme.of(context).colorScheme.primary,
               ),
 
               const SizedBox(height: 50),
@@ -88,69 +87,51 @@ class RegisterPage extends StatelessWidget {
               // welcome back message
               Text(
                 "Let's create an account for you",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontSize: 16,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
 
               const SizedBox(height: 25),
 
               // username textfield
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: MyTextField(
-                  hintText: "Username",
-                  obscureText: false,
-                  controller: _usernameController,
-                ),
+              SnapTextField(
+                controller: _usernameController,
+                hintText: "Username",
+                obscureText: false,
               ),
 
               const SizedBox(height: 10),
 
               // email textfield
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: MyTextField(
-                  hintText: "Email",
-                  obscureText: false,
-                  controller: _emailController,
-                ),
+              SnapTextField(
+                controller: _emailController,
+                hintText: "Email",
+                obscureText: false,
               ),
 
               const SizedBox(height: 10),
 
-              // pw textfield
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: MyTextField(
-                  hintText: "Password",
-                  obscureText: true,
-                  controller: _pwController,
-                ),
+              // password textfield
+              SnapTextField(
+                controller: _pwController,
+                hintText: "Password",
+                obscureText: true,
               ),
 
               const SizedBox(height: 10),
 
-              // confirm pw textfield
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: MyTextField(
-                  hintText: "Confirm Password",
-                  obscureText: true,
-                  controller: _confirmPwController,
-                ),
+              // confirm password textfield
+              SnapTextField(
+                controller: _confirmPwController,
+                hintText: "Confirm Password",
+                obscureText: true,
               ),
 
               const SizedBox(height: 25),
 
-              // login button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: MyButton(
-                  text: "Register",
-                  onTap: () => register(context),
-                ),
+              // register button
+              SnapButton(
+                onTap: () => register(context),
+                text: "Register",
               ),
 
               const SizedBox(height: 25),
@@ -160,18 +141,16 @@ class RegisterPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Already have an account? ",
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.primary),
+                    "Already a member? ",
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  TextButton(
-                    onPressed: onTap,
+                  GestureDetector(
+                    onTap: onTap,
                     child: Text(
                       "Login now",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                 ],

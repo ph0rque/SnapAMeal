@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:snapameal/services/story_service.dart';
 import 'package:snapameal/services/friend_service.dart';
 import 'package:video_player/video_player.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 
 class StoryViewPage extends StatefulWidget {
   final String userId;
@@ -143,6 +145,32 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
 
   @override
   Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: SnapUIColors.black,
+      body: _stories.isEmpty
+          ? FutureBuilder<void>(
+              future: null, // This is now handled by the _loadStories initState
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError || _stories.isEmpty) {
+                  return Center(
+                      child: Text("Story data is unavailable.",
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(color: SnapUIColors.white)));
+                }
+                // If stories loaded successfully, build the main view
+                return _buildStoryView();
+              },
+            )
+          : _buildStoryView(),
+    );
+  }
+
+  Widget _buildStoryView() {
     if (_stories.isEmpty) {
       return const Scaffold(
         backgroundColor: Colors.black,
@@ -157,106 +185,107 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) Navigator.of(context).pop();
       });
-      return const Scaffold(
-        body: Center(child: Text("Story data is unavailable.", style: TextStyle(color: Colors.white))),
+      return Scaffold(
+        backgroundColor: SnapUIColors.black,
+        body: Center(
+            child: Text("Story data is unavailable.",
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(color: SnapUIColors.white))),
       );
     }
 
+    return GestureDetector(
+      onTapUp: (details) {
+        final width = MediaQuery.of(context).size.width;
+        if (details.globalPosition.dx < width / 3) {
+          _previousStory();
+        } else {
+          _nextStory();
+        }
+      },
+      child: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _stories.length,
+            onPageChanged: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+              _startStory();
+            },
+            itemBuilder: (context, index) {
+              if (index >= _stories.length) return const SizedBox.shrink();
+              final story = _stories[index].data() as Map<String, dynamic>?;
+              
+              if (story == null) return const SizedBox.shrink();
 
+              final timestamp = story['timestamp'] as Timestamp?;
+              if (timestamp == null) return const SizedBox.shrink();
 
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: GestureDetector(
-        onTapUp: (details) {
-          final width = MediaQuery.of(context).size.width;
-          if (details.globalPosition.dx < width / 3) {
-            _previousStory();
-          } else {
-            _nextStory();
-          }
-        },
-        child: Stack(
-          children: [
-            PageView.builder(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _stories.length,
-              onPageChanged: (index) {
-                setState(() {
-                  _currentIndex = index;
-                });
-                _startStory();
-              },
-              itemBuilder: (context, index) {
-                if (index >= _stories.length) return const SizedBox.shrink();
-                final story = _stories[index].data() as Map<String, dynamic>?;
-                
-                if (story == null) return const SizedBox.shrink();
-
-                final timestamp = story['timestamp'] as Timestamp?;
-                if (timestamp == null) return const SizedBox.shrink();
-
-                return FutureBuilder<DocumentSnapshot>(
-                  future: _friendService.getUserData(story['senderId']),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return const Center(child: Text("Error loading user data"));
-                    } else {
-                      final userData = snapshot.data?.data() as Map<String, dynamic>?;
-                      if (userData == null) {
-                        return const Center(child: Text("User data is unavailable"));
-                      }
-
-                      if (story['isVideo']) {
-                        return (_videoController?.value.isInitialized ?? false)
-                            ? Center(
-                                child: AspectRatio(
-                                  aspectRatio: _videoController!.value.aspectRatio,
-                                  child: VideoPlayer(_videoController!),
-                                ),
-                              )
-                            : const Center(child: CircularProgressIndicator());
-                      } else {
-                        return CachedNetworkImage(
-                          imageUrl: story['mediaUrl'],
-                          fit: BoxFit.contain,
-                          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                          errorWidget: (context, url, error) => const Icon(Icons.error),
-                        );
-                      }
+              return FutureBuilder<DocumentSnapshot>(
+                future: _friendService.getUserData(story['senderId']),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return const Center(child: Text("Error loading user data"));
+                  } else {
+                    final userData = snapshot.data?.data() as Map<String, dynamic>?;
+                    if (userData == null) {
+                      return const Center(child: Text("User data is unavailable"));
                     }
-                  },
-                );
-              },
-            ),
-            Positioned(
-              top: 40,
-              left: 10,
-              right: 10,
-              child: Row(
-                children: _stories.asMap().entries.map((entry) {
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                      child: AnimatedBuilder(
-                        animation: _animationController,
-                        builder: (context, child) {
-                          return LinearProgressIndicator(
-                            value: entry.key == _currentIndex ? _animationController.value : (entry.key < _currentIndex ? 1.0 : 0.0),
-                            backgroundColor: Colors.grey.withValues(alpha: 0.5),
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                          );
-                        },
-                      ),
+
+                    if (story['isVideo']) {
+                      return (_videoController?.value.isInitialized ?? false)
+                          ? Center(
+                              child: AspectRatio(
+                                aspectRatio: _videoController!.value.aspectRatio,
+                                child: VideoPlayer(_videoController!),
+                              ),
+                            )
+                          : const Center(child: CircularProgressIndicator());
+                    } else {
+                      return CachedNetworkImage(
+                        imageUrl: story['mediaUrl'],
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                        errorWidget: (context, url, error) => const Icon(EvaIcons.alertTriangleOutline, color: SnapUIColors.white),
+                      );
+                    }
+                  }
+                },
+              );
+            },
+          ),
+          Positioned(
+            top: 40,
+            left: 10,
+            right: 10,
+            child: Row(
+              children: _stories.asMap().entries.map((entry) {
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                    child: AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (context, child) {
+                        return LinearProgressIndicator(
+                          value: entry.key == _currentIndex ? _animationController.value : (entry.key < _currentIndex ? 1.0 : 0.0),
+                          backgroundColor: Colors.grey.withValues(alpha: 0.5),
+                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                        );
+                      },
                     ),
-                  );
-                }).toList(),
-              ),
+                  ),
+                );
+              }).toList(),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

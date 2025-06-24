@@ -1,14 +1,16 @@
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:snapameal/services/friend_service.dart';
 
-class UserSearchWidget extends StatefulWidget {
-  const UserSearchWidget({super.key});
+class SnapUserSearch extends StatefulWidget {
+  const SnapUserSearch({super.key});
 
   @override
-  State<UserSearchWidget> createState() => _UserSearchWidgetState();
+  State<SnapUserSearch> createState() => _SnapUserSearchState();
 }
 
-class _UserSearchWidgetState extends State<UserSearchWidget> {
+class _SnapUserSearchState extends State<SnapUserSearch> {
   final TextEditingController _searchController = TextEditingController();
   final FriendService _friendService = FriendService();
   Stream<List<Map<String, dynamic>>>? _usersStream;
@@ -19,7 +21,11 @@ class _UserSearchWidgetState extends State<UserSearchWidget> {
     super.initState();
     _searchController.addListener(() {
       setState(() {
-        _usersStream = _friendService.searchUsers(_searchController.text);
+        if (_searchController.text.isNotEmpty) {
+          _usersStream = _friendService.searchUsers(_searchController.text);
+        } else {
+          _usersStream = null;
+        }
       });
     });
   }
@@ -42,14 +48,13 @@ class _UserSearchWidgetState extends State<UserSearchWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Find Friends", style: TextStyle(fontWeight: FontWeight.bold)),
-        TextField(
-          controller: _searchController,
-          decoration: const InputDecoration(
-            labelText: 'Search for friends by username...',
+        Padding(
+          padding: const EdgeInsets.all(SnapUIDimensions.spacingS),
+          child: SnapTextField(
+            controller: _searchController,
+            hintText: 'Search for friends...',
           ),
         ),
-        const SizedBox(height: 20),
         Expanded(
           child: StreamBuilder(
             stream: _usersStream,
@@ -73,12 +78,16 @@ class _UserSearchWidgetState extends State<UserSearchWidget> {
                   var user = users[index];
                   final isRequestSent = _sentRequests.contains(user['uid']);
                   return ListTile(
+                    leading: SnapAvatar(
+                      name: user['username'],
+                      imageUrl: user['profileImageUrl'],
+                    ),
                     title: Text(user['username']),
                     subtitle: Text(user['email']),
                     trailing: IconButton(
                       icon: isRequestSent
-                          ? const Icon(Icons.check)
-                          : const Icon(Icons.person_add),
+                          ? const Icon(EvaIcons.checkmark, color: SnapUIColors.accentGreen)
+                          : const Icon(EvaIcons.personAddOutline),
                       onPressed: isRequestSent
                           ? null
                           : () => _sendFriendRequest(user['uid']),

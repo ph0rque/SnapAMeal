@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:snapameal/pages/select_friends_page.dart';
 import 'package:snapameal/services/story_service.dart';
 import 'package:video_player/video_player.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
 
 class PreviewPage extends StatefulWidget {
   const PreviewPage({
@@ -65,9 +67,9 @@ class _PreviewPageState extends State<PreviewPage> {
           ),
           Positioned(
             top: 40,
-            left: 20,
+            left: 10,
             child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white, size: 30),
+              icon: const Icon(EvaIcons.close, color: SnapUIColors.white, size: 30),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
@@ -121,13 +123,13 @@ class _PreviewPageState extends State<PreviewPage> {
             onPressed: () => _showTimerSelectionDialog(context),
           ),
           IconButton(
-            icon: const Icon(Icons.edit, color: Colors.white),
+            icon: const Icon(EvaIcons.edit2Outline, color: SnapUIColors.white),
             onPressed: () {
               // TODO: Implement editing features
             },
           ),
           IconButton(
-            icon: const Icon(Icons.send, color: Colors.white),
+            icon: const Icon(EvaIcons.paperPlaneOutline, color: SnapUIColors.white),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(

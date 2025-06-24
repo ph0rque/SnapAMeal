@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:snapameal/components/user_search.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:snapameal/pages/chat_page.dart';
 import 'package:snapameal/services/friend_service.dart';
 
@@ -28,15 +29,15 @@ class _FriendsPageState extends State<FriendsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("My Friends", style: TextStyle(fontWeight: FontWeight.bold)),
+            Text("Search for Friends", style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 10),
+            SnapUserSearch(),
+            const SizedBox(height: 20),
+            Text("My Friends", style: Theme.of(context).textTheme.titleLarge),
             Expanded(child: _buildFriendsList()),
             const SizedBox(height: 20),
-            const Text("Friend Requests", style: TextStyle(fontWeight: FontWeight.bold)),
+            Text("Friend Requests", style: Theme.of(context).textTheme.titleLarge),
             Expanded(child: _buildFriendRequestList()),
-            const SizedBox(height: 20),
-            const Expanded(
-              child: UserSearchWidget(),
-            ),
           ],
         ),
       ),
@@ -75,20 +76,12 @@ class _FriendsPageState extends State<FriendsPage> {
                 }
                 return ListTile(
                   title: Text(friendData['username'] ?? 'No name'),
-                  leading: const Icon(Icons.person),
-                  onTap: () async {
-                    // Create or get chat room for one-on-one conversation
-                    final chatRoomId = await _friendService.getOrCreateOneOnOneChatRoom(friendId);
-                    if (!mounted) return;
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChatPage(
-                          chatRoomId: chatRoomId,
-                          chatTitle: friendData['username'] ?? 'Chat',
-                        ),
-                      ),
-                    );
+                  leading: SnapAvatar(
+                    name: friendData['username'],
+                    imageUrl: friendData['profileImageUrl'],
+                  ),
+                  onTap: () {
+                    _navigateToChat(friendId);
                   },
                 );
               },
@@ -96,6 +89,21 @@ class _FriendsPageState extends State<FriendsPage> {
           },
         );
       },
+    );
+  }
+
+  void _navigateToChat(String friendId) async {
+    final chatRoomId =
+        await _friendService.getOrCreateOneOnOneChatRoom(friendId);
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatPage(
+          chatRoomId: chatRoomId,
+          recipientId: friendId,
+        ),
+      ),
     );
   }
 
@@ -136,18 +144,22 @@ class _FriendsPageState extends State<FriendsPage> {
 
                 return ListTile(
                   title: Text(userData['username'] ?? 'No name'),
+                  leading: SnapAvatar(
+                    name: userData['username'],
+                    imageUrl: userData['profileImageUrl'],
+                  ),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.check, color: Colors.green),
+                        icon: const Icon(EvaIcons.checkmark, color: SnapUIColors.accentGreen),
                         onPressed: () async {
                           await _friendService.acceptFriendRequest(senderId);
                           setState(() {});
                         },
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.red),
+                        icon: const Icon(EvaIcons.close, color: SnapUIColors.accentRed),
                         onPressed: () async {
                           await _friendService.declineFriendRequest(senderId);
                           setState(() {});
@@ -162,5 +174,22 @@ class _FriendsPageState extends State<FriendsPage> {
         );
       },
     );
+  }
+
+  Future<void> _handleSendFriendRequest(String email) async {
+    try {
+      await _friendService.sendFriendRequest(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Friend request sent!")),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to send friend request: $e")),
+        );
+      }
+    }
   }
 } 

@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:snapameal/pages/preview_page.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key, required this.cameras, this.onStoryPosted});
@@ -21,6 +23,7 @@ class _CameraPageState extends State<CameraPage> {
   int _selectedCameraIndex = 0;
   bool _isRecording = false;
   bool _noCamerasAvailable = false;
+  bool _flashOn = false;
 
   @override
   void initState() {
@@ -80,20 +83,33 @@ class _CameraPageState extends State<CameraPage> {
               children: [
                 CameraPreview(_controller),
                 Positioned(
+                  top: 40,
+                  right: 20,
+                  child: IconButton(
+                    icon: Icon(
+                      _flashOn ? EvaIcons.flash : EvaIcons.flashOff,
+                      color: SnapUIColors.white,
+                    ),
+                    onPressed: _toggleFlash,
+                  ),
+                ),
+                Positioned(
+                  bottom: 20,
+                  left: 20,
+                  child: IconButton(
+                    icon: const Icon(EvaIcons.flip2, color: SnapUIColors.white),
+                    onPressed: _switchCamera,
+                  ),
+                ),
+                Positioned(
                   bottom: 0,
                   left: 0,
                   right: 0,
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.5),
+                    color: SnapUIColors.black.withAlpha(128),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.flash_off, color: Colors.white),
-                          onPressed: () {
-                            // TODO: Implement flash control
-                          },
-                        ),
                         GestureDetector(
                           onTap: _takePicture,
                           onLongPressStart: (_) => _startVideoRecording(),
@@ -103,13 +119,9 @@ class _CameraPageState extends State<CameraPage> {
                             height: 70,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _isRecording ? Colors.red : Colors.white,
+                              color: _isRecording ? SnapUIColors.accentRed : SnapUIColors.white,
                             ),
                           ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.cameraswitch, color: Colors.white),
-                          onPressed: _switchCamera,
                         ),
                       ],
                     ),
@@ -198,6 +210,27 @@ class _CameraPageState extends State<CameraPage> {
     } catch (e) {
       debugPrint("Error stopping video recording: $e");
       return;
+    }
+  }
+
+  void _toggleFlash() {
+    if (_controller.value.flashMode == FlashMode.off ||
+        _controller.value.flashMode == FlashMode.auto) {
+      _controller.setFlashMode(FlashMode.torch).then((_) {
+        if (mounted) {
+          setState(() {
+            _flashOn = true;
+          });
+        }
+      });
+    } else {
+      _controller.setFlashMode(FlashMode.off).then((_) {
+        if (mounted) {
+          setState(() {
+            _flashOn = false;
+          });
+        }
+      });
     }
   }
 } 

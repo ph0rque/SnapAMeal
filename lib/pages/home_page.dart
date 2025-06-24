@@ -11,6 +11,8 @@ import 'package:snapameal/pages/story_view_page.dart';
 import 'package:snapameal/services/friend_service.dart';
 import 'package:snapameal/services/story_service.dart';
 import 'package:snapameal/pages/chats_page.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -60,7 +62,7 @@ class _HomePageState extends State<HomePage> {
         title: const Text("SnapAMeal"),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_add),
+            icon: const Icon(EvaIcons.personAddOutline),
             onPressed: () {
               Navigator.push(
                 context,
@@ -69,7 +71,7 @@ class _HomePageState extends State<HomePage> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(EvaIcons.logOutOutline),
             onPressed: logout,
           ),
         ],
@@ -81,23 +83,28 @@ class _HomePageState extends State<HomePage> {
         type: BottomNavigationBarType.fixed,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(EvaIcons.homeOutline),
+            activeIcon: Icon(EvaIcons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt),
+            icon: Icon(EvaIcons.cameraOutline),
+            activeIcon: Icon(EvaIcons.camera),
             label: 'Camera',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble),
+            icon: Icon(EvaIcons.messageSquareOutline),
+            activeIcon: Icon(EvaIcons.messageSquare),
             label: 'Chats',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.people),
+            icon: Icon(EvaIcons.peopleOutline),
+            activeIcon: Icon(EvaIcons.people),
             label: 'Friends',
           ),
            BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
+            icon: Icon(EvaIcons.compassOutline),
+            activeIcon: Icon(EvaIcons.compass),
             label: 'Discover',
           ),
         ],
@@ -173,10 +180,7 @@ class _HomePageState extends State<HomePage> {
               if (isMyStory) {
                 _openStoryCamera();
               } else if (hasStories) {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => StoryViewPage(userId: userId)));
+                _navigateToStoryView(userId);
               }
             },
             child: FutureBuilder<DocumentSnapshot>(
@@ -200,24 +204,24 @@ class _HomePageState extends State<HomePage> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: hasStories
-                                ? Border.all(color: Colors.pinkAccent, width: 3)
+                                ? Border.all(color: SnapUIColors.accentPurple, width: 3)
                                 : null,
                           ),
                           child: CircleAvatar(
                             radius: 28,
-                            backgroundColor: isMyStory ? Colors.blueAccent : Colors.grey[300],
+                            backgroundColor: isMyStory ? SnapUIColors.accentBlue : SnapUIColors.greyLight,
                             child: isMyStory
-                                ? const Icon(Icons.add,
-                                    size: 35, color: Colors.white)
-                                : const Icon(Icons.person,
-                                    size: 35, color: Colors.grey),
+                                ? const Icon(EvaIcons.plus,
+                                    size: 35, color: SnapUIColors.white)
+                                : const Icon(EvaIcons.personOutline,
+                                    size: 35, color: SnapUIColors.greyDark),
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           isMyStory ? 'My Story' : username,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -225,6 +229,15 @@ class _HomePageState extends State<HomePage> {
                 }),
           );
         });
+  }
+
+  void _navigateToStoryView(String userId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StoryViewPage(userId: userId),
+      ),
+    );
   }
 
   void _openStoryCamera() async {
@@ -248,85 +261,57 @@ class _HomePageState extends State<HomePage> {
           return const Center(child: Text("No new snaps!"));
         }
 
-        return ListView(
-          children: snapshot.data!.docs
-              .map((doc) => _buildSnapListItem(doc))
-              .toList(),
+        final docs = snapshot.data!.docs;
+        return ListView.builder(
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final doc = docs[index];
+            return FutureBuilder<DocumentSnapshot>(
+              future: _snapService.getSenderData(doc.id),
+              builder: (context, userSnapshot) {
+                if (!userSnapshot.hasData) {
+                  return const ListTile(
+                    title: Text("..."),
+                    leading: Icon(Icons.person),
+                  );
+                }
+                final senderData =
+                    userSnapshot.data!.data() as Map<String, dynamic>;
+                final snapData = doc.data() as Map<String, dynamic>;
+                final isViewed = snapData['isViewed'] ?? false;
+                return ListTile(
+                  leading: Icon(
+                    isViewed ? EvaIcons.doneAllOutline : EvaIcons.emailOutline,
+                    color:
+                        isViewed ? SnapUIColors.grey : SnapUIColors.accentRed,
+                  ),
+                  title: Text(
+                    isViewed
+                        ? "Snap from ${senderData['username']}"
+                        : "New Snap from ${senderData['username']}",
+                  ),
+                  subtitle: Text(isViewed ? 'Tap to replay' : 'Tap to view'),
+                  onTap: () {
+                    _viewSnap(doc.id, snapData);
+                  },
+                );
+              },
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildSnapListItem(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-    bool isViewed = data['isViewed'] ?? false;
-
-    return FutureBuilder<DocumentSnapshot>(
-      future: _authService.getUserData(data['senderId']),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return ListTile(
-            leading: const Icon(Icons.photo_camera_back),
-            title: const Text("Loading..."),
-            onTap: () {},
-          );
-        }
-        if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
-          return ListTile(
-            leading: const Icon(Icons.photo_camera_back),
-            title: const Text("New Snap from an unknown user"),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ViewSnapPage(snap: doc),
-                ),
-              );
-            },
-          );
-        }
-        final senderData = snapshot.data!.data() as Map<String, dynamic>;
-        return ListTile(
-          leading: Icon(
-            isViewed ? Icons.replay : Icons.photo_camera_back,
-            color: isViewed ? Colors.grey : Colors.red,
-          ),
-          title: Text(
-            isViewed
-                ? "Replay snap from ${senderData['username']}"
-                : "New Snap from ${senderData['username']}",
-          ),
-          onTap: () async {
-            if (isViewed) {
-              // Handle replay logic
-              bool canReplay = await _authService.canUserReplay();
-              if (canReplay) {
-                await _authService.useReplayCredit();
-                if (!mounted) return;
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ViewSnapPage(snap: doc, isReplay: true),
-                  ),
-                );
-              } else {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("You can only replay one snap per day.")),
-                );
-              }
-            } else {
-              // Handle first view
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => ViewSnapPage(snap: doc, isReplay: false),
-                ),
-              );
-            }
-          },
-        );
-      },
+  void _viewSnap(String snapId, Map<String, dynamic> snapData) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ViewSnapPage(
+          snapId: snapId,
+          snapData: snapData,
+        ),
+      ),
     );
   }
 } 

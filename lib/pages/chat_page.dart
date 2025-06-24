@@ -1,27 +1,34 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:snapameal/components/chat_bubble.dart';
-import 'package:snapameal/components/my_textfield.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
+import 'package:snapameal/services/auth_service.dart';
 import 'package:snapameal/services/chat_service.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 
-class ChatPage extends StatelessWidget {
+class ChatPage extends StatefulWidget {
   final String chatRoomId;
-  final String chatTitle;
+  final String? recipientId; // Can be null for group chats
 
-  ChatPage({
+  const ChatPage({
     super.key,
     required this.chatRoomId,
-    required this.chatTitle,
+    this.recipientId,
   });
 
+  @override
+  State<ChatPage> createState() => _ChatPageState();
+}
+
+class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ChatService _chatService = ChatService();
+  final AuthService _authService = AuthService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
-      await _chatService.sendMessage(chatRoomId, _messageController.text);
+      await _chatService.sendMessage(widget.chatRoomId, _messageController.text);
       _messageController.clear();
     }
   }
@@ -30,7 +37,28 @@ class ChatPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(chatTitle),
+        title: widget.recipientId != null
+            ? StreamBuilder<DocumentSnapshot>(
+                stream: _authService.getUserStream(widget.recipientId!),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final user = snapshot.data!.data() as Map<String, dynamic>;
+                    return Row(
+                      children: [
+                        SnapAvatar(
+                          imageUrl: user['profileImageUrl'],
+                          name: user['username'],
+                          radius: 18,
+                        ),
+                        const SizedBox(width: SnapUIDimensions.spacingS),
+                        Text(user['username'] ?? 'Chat'),
+                      ],
+                    );
+                  }
+                  return const Text('Chat');
+                },
+              )
+            : const Text('Group Chat'),
       ),
       body: Column(
         children: [
@@ -45,7 +73,7 @@ class ChatPage extends StatelessWidget {
 
   Widget _buildMessageList() {
     return StreamBuilder(
-      stream: _chatService.getMessages(chatRoomId),
+      stream: _chatService.getMessages(widget.chatRoomId),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return const Text("Error");
@@ -72,7 +100,7 @@ class ChatPage extends StatelessWidget {
         crossAxisAlignment:
             isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          ChatBubble(
+          SnapChatBubble(
             message: data["message"],
             isCurrentUser: isCurrentUser,
           ),
@@ -87,16 +115,16 @@ class ChatPage extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: MyTextField(
+            child: SnapTextField(
               controller: _messageController,
-              hintText: "Type a message",
+              hintText: "Send a message...",
               obscureText: false,
             ),
           ),
           IconButton(
             onPressed: sendMessage,
-            icon: const Icon(Icons.arrow_upward),
-          )
+            icon: const Icon(EvaIcons.arrowUpwardOutline),
+          ),
         ],
       ),
     );

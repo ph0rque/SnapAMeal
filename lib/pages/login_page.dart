@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:snapameal/services/auth_service.dart';
-import 'package:snapameal/components/my_button.dart';
-import 'package:snapameal/components/my_textfield.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 
 class LoginPage extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
@@ -60,10 +60,9 @@ class LoginPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // logo
-              Icon(
-                Icons.message,
+              const Icon(
+                EvaIcons.messageSquare,
                 size: 60,
-                color: Theme.of(context).colorScheme.primary,
               ),
 
               const SizedBox(height: 50),
@@ -71,45 +70,33 @@ class LoginPage extends StatelessWidget {
               // welcome back message
               Text(
                 "Welcome back, you've been missed!",
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontSize: 16,
-                ),
+                style: Theme.of(context).textTheme.bodyLarge,
               ),
 
               const SizedBox(height: 25),
 
               // email textfield
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: MyTextField(
-                  hintText: "Email",
-                  obscureText: false,
-                  controller: _emailController,
-                ),
+              SnapTextField(
+                hintText: "Email",
+                obscureText: false,
+                controller: _emailController,
               ),
 
               const SizedBox(height: 10),
 
               // pw textfield
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: MyTextField(
-                  hintText: "Password",
-                  obscureText: true,
-                  controller: _pwController,
-                ),
+              SnapTextField(
+                hintText: "Password",
+                obscureText: true,
+                controller: _pwController,
               ),
 
               const SizedBox(height: 25),
 
-              // login button
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                child: MyButton(
-                  text: "Login",
-                  onTap: () => login(context),
-                ),
+              // sign in button
+              SnapButton(
+                onTap: () => login(context),
+                text: "Login",
               ),
 
               const SizedBox(height: 25),
@@ -120,17 +107,15 @@ class LoginPage extends StatelessWidget {
                 children: [
                   Text(
                     "Not a member? ",
-                    style:
-                        TextStyle(color: Theme.of(context).colorScheme.primary),
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  TextButton(
-                    onPressed: onTap,
+                  GestureDetector(
+                    onTap: onTap,
                     child: Text(
                       "Register now",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                   ),
                 ],

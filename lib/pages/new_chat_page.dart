@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:flutter/material.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:snapameal/pages/chat_page.dart';
 import 'package:snapameal/services/chat_service.dart';
 import 'package:snapameal/services/friend_service.dart';
@@ -24,7 +26,6 @@ class _NewChatPageState extends State<NewChatPage> {
     }
 
     String chatRoomId;
-    String chatTitle;
 
     if (_selectedFriendIds.length == 1) {
       // One-on-one chat
@@ -46,12 +47,11 @@ class _NewChatPageState extends State<NewChatPage> {
       }
 
       final friendData = await _friendService.getUserData(otherUserId);
-      chatTitle = (friendData.data() as Map<String, dynamic>)['username'] ?? 'User';
+      (friendData.data() as Map<String, dynamic>)['username'] ?? 'User';
 
     } else {
       // Group chat
       chatRoomId = await _chatService.createGroupChat(_selectedFriendIds);
-      chatTitle = "Group Chat";
     }
 
     if (!mounted) return;
@@ -60,7 +60,7 @@ class _NewChatPageState extends State<NewChatPage> {
       context,
       MaterialPageRoute(
         builder: (context) =>
-            ChatPage(chatRoomId: chatRoomId, chatTitle: chatTitle),
+            ChatPage(chatRoomId: chatRoomId),
       ),
     );
   }
@@ -102,6 +102,10 @@ class _NewChatPageState extends State<NewChatPage> {
                       userSnapshot.data!.data() as Map<String, dynamic>;
 
                   return CheckboxListTile(
+                    secondary: SnapAvatar(
+                      imageUrl: friendData['profileImageUrl'],
+                      name: friendData['username'],
+                    ),
                     title: Text(friendData['username'] ?? 'No username'),
                     value: isSelected,
                     onChanged: (bool? value) {
@@ -123,7 +127,7 @@ class _NewChatPageState extends State<NewChatPage> {
       floatingActionButton: _selectedFriendIds.isNotEmpty
           ? FloatingActionButton(
               onPressed: _onStartChat,
-              child: const Icon(Icons.chat),
+              child: const Icon(EvaIcons.arrowForwardOutline),
             )
           : null,
     );

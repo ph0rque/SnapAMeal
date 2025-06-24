@@ -93,6 +93,11 @@ class AuthService {
         .update({'lastReplayTimestamp': FieldValue.serverTimestamp()});
   }
 
+  // get user doc stream
+  Stream<DocumentSnapshot> getUserStream(String uid) {
+    return _firestore.collection('users').doc(uid).snapshots();
+  }
+
   // sign out
   Future<void> signOut() async {
     return await _auth.signOut();

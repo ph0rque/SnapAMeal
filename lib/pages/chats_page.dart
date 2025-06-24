@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:snapameal/pages/chat_page.dart';
 import 'package:snapameal/pages/new_chat_page.dart';
 import 'package:snapameal/services/chat_service.dart';
 import 'package:snapameal/services/friend_service.dart';
+import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 
 class ChatsPage extends StatefulWidget {
   const ChatsPage({super.key});
@@ -42,9 +44,6 @@ class _ChatsPageState extends State<ChatsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chats'),
-      ),
       body: _buildChatList(),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -53,7 +52,7 @@ class _ChatsPageState extends State<ChatsPage> {
             MaterialPageRoute(builder: (context) => const NewChatPage()),
           );
         },
-        child: const Icon(Icons.add),
+        child: const Icon(EvaIcons.messageCircleOutline),
       ),
     );
   }
@@ -127,11 +126,16 @@ class _ChatsPageState extends State<ChatsPage> {
               if (friendData == null) return const SizedBox.shrink();
               
               title = friendData['username'] ?? 'User';
+              final imageUrl = friendData['profileImageUrl'] as String?;
               
               final lastMessageTimestamp = chatData['lastMessageTimestamp'] as Timestamp?;
               final timestampText = _formatTimestamp(lastMessageTimestamp);
               
               return ListTile(
+                leading: SnapAvatar(
+                  imageUrl: imageUrl,
+                  name: title,
+                ),
                 title: Text(title),
                 subtitle: timestampText.isNotEmpty ? Text('Last message: $timestampText') : null,
                 trailing: streakCount > 0 
@@ -157,7 +161,7 @@ class _ChatsPageState extends State<ChatsPage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>
-                          ChatPage(chatRoomId: chatDoc.id, chatTitle: title),
+                          ChatPage(chatRoomId: chatDoc.id, recipientId: otherUserId),
                     ),
                   );
                 },
@@ -172,6 +176,10 @@ class _ChatsPageState extends State<ChatsPage> {
       final timestampText = _formatTimestamp(lastMessageTimestamp);
       
       return ListTile(
+        leading: const SnapAvatar(
+          name: "Group",
+          isGroup: true,
+        ),
         title: Text(title),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,7 +201,7 @@ class _ChatsPageState extends State<ChatsPage> {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  ChatPage(chatRoomId: chatDoc.id, chatTitle: title),
+                  ChatPage(chatRoomId: chatDoc.id),
             ),
           );
         },
