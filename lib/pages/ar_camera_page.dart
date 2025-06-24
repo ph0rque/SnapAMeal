@@ -1,9 +1,16 @@
 import 'dart:async';
+import 'dart:io';
+import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:snapameal/pages/preview_page.dart';
 
 class ARCameraPage extends StatefulWidget {
   const ARCameraPage({super.key});
@@ -17,6 +24,8 @@ class _ARCameraPageState extends State<ARCameraPage> {
   FaceDetector? _faceDetector;
   bool _isDetecting = false;
   List<Face> _faces = [];
+  Size? _imageSize;
+  final GlobalKey _globalKey = GlobalKey();
 
   @override
   void initState() {
@@ -25,7 +34,21 @@ class _ARCameraPageState extends State<ARCameraPage> {
   }
 
   Future<void> _initialize() async {
-    // Initialize camera
+    await _initializeCamera();
+    await _initializeFaceDetector();
+    setState(() {});
+  }
+
+  Future<void> _initializeFaceDetector() async {
+    _faceDetector = FaceDetector(
+      options: FaceDetectorOptions(
+        enableLandmarks: true,
+        performanceMode: FaceDetectorMode.fast,
+      ),
+    );
+  }
+
+  Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
     final frontCamera = cameras.firstWhere(
         (camera) => camera.lensDirection == CameraLensDirection.front,
@@ -39,14 +62,6 @@ class _ARCameraPageState extends State<ARCameraPage> {
 
     await _cameraController!.initialize();
 
-    // Initialize face detector
-    _faceDetector = FaceDetector(
-      options: FaceDetectorOptions(
-        enableContours: true,
-        enableLandmarks: true,
-      ),
-    );
-
     if (mounted) {
       setState(() {});
       _cameraController!.startImageStream(_processImage);
@@ -54,6 +69,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
   }
 
   void _processImage(CameraImage image) {
+    if (!mounted) return;
     if (_isDetecting) return;
     _isDetecting = true;
 
@@ -62,6 +78,10 @@ class _ARCameraPageState extends State<ARCameraPage> {
       _faceDetector?.processImage(inputImage).then((faces) {
         setState(() {
           _faces = faces;
+          _imageSize = Size(
+            image.width.toDouble(),
+            image.height.toDouble(),
+          );
         });
         _isDetecting = false;
       }).catchError((e) {
@@ -106,6 +126,38 @@ class _ARCameraPageState extends State<ARCameraPage> {
     super.dispose();
   }
 
+  Future<void> _takePicture() async {
+    try {
+      // Find the render object
+      RenderRepaintBoundary boundary =
+          _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      // Convert to image
+      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+      Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+      // Get temporary directory
+      final String dir = (await getTemporaryDirectory()).path;
+      final String filePath = '$dir/${DateTime.now().millisecondsSinceEpoch}.png';
+      final File file = File(filePath);
+      await file.writeAsBytes(pngBytes);
+
+      if (!mounted) return;
+
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PreviewPage(
+            picture: XFile(file.path),
+            isVideo: false,
+          ),
+        ),
+      );
+    } catch (e) {
+      print("Error taking picture: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
@@ -116,31 +168,52 @@ class _ARCameraPageState extends State<ARCameraPage> {
       );
     }
 
-    final size = MediaQuery.of(context).size;
-    // calculate scale to fit the screen
-    var scale = size.aspectRatio * _cameraController!.value.aspectRatio;
-    // to prevent scaling down, invert the value
-    if (scale < 1) scale = 1 / scale;
-
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Transform.scale(
-            scale: scale,
-            child: Center(
-              child: CameraPreview(_cameraController!),
+      body: RepaintBoundary(
+        key: _globalKey,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CameraPreview(_cameraController!),
+            if (_faces.isNotEmpty && _imageSize != null)
+              Opacity(
+                opacity: 0.7,
+                child: CustomPaint(
+                  painter: FacePainter(
+                    faces: _faces,
+                    imageSize: _imageSize!,
+                    screenSize: MediaQuery.of(context).size,
+                  ),
+                ),
+              ),
+            Positioned(
+              top: 40,
+              left: 10,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
             ),
-          ),
-          CustomPaint(
-            painter: FacePainter(
-              faces: _faces,
-              imageSize: _cameraController!.value.previewSize!,
-              // This will be needed for coordinate transformation
-              screenSize: size, 
-            ),
-          ),
-        ],
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: _takePicture,
+                  child: Container(
+                    width: 70,
+                    height: 70,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -159,15 +232,29 @@ class FacePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..color = Colors.red;
-
     for (final face in faces) {
-      // TODO: Coordinate transformation is needed here to correctly position the overlay.
-      // This is a placeholder implementation.
-      canvas.drawRect(face.boundingBox, paint);
+      final rect = _scaleRect(
+        rect: face.boundingBox,
+        imageSize: imageSize,
+        screenSize: size,
+      );
+
+      final textSpan = TextSpan(
+        text: '😎',
+        style: TextStyle(fontSize: rect.width * 0.6),
+      );
+
+      final textPainter = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      );
+
+      textPainter.layout();
+      final offset = Offset(
+        rect.center.dx - textPainter.width / 2,
+        rect.center.dy - textPainter.height / 2 - rect.height * 0.1,
+      );
+      textPainter.paint(canvas, offset);
     }
   }
 
@@ -176,5 +263,25 @@ class FacePainter extends CustomPainter {
     return oldDelegate.faces != faces ||
         oldDelegate.imageSize != imageSize ||
         oldDelegate.screenSize != screenSize;
+  }
+
+  Rect _scaleRect({
+    required Rect rect,
+    required Size imageSize,
+    required Size screenSize,
+  }) {
+    final double scaleX = screenSize.width / imageSize.height;
+    final double scaleY = screenSize.height / imageSize.width;
+    final double scale = max(scaleX, scaleY);
+
+    final double offsetX = (screenSize.width - imageSize.height * scale) / 2;
+    final double offsetY = (screenSize.height - imageSize.width * scale) / 2;
+    
+    return Rect.fromLTRB(
+      screenSize.width - (rect.right * scale + offsetX),
+      rect.top * scale + offsetY,
+      screenSize.width - (rect.left * scale + offsetX),
+      rect.bottom * scale + offsetY,
+    );
   }
 } 

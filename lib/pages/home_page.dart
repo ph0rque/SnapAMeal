@@ -1,3 +1,4 @@
+import 'package:snapameal/pages/ar_camera_page.dart';
 import 'package:snapameal/pages/friends_page.dart';
 import 'package:snapameal/pages/chat_page.dart';
 import 'package:snapameal/pages/camera_page.dart';
@@ -34,7 +35,10 @@ class _HomePageState extends State<HomePage> {
 
   void _onItemTapped(int index) {
     if (index == 1) { // Middle button for camera
-      _openCameraForSnap();
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ARCameraPage()),
+      );
       return;
     }
     setState(() {
@@ -43,15 +47,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openCameraForSnap() async {
-    final cameras = await availableCameras();
-    if (!mounted) return;
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => CameraPage(
-          cameras: cameras,
-        ),
-      ),
+      MaterialPageRoute(builder: (context) => const ARCameraPage()),
     );
   }
 
@@ -216,7 +214,7 @@ class _HomePageState extends State<HomePage> {
                                 : null,
                           ),
                           child: CircleAvatar(
-                            radius: 30,
+                            radius: 28,
                             backgroundColor: isMyStory ? Colors.blueAccent : Colors.grey[300],
                             child: isMyStory
                                 ? const Icon(Icons.add,
@@ -229,7 +227,7 @@ class _HomePageState extends State<HomePage> {
                         Text(
                           isMyStory ? 'My Story' : username,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12),
+                          style: const TextStyle(fontSize: 11),
                         ),
                       ],
                     ),
@@ -240,19 +238,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openStoryCamera() async {
-    final cameras = await availableCameras();
-    if (!mounted) return;
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => CameraPage(
-          cameras: cameras,
-          onStoryPosted: () {
-            // Optional: Show a confirmation or refresh stories
-            print("Story posted!");
-          },
-        ),
-      ),
+      MaterialPageRoute(builder: (context) => const ARCameraPage()),
     );
   }
 
