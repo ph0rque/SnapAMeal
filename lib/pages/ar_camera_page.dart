@@ -27,6 +27,9 @@ class _ARCameraPageState extends State<ARCameraPage> {
   Size? _imageSize;
   final GlobalKey _globalKey = GlobalKey();
 
+  final List<String> _filters = ['😎', '🤡', '👹', '👻', '👽'];
+  int _selectedFilterIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -76,6 +79,10 @@ class _ARCameraPageState extends State<ARCameraPage> {
     final inputImage = _inputImageFromCameraImage(image);
     if (inputImage != null) {
       _faceDetector?.processImage(inputImage).then((faces) {
+        if (!mounted) {
+          _isDetecting = false;
+          return;
+        }
         setState(() {
           _faces = faces;
           _imageSize = Size(
@@ -85,8 +92,10 @@ class _ARCameraPageState extends State<ARCameraPage> {
         });
         _isDetecting = false;
       }).catchError((e) {
-        print('Error processing image: $e');
-        _isDetecting = false;
+        if (mounted) {
+          print("Error processing image: $e");
+          _isDetecting = false;
+        }
       });
     } else {
       _isDetecting = false;
@@ -183,6 +192,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
                     faces: _faces,
                     imageSize: _imageSize!,
                     screenSize: MediaQuery.of(context).size,
+                    filter: _filters[_selectedFilterIndex],
                   ),
                 ),
               ),
@@ -198,22 +208,60 @@ class _ARCameraPageState extends State<ARCameraPage> {
               bottom: 20,
               left: 0,
               right: 0,
-              child: Center(
-                child: GestureDetector(
-                  onTap: _takePicture,
-                  child: Container(
-                    width: 70,
-                    height: 70,
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
+              child: Column(
+                children: [
+                  GestureDetector(
+                    onTap: _takePicture,
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 20),
+                  _buildFilterSelector(),
+                ],
               ),
             )
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFilterSelector() {
+    return Container(
+      height: 60,
+      color: Colors.black.withOpacity(0.5),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _filters.length,
+        itemBuilder: (context, index) {
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedFilterIndex = index;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                border: _selectedFilterIndex == index
+                    ? Border.all(color: Colors.yellow, width: 3)
+                    : null,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                _filters[index],
+                style: const TextStyle(fontSize: 40),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -223,11 +271,13 @@ class FacePainter extends CustomPainter {
   final List<Face> faces;
   final Size imageSize;
   final Size screenSize;
+  final String filter;
 
   FacePainter({
     required this.faces,
     required this.imageSize,
     required this.screenSize,
+    required this.filter,
   });
 
   @override
@@ -240,8 +290,8 @@ class FacePainter extends CustomPainter {
       );
 
       final textSpan = TextSpan(
-        text: '😎',
-        style: TextStyle(fontSize: rect.width * 0.6),
+        text: filter,
+        style: TextStyle(fontSize: rect.width * 0.45),
       );
 
       final textPainter = TextPainter(
@@ -252,7 +302,7 @@ class FacePainter extends CustomPainter {
       textPainter.layout();
       final offset = Offset(
         rect.center.dx - textPainter.width / 2,
-        rect.center.dy - textPainter.height / 2 - rect.height * 0.1,
+        rect.center.dy - textPainter.height / 2 - rect.height * 0.01,
       );
       textPainter.paint(canvas, offset);
     }
@@ -262,7 +312,8 @@ class FacePainter extends CustomPainter {
   bool shouldRepaint(FacePainter oldDelegate) {
     return oldDelegate.faces != faces ||
         oldDelegate.imageSize != imageSize ||
-        oldDelegate.screenSize != screenSize;
+        oldDelegate.screenSize != screenSize ||
+        oldDelegate.filter != filter;
   }
 
   Rect _scaleRect({
