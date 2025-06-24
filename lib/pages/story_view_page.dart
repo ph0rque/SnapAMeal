@@ -31,23 +31,59 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
   }
 
   Future<void> _loadStories() async {
-    final storiesSnapshot = await _storyService.getStoriesForUserStream(widget.userId).first;
-    setState(() {
-      _stories = storiesSnapshot.docs;
-    });
-    if (_stories.isNotEmpty) {
-      _playStory(_stories[_currentIndex]);
+    final storiesSnapshot = await _storyService.getStoriesForUser(widget.userId);
+
+    if (!mounted) return;
+
+    if (storiesSnapshot.docs.isNotEmpty) {
+      final now = Timestamp.now();
+      final validStories = storiesSnapshot.docs.where((story) {
+        final data = story.data() as Map<String, dynamic>?;
+        if (data == null || data['timestamp'] == null) return false;
+        final timestamp = data['timestamp'] as Timestamp;
+        return now.toDate().difference(timestamp.toDate()).inHours < 24;
+      }).toList();
+
+      if (!mounted) return;
+
+      setState(() {
+        _stories = validStories;
+        if (_stories.isNotEmpty) {
+          _startStory();
+        } else {
+          // No valid stories, pop back
+          if (mounted) Navigator.of(context).pop();
+        }
+      });
+    } else {
+      // No stories at all, pop back
+      if (mounted) Navigator.of(context).pop();
     }
   }
 
-  void _playStory(DocumentSnapshot story) {
+  void _startStory() {
+    if (_stories.isEmpty || _currentIndex >= _stories.length) {
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
+
+    final currentStoryData = _stories[_currentIndex].data() as Map<String, dynamic>?;
+
+    if (currentStoryData == null) {
+      // If story data is somehow null, pop
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
+
+    final type = currentStoryData['type'];
+    final duration = (currentStoryData['duration'] ?? 5) * 1000;
+
     _animationController.stop();
     _animationController.reset();
 
-    final data = story.data() as Map<String, dynamic>;
-    if (data['isVideo']) {
+    if (type == 'video') {
       _videoController?.dispose();
-      _videoController = VideoPlayerController.networkUrl(Uri.parse(data['mediaUrl']))
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(currentStoryData['mediaUrl']))
         ..initialize().then((_) {
           setState(() {});
           _videoController!.play();
@@ -55,7 +91,7 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
           _animationController.forward();
         });
     } else {
-      _animationController.duration = const Duration(seconds: 5);
+      _animationController.duration = Duration(milliseconds: duration);
       _animationController.forward();
     }
 
@@ -78,7 +114,8 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
         curve: Curves.easeIn,
       );
     } else {
-      Navigator.of(context).pop();
+      // Finished all stories
+      if (mounted) Navigator.of(context).pop();
     }
   }
 
@@ -112,7 +149,20 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
       );
     }
 
-    final currentStory = _stories[_currentIndex].data() as Map<String, dynamic>;
+    final currentStory = _stories[_currentIndex].data() as Map<String, dynamic>?;
+
+    if (currentStory == null) {
+      // Pop immediately if the story data is null
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).pop();
+      });
+      return const Scaffold(
+        body: Center(child: Text("Story data is unavailable.", style: TextStyle(color: Colors.white))),
+      );
+    }
+
+    final type = currentStory['type'];
+    final url = currentStory['url'];
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -135,27 +185,50 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
                 setState(() {
                   _currentIndex = index;
                 });
-                _playStory(_stories[index]);
+                _startStory();
               },
               itemBuilder: (context, index) {
-                final story = _stories[index].data() as Map<String, dynamic>;
-                if (story['isVideo']) {
-                  return (_videoController?.value.isInitialized ?? false)
-                      ? Center(
-                          child: AspectRatio(
-                            aspectRatio: _videoController!.value.aspectRatio,
-                            child: VideoPlayer(_videoController!),
-                          ),
-                        )
-                      : const Center(child: CircularProgressIndicator());
-                } else {
-                  return CachedNetworkImage(
-                    imageUrl: story['mediaUrl'],
-                    fit: BoxFit.contain,
-                    placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                    errorWidget: (context, url, error) => const Icon(Icons.error),
-                  );
-                }
+                if (index >= _stories.length) return const SizedBox.shrink();
+                final story = _stories[index].data() as Map<String, dynamic>?;
+                
+                if (story == null) return const SizedBox.shrink();
+
+                final timestamp = story['timestamp'] as Timestamp?;
+                if (timestamp == null) return const SizedBox.shrink();
+
+                return FutureBuilder<DocumentSnapshot>(
+                  future: _storyService.getUserData(story['senderId']),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return const Center(child: Text("Error loading user data"));
+                    } else {
+                      final userData = snapshot.data?.data() as Map<String, dynamic>?;
+                      if (userData == null) {
+                        return const Center(child: Text("User data is unavailable"));
+                      }
+
+                      if (story['isVideo']) {
+                        return (_videoController?.value.isInitialized ?? false)
+                            ? Center(
+                                child: AspectRatio(
+                                  aspectRatio: _videoController!.value.aspectRatio,
+                                  child: VideoPlayer(_videoController!),
+                                ),
+                              )
+                            : const Center(child: CircularProgressIndicator());
+                      } else {
+                        return CachedNetworkImage(
+                          imageUrl: story['mediaUrl'],
+                          fit: BoxFit.contain,
+                          placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
+                          errorWidget: (context, url, error) => const Icon(Icons.error),
+                        );
+                      }
+                    }
+                  },
+                );
               },
             ),
             Positioned(

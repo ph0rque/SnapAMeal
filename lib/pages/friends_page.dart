@@ -29,10 +29,10 @@ class _FriendsPageState extends State<FriendsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text("My Friends", style: TextStyle(fontWeight: FontWeight.bold)),
-            _buildFriendsList(),
+            Expanded(child: _buildFriendsList()),
             const SizedBox(height: 20),
             const Text("Friend Requests", style: TextStyle(fontWeight: FontWeight.bold)),
-            _buildFriendRequestList(),
+            Expanded(child: _buildFriendRequestList()),
             const SizedBox(height: 20),
             const Expanded(
               child: UserSearchWidget(),
@@ -59,7 +59,7 @@ class _FriendsPageState extends State<FriendsPage> {
 
         final friendIds = snapshot.data!;
         return ListView.builder(
-          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
           itemCount: friendIds.length,
           itemBuilder: (context, index) {
             final friendId = friendIds[index];
@@ -69,9 +69,12 @@ class _FriendsPageState extends State<FriendsPage> {
                 if (!userSnapshot.hasData) {
                   return const ListTile(title: Text("..."));
                 }
-                final friendData = userSnapshot.data!.data() as Map<String, dynamic>;
+                final friendData = userSnapshot.data!.data() as Map<String, dynamic>?;
+                if (friendData == null) {
+                  return const ListTile(title: Text("Friend data missing"));
+                }
                 return ListTile(
-                  title: Text(friendData['username']),
+                  title: Text(friendData['username'] ?? 'No name'),
                   leading: const Icon(Icons.person),
                   onTap: () async {
                     // Create or get chat room for one-on-one conversation
@@ -82,7 +85,7 @@ class _FriendsPageState extends State<FriendsPage> {
                       MaterialPageRoute(
                         builder: (context) => ChatPage(
                           chatRoomId: chatRoomId,
-                          chatTitle: friendData['username'],
+                          chatTitle: friendData['username'] ?? 'Chat',
                         ),
                       ),
                     );
@@ -111,7 +114,7 @@ class _FriendsPageState extends State<FriendsPage> {
         }
 
         return ListView(
-          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
           children: snapshot.data!.docs.map((doc) {
             final request = doc.data() as Map<String, dynamic>;
             final senderId = request['senderId'];
@@ -126,10 +129,13 @@ class _FriendsPageState extends State<FriendsPage> {
                   return const ListTile(title: Text("Unknown user"));
                 }
 
-                final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+                final userData = userSnapshot.data!.data() as Map<String, dynamic>?;
+                if (userData == null) {
+                  return const ListTile(title: Text("User data missing"));
+                }
 
                 return ListTile(
-                  title: Text(userData['username']),
+                  title: Text(userData['username'] ?? 'No name'),
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
