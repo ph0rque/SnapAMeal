@@ -1,3 +1,4 @@
+import 'package:snapameal/pages/friends_page.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
@@ -15,12 +16,29 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
+        backgroundColor: Colors.transparent,
+        foregroundColor: Colors.grey,
+        elevation: 0,
         actions: [
+          // Friends button
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FriendsPage()),
+              );
+            },
+            icon: const Icon(Icons.people),
+          ),
+          // Logout button
           IconButton(
             onPressed: logout,
             icon: const Icon(Icons.logout),
           ),
         ],
+      ),
+      body: const Center(
+        child: Text('Home Page'),
       ),
     );
   }

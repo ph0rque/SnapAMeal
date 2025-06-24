@@ -49,6 +49,7 @@ This phase establishes the core infrastructure and user authentication systems.
     *   Test rules with various scenarios (e.g., unauthorized access attempts)
     *   Deploy rules to Firestore
 *   **Estimate:** 2–3 days
+*   **Status:** Holding off until after Phase 4.
 
 **Total Estimate for Phase 1.1:** 2–3.5 weeks
 
@@ -65,6 +66,7 @@ This phase builds the essential messaging features: friend management, one-on-on
     *   Optionally sync contacts for friend suggestions
     *   Update Firestore to manage friend relationships
 *   **Estimate:** 1–2 weeks
+*   **Status:** Done
 
 **2. One-on-One Chat**
 *   **Subtasks:**

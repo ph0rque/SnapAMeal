@@ -4,6 +4,7 @@ import 'package:snapameal/components/my_button.dart';
 import 'package:snapameal/components/my_textfield.dart';
 
 class RegisterPage extends StatelessWidget {
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _pwController = TextEditingController();
   final TextEditingController _confirmPwController = TextEditingController();
@@ -31,6 +32,7 @@ class RegisterPage extends StatelessWidget {
         await _auth.signUpWithEmailPassword(
           _emailController.text,
           _pwController.text,
+          _usernameController.text,
         );
 
         // pop loading circle
@@ -88,6 +90,18 @@ class RegisterPage extends StatelessWidget {
             ),
 
             const SizedBox(height: 25),
+
+            // username textfield
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+              child: MyTextField(
+                hintText: "Username",
+                obscureText: false,
+                controller: _usernameController,
+              ),
+            ),
+
+            const SizedBox(height: 10),
 
             // email textfield
             Padding(
