@@ -18,6 +18,27 @@ class _ChatsPageState extends State<ChatsPage> {
   final FriendService _friendService = FriendService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  String _formatTimestamp(Timestamp? timestamp) {
+    if (timestamp == null) return '';
+    
+    final now = DateTime.now();
+    final messageTime = timestamp.toDate();
+    final difference = now.difference(messageTime);
+
+    if (difference.inMinutes < 1) {
+      return 'Now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      // Format as date for older messages
+      return '${messageTime.month}/${messageTime.day}/${messageTime.year}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,8 +72,24 @@ class _ChatsPageState extends State<ChatsPage> {
           return const Center(child: Text('No chats yet.'));
         }
 
+        // Sort chats by last message timestamp (most recent first)
+        final sortedDocs = snapshot.data!.docs.toList();
+        sortedDocs.sort((a, b) {
+          final aData = a.data() as Map<String, dynamic>?;
+          final bData = b.data() as Map<String, dynamic>?;
+          
+          final aTimestamp = aData?['lastMessageTimestamp'] as Timestamp?;
+          final bTimestamp = bData?['lastMessageTimestamp'] as Timestamp?;
+          
+          if (aTimestamp == null && bTimestamp == null) return 0;
+          if (aTimestamp == null) return 1;
+          if (bTimestamp == null) return -1;
+          
+          return bTimestamp.compareTo(aTimestamp); // Most recent first
+        });
+
         return ListView(
-          children: snapshot.data!.docs.map((doc) {
+          children: sortedDocs.map((doc) {
             return _buildChatListItem(doc);
           }).toList(),
         );
@@ -90,9 +127,31 @@ class _ChatsPageState extends State<ChatsPage> {
               if (friendData == null) return const SizedBox.shrink();
               
               title = friendData['username'] ?? 'User';
+              
+              final lastMessageTimestamp = chatData['lastMessageTimestamp'] as Timestamp?;
+              final timestampText = _formatTimestamp(lastMessageTimestamp);
+              
               return ListTile(
                 title: Text(title),
-                trailing: streakCount > 0 ? Text('🔥 $streakCount') : null,
+                subtitle: timestampText.isNotEmpty ? Text('Last message: $timestampText') : null,
+                trailing: streakCount > 0 
+                    ? Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text('🔥 $streakCount'),
+                          if (timestampText.isNotEmpty)
+                            Text(
+                              timestampText,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                        ],
+                      )
+                    : (timestampText.isNotEmpty 
+                        ? Text(
+                            timestampText,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          )
+                        : null),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -108,10 +167,27 @@ class _ChatsPageState extends State<ChatsPage> {
         }
       );
     } else {
-      // For group chats, you might want to show member count or other info
+      // For group chats, show member count and timestamp
+      final lastMessageTimestamp = chatData['lastMessageTimestamp'] as Timestamp?;
+      final timestampText = _formatTimestamp(lastMessageTimestamp);
+      
       return ListTile(
         title: Text(title),
-        subtitle: Text('${members.length} members'),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${members.length} members'),
+            if (timestampText.isNotEmpty)
+              Text('Last message: $timestampText'),
+          ],
+        ),
+        trailing: timestampText.isNotEmpty 
+            ? Text(
+                timestampText,
+                style: Theme.of(context).textTheme.bodySmall,
+              )
+            : null,
         onTap: () {
           Navigator.push(
             context,

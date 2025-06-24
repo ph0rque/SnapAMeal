@@ -11,6 +11,7 @@ class ChatService {
     return _firestore
         .collection('chat_rooms')
         .where('members', arrayContains: currentUserId)
+        .orderBy('lastMessageTimestamp', descending: true)
         .snapshots();
   }
 
