@@ -26,6 +26,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
   List<Face> _faces = [];
   Size? _imageSize;
   final GlobalKey _globalKey = GlobalKey();
+  InputImageRotation _rotation = InputImageRotation.rotation270deg;
 
   final List<String> _filters = ['😎', '🤡', '👹', '👻', '👽'];
   int _selectedFilterIndex = 0;
@@ -89,6 +90,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
             image.width.toDouble(),
             image.height.toDouble(),
           );
+          _rotation = inputImage.metadata?.rotation ?? InputImageRotation.rotation270deg;
         });
         _isDetecting = false;
       }).catchError((e) {
@@ -204,6 +206,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
                   imageSize: _imageSize!,
                   screenSize: MediaQuery.of(context).size,
                   filter: _filters[_selectedFilterIndex],
+                  rotation: _rotation,
                 ),
               ),
             Positioned(
@@ -282,58 +285,79 @@ class FacePainter extends CustomPainter {
   final Size imageSize;
   final Size screenSize;
   final String filter;
+  final InputImageRotation rotation;
 
   FacePainter({
     required this.faces,
     required this.imageSize,
     required this.screenSize,
     required this.filter,
+    required this.rotation,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (final face in faces) {
-      final rect = _scaleRect(
+    for (Face face in faces) {
+      final faceRect = _scaleRect(
         rect: face.boundingBox,
         imageSize: imageSize,
         screenSize: size,
+        rotation: rotation,
       );
-
-      // Calculate appropriate font size based on face size - appropriately sized
-      final fontSize = rect.width * 0.95; // Fine-tuned for optimal proportion
-      
-      final textSpan = TextSpan(
-        text: filter,
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: FontWeight.bold,
-          color: Colors.white.withValues(alpha: 0.4), // More transparent
-          shadows: [
-            Shadow(
-              offset: const Offset(3.0, 3.0),
-              blurRadius: 6.0,
-              color: Colors.black.withValues(alpha: 0.2),
-            ),
-          ],
-        ),
-      );
-
-      final textPainter = TextPainter(
-        text: textSpan,
-        textDirection: TextDirection.ltr,
-      );
-
-      textPainter.layout();
-      
-      // Position the filter more precisely on the face
-      // Adjust the vertical position to be more on the face center
-      final offset = Offset(
-        rect.center.dx - textPainter.width / 2,
-        rect.center.dy - textPainter.height / 2,
-      );
-      
-      textPainter.paint(canvas, offset);
+      _paintFilter(canvas, face, faceRect);
     }
+  }
+
+  void _paintFilter(Canvas canvas, Face face, Rect rect) {
+    final fontSize = rect.width * 0.95; // Fine-tuned for optimal proportion
+
+    final textSpan = TextSpan(
+      text: filter,
+      style: TextStyle(
+        fontSize: fontSize,
+        color: Colors.white.withOpacity(0.8),
+        shadows: [
+          Shadow(
+            offset: const Offset(2.0, 2.0),
+            blurRadius: 4.0,
+            color: Colors.black.withOpacity(0.5),
+          ),
+        ],
+      ),
+    );
+    final textPainter = TextPainter(
+      text: textSpan,
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout(
+      minWidth: 0,
+      maxWidth: rect.width,
+    );
+
+    final offset = Offset(
+      rect.center.dx - (textPainter.width / 2),
+      rect.center.dy - (textPainter.height / 2),
+    );
+    textPainter.paint(canvas, offset);
+  }
+
+  Rect _scaleRect({
+    required Rect rect,
+    required Size imageSize,
+    required Size screenSize,
+    required InputImageRotation rotation,
+  }) {
+    final double scaleX = screenSize.width / imageSize.height;
+    final double scaleY = screenSize.height / imageSize.width;
+
+    final double flippedX = imageSize.width - rect.right;
+
+    return Rect.fromLTRB(
+      flippedX * scaleX,
+      rect.top * scaleY,
+      (imageSize.width - rect.left) * scaleX,
+      rect.bottom * scaleY,
+    );
   }
 
   @override
@@ -341,42 +365,7 @@ class FacePainter extends CustomPainter {
     return oldDelegate.faces != faces ||
         oldDelegate.imageSize != imageSize ||
         oldDelegate.screenSize != screenSize ||
-        oldDelegate.filter != filter;
-  }
-
-  Rect _scaleRect({
-    required Rect rect,
-    required Size imageSize,
-    required Size screenSize,
-  }) {
-    // Calculate scale factors for both dimensions
-    final double scaleX = screenSize.width / imageSize.width;
-    final double scaleY = screenSize.height / imageSize.height;
-    
-    // Use the scale factor that fits the image to the screen (covering mode)
-    final double scale = max(scaleX, scaleY);
-    
-    // Calculate the size of the scaled image
-    final double scaledImageWidth = imageSize.width * scale;
-    final double scaledImageHeight = imageSize.height * scale;
-    
-    // Calculate offsets to center the image
-    final double offsetX = (screenSize.width - scaledImageWidth) / 2;
-    final double offsetY = (screenSize.height - scaledImageHeight) / 2;
-    
-    // Transform the face rectangle coordinates
-    // For front camera, we need to mirror horizontally
-    final double left = rect.left * scale + offsetX;
-    final double top = rect.top * scale + offsetY;
-    final double right = rect.right * scale + offsetX;
-    final double bottom = rect.bottom * scale + offsetY;
-    
-    // Mirror horizontally for front camera (selfie mode)
-    return Rect.fromLTRB(
-      screenSize.width - right,
-      top,
-      screenSize.width - left,
-      bottom,
-    );
+        oldDelegate.filter != filter ||
+        oldDelegate.rotation != rotation;
   }
 } 
