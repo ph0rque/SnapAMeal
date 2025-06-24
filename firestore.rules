@@ -22,8 +22,7 @@ service cloud.firestore {
         allow create, delete: if request.auth != null && request.auth.uid == userId;
         allow update: if request.auth != null && (
           request.auth.uid == userId || // Owner can update their own friends
-          request.auth.uid == friendId || // Friend can update streak data when sending snaps
-          (request.auth != null && 'streakCount' in request.resource.data) // Allow streak updates
+          (request.auth.uid == friendId && 'streakCount' in request.resource.data) // Friend can update streak data when sending snaps
         );
       }
 
@@ -81,6 +80,24 @@ service cloud.firestore {
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow read: if request.auth != null && (isFriend(resource.data.userId) || request.auth.uid == resource.data.userId);
       allow update, delete: if false;
+    }
+
+    // Friend Requests
+    // - A user can send a friend request to anyone (create)
+    // - A user can only read friend requests where they are the sender or receiver
+    // - A user can update a friend request to accept/decline it if they are the receiver
+    // - A user can delete a friend request if they are the sender or receiver
+    match /friend_requests/{requestId} {
+      allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.senderId || 
+        request.auth.uid == resource.data.receiverId
+      );
+      allow update: if request.auth != null && request.auth.uid == resource.data.receiverId;
+      allow delete: if request.auth != null && (
+        request.auth.uid == resource.data.senderId || 
+        request.auth.uid == resource.data.receiverId
+      );
     }
 
   }

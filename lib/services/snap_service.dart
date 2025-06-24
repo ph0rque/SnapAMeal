@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
+import 'friend_service.dart';
 
 class SnapService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -51,29 +52,18 @@ class SnapService {
           'createdAt': FieldValue.serverTimestamp(), // Add explicit creation timestamp
         };
         
-        debugPrint("Sending snap to recipient: $recipientId");
-        debugPrint("Snap data: $snapData");
-        
         // Try to add the snap document
-        try {
-          await _firestore
-              .collection('users')
-              .doc(recipientId)
-              .collection('snaps')
-              .add(snapData);
-          debugPrint("Successfully added snap document for $recipientId");
-        } catch (e) {
-          debugPrint("Error adding snap document for $recipientId: $e");
-          throw e; // Re-throw to be caught by outer try-catch
-        }
+        await _firestore
+            .collection('users')
+            .doc(recipientId)
+            .collection('snaps')
+            .add(snapData);
         
-        // Update streak
+        // Update streak (non-blocking)
         try {
           await _updateStreak(user.uid, recipientId);
-          debugPrint("Successfully updated streak for $recipientId");
         } catch (e) {
           debugPrint("Error updating streak for $recipientId: $e");
-          throw e; // Re-throw to be caught by outer try-catch
         }
 
       } catch (e) {
@@ -89,19 +79,16 @@ class SnapService {
     final recipientFriendDocRef = _firestore.collection('users').doc(recipientId).collection('friends').doc(senderId);
 
     try {
-      // Check if friend documents exist first
+      // Ensure current user's friend document exists
+      await FriendService().ensureCurrentUserFriendDocExists(recipientId);
+      
+      // Get sender's friend document
       final senderFriendDoc = await senderFriendDocRef.get();
-      final recipientFriendDoc = await recipientFriendDocRef.get();
-
-      debugPrint("Sender friend doc exists: ${senderFriendDoc.exists}");
-      debugPrint("Recipient friend doc exists: ${recipientFriendDoc.exists}");
-
-      // Skip if either friend document doesn't exist
-      if (!senderFriendDoc.exists || !recipientFriendDoc.exists) {
-        debugPrint("Friend documents don't exist - skipping streak update");
-        return;
+      if (!senderFriendDoc.exists) {
+        return; // Skip if no friend document
       }
 
+      // Calculate new streak count
       final data = senderFriendDoc.data()!;
       int currentStreak = data['streakCount'] ?? 0;
       Timestamp? lastSnapTimestamp = data['lastSnapTimestamp'];
@@ -117,35 +104,22 @@ class SnapService {
         currentStreak = 1; // First snap
       }
 
-      debugPrint("Updating sender friend doc: /users/$senderId/friends/$recipientId");
-      debugPrint("Updating recipient friend doc: /users/$recipientId/friends/$senderId");
-      debugPrint("Current user: ${_auth.currentUser?.uid}");
-      debugPrint("New streak count: $currentStreak");
-
       final updateData = {
         'streakCount': currentStreak,
         'lastSnapTimestamp': now,
       };
 
-      // Try updating sender's friend document first (should always work - user updating their own friend)
-      try {
-        await senderFriendDocRef.update(updateData);
-        debugPrint("Successfully updated sender friend doc");
-      } catch (e) {
-        debugPrint("Error updating sender friend doc: $e");
-      }
+      // Update sender's friend document
+      await senderFriendDocRef.update(updateData);
 
-      // Try updating recipient's friend document (this might fail due to permissions)
+      // Optionally try updating recipient's friend document (may fail)
       try {
         await recipientFriendDocRef.update(updateData);
-        debugPrint("Successfully updated recipient friend doc");
       } catch (e) {
-        debugPrint("Error updating recipient friend doc: $e");
-        // This is expected to fail sometimes due to permissions, don't worry about it
+        // Expected to fail sometimes - not a problem
       }
     } catch (e) {
       debugPrint("Error in _updateStreak: $e");
-      // Don't rethrow - streak update failure shouldn't block snap sending
     }
   }
 

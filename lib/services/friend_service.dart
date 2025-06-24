@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class FriendService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -146,10 +147,56 @@ class FriendService {
         .doc(friendId)
         .snapshots()
         .handleError((error) {
-      // Handle permission errors gracefully
-      print('Error getting friend doc stream for $friendId: $error');
+      debugPrint('Error getting friend doc stream for $friendId: $error');
       return null;
     });
+  }
+
+  // Get a specific friend's document (one-time read)
+  Future<DocumentSnapshot?> getFriendDoc(String friendId) async {
+    final currentUserId = _auth.currentUser!.uid;
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .collection('friends')
+          .doc(friendId)
+          .get();
+      return doc;
+    } catch (e) {
+      debugPrint('Error getting friend doc for $friendId: $e');
+      return null;
+    }
+  }
+
+  // Ensure current user's friend document exists (create if missing)
+  Future<void> ensureCurrentUserFriendDocExists(String friendId) async {
+    final currentUserId = _auth.currentUser!.uid;
+    
+    try {
+      final currentUserFriendDoc = await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .collection('friends')
+          .doc(friendId)
+          .get();
+      
+      if (!currentUserFriendDoc.exists) {
+        await _firestore
+            .collection('users')
+            .doc(currentUserId)
+            .collection('friends')
+            .doc(friendId)
+            .set({
+          'friendId': friendId,
+          'timestamp': FieldValue.serverTimestamp(),
+          'streakCount': 0,
+          'lastSnapTimestamp': null,
+        });
+      }
+    } catch (e) {
+      debugPrint('Error ensuring current user friend document exists: $e');
+    }
   }
 
   // Get or create a one-on-one chat room
