@@ -2,19 +2,27 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:snapameal/pages/select_friends_page.dart';
+import 'package:snapameal/services/story_service.dart';
 import 'package:video_player/video_player.dart';
 
 class PreviewPage extends StatefulWidget {
-  const PreviewPage({super.key, required this.picture, this.isVideo = false});
+  const PreviewPage({
+    super.key,
+    required this.picture,
+    this.isVideo = false,
+    this.onStoryPosted,
+  });
 
   final XFile picture;
   final bool isVideo;
+  final VoidCallback? onStoryPosted;
 
   @override
   State<PreviewPage> createState() => _PreviewPageState();
 }
 
 class _PreviewPageState extends State<PreviewPage> {
+  final StoryService _storyService = StoryService();
   int _durationInSeconds = 3;
   VideoPlayerController? _videoController;
 
@@ -67,42 +75,71 @@ class _PreviewPageState extends State<PreviewPage> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: Container(
-              color: Colors.black.withOpacity(0.5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  IconButton(
-                    icon: Text(
-                      '$_durationInSeconds',
-                      style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    onPressed: () => _showTimerSelectionDialog(context),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.white),
-                    onPressed: () {
-                      // TODO: Implement editing features
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => SelectFriendsPage(
-                            imagePath: widget.picture.path,
-                            duration: _durationInSeconds,
-                            isVideo: widget.isVideo,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ),
+            child: widget.onStoryPosted != null
+                ? _buildStoryPostButton()
+                : _buildSnapOptions(),
           )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStoryPostButton() {
+    return Container(
+      color: Colors.black.withOpacity(0.5),
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      child: Center(
+        child: ElevatedButton(
+          onPressed: () async {
+            await _storyService.postStory(widget.picture.path, widget.isVideo);
+            if (widget.onStoryPosted != null) {
+              widget.onStoryPosted!();
+            }
+            if (!mounted) return;
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+          child: const Text('Post to Story'),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSnapOptions() {
+    return Container(
+      color: Colors.black.withOpacity(0.5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          IconButton(
+            icon: Text(
+              '$_durationInSeconds',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold),
+            ),
+            onPressed: () => _showTimerSelectionDialog(context),
+          ),
+          IconButton(
+            icon: const Icon(Icons.edit, color: Colors.white),
+            onPressed: () {
+              // TODO: Implement editing features
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.send, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => SelectFriendsPage(
+                    imagePath: widget.picture.path,
+                    duration: _durationInSeconds,
+                    isVideo: widget.isVideo,
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );

@@ -2,36 +2,26 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:snapameal/components/chat_bubble.dart';
+import 'package:snapameal/components/my_textfield.dart';
 import 'package:snapameal/services/chat_service.dart';
 
-class ChatPage extends StatefulWidget {
-  final String receiverUsername;
-  final String receiverId;
+class ChatPage extends StatelessWidget {
+  final String chatRoomId;
+  final String chatTitle;
 
-  const ChatPage({
+  ChatPage({
     super.key,
-    required this.receiverUsername,
-    required this.receiverId,
+    required this.chatRoomId,
+    required this.chatTitle,
   });
 
-  @override
-  State<ChatPage> createState() => _ChatPageState();
-}
-
-class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
   final ChatService _chatService = ChatService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  @override
-  void initState() {
-    super.initState();
-    _chatService.markMessagesAsViewed(widget.receiverId);
-  }
-
-  void _sendMessage() async {
+  void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
-      await _chatService.sendMessage(widget.receiverId, _messageController.text);
+      await _chatService.sendMessage(chatRoomId, _messageController.text);
       _messageController.clear();
     }
   }
@@ -40,35 +30,31 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.receiverUsername),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.grey,
-        elevation: 0,
+        title: Text(chatTitle),
       ),
       body: Column(
         children: [
-          // display all messages
           Expanded(
             child: _buildMessageList(),
           ),
-
-          // message input
-          _buildMessageInput(),
+          _buildUserInput(),
         ],
       ),
     );
   }
 
   Widget _buildMessageList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _chatService.getMessages(widget.receiverId),
+    String senderId = _auth.currentUser!.uid;
+    return StreamBuilder(
+      stream: _chatService.getMessages(chatRoomId),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Text('Error');
+          return const Text("Error");
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Text("Loading...");
         }
+
         return ListView(
           children:
               snapshot.data!.docs.map((doc) => _buildMessageItem(doc)).toList(),
@@ -79,40 +65,38 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildMessageItem(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
-
-    // is current user
     bool isCurrentUser = data['senderId'] == _auth.currentUser!.uid;
 
-    // align message to the right if sender is current user, otherwise left
-    var alignment =
-        isCurrentUser ? Alignment.centerRight : Alignment.centerLeft;
-
     return Container(
-      alignment: alignment,
-      child: ChatBubble(
-        message: data['message'],
-        isCurrentUser: isCurrentUser,
+      alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
+      child: Column(
+        crossAxisAlignment:
+            isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [
+          ChatBubble(
+            message: data["message"],
+            isCurrentUser: isCurrentUser,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildMessageInput() {
+  Widget _buildUserInput() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: [
           Expanded(
-            child: TextField(
+            child: MyTextField(
               controller: _messageController,
-              decoration: const InputDecoration(
-                hintText: 'Enter a message...',
-              ),
+              hintText: "Type a message",
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: _sendMessage,
-          ),
+            onPressed: sendMessage,
+            icon: const Icon(Icons.arrow_upward),
+          )
         ],
       ),
     );

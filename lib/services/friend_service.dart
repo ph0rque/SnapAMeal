@@ -75,6 +75,32 @@ class FriendService {
       // 3. Add current user to sender's friend list
       final senderUserDoc = _firestore.collection('users').doc(senderId);
       transaction.update(senderUserDoc, {'friends': FieldValue.arrayUnion([currentUserId])});
+
+      // 4. Add friend to current user's friend list
+      await _firestore
+          .collection('users')
+          .doc(senderId)
+          .collection('friends')
+          .doc(currentUserId)
+          .set({
+        'friendId': currentUserId,
+        'timestamp': FieldValue.serverTimestamp(),
+        'streakCount': 0,
+        'lastSnapTimestamp': null,
+      });
+
+      // 5. Add friend to current user's friend list
+      await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .collection('friends')
+          .doc(senderId)
+          .set({
+        'friendId': senderId,
+        'timestamp': FieldValue.serverTimestamp(),
+        'streakCount': 0,
+        'lastSnapTimestamp': null,
+      });
     });
   }
 
@@ -108,5 +134,16 @@ class FriendService {
       }
       return [];
     });
+  }
+
+  // Get a specific friend's document stream
+  Stream<DocumentSnapshot> getFriendDocStream(String friendId) {
+    final currentUserId = _auth.currentUser!.uid;
+    return _firestore
+        .collection('users')
+        .doc(currentUserId)
+        .collection('friends')
+        .doc(friendId)
+        .snapshots();
   }
 } 

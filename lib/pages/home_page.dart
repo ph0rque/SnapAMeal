@@ -8,6 +8,14 @@ import 'package:snapameal/services/snap_service.dart';
 import 'package:snapameal/pages/view_snap_page.dart';
 import 'package:snapameal/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:snapameal/components/user_search.dart';
+import 'package:camera/camera.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:snapameal/pages/story_view_page.dart';
+import 'package:snapameal/services/friend_service.dart';
+import 'package:snapameal/services/story_service.dart';
+import 'package:snapameal/pages/chats_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,11 +28,38 @@ class _HomePageState extends State<HomePage> {
   final AuthService _authService = AuthService();
   final SnapService _snapService = SnapService();
   final NotificationService _notificationService = NotificationService();
+  final FriendService _friendService = FriendService();
+  final StoryService _storyService = StoryService();
+
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    if (index == 1) { // Middle button for camera
+      _openCameraForSnap();
+      return;
+    }
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  void _openCameraForSnap() async {
+    final cameras = await availableCameras();
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CameraPage(
+          cameras: cameras,
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
     super.initState();
-    _notificationService.initialize();
+    _notificationService.initialize(context);
   }
 
   void logout() {
@@ -35,43 +70,190 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.grey,
-        elevation: 0,
+        title: const Text("SnapAMeal"),
         actions: [
-          // Friends button
           IconButton(
+            icon: const Icon(Icons.person_add),
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FriendsPage()),
+                MaterialPageRoute(builder: (context) => UserSearch()),
               );
             },
-            icon: const Icon(Icons.people),
           ),
-          if (cameras.isNotEmpty)
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CameraPage(cameras: cameras)),
-                );
-              },
-              icon: const Icon(Icons.camera_alt),
-            ),
-          // Logout button
           IconButton(
-            onPressed: logout,
             icon: const Icon(Icons.logout),
+            onPressed: logout,
           ),
         ],
       ),
-      body: _buildSnapsList(),
+      body: _buildBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        type: BottomNavigationBarType.fixed,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera_alt),
+            label: 'Camera',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble),
+            label: 'Chats',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people),
+            label: 'Friends',
+          ),
+           BottomNavigationBarItem(
+            icon: Icon(Icons.explore),
+            label: 'Discover',
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildSnapsList() {
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildMainContent();
+      case 2:
+        return const ChatsPage();
+      case 3:
+        return UserSearch(); // Your friends page/widget
+      case 4:
+         return const Center(child: Text("Discover Page")); // Placeholder
+      default:
+        return _buildMainContent();
+    }
+  }
+
+  Widget _buildMainContent() {
+    return Column(
+      children: [
+        _buildStoryReel(),
+        Expanded(child: _buildSnapList()),
+      ],
+    );
+  }
+
+  Widget _buildStoryReel() {
+    return Container(
+      height: 100,
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: StreamBuilder<List<String>>(
+        stream: _friendService.getFriendsStream(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final friendIds = snapshot.data!;
+          return ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: friendIds.length + 1, // +1 for My Story
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                // My Story circle
+                return _buildStoryCircle(
+                  userId: FirebaseAuth.instance.currentUser!.uid,
+                  isMyStory: true,
+                );
+              }
+              // Friend story circles
+              final friendId = friendIds[index - 1];
+              return _buildStoryCircle(userId: friendId);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildStoryCircle({required String userId, bool isMyStory = false}) {
+    return StreamBuilder<QuerySnapshot>(
+        stream: _storyService.getStoriesForUserStream(userId),
+        builder: (context, storySnapshot) {
+          final hasStories =
+              storySnapshot.hasData && storySnapshot.data!.docs.isNotEmpty;
+
+          return GestureDetector(
+            onTap: () {
+              if (isMyStory) {
+                _openStoryCamera();
+              } else if (hasStories) {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => StoryViewPage(userId: userId)));
+              }
+            },
+            child: FutureBuilder<DocumentSnapshot>(
+                future: _friendService.getUserData(userId),
+                builder: (context, userSnapshot) {
+                  if (!userSnapshot.hasData) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      child: CircleAvatar(radius: 35),
+                    );
+                  }
+
+                  final username =
+                      (userSnapshot.data!.data() as Map<String, dynamic>)['username'] ?? 'User';
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: hasStories
+                                ? Border.all(color: Colors.pinkAccent, width: 3)
+                                : null,
+                          ),
+                          child: CircleAvatar(
+                            radius: 35,
+                            backgroundColor: isMyStory ? Colors.blueAccent : Colors.grey[300],
+                            child: isMyStory
+                                ? const Icon(Icons.add,
+                                    size: 40, color: Colors.white)
+                                : const Icon(Icons.person,
+                                    size: 40, color: Colors.grey),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(isMyStory ? 'My Story' : username),
+                      ],
+                    ),
+                  );
+                }),
+          );
+        });
+  }
+
+  void _openStoryCamera() async {
+    final cameras = await availableCameras();
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CameraPage(
+          cameras: cameras,
+          onStoryPosted: () {
+            // Optional: Show a confirmation or refresh stories
+            print("Story posted!");
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSnapList() {
     return StreamBuilder(
       stream: _snapService.getSnapsStream(),
       builder: (context, snapshot) {

@@ -6,9 +6,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:snapameal/pages/preview_page.dart';
 
 class CameraPage extends StatefulWidget {
-  const CameraPage({super.key, required this.cameras});
+  const CameraPage({super.key, required this.cameras, this.onStoryPosted});
 
   final List<CameraDescription> cameras;
+  final VoidCallback? onStoryPosted;
 
   @override
   State<CameraPage> createState() => _CameraPageState();
@@ -142,7 +143,11 @@ class _CameraPageState extends State<CameraPage> {
 
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => PreviewPage(picture: savedImage, isVideo: false),
+          builder: (context) => PreviewPage(
+            picture: savedImage, 
+            isVideo: false,
+            onStoryPosted: widget.onStoryPosted,
+          ),
         ),
       );
     } catch (e) {
@@ -181,7 +186,11 @@ class _CameraPageState extends State<CameraPage> {
 
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => PreviewPage(picture: savedFile, isVideo: true),
+          builder: (context) => PreviewPage(
+            picture: savedFile, 
+            isVideo: true,
+            onStoryPosted: widget.onStoryPosted,
+          ),
         ),
       );
     } catch (e) {

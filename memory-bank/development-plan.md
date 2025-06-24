@@ -105,6 +105,7 @@ This phase introduces social features: stories, group messaging, and streaks.
     *   Set up auto-deletion of stories after 24 hours via Cloud Functions
     *   Test story posting, viewing, and deletion
 *   **Estimate:** 1–2 weeks
+*   **Status:** Done
 
 **2. Group Messaging**
 *   **Subtasks:**
@@ -113,6 +114,7 @@ This phase introduces social features: stories, group messaging, and streaks.
     *   Optimize Firestore queries for multi-user chats
     *   Test group chat creation, messaging, and deletion logic
 *   **Estimate:** 1–2 weeks
+*   **Status:** Done
 
 **3. Streaks**
 *   **Subtasks:**
@@ -122,6 +124,7 @@ This phase introduces social features: stories, group messaging, and streaks.
     *   Set up FCM notifications for streak maintenance and expiration
     *   Test streak logic and notifications
 *   **Estimate:** 1–2 weeks
+*   **Status:** Done
 
 **Total Estimate for Phase 3:** 4–6 weeks
 
