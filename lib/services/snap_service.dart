@@ -52,14 +52,28 @@ class SnapService {
         
         debugPrint("Sending snap to recipient: $recipientId");
         debugPrint("Snap data: $snapData");
-        await _firestore
-            .collection('users')
-            .doc(recipientId)
-            .collection('snaps')
-            .add(snapData);
+        
+        // Try to add the snap document
+        try {
+          await _firestore
+              .collection('users')
+              .doc(recipientId)
+              .collection('snaps')
+              .add(snapData);
+          debugPrint("Successfully added snap document for $recipientId");
+        } catch (e) {
+          debugPrint("Error adding snap document for $recipientId: $e");
+          throw e; // Re-throw to be caught by outer try-catch
+        }
         
         // Update streak
-        await _updateStreak(user.uid, recipientId);
+        try {
+          await _updateStreak(user.uid, recipientId);
+          debugPrint("Successfully updated streak for $recipientId");
+        } catch (e) {
+          debugPrint("Error updating streak for $recipientId: $e");
+          throw e; // Re-throw to be caught by outer try-catch
+        }
 
       } catch (e) {
         debugPrint("Error sending snap to $recipientId: $e");
@@ -73,37 +87,46 @@ class SnapService {
     final senderFriendDocRef = _firestore.collection('users').doc(senderId).collection('friends').doc(recipientId);
     final recipientFriendDocRef = _firestore.collection('users').doc(recipientId).collection('friends').doc(senderId);
 
-    await _firestore.runTransaction((transaction) async {
-      final senderFriendDoc = await transaction.get(senderFriendDocRef);
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final senderFriendDoc = await transaction.get(senderFriendDocRef);
+        final recipientFriendDoc = await transaction.get(recipientFriendDocRef);
 
-      if (!senderFriendDoc.exists) return;
-
-      final data = senderFriendDoc.data()!;
-      int currentStreak = data['streakCount'] ?? 0;
-      Timestamp? lastSnapTimestamp = data['lastSnapTimestamp'];
-
-      if (lastSnapTimestamp != null) {
-        final difference = now.toDate().difference(lastSnapTimestamp.toDate());
-        if (difference.inHours >= 24 && difference.inHours < 48) {
-          currentStreak++;
-        } else if (difference.inHours >= 48) {
-          currentStreak = 1; // Reset streak
+        // Skip if either friend document doesn't exist
+        if (!senderFriendDoc.exists || !recipientFriendDoc.exists) {
+          debugPrint("Friend documents don't exist - skipping streak update");
+          return;
         }
-      } else {
-        currentStreak = 1; // First snap
-      }
 
-      // Update both sides of the friendship
-      transaction.update(senderFriendDocRef, {
-        'streakCount': currentStreak,
-        'lastSnapTimestamp': now,
-      });
-       transaction.update(recipientFriendDocRef, {
-        'streakCount': currentStreak,
-        'lastSnapTimestamp': now,
-      });
+        final data = senderFriendDoc.data()!;
+        int currentStreak = data['streakCount'] ?? 0;
+        Timestamp? lastSnapTimestamp = data['lastSnapTimestamp'];
 
-    });
+        if (lastSnapTimestamp != null) {
+          final difference = now.toDate().difference(lastSnapTimestamp.toDate());
+          if (difference.inHours >= 24 && difference.inHours < 48) {
+            currentStreak++;
+          } else if (difference.inHours >= 48) {
+            currentStreak = 1; // Reset streak
+          }
+        } else {
+          currentStreak = 1; // First snap
+        }
+
+        // Update both sides of the friendship
+        transaction.update(senderFriendDocRef, {
+          'streakCount': currentStreak,
+          'lastSnapTimestamp': now,
+        });
+         transaction.update(recipientFriendDocRef, {
+          'streakCount': currentStreak,
+          'lastSnapTimestamp': now,
+        });
+      });
+    } catch (e) {
+      debugPrint("Error in _updateStreak transaction: $e");
+      // Don't rethrow - streak update failure shouldn't block snap sending
+    }
   }
 
   Stream<QuerySnapshot> getSnapsStream() {
