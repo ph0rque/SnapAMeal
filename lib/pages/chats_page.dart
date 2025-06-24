@@ -61,7 +61,9 @@ class _ChatsPageState extends State<ChatsPage> {
   }
 
   Widget _buildChatListItem(DocumentSnapshot chatDoc) {
-    final chatData = chatDoc.data() as Map<String, dynamic>;
+    final chatData = chatDoc.data() as Map<String, dynamic>?;
+    if (chatData == null) return const SizedBox.shrink();
+
     final members = List<String>.from(chatData['members']);
     final isGroup = chatData['isGroup'] as bool;
     final currentUserId = _auth.currentUser!.uid;
@@ -75,8 +77,8 @@ class _ChatsPageState extends State<ChatsPage> {
           if (!friendSnapshot.hasData) {
             return const ListTile(title: Text("Loading..."));
           }
-
-          final streakCount = (friendSnapshot.data!.data() as Map<String, dynamic>)['streakCount'] ?? 0;
+          final streakData = friendSnapshot.data!.data() as Map<String, dynamic>?;
+          final streakCount = streakData?['streakCount'] ?? 0;
 
           return FutureBuilder<DocumentSnapshot>(
             future: _friendService.getUserData(otherUserId),
@@ -84,7 +86,9 @@ class _ChatsPageState extends State<ChatsPage> {
               if (!userSnapshot.hasData) {
                 return const ListTile(title: Text("Loading..."));
               }
-              final friendData = userSnapshot.data!.data() as Map<String, dynamic>;
+              final friendData = userSnapshot.data!.data() as Map<String, dynamic>?;
+              if (friendData == null) return const SizedBox.shrink();
+              
               title = friendData['username'] ?? 'User';
               return ListTile(
                 title: Text(title),
