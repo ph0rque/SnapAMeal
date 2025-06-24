@@ -52,25 +52,37 @@ class _ARCameraPageState extends State<ARCameraPage> {
   }
 
   Future<void> _initializeFaceDetector() async {
-    // Only initialize face detector after camera is working
-    if (_cameraController != null && _cameraController!.value.isInitialized) {
-      _faceDetector = FaceDetector(
-        options: FaceDetectorOptions(
-          enableLandmarks: true,
-          performanceMode: FaceDetectorMode.fast,
-        ),
-      );
+    // Only initialize face detector after camera is working and in photo mode
+    if (_cameraController != null && 
+        _cameraController!.value.isInitialized && 
+        !_isVideoMode && 
+        _faceDetector == null) {
       
-      // Wait before starting image stream
-      await Future.delayed(const Duration(milliseconds: 2000));
-      
-      if (mounted && _cameraController != null && _cameraController!.value.isInitialized) {
-        try {
-          await _cameraController!.startImageStream(_processImage);
-        } catch (e) {
-          debugPrint('Error starting image stream: $e');
-          // Continue without face detection if it fails
+      try {
+        _faceDetector = FaceDetector(
+          options: FaceDetectorOptions(
+            enableLandmarks: true,
+            performanceMode: FaceDetectorMode.fast,
+          ),
+        );
+        
+        // Wait before starting image stream
+        await Future.delayed(const Duration(milliseconds: 2000));
+        
+        if (mounted && 
+            _cameraController != null && 
+            _cameraController!.value.isInitialized &&
+            !_isVideoMode &&
+            _cameraController!.value.isStreamingImages == false) {
+          try {
+            await _cameraController!.startImageStream(_processImage);
+          } catch (e) {
+            debugPrint('Error starting image stream: $e');
+            // Continue without face detection if it fails
+          }
         }
+      } catch (e) {
+        debugPrint('Error initializing face detector: $e');
       }
     }
   }
@@ -87,11 +99,12 @@ class _ARCameraPageState extends State<ARCameraPage> {
           (camera) => camera.lensDirection == CameraLensDirection.front,
           orElse: () => cameras.first);
 
-      // Use better camera configuration for improved aspect ratio
+      // Use better camera configuration for improved quality and stability
       _cameraController = CameraController(
         frontCamera,
-        ResolutionPreset.high, // Use higher resolution for better quality and aspect ratio
+        ResolutionPreset.medium, // Use medium resolution for better balance
         enableAudio: true, // Enable audio for video recording
+        imageFormatGroup: ImageFormatGroup.jpeg, // Specify image format
       );
 
       await _cameraController!.initialize();
@@ -281,18 +294,11 @@ class _ARCameraPageState extends State<ARCameraPage> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            // Ensure camera preview fills the screen with proper aspect ratio
-            ClipRect(
-              child: OverflowBox(
-                alignment: Alignment.center,
-                child: FittedBox(
-                  fit: BoxFit.fitWidth,
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.width / _cameraController!.value.aspectRatio,
-                    child: CameraPreview(_cameraController!),
-                  ),
-                ),
+            // Full screen camera preview without distortion
+            Transform.scale(
+              scale: 1.0,
+              child: Center(
+                child: CameraPreview(_cameraController!),
               ),
             ),
             // Only show face filters when not recording video and a filter is selected
@@ -470,8 +476,30 @@ class _ARCameraPageState extends State<ARCameraPage> {
     );
   }
 
-  void _setMode(bool isVideoMode) {
+  void _setMode(bool isVideoMode) async {
     if (_isRecording) return; // Don't allow mode change while recording
+    
+    try {
+      if (isVideoMode) {
+        // Stop image stream when switching to video mode to prevent conflicts
+        if (_cameraController?.value.isStreamingImages == true) {
+          await _cameraController!.stopImageStream();
+        }
+      } else {
+        // Restart image stream when switching back to photo mode
+        if (_cameraController?.value.isInitialized == true && 
+            _cameraController?.value.isStreamingImages == false &&
+            _faceDetector != null) {
+          try {
+            await _cameraController!.startImageStream(_processImage);
+          } catch (e) {
+            debugPrint('Error restarting image stream: $e');
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('Error switching camera mode: $e');
+    }
     
     setState(() {
       _isVideoMode = isVideoMode;
