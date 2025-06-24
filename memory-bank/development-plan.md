@@ -87,6 +87,7 @@ This phase builds the essential messaging features: friend management, one-on-on
     *   Add replay functionality (one replay per day) and screenshot notifications via FCM
     *   Test snap sending, viewing, and deletion flows
 *   **Estimate:** 2–3 weeks
+*   **Status:** Done
 
 **Total Estimate for Phase 2:** 5–7 weeks
 

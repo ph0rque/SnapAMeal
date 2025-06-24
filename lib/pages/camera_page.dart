@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:snapameal/pages/preview_page.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key, required this.cameras});
@@ -15,6 +16,7 @@ class _CameraPageState extends State<CameraPage> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
   int _selectedCameraIndex = 0;
+  bool _isRecording = false;
 
   @override
   void initState() {
@@ -76,29 +78,15 @@ class _CameraPageState extends State<CameraPage> {
                           },
                         ),
                         GestureDetector(
-                          onTap: () async {
-                            try {
-                              await _initializeControllerFuture;
-                              final image = await _controller.takePicture();
-                              if (!mounted) return;
-                              await Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (context) => Scaffold(
-                                    appBar: AppBar(title: const Text('Picture Taken')),
-                                    body: Image.file(File(image.path)),
-                                  ),
-                                ),
-                              );
-                            } catch (e) {
-                              print(e);
-                            }
-                          },
+                          onTap: _takePicture,
+                          onLongPressStart: (_) => _startVideoRecording(),
+                          onLongPressEnd: (_) => _stopVideoRecording(),
                           child: Container(
                             width: 70,
                             height: 70,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.white,
+                              color: _isRecording ? Colors.red : Colors.white,
                             ),
                           ),
                         ),
@@ -118,5 +106,57 @@ class _CameraPageState extends State<CameraPage> {
         },
       ),
     );
+  }
+
+  Future<void> _takePicture() async {
+    try {
+      await _initializeControllerFuture;
+      final image = await _controller.takePicture();
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PreviewPage(picture: image, isVideo: false),
+        ),
+      );
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  Future<void> _startVideoRecording() async {
+    if (!_controller.value.isInitialized) {
+      return;
+    }
+    setState(() {
+      _isRecording = true;
+    });
+    try {
+      await _controller.startVideoRecording();
+    } catch (e) {
+      print(e);
+      return;
+    }
+  }
+
+  Future<void> _stopVideoRecording() async {
+    if (!_controller.value.isRecordingVideo) {
+      return;
+    }
+
+    try {
+      final file = await _controller.stopVideoRecording();
+      setState(() {
+        _isRecording = false;
+      });
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PreviewPage(picture: file, isVideo: true),
+        ),
+      );
+    } catch (e) {
+      print(e);
+      return;
+    }
   }
 } 

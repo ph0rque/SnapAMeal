@@ -3,6 +3,7 @@ import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 import {onDocumentUpdated} from "firebase-functions/v2/firestore";
 import {onSchedule} from "firebase-functions/v2/scheduler";
+import {onCall} from "firebase-functions/v2/https";
 
 setGlobalOptions({maxInstances: 10});
 
@@ -11,7 +12,7 @@ const db = admin.firestore();
 const storage = admin.storage();
 
 /**
- * Triggered when a snap is updated. If the 'isViewed' field is changed to
+ * Triggered when a snap is updated. If the 'replayed' field is changed to
  * true, the snap document and the corresponding image are deleted.
  */
 export const onSnapViewed = onDocumentUpdated(
@@ -27,10 +28,10 @@ export const onSnapViewed = onDocumentUpdated(
     const beforeData = change.before.data();
     const afterData = change.after.data();
 
-    if (beforeData?.isViewed === false && afterData?.isViewed === true) {
+    if (beforeData?.replayed === false && afterData?.replayed === true) {
       logger.log(
         `Snap ${event.params.snapId} for user ${event.params.userId} ` +
-        "has been viewed. Deleting."
+        "has been replayed. Deleting."
       );
 
       // Delete the image from Storage
@@ -96,4 +97,34 @@ export const deleteOldSnaps = onSchedule("every 1 hours", async () => {
   logger.log(
     `Deleted ${oldUnreadSnaps.size} old, unread snaps.`
   );
+});
+
+export const sendScreenshotNotification = onCall(async (request) => {
+  const {snap, viewerUsername} = request.data;
+  const senderId = snap.senderId;
+
+  // Get sender's FCM token
+  const userDoc = await db.collection("users").doc(senderId).get();
+  const userData = userDoc.data();
+  if (!userData || !userData.fcmToken) {
+    logger.error("Sender FCM token not found.");
+    return;
+  }
+  const fcmToken = userData.fcmToken;
+
+  // Send notification
+  const payload = {
+    notification: {
+      title: "Snap Screenshot!",
+      body: `${viewerUsername} took a screenshot of your snap!`,
+    },
+    token: fcmToken,
+  };
+
+  try {
+    await admin.messaging().send(payload);
+    logger.log("Successfully sent screenshot notification.");
+  } catch (error) {
+    logger.error("Error sending screenshot notification:", error);
+  }
 });

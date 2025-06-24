@@ -47,16 +47,50 @@ class AuthService {
       );
 
       // save user info in a separate doc
-      await _firestore.collection("users").doc(userCredential.user!.uid).set({
-        'uid': userCredential.user!.uid,
-        'email': email,
-        'username': username,
-      });
+      await _firestore
+          .collection("users")
+          .doc(userCredential.user!.uid)
+          .set({
+            'uid': userCredential.user!.uid,
+            'email': email,
+            'username': username,
+            'lastReplayTimestamp': null,
+          });
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw Exception(e.code);
     }
+  }
+
+  // get user data
+  Future<DocumentSnapshot> getUserData(String uid) {
+    return _firestore.collection("users").doc(uid).get();
+  }
+
+  Future<bool> canUserReplay() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+
+    final doc = await getUserData(user.uid);
+    final data = doc.data() as Map<String, dynamic>?;
+    final lastReplay = data?['lastReplayTimestamp'] as Timestamp?;
+
+    if (lastReplay == null) {
+      return true; // Never replayed before
+    }
+
+    final oneDayAgo = DateTime.now().subtract(const Duration(days: 1));
+    return lastReplay.toDate().isBefore(oneDayAgo);
+  }
+
+  Future<void> useReplayCredit() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .update({'lastReplayTimestamp': FieldValue.serverTimestamp()});
   }
 
   // sign out

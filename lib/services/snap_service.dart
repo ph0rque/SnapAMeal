@@ -1,0 +1,78 @@
+import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+
+class SnapService {
+  final FirebaseStorage _storage = FirebaseStorage.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> sendSnap(String imagePath, int duration, List<String> recipientIds, bool isVideo) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    // 1. Upload image to Firebase Storage
+    final file = File(imagePath);
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}.${isVideo ? 'mp4' : 'jpg'}';
+    final ref = _storage.ref().child('snaps').child(user.uid).child(fileName);
+    final uploadTask = await ref.putFile(file);
+    final imageUrl = await uploadTask.ref.getDownloadURL();
+
+    // 2. Create snap metadata for each recipient
+    final snapData = {
+      'imageUrl': imageUrl,
+      'senderId': user.uid,
+      'timestamp': FieldValue.serverTimestamp(),
+      'duration': duration,
+      'isViewed': false,
+      'isVideo': isVideo,
+      'replayed': false,
+    };
+
+    for (String recipientId in recipientIds) {
+      await _firestore
+          .collection('users')
+          .doc(recipientId)
+          .collection('snaps')
+          .add(snapData);
+    }
+  }
+
+  Stream<QuerySnapshot> getSnapsStream() {
+    final user = _auth.currentUser;
+    if (user == null) {
+      return const Stream.empty();
+    }
+    return _firestore
+        .collection('users')
+        .doc(user.uid)
+        .collection('snaps')
+        .where('replayed', isEqualTo: false)
+        .orderBy('timestamp', descending: true)
+        .snapshots();
+  }
+
+  Future<void> notifySenderOfScreenshot(DocumentSnapshot snap) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    // Get current user's username
+    final currentUserDoc = await _firestore.collection('users').doc(user.uid).get();
+    final currentUsername = currentUserDoc.data()?['username'] ?? 'Someone';
+
+    // Call the cloud function
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable('sendScreenshotNotification');
+      await callable.call({
+        'snap': snap.data(),
+        'viewerUsername': currentUsername,
+      });
+    } on FirebaseFunctionsException catch (e) {
+      print('Caught FirebaseFunctionsException: ${e.code}, ${e.message}');
+    } catch (e) {
+      print('Caught generic exception: $e');
+    }
+  }
+} 
