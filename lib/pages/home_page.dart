@@ -1,4 +1,6 @@
 import 'package:snapameal/pages/friends_page.dart';
+import 'package:snapameal/pages/chat_page.dart';
+import 'package:snapameal/pages/camera_page.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
@@ -29,6 +31,15 @@ class HomePage extends StatelessWidget {
               );
             },
             icon: const Icon(Icons.people),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CameraPage(cameras: cameras)),
+              );
+            },
+            icon: const Icon(Icons.camera_alt),
           ),
           // Logout button
           IconButton(

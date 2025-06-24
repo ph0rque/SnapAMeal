@@ -4,13 +4,23 @@ import 'package:snapameal/pages/auth_gate.dart';
 import 'package:snapameal/themes/light_mode.dart';
 import 'package:snapameal/themes/dark_mode.dart';
 import 'firebase_options.dart';
+import 'package:camera/camera.dart';
+import 'package:provider/provider.dart';
 
-void main() async {
+late List<CameraDescription> cameras;
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  cameras = await availableCameras();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => MyApp(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
