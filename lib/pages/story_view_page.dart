@@ -30,8 +30,8 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
     _loadStories();
   }
 
-  Future<void> _loadStories() async {
-    final storiesSnapshot = await _storyService.getStoriesForUser(widget.userId);
+  void _loadStories() async {
+    final storiesSnapshot = await _storyService.getStoriesForUserStream(widget.userId).first;
 
     if (!mounted) return;
 
