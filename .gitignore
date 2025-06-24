@@ -82,6 +82,7 @@ build/
 /ios/firebase_app_id_file.json
 /ios/Runner/GoogleService-Info.plist
 /android/app/google-services.json
+lib/firebase_options.dart
 
 # Memory Bank - Optional: uncomment if you don't want to track
 # memory-bank/

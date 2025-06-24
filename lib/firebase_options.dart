@@ -51,7 +51,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDKR4q1ahvIYqcBa8H_A8woQ9dPJCUevdg',
+    apiKey: 'AIzaSyCNYK0YFNBzXqoerc4BEqhdhBfK4lXMRTU',
     appId: '1:1027682286218:android:70a64e4cedffc1f0228b73',
     messagingSenderId: '1027682286218',
     projectId: 'snapameal-cabc7',
@@ -64,7 +64,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1027682286218',
     projectId: 'snapameal-cabc7',
     storageBucket: 'snapameal-cabc7.firebasestorage.app',
-    iosBundleId: 'com.example.snapameal',
+    iosClientId: '1027682286218-qbir9hfghc3mi8j702tu08h6vnn52aji.apps.googleusercontent.com',
+    iosBundleId: 'com.example.snapconnect',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +74,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1027682286218',
     projectId: 'snapameal-cabc7',
     storageBucket: 'snapameal-cabc7.firebasestorage.app',
-    iosBundleId: 'com.example.snapameal',
+    iosClientId: '1027682286218-qbir9hfghc3mi8j702tu08h6vnn52aji.apps.googleusercontent.com',
+    iosBundleId: 'com.example.snapconnect',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
@@ -85,4 +87,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'snapameal-cabc7.firebasestorage.app',
     measurementId: 'G-RV8KQS1EHZ',
   );
+
 }
