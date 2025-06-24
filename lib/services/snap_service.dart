@@ -37,20 +37,21 @@ class SnapService {
     }
 
     // 2. Create snap metadata for each recipient
-    final snapData = {
-      'imageUrl': imageUrl,
-      'senderId': user.uid,
-      'timestamp': FieldValue.serverTimestamp(),
-      'duration': duration,
-      'isViewed': false,
-      'isVideo': isVideo,
-      'replayed': false,
-    };
-
     for (String recipientId in recipientIds) {
       try {
-            debugPrint("Sending snap to recipient: $recipientId");
-    debugPrint("Snap data: $snapData");
+        final snapData = {
+          'imageUrl': imageUrl,
+          'senderId': user.uid,
+          'receiverId': recipientId, // Add receiverId for each recipient
+          'timestamp': FieldValue.serverTimestamp(),
+          'duration': duration,
+          'isViewed': false,
+          'isVideo': isVideo,
+          'replayed': false,
+        };
+        
+        debugPrint("Sending snap to recipient: $recipientId");
+        debugPrint("Snap data: $snapData");
         await _firestore
             .collection('users')
             .doc(recipientId)
