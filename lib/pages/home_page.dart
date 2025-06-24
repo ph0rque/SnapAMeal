@@ -216,17 +216,21 @@ class _HomePageState extends State<HomePage> {
                                 : null,
                           ),
                           child: CircleAvatar(
-                            radius: 35,
+                            radius: 30,
                             backgroundColor: isMyStory ? Colors.blueAccent : Colors.grey[300],
                             child: isMyStory
                                 ? const Icon(Icons.add,
-                                    size: 40, color: Colors.white)
+                                    size: 35, color: Colors.white)
                                 : const Icon(Icons.person,
-                                    size: 40, color: Colors.grey),
+                                    size: 35, color: Colors.grey),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(isMyStory ? 'My Story' : username),
+                        const SizedBox(height: 2),
+                        Text(
+                          isMyStory ? 'My Story' : username,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12),
+                        ),
                       ],
                     ),
                   );
@@ -347,4 +351,5 @@ class _HomePageState extends State<HomePage> {
       },
     );
   }
+} 
 } 
