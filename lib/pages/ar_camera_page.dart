@@ -106,12 +106,24 @@ class _ARCameraPageState extends State<ARCameraPage> {
     final camera = _cameraController!.description;
     final sensorOrientation = camera.sensorOrientation;
     InputImageRotation? rotation;
+    
+    // Handle rotation based on platform and camera orientation
     if (defaultTargetPlatform == TargetPlatform.iOS) {
-      rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+      // For iOS front camera, use proper rotation
+      if (camera.lensDirection == CameraLensDirection.front) {
+        rotation = InputImageRotation.rotation270deg;
+      } else {
+        rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+      }
     } else if (defaultTargetPlatform == TargetPlatform.android) {
+      // For Android, handle rotation compensation
       var rotationCompensation = (sensorOrientation + 360) % 360;
+      if (camera.lensDirection == CameraLensDirection.front) {
+        rotationCompensation = (360 - rotationCompensation) % 360;
+      }
       rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
     }
+    
     if (rotation == null) return null;
 
     final format = InputImageFormatValue.fromRawValue(image.format.raw);
@@ -185,15 +197,13 @@ class _ARCameraPageState extends State<ARCameraPage> {
           children: [
             CameraPreview(_cameraController!),
             if (_faces.isNotEmpty && _imageSize != null)
-              Opacity(
-                opacity: 0.7,
-                child: CustomPaint(
-                  painter: FacePainter(
-                    faces: _faces,
-                    imageSize: _imageSize!,
-                    screenSize: MediaQuery.of(context).size,
-                    filter: _filters[_selectedFilterIndex],
-                  ),
+              CustomPaint(
+                size: Size.infinite,
+                painter: FacePainter(
+                  faces: _faces,
+                  imageSize: _imageSize!,
+                  screenSize: MediaQuery.of(context).size,
+                  filter: _filters[_selectedFilterIndex],
                 ),
               ),
             Positioned(
@@ -289,9 +299,23 @@ class FacePainter extends CustomPainter {
         screenSize: size,
       );
 
+      // Calculate appropriate font size based on face size - appropriately sized
+      final fontSize = rect.width * 0.95; // Fine-tuned for optimal proportion
+      
       final textSpan = TextSpan(
         text: filter,
-        style: TextStyle(fontSize: rect.width * 0.45),
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          color: Colors.white.withValues(alpha: 0.4), // More transparent
+          shadows: [
+            Shadow(
+              offset: const Offset(3.0, 3.0),
+              blurRadius: 6.0,
+              color: Colors.black.withValues(alpha: 0.2),
+            ),
+          ],
+        ),
       );
 
       final textPainter = TextPainter(
@@ -300,10 +324,14 @@ class FacePainter extends CustomPainter {
       );
 
       textPainter.layout();
+      
+      // Position the filter more precisely on the face
+      // Adjust the vertical position to be more on the face center
       final offset = Offset(
         rect.center.dx - textPainter.width / 2,
-        rect.center.dy - textPainter.height / 2 - rect.height * 0.01,
+        rect.center.dy - textPainter.height / 2,
       );
+      
       textPainter.paint(canvas, offset);
     }
   }
@@ -321,18 +349,34 @@ class FacePainter extends CustomPainter {
     required Size imageSize,
     required Size screenSize,
   }) {
-    final double scaleX = screenSize.width / imageSize.height;
-    final double scaleY = screenSize.height / imageSize.width;
-    final double scale = max(scaleX, scaleY);
-
-    final double offsetX = (screenSize.width - imageSize.height * scale) / 2;
-    final double offsetY = (screenSize.height - imageSize.width * scale) / 2;
+    // Calculate scale factors for both dimensions
+    final double scaleX = screenSize.width / imageSize.width;
+    final double scaleY = screenSize.height / imageSize.height;
     
+    // Use the scale factor that fits the image to the screen (covering mode)
+    final double scale = max(scaleX, scaleY);
+    
+    // Calculate the size of the scaled image
+    final double scaledImageWidth = imageSize.width * scale;
+    final double scaledImageHeight = imageSize.height * scale;
+    
+    // Calculate offsets to center the image
+    final double offsetX = (screenSize.width - scaledImageWidth) / 2;
+    final double offsetY = (screenSize.height - scaledImageHeight) / 2;
+    
+    // Transform the face rectangle coordinates
+    // For front camera, we need to mirror horizontally
+    final double left = rect.left * scale + offsetX;
+    final double top = rect.top * scale + offsetY;
+    final double right = rect.right * scale + offsetX;
+    final double bottom = rect.bottom * scale + offsetY;
+    
+    // Mirror horizontally for front camera (selfie mode)
     return Rect.fromLTRB(
-      screenSize.width - (rect.right * scale + offsetX),
-      rect.top * scale + offsetY,
-      screenSize.width - (rect.left * scale + offsetX),
-      rect.bottom * scale + offsetY,
+      screenSize.width - right,
+      top,
+      screenSize.width - left,
+      bottom,
     );
   }
 } 
