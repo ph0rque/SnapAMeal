@@ -76,26 +76,26 @@ class FriendService {
       final senderUserDoc = _firestore.collection('users').doc(senderId);
       transaction.update(senderUserDoc, {'friends': FieldValue.arrayUnion([currentUserId])});
 
-      // 4. Add friend to current user's friend list
-      await _firestore
+      // 4. Create friend document in sender's friends subcollection
+      final senderFriendDoc = _firestore
           .collection('users')
           .doc(senderId)
           .collection('friends')
-          .doc(currentUserId)
-          .set({
+          .doc(currentUserId);
+      transaction.set(senderFriendDoc, {
         'friendId': currentUserId,
         'timestamp': FieldValue.serverTimestamp(),
         'streakCount': 0,
         'lastSnapTimestamp': null,
       });
 
-      // 5. Add friend to current user's friend list
-      await _firestore
+      // 5. Create friend document in current user's friends subcollection
+      final currentUserFriendDoc = _firestore
           .collection('users')
           .doc(currentUserId)
           .collection('friends')
-          .doc(senderId)
-          .set({
+          .doc(senderId);
+      transaction.set(currentUserFriendDoc, {
         'friendId': senderId,
         'timestamp': FieldValue.serverTimestamp(),
         'streakCount': 0,
@@ -144,7 +144,12 @@ class FriendService {
         .doc(currentUserId)
         .collection('friends')
         .doc(friendId)
-        .snapshots();
+        .snapshots()
+        .handleError((error) {
+      // Handle permission errors gracefully
+      print('Error getting friend doc stream for $friendId: $error');
+      return null;
+    });
   }
 
   // Get or create a one-on-one chat room
