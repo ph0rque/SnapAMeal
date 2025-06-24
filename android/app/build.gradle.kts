@@ -9,7 +9,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.snapconnect"
+    namespace = "com.example.snapameal"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -45,3 +45,5 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {}

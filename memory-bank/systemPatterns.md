@@ -6,4 +6,4 @@ The application will follow a standard client-server architecture. The client wi
 
 ## Current State
 
-The application is currently a single-screen "Hello World" style app with no backend integration. 
+The initial Firebase project has been configured for web, iOS, macOS, and Android. The application is currently a multi-page app with a basic authentication flow structure. 

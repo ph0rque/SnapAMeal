@@ -64,7 +64,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1027682286218',
     projectId: 'snapameal-cabc7',
     storageBucket: 'snapameal-cabc7.firebasestorage.app',
-    iosBundleId: 'com.example.snapconnect',
+    iosBundleId: 'com.example.snapameal',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1027682286218',
     projectId: 'snapameal-cabc7',
     storageBucket: 'snapameal-cabc7.firebasestorage.app',
-    iosBundleId: 'com.example.snapconnect',
+    iosBundleId: 'com.example.snapameal',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
