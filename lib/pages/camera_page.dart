@@ -1,6 +1,8 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 import 'package:snapameal/pages/preview_page.dart';
 
 class CameraPage extends StatefulWidget {
@@ -17,10 +19,17 @@ class _CameraPageState extends State<CameraPage> {
   late Future<void> _initializeControllerFuture;
   int _selectedCameraIndex = 0;
   bool _isRecording = false;
+  bool _noCamerasAvailable = false;
 
   @override
   void initState() {
     super.initState();
+    if (widget.cameras.isEmpty) {
+      setState(() {
+        _noCamerasAvailable = true;
+      });
+      return;
+    }
     _initializeCamera();
   }
 
@@ -54,6 +63,13 @@ class _CameraPageState extends State<CameraPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_noCamerasAvailable) {
+      return const Scaffold(
+        body: Center(
+          child: Text("No cameras available."),
+        ),
+      );
+    }
     return Scaffold(
       body: FutureBuilder<void>(
         future: _initializeControllerFuture,
@@ -108,14 +124,25 @@ class _CameraPageState extends State<CameraPage> {
     );
   }
 
+  Future<XFile> _saveFilePermanently(XFile file) async {
+    final Directory appDir = await getApplicationDocumentsDirectory();
+    final String newPath = p.join(appDir.path, p.basename(file.path));
+    print("Saving file to permanent path: $newPath");
+    await file.saveTo(newPath);
+    return XFile(newPath);
+  }
+
   Future<void> _takePicture() async {
     try {
       await _initializeControllerFuture;
       final image = await _controller.takePicture();
       if (!mounted) return;
+
+      final savedImage = await _saveFilePermanently(image);
+
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => PreviewPage(picture: image, isVideo: false),
+          builder: (context) => PreviewPage(picture: savedImage, isVideo: false),
         ),
       );
     } catch (e) {
@@ -149,9 +176,12 @@ class _CameraPageState extends State<CameraPage> {
         _isRecording = false;
       });
       if (!mounted) return;
+
+      final savedFile = await _saveFilePermanently(file);
+
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => PreviewPage(picture: file, isVideo: true),
+          builder: (context) => PreviewPage(picture: savedFile, isVideo: true),
         ),
       );
     } catch (e) {

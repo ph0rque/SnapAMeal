@@ -5,7 +5,6 @@ import 'package:snapameal/themes/light_mode.dart';
 import 'package:snapameal/themes/dark_mode.dart';
 import 'firebase_options.dart';
 import 'package:camera/camera.dart';
-import 'package:provider/provider.dart';
 
 late List<CameraDescription> cameras;
 
@@ -15,12 +14,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => MyApp(),
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

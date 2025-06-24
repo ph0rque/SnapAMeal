@@ -5,13 +5,13 @@ import 'package:snapameal/services/friend_service.dart';
 import 'package:snapameal/services/snap_service.dart';
 
 class SelectFriendsPage extends StatefulWidget {
-  final XFile picture;
+  final String imagePath;
   final int duration;
   final bool isVideo;
 
   const SelectFriendsPage({
     super.key,
-    required this.picture,
+    required this.imagePath,
     required this.duration,
     this.isVideo = false,
   });
@@ -34,7 +34,7 @@ class _SelectFriendsPageState extends State<SelectFriendsPage> {
     }
 
     _snapService.sendSnap(
-      widget.picture.path,
+      widget.imagePath,
       widget.duration,
       _selectedFriendIds,
       widget.isVideo,
@@ -50,7 +50,7 @@ class _SelectFriendsPageState extends State<SelectFriendsPage> {
       appBar: AppBar(
         title: const Text('Select Friends'),
       ),
-      body: StreamBuilder<List<DocumentSnapshot>>(
+      body: StreamBuilder<List<String>>(
         stream: _friendService.getFriendsStream(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -63,27 +63,35 @@ class _SelectFriendsPageState extends State<SelectFriendsPage> {
             return const Center(child: Text('You have no friends yet.'));
           }
 
-          final friends = snapshot.data!;
+          final friendIds = snapshot.data!;
 
           return ListView.builder(
-            itemCount: friends.length,
+            itemCount: friendIds.length,
             itemBuilder: (context, index) {
-              final friend = friends[index];
-              final friendData = friend.data() as Map<String, dynamic>;
-              final friendId = friend.id;
+              final friendId = friendIds[index];
               final isSelected = _selectedFriendIds.contains(friendId);
 
-              return CheckboxListTile(
-                title: Text(friendData['username'] ?? 'No username'),
-                value: isSelected,
-                onChanged: (bool? value) {
-                  setState(() {
-                    if (value == true) {
-                      _selectedFriendIds.add(friendId);
-                    } else {
-                      _selectedFriendIds.remove(friendId);
-                    }
-                  });
+              return FutureBuilder<DocumentSnapshot>(
+                future: _friendService.getUserData(friendId),
+                builder: (context, userSnapshot) {
+                  if (!userSnapshot.hasData) {
+                    return const ListTile(title: Text("Loading..."));
+                  }
+                  final friendData = userSnapshot.data!.data() as Map<String, dynamic>;
+
+                  return CheckboxListTile(
+                    title: Text(friendData['username'] ?? 'No username'),
+                    value: isSelected,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          _selectedFriendIds.add(friendId);
+                        } else {
+                          _selectedFriendIds.remove(friendId);
+                        }
+                      });
+                    },
+                  );
                 },
               );
             },

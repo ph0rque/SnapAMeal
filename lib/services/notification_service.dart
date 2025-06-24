@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,6 +11,11 @@ class NotificationService {
   Future<void> initialize() async {
     // Request permission
     await _firebaseMessaging.requestPermission();
+
+    // On Apple platforms, we need to get the APNs token first.
+    if (Platform.isIOS || Platform.isMacOS) {
+      await _firebaseMessaging.getAPNSToken();
+    }
 
     // Get the token
     final fcmToken = await _firebaseMessaging.getToken();

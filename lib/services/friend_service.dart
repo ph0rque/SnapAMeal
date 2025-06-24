@@ -15,13 +15,12 @@ class FriendService {
         .collection('users')
         .where('username', isGreaterThanOrEqualTo: query)
         .where('username', isLessThanOrEqualTo: query + '\uf8ff')
-        .where('uid', isNotEqualTo: _auth.currentUser!.uid) // Exclude self
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        final user = doc.data();
-        return user;
-      }).toList();
+      return snapshot.docs
+          .map((doc) => doc.data())
+          .where((user) => user['uid'] != _auth.currentUser!.uid) // Exclude self on the client
+          .toList();
     });
   }
 

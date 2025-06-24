@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:snapameal/components/user_search.dart';
 import 'package:snapameal/pages/chat_page.dart';
 import 'package:snapameal/services/friend_service.dart';
 
@@ -11,25 +12,7 @@ class FriendsPage extends StatefulWidget {
 }
 
 class _FriendsPageState extends State<FriendsPage> {
-  // text controller
-  final TextEditingController _searchController = TextEditingController();
   final FriendService _friendService = FriendService();
-
-  Stream<List<Map<String, dynamic>>>? _usersStream;
-  final Set<String> _sentRequests = {};
-
-  void _onSearchChanged(String query) {
-    setState(() {
-      _usersStream = _friendService.searchUsers(query);
-    });
-  }
-
-  void _sendFriendRequest(String receiverId) async {
-    await _friendService.sendFriendRequest(receiverId);
-    setState(() {
-      _sentRequests.add(receiverId);
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,20 +34,8 @@ class _FriendsPageState extends State<FriendsPage> {
             const Text("Friend Requests", style: TextStyle(fontWeight: FontWeight.bold)),
             _buildFriendRequestList(),
             const SizedBox(height: 20),
-            const Text("Find Friends", style: TextStyle(fontWeight: FontWeight.bold)),
-            // search bar
-            TextField(
-              controller: _searchController,
-              decoration: const InputDecoration(
-                labelText: 'Search for friends by username...',
-              ),
-              onChanged: _onSearchChanged,
-            ),
-            const SizedBox(height: 20),
-            
-            // list of users
-            Expanded(
-              child: _buildUserSearchList(),
+            const Expanded(
+              child: UserSearchWidget(),
             ),
           ],
         ),
@@ -161,14 +132,16 @@ class _FriendsPageState extends State<FriendsPage> {
                     children: [
                       IconButton(
                         icon: const Icon(Icons.check, color: Colors.green),
-                        onPressed: () {
-                          _friendService.acceptFriendRequest(senderId);
+                        onPressed: () async {
+                          await _friendService.acceptFriendRequest(senderId);
+                          setState(() {});
                         },
                       ),
                       IconButton(
                         icon: const Icon(Icons.close, color: Colors.red),
-                        onPressed: () {
-                          _friendService.declineFriendRequest(senderId);
+                        onPressed: () async {
+                          await _friendService.declineFriendRequest(senderId);
+                          setState(() {});
                         },
                       ),
                     ],
@@ -177,51 +150,6 @@ class _FriendsPageState extends State<FriendsPage> {
               },
             );
           }).toList(),
-        );
-      },
-    );
-  }
-
-  Widget _buildUserSearchList() {
-    return StreamBuilder(
-      stream: _usersStream,
-      builder: (context, snapshot) {
-        // error
-        if (snapshot.hasError) {
-          return const Center(child: Text('Error loading users.'));
-        }
-
-        // loading
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        // no data
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No users found.'));
-        }
-
-        var users = snapshot.data!;
-
-        return ListView.builder(
-          itemCount: users.length,
-          itemBuilder: (context, index) {
-            var user = users[index];
-            final isRequestSent = _sentRequests.contains(user['uid']);
-
-            return ListTile(
-              title: Text(user['username']),
-              subtitle: Text(user['email']),
-              trailing: IconButton(
-                icon: isRequestSent
-                    ? const Icon(Icons.check)
-                    : const Icon(Icons.person_add),
-                onPressed: isRequestSent
-                    ? null
-                    : () => _sendFriendRequest(user['uid']),
-              ),
-            );
-          },
         );
       },
     );

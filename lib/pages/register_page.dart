@@ -66,112 +66,114 @@ class RegisterPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // logo
-            Icon(
-              Icons.message,
-              size: 60,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-
-            const SizedBox(height: 50),
-
-            // welcome back message
-            Text(
-              "Let's create an account for you",
-              style: TextStyle(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // logo
+              Icon(
+                Icons.message,
+                size: 60,
                 color: Theme.of(context).colorScheme.primary,
-                fontSize: 16,
               ),
-            ),
 
-            const SizedBox(height: 25),
+              const SizedBox(height: 50),
 
-            // username textfield
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: MyTextField(
-                hintText: "Username",
-                obscureText: false,
-                controller: _usernameController,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // email textfield
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: MyTextField(
-                hintText: "Email",
-                obscureText: false,
-                controller: _emailController,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // pw textfield
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: MyTextField(
-                hintText: "Password",
-                obscureText: true,
-                controller: _pwController,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // confirm pw textfield
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: MyTextField(
-                hintText: "Confirm Password",
-                obscureText: true,
-                controller: _confirmPwController,
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            // login button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: MyButton(
-                text: "Register",
-                onTap: () => register(context),
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            // register now
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Already have an account? ",
-                  style:
-                      TextStyle(color: Theme.of(context).colorScheme.primary),
+              // welcome back message
+              Text(
+                "Let's create an account for you",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 16,
                 ),
-                TextButton(
-                  onPressed: onTap,
-                  child: Text(
-                    "Login now",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+              ),
+
+              const SizedBox(height: 25),
+
+              // username textfield
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: MyTextField(
+                  hintText: "Username",
+                  obscureText: false,
+                  controller: _usernameController,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // email textfield
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: MyTextField(
+                  hintText: "Email",
+                  obscureText: false,
+                  controller: _emailController,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // pw textfield
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: MyTextField(
+                  hintText: "Password",
+                  obscureText: true,
+                  controller: _pwController,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // confirm pw textfield
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: MyTextField(
+                  hintText: "Confirm Password",
+                  obscureText: true,
+                  controller: _confirmPwController,
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              // login button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: MyButton(
+                  text: "Register",
+                  onTap: () => register(context),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              // register now
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Already have an account? ",
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.primary),
+                  ),
+                  TextButton(
+                    onPressed: onTap,
+                    child: Text(
+                      "Login now",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

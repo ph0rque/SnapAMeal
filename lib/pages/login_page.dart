@@ -51,88 +51,90 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // logo
-            Icon(
-              Icons.message,
-              size: 60,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-
-            const SizedBox(height: 50),
-
-            // welcome back message
-            Text(
-              "Welcome back, you've been missed!",
-              style: TextStyle(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // logo
+              Icon(
+                Icons.message,
+                size: 60,
                 color: Theme.of(context).colorScheme.primary,
-                fontSize: 16,
               ),
-            ),
 
-            const SizedBox(height: 25),
+              const SizedBox(height: 50),
 
-            // email textfield
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: MyTextField(
-                hintText: "Email",
-                obscureText: false,
-                controller: _emailController,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            // pw textfield
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: MyTextField(
-                hintText: "Password",
-                obscureText: true,
-                controller: _pwController,
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            // login button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: MyButton(
-                text: "Login",
-                onTap: () => login(context),
-              ),
-            ),
-
-            const SizedBox(height: 25),
-
-            // register now
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Not a member? ",
-                  style:
-                      TextStyle(color: Theme.of(context).colorScheme.primary),
+              // welcome back message
+              Text(
+                "Welcome back, you've been missed!",
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontSize: 16,
                 ),
-                TextButton(
-                  onPressed: onTap,
-                  child: Text(
-                    "Register now",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
+              ),
+
+              const SizedBox(height: 25),
+
+              // email textfield
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: MyTextField(
+                  hintText: "Email",
+                  obscureText: false,
+                  controller: _emailController,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // pw textfield
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: MyTextField(
+                  hintText: "Password",
+                  obscureText: true,
+                  controller: _pwController,
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              // login button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                child: MyButton(
+                  text: "Login",
+                  onTap: () => login(context),
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              // register now
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Not a member? ",
+                    style:
+                        TextStyle(color: Theme.of(context).colorScheme.primary),
+                  ),
+                  TextButton(
+                    onPressed: onTap,
+                    child: Text(
+                      "Register now",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

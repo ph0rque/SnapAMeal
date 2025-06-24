@@ -14,11 +14,26 @@ class SnapService {
     if (user == null) return;
 
     // 1. Upload image to Firebase Storage
-    final file = File(imagePath);
-    final fileName = '${DateTime.now().millisecondsSinceEpoch}.${isVideo ? 'mp4' : 'jpg'}';
-    final ref = _storage.ref().child('snaps').child(user.uid).child(fileName);
-    final uploadTask = await ref.putFile(file);
-    final imageUrl = await uploadTask.ref.getDownloadURL();
+    String imageUrl;
+    try {
+      print("Attempting to upload file from path: $imagePath");
+      final file = File(imagePath);
+
+      // Check if the file exists before uploading
+      if (!await file.exists()) {
+        print("File does not exist at path: $imagePath");
+        return;
+      }
+      
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}.${isVideo ? 'mp4' : 'jpg'}';
+      final ref = _storage.ref().child('snaps').child(user.uid).child(fileName);
+      
+      final uploadTask = await ref.putFile(file);
+      imageUrl = await uploadTask.ref.getDownloadURL();
+    } catch (e) {
+      print("Error uploading snap media: $e");
+      return; // Stop execution if upload fails
+    }
 
     // 2. Create snap metadata for each recipient
     final snapData = {
@@ -32,11 +47,17 @@ class SnapService {
     };
 
     for (String recipientId in recipientIds) {
-      await _firestore
-          .collection('users')
-          .doc(recipientId)
-          .collection('snaps')
-          .add(snapData);
+      try {
+        print("Sending snap to recipient: $recipientId");
+        print("Snap data: $snapData");
+        await _firestore
+            .collection('users')
+            .doc(recipientId)
+            .collection('snaps')
+            .add(snapData);
+      } catch (e) {
+        print("Error sending snap to $recipientId: $e");
+      }
     }
   }
 

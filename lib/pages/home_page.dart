@@ -7,6 +7,7 @@ import 'package:snapameal/main.dart';
 import 'package:snapameal/services/snap_service.dart';
 import 'package:snapameal/pages/view_snap_page.dart';
 import 'package:snapameal/services/notification_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -49,15 +50,16 @@ class _HomePageState extends State<HomePage> {
             },
             icon: const Icon(Icons.people),
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => CameraPage(cameras: cameras)),
-              );
-            },
-            icon: const Icon(Icons.camera_alt),
-          ),
+          if (cameras.isNotEmpty)
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CameraPage(cameras: cameras)),
+                );
+              },
+              icon: const Icon(Icons.camera_alt),
+            ),
           // Logout button
           IconButton(
             onPressed: logout,

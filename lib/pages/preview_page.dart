@@ -91,7 +91,7 @@ class _PreviewPageState extends State<PreviewPage> {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (context) => SelectFriendsPage(
-                            picture: widget.picture,
+                            imagePath: widget.picture.path,
                             duration: _durationInSeconds,
                             isVideo: widget.isVideo,
                           ),
