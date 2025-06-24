@@ -48,6 +48,7 @@ class SnapService {
           'isViewed': false,
           'isVideo': isVideo,
           'replayed': false,
+          'createdAt': FieldValue.serverTimestamp(), // Add explicit creation timestamp
         };
         
         debugPrint("Sending snap to recipient: $recipientId");
