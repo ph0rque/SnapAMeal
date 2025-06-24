@@ -76,6 +76,7 @@ This phase builds the essential messaging features: friend management, one-on-on
     *   Allow users to save messages by tapping
     *   Test chat functionality and edge cases (e.g., offline behavior)
 *   **Estimate:** 2–3 weeks
+*   **Status:** Done
 
 **3. Ephemeral Messaging (Snaps)**
 *   **Subtasks:**

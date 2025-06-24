@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:snapameal/pages/chat_page.dart';
 import 'package:snapameal/services/friend_service.dart';
 
 class FriendsPage extends StatefulWidget {
@@ -101,6 +102,17 @@ class _FriendsPageState extends State<FriendsPage> {
                 return ListTile(
                   title: Text(friendData['username']),
                   leading: const Icon(Icons.person),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChatPage(
+                          receiverUsername: friendData['username'],
+                          receiverId: friendId,
+                        ),
+                      ),
+                    );
+                  },
                 );
               },
             );
