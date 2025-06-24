@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:snapconnect/services/auth_service.dart';
-import 'package:snapconnect/components/my_button.dart';
-import 'package:snapconnect/components/my_textfield.dart';
+import 'package:snapameal/services/auth_service.dart';
+import 'package:snapameal/components/my_button.dart';
+import 'package:snapameal/components/my_textfield.dart';
 
 class RegisterPage extends StatelessWidget {
   final TextEditingController _emailController = TextEditingController();
@@ -12,18 +12,33 @@ class RegisterPage extends StatelessWidget {
 
   RegisterPage({super.key, required this.onTap});
 
-  void register(BuildContext context) {
+  void register(BuildContext context) async {
     // get auth service
     final _auth = AuthService();
+
+    // show loading circle
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
 
     // password match -> create user
     if (_pwController.text == _confirmPwController.text) {
       try {
-        _auth.signUpWithEmailPassword(
+        await _auth.signUpWithEmailPassword(
           _emailController.text,
           _pwController.text,
         );
+
+        // pop loading circle
+        if (context.mounted) Navigator.pop(context);
+
       } catch (e) {
+        // pop loading circle
+        Navigator.pop(context);
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
@@ -35,6 +50,8 @@ class RegisterPage extends StatelessWidget {
 
     // passwords don't match -> tell user to fix
     else {
+      // pop loading circle
+      Navigator.pop(context);
       showDialog(
         context: context,
         builder: (context) => const AlertDialog(
@@ -73,36 +90,48 @@ class RegisterPage extends StatelessWidget {
             const SizedBox(height: 25),
 
             // email textfield
-            MyTextField(
-              hintText: "Email",
-              obscureText: false,
-              controller: _emailController,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+              child: MyTextField(
+                hintText: "Email",
+                obscureText: false,
+                controller: _emailController,
+              ),
             ),
 
             const SizedBox(height: 10),
 
             // pw textfield
-            MyTextField(
-              hintText: "Password",
-              obscureText: true,
-              controller: _pwController,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+              child: MyTextField(
+                hintText: "Password",
+                obscureText: true,
+                controller: _pwController,
+              ),
             ),
 
             const SizedBox(height: 10),
 
             // confirm pw textfield
-            MyTextField(
-              hintText: "Confirm password",
-              obscureText: true,
-              controller: _confirmPwController,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+              child: MyTextField(
+                hintText: "Confirm Password",
+                obscureText: true,
+                controller: _confirmPwController,
+              ),
             ),
 
             const SizedBox(height: 25),
 
             // login button
-            MyButton(
-              text: "Register",
-              onTap: () => register(context),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 25.0),
+              child: MyButton(
+                text: "Register",
+                onTap: () => register(context),
+              ),
             ),
 
             const SizedBox(height: 25),
@@ -116,8 +145,8 @@ class RegisterPage extends StatelessWidget {
                   style:
                       TextStyle(color: Theme.of(context).colorScheme.primary),
                 ),
-                GestureDetector(
-                  onTap: onTap,
+                TextButton(
+                  onPressed: onTap,
                   child: Text(
                     "Login now",
                     style: TextStyle(

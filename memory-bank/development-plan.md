@@ -41,6 +41,7 @@ This phase establishes the core infrastructure and user authentication systems.
     *   **Service Management:** Refactor `AuthService` to use a singleton pattern or a service locator to ensure a single, efficient instance throughout the app.
     *   **Async Operations:** Review and refactor all authentication methods to correctly `await` asynchronous Firebase calls for robust error handling.
 *   **Estimate:** 2-4 days
+*   **Status:** Done
 
 **5. Solidify Firestore Security Rules**
 *   **Subtasks:**

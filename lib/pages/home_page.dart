@@ -1,5 +1,5 @@
+import 'package:snapameal/services/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:snapconnect/services/auth_service.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

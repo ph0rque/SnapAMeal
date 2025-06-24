@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:snapconnect/pages/auth_gate.dart';
-import 'package:snapconnect/themes/light_mode.dart';
-import 'package:snapconnect/themes/dark_mode.dart';
+import 'package:snapameal/pages/auth_gate.dart';
+import 'package:snapameal/themes/light_mode.dart';
+import 'package:snapameal/themes/dark_mode.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Snapameal',
+      title: 'SnapAMeal',
       theme: lightMode,
       darkTheme: darkMode,
       home: const AuthGate(),

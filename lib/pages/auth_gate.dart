@@ -1,8 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:snapconnect/services/auth_service.dart';
-import 'package:snapconnect/pages/home_page.dart';
-import 'package:snapconnect/pages/login_or_register.dart';
+import 'package:snapameal/services/auth_service.dart';
+import 'package:snapameal/pages/home_page.dart';
+import 'package:snapameal/pages/login_or_register.dart';
 
 class AuthGate extends StatelessWidget {
   const AuthGate({super.key});

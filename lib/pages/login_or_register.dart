@@ -1,6 +1,6 @@
+import 'package:snapameal/pages/login_page.dart';
+import 'package:snapameal/pages/register_page.dart';
 import 'package:flutter/material.dart';
-import 'package:snapconnect/pages/login_page.dart';
-import 'package:snapconnect/pages/register_page.dart';
 
 class LoginOrRegister extends StatefulWidget {
   const LoginOrRegister({super.key});

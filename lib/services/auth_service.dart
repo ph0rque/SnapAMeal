@@ -4,6 +4,17 @@ class AuthService {
   // auth instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // private constructor
+  AuthService._();
+
+  // singleton instance
+  static final AuthService _instance = AuthService._();
+
+  // factory constructor to return the singleton instance
+  factory AuthService() {
+    return _instance;
+  }
+
   // get current user
   User? getCurrentUser() {
     return _auth.currentUser;
