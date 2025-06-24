@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -21,7 +22,7 @@ class NotificationService {
     final fcmToken = await _firebaseMessaging.getToken();
 
     if (fcmToken != null) {
-      print("FCM Token: $fcmToken");
+      debugPrint("FCM Token: $fcmToken");
       _saveTokenToDatabase(fcmToken);
     }
 

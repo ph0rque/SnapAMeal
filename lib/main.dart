@@ -38,9 +38,19 @@ Future<void> main() async {
     throw UnsupportedError("Platform not supported");
   }
 
-  await Firebase.initializeApp(
-    options: firebaseOptions,
-  );
+  // Check if Firebase is already initialized
+  try {
+    await Firebase.initializeApp(
+      options: firebaseOptions,
+    );
+  } catch (e) {
+    // Firebase is already initialized, which is fine
+    if (e.toString().contains('duplicate-app')) {
+      // This is expected in some cases, continue silently
+    } else {
+      rethrow;
+    }
+  }
   runApp(const MyApp());
 }
 

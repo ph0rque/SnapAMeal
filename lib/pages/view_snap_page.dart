@@ -17,7 +17,6 @@ class ViewSnapPage extends StatefulWidget {
 
 class _ViewSnapPageState extends State<ViewSnapPage> {
   late Timer _timer;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final SnapService _snapService = SnapService();
   VideoPlayerController? _videoController;
   bool _isVideo = false;

@@ -93,7 +93,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
         _isDetecting = false;
       }).catchError((e) {
         if (mounted) {
-          print("Error processing image: $e");
+          debugPrint("Error processing image: $e");
           _isDetecting = false;
         }
       });
@@ -163,7 +163,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
         ),
       );
     } catch (e) {
-      print("Error taking picture: $e");
+      debugPrint("Error taking picture: $e");
     }
   }
 
@@ -235,7 +235,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
   Widget _buildFilterSelector() {
     return Container(
       height: 60,
-      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: _filters.length,

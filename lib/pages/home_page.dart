@@ -1,16 +1,11 @@
 import 'package:snapameal/pages/ar_camera_page.dart';
 import 'package:snapameal/pages/friends_page.dart';
-import 'package:snapameal/pages/chat_page.dart';
-import 'package:snapameal/pages/camera_page.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:snapameal/main.dart';
 import 'package:snapameal/services/snap_service.dart';
 import 'package:snapameal/pages/view_snap_page.dart';
 import 'package:snapameal/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:provider/provider.dart';
-import 'package:camera/camera.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:snapameal/pages/story_view_page.dart';
 import 'package:snapameal/services/friend_service.dart';
@@ -46,12 +41,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void _openCameraForSnap() async {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const ARCameraPage()),
-    );
-  }
+
 
   @override
   void initState() {

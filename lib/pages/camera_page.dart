@@ -84,7 +84,7 @@ class _CameraPageState extends State<CameraPage> {
                   left: 0,
                   right: 0,
                   child: Container(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -128,7 +128,7 @@ class _CameraPageState extends State<CameraPage> {
   Future<XFile> _saveFilePermanently(XFile file) async {
     final Directory appDir = await getApplicationDocumentsDirectory();
     final String newPath = p.join(appDir.path, p.basename(file.path));
-    print("Saving file to permanent path: $newPath");
+            debugPrint("Saving file to permanent path: $newPath");
     await file.saveTo(newPath);
     return XFile(newPath);
   }
@@ -139,8 +139,9 @@ class _CameraPageState extends State<CameraPage> {
       final image = await _controller.takePicture();
       if (!mounted) return;
 
-      final savedImage = await _saveFilePermanently(image);
-
+            final savedImage = await _saveFilePermanently(image);
+      
+      if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PreviewPage(
@@ -151,7 +152,7 @@ class _CameraPageState extends State<CameraPage> {
         ),
       );
     } catch (e) {
-      print(e);
+      debugPrint("Error taking picture: $e");
     }
   }
 
@@ -165,7 +166,7 @@ class _CameraPageState extends State<CameraPage> {
     try {
       await _controller.startVideoRecording();
     } catch (e) {
-      print(e);
+      debugPrint("Error starting video recording: $e");
       return;
     }
   }
@@ -184,6 +185,7 @@ class _CameraPageState extends State<CameraPage> {
 
       final savedFile = await _saveFilePermanently(file);
 
+      if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PreviewPage(
@@ -194,7 +196,7 @@ class _CameraPageState extends State<CameraPage> {
         ),
       );
     } catch (e) {
-      print(e);
+      debugPrint("Error stopping video recording: $e");
       return;
     }
   }

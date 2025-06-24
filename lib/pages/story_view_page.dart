@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -163,8 +162,7 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
       );
     }
 
-    final type = currentStory['type'];
-    final url = currentStory['url'];
+
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -247,7 +245,7 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
                         builder: (context, child) {
                           return LinearProgressIndicator(
                             value: entry.key == _currentIndex ? _animationController.value : (entry.key < _currentIndex ? 1.0 : 0.0),
-                            backgroundColor: Colors.grey.withOpacity(0.5),
+                            backgroundColor: Colors.grey.withValues(alpha: 0.5),
                             valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                           );
                         },

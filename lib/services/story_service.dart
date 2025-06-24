@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/foundation.dart';
 
 class StoryService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -21,7 +22,7 @@ class StoryService {
       final uploadTask = await ref.putFile(file);
       mediaUrl = await uploadTask.ref.getDownloadURL();
     } catch (e) {
-      print("Error uploading story media: $e");
+      debugPrint("Error uploading story media: $e");
       return;
     }
 

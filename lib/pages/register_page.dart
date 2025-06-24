@@ -15,7 +15,7 @@ class RegisterPage extends StatelessWidget {
 
   void register(BuildContext context) async {
     // get auth service
-    final _auth = AuthService();
+    final authService = AuthService();
 
     // show loading circle
     showDialog(
@@ -29,7 +29,7 @@ class RegisterPage extends StatelessWidget {
     // password match -> create user
     if (_pwController.text == _confirmPwController.text) {
       try {
-        await _auth.signUpWithEmailPassword(
+        await authService.signUpWithEmailPassword(
           _emailController.text,
           _pwController.text,
           _usernameController.text,
@@ -40,26 +40,30 @@ class RegisterPage extends StatelessWidget {
 
       } catch (e) {
         // pop loading circle
-        Navigator.pop(context);
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(e.toString()),
-          ),
-        );
+        if (context.mounted) Navigator.pop(context);
+        if (context.mounted) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(e.toString()),
+            ),
+          );
+        }
       }
     }
 
     // passwords don't match -> tell user to fix
     else {
       // pop loading circle
-      Navigator.pop(context);
-      showDialog(
-        context: context,
-        builder: (context) => const AlertDialog(
-          title: Text("Passwords don't match!"),
-        ),
-      );
+      if (context.mounted) Navigator.pop(context);
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => const AlertDialog(
+            title: Text("Passwords don't match!"),
+          ),
+        );
+      }
     }
   }
 

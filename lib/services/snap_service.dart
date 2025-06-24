@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 
 class SnapService {
   final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -16,12 +17,12 @@ class SnapService {
     // 1. Upload image to Firebase Storage
     String imageUrl;
     try {
-      print("Attempting to upload file from path: $imagePath");
+      debugPrint("Attempting to upload file from path: $imagePath");
       final file = File(imagePath);
 
       // Check if the file exists before uploading
       if (!await file.exists()) {
-        print("File does not exist at path: $imagePath");
+        debugPrint("File does not exist at path: $imagePath");
         return;
       }
       
@@ -31,7 +32,7 @@ class SnapService {
       final uploadTask = await ref.putFile(file);
       imageUrl = await uploadTask.ref.getDownloadURL();
     } catch (e) {
-      print("Error uploading snap media: $e");
+      debugPrint("Error uploading snap media: $e");
       return; // Stop execution if upload fails
     }
 
@@ -48,8 +49,8 @@ class SnapService {
 
     for (String recipientId in recipientIds) {
       try {
-        print("Sending snap to recipient: $recipientId");
-        print("Snap data: $snapData");
+            debugPrint("Sending snap to recipient: $recipientId");
+    debugPrint("Snap data: $snapData");
         await _firestore
             .collection('users')
             .doc(recipientId)
@@ -60,7 +61,7 @@ class SnapService {
         await _updateStreak(user.uid, recipientId);
 
       } catch (e) {
-        print("Error sending snap to $recipientId: $e");
+        debugPrint("Error sending snap to $recipientId: $e");
       }
     }
   }
@@ -134,9 +135,9 @@ class SnapService {
         'viewerUsername': currentUsername,
       });
     } on FirebaseFunctionsException catch (e) {
-      print('Caught FirebaseFunctionsException: ${e.code}, ${e.message}');
+              debugPrint('Caught FirebaseFunctionsException: ${e.code}, ${e.message}');
     } catch (e) {
-      print('Caught generic exception: $e');
+              debugPrint('Caught generic exception: $e');
     }
   }
 } 

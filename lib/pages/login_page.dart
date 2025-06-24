@@ -38,13 +38,15 @@ class LoginPage extends StatelessWidget {
     // catch any errors
     catch (e) {
       // pop loading circle
-      Navigator.pop(context);
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(e.toString()),
-        ),
-      );
+      if (context.mounted) Navigator.pop(context);
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(e.toString()),
+          ),
+        );
+      }
     }
   }
 
