@@ -11,7 +11,14 @@ late List<CameraDescription> cameras;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  cameras = await availableCameras();
+  
+  // Only initialize cameras on mobile platforms
+  if (defaultTargetPlatform == TargetPlatform.android || 
+      defaultTargetPlatform == TargetPlatform.iOS) {
+    cameras = await availableCameras();
+  } else {
+    cameras = [];
+  }
 
   await dotenv.load(fileName: ".env");
 
@@ -26,6 +33,16 @@ Future<void> main() async {
       storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
     );
   } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+    firebaseOptions = FirebaseOptions(
+      apiKey: dotenv.env['FIREBASE_API_KEY_IOS']!,
+      appId: dotenv.env['FIREBASE_APP_ID_IOS']!,
+      messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+      projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+      storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
+      iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID']!,
+    );
+  } else if (defaultTargetPlatform == TargetPlatform.macOS) {
+    // Use iOS configuration for macOS
     firebaseOptions = FirebaseOptions(
       apiKey: dotenv.env['FIREBASE_API_KEY_IOS']!,
       appId: dotenv.env['FIREBASE_APP_ID_IOS']!,
