@@ -86,3 +86,8 @@ lib/firebase_options.dart
 
 # Memory Bank - Optional: uncomment if you don't want to track
 # memory-bank/
+
+# Env files
+.env*
+.env.*
+!.env.example

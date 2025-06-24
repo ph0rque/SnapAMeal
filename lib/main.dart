@@ -1,9 +1,10 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:snapameal/pages/auth_gate.dart';
 import 'package:snapameal/themes/light_mode.dart';
 import 'package:snapameal/themes/dark_mode.dart';
-import 'firebase_options.dart';
 import 'package:camera/camera.dart';
 
 late List<CameraDescription> cameras;
@@ -11,8 +12,34 @@ late List<CameraDescription> cameras;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   cameras = await availableCameras();
+
+  await dotenv.load(fileName: ".env");
+
+  final FirebaseOptions firebaseOptions;
+
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    firebaseOptions = FirebaseOptions(
+      apiKey: dotenv.env['FIREBASE_API_KEY_ANDROID']!,
+      appId: dotenv.env['FIREBASE_APP_ID_ANDROID']!,
+      messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+      projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+      storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
+    );
+  } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+    firebaseOptions = FirebaseOptions(
+      apiKey: dotenv.env['FIREBASE_API_KEY_IOS']!,
+      appId: dotenv.env['FIREBASE_APP_ID_IOS']!,
+      messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID']!,
+      projectId: dotenv.env['FIREBASE_PROJECT_ID']!,
+      storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET']!,
+      iosBundleId: dotenv.env['FIREBASE_IOS_BUNDLE_ID']!,
+    );
+  } else {
+    throw UnsupportedError("Platform not supported");
+  }
+
   await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
+    options: firebaseOptions,
   );
   runApp(const MyApp());
 }

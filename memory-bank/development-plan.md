@@ -49,7 +49,7 @@ This phase establishes the core infrastructure and user authentication systems.
     *   Test rules with various scenarios (e.g., unauthorized access attempts)
     *   Deploy rules to Firestore
 *   **Estimate:** 2–3 days
-*   **Status:** Holding off until after Phase 4.
+*   **Status:** Done
 
 **Total Estimate for Phase 1.1:** 2–3.5 weeks
 
