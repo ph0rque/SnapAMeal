@@ -88,27 +88,124 @@ class _PreviewPageState extends State<PreviewPage> {
 
   Widget _buildStoryPostButton() {
     return Container(
-      color: Colors.black.withValues(alpha: 0.5),
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Center(
-        child: ElevatedButton(
-          onPressed: () async {
-            await _storyService.postStory(widget.picture.path, widget.isVideo);
-            if (widget.onStoryPosted != null) {
-              widget.onStoryPosted!();
-            }
-            if (!mounted) return;
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          },
-          child: const Text('Post to Story'),
-        ),
+      color: Colors.black.withOpacity(0.5),
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Duration selector for stories
+          if (!widget.isVideo) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(EvaIcons.clockOutline, color: Colors.white, size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  'Duration:',
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: () => _showTimerSelectionDialog(context),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.white),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '$_durationInSeconds s',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+          
+          // Post button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: SnapUIColors.accentPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+              onPressed: () async {
+                // Show loading indicator
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  ),
+                );
+                
+                try {
+                  final duration = widget.isVideo ? 5 : _durationInSeconds; // Video stories are always 5 seconds
+                  await _storyService.postStory(widget.picture.path, widget.isVideo, duration: duration);
+                  
+                  if (!mounted) return;
+                  Navigator.of(context).pop(); // Close loading dialog
+                  
+                  if (widget.onStoryPosted != null) {
+                    widget.onStoryPosted!();
+                  }
+                  
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                  
+                  // Show success message
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${widget.isVideo ? "Video" : "Photo"} story posted successfully!'),
+                      backgroundColor: SnapUIColors.accentPurple,
+                    ),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+                  Navigator.of(context).pop(); // Close loading dialog
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Failed to post story. Please try again.'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(EvaIcons.plusCircleOutline),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Post to Your Story${widget.isVideo ? " (5s)" : ""}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildSnapOptions() {
     return Container(
-      color: Colors.black.withValues(alpha: 0.5),
+      color: Colors.black.withOpacity(0.5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [

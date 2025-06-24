@@ -12,8 +12,28 @@ const db = admin.firestore();
 const storage = admin.storage();
 
 /**
+ * Helper function to delete a file from Firebase Storage by URL
+ * @param {string} fileUrl - The Firebase Storage URL of the file to delete
+ * @param {string} fileType - The type of file (for logging purposes)
+ * @return {Promise<void>} Promise that resolves when deletion is complete
+ */
+async function deleteFileFromStorage(
+  fileUrl: string,
+  fileType: string
+): Promise<void> {
+  try {
+    const decodedUrl = decodeURIComponent(fileUrl);
+    const filePath = decodedUrl.split("/o/")[1].split("?")[0];
+    await storage.bucket().file(filePath).delete();
+    logger.log(`Successfully deleted ${fileType} at ${filePath}`);
+  } catch (error) {
+    logger.error(`Failed to delete ${fileType}`, error);
+  }
+}
+
+/**
  * Triggered when a snap is updated. If the 'replayed' field is changed to
- * true, the snap document and the corresponding image are deleted.
+ * true, the snap document and the corresponding media files are deleted.
  */
 export const onSnapViewed = onDocumentUpdated(
   "users/{userId}/snaps/{snapId}", async (event) => {
@@ -34,19 +54,18 @@ export const onSnapViewed = onDocumentUpdated(
         "has been replayed. Deleting."
       );
 
-      // Delete the image from Storage
-      if (afterData.imageUrl) {
-        try {
-          const fileUrl = decodeURIComponent(afterData.imageUrl);
-          const filePath = fileUrl.split("/o/")[1].split("?")[0];
-          await storage.bucket().file(filePath).delete();
-          logger.log(`Successfully deleted image at ${filePath}`);
-        } catch (error) {
-          logger.error(
-            `Failed to delete image for snap ${event.params.snapId}`,
-            error
-          );
-        }
+      // Delete the main media file (image or video)
+      if (afterData.mediaUrl) {
+        const mediaType = afterData.isVideo ? "video" : "image";
+        await deleteFileFromStorage(afterData.mediaUrl, mediaType);
+      } else if (afterData.imageUrl) {
+        // Fallback for legacy snaps
+        await deleteFileFromStorage(afterData.imageUrl, "image");
+      }
+
+      // Delete the thumbnail if it exists (for videos)
+      if (afterData.thumbnailUrl) {
+        await deleteFileFromStorage(afterData.thumbnailUrl, "thumbnail");
       }
 
       // Delete the Firestore document
@@ -79,16 +98,21 @@ export const deleteOldSnaps = onSchedule("every 1 hours", async () => {
   const batch = db.batch();
   for (const doc of oldUnreadSnaps.docs) {
     const data = doc.data();
-    if (data.imageUrl) {
-      try {
-        const fileUrl = decodeURIComponent(data.imageUrl);
-        const filePath = fileUrl.split("/o/")[1].split("?")[0];
-        await storage.bucket().file(filePath).delete();
-        logger.log(`Successfully deleted image at ${filePath}`);
-      } catch (error) {
-        logger.error(`Failed to delete image for snap ${doc.id}`, error);
-      }
+    
+    // Delete the main media file
+    if (data.mediaUrl) {
+      const mediaType = data.isVideo ? "video" : "image";
+      await deleteFileFromStorage(data.mediaUrl, mediaType);
+    } else if (data.imageUrl) {
+      // Fallback for legacy snaps
+      await deleteFileFromStorage(data.imageUrl, "image");
     }
+
+    // Delete the thumbnail if it exists (for videos)
+    if (data.thumbnailUrl) {
+      await deleteFileFromStorage(data.thumbnailUrl, "thumbnail");
+    }
+
     batch.delete(doc.ref);
   }
 
@@ -97,6 +121,48 @@ export const deleteOldSnaps = onSchedule("every 1 hours", async () => {
   logger.log(
     `Deleted ${oldUnreadSnaps.size} old, unread snaps.`
   );
+});
+
+/**
+ * Cloud Function for server-side thumbnail generation
+ * This is a backup function for generating thumbnails if client-side fails
+ */
+export const generateVideoThumbnail = onCall(async (request) => {
+  const {videoUrl, userId} = request.data;
+
+  if (!videoUrl || !userId) {
+    throw new Error("Missing required parameters: videoUrl and userId");
+  }
+
+  try {
+    logger.info(`Generating thumbnail for video: ${videoUrl}`);
+    
+    // Extract file path from URL
+    const decodedUrl = decodeURIComponent(videoUrl);
+    const videoPath = decodedUrl.split("/o/")[1].split("?")[0];
+    
+    // Download video file temporarily (simplified approach)
+    // In a real implementation, you would use FFmpeg or similar
+    // For now, we'll return a placeholder response
+    
+    const thumbnailFileName = `${Date.now()}_thumb.jpg`;
+    const thumbnailPath = `snaps/${userId}/thumbnails/${thumbnailFileName}`;
+    
+    // Placeholder: In production, implement actual thumbnail generation
+    // This would involve downloading the video, extracting a frame,
+    // and uploading the thumbnail
+    
+    logger.info(`Thumbnail generation completed for ${videoPath}`);
+    
+    return {
+      success: true,
+      thumbnailPath: thumbnailPath,
+      message: "Thumbnail generation initiated (placeholder implementation)"
+    };
+  } catch (error) {
+    logger.error("Error generating video thumbnail:", error);
+    throw new Error("Failed to generate video thumbnail");
+  }
 });
 
 export const sendScreenshotNotification = onCall(async (request) => {

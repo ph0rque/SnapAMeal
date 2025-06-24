@@ -13,6 +13,7 @@ import 'package:snapameal/services/story_service.dart';
 import 'package:snapameal/pages/chats_page.dart';
 import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -268,6 +269,7 @@ class _HomePageState extends State<HomePage> {
             final doc = docs[index];
             final snapData = doc.data() as Map<String, dynamic>;
             final senderId = snapData['senderId'] as String;
+            final isVideo = snapData['isVideo'] ?? false;
             
             return FutureBuilder<DocumentSnapshot>(
               future: _friendService.getUserData(senderId),
@@ -278,30 +280,200 @@ class _HomePageState extends State<HomePage> {
                     leading: Icon(Icons.person),
                   );
                 }
-                final senderData =
-                    userSnapshot.data!.data() as Map<String, dynamic>;
+                
+                final senderData = userSnapshot.data!.data() as Map<String, dynamic>;
                 final isViewed = snapData['isViewed'] ?? false;
-                return ListTile(
-                  leading: Icon(
-                    isViewed ? EvaIcons.doneAllOutline : EvaIcons.emailOutline,
-                    color:
-                        isViewed ? SnapUIColors.grey : SnapUIColors.accentRed,
-                  ),
-                  title: Text(
-                    isViewed
-                        ? "Snap from ${senderData['username']}"
-                        : "New Snap from ${senderData['username']}",
-                  ),
-                  subtitle: Text(isViewed ? 'Tap to replay' : 'Tap to view'),
-                  onTap: () {
-                    _viewSnap(doc, snapData);
-                  },
+                final username = senderData['username'] ?? 'Unknown';
+                
+                return _buildSnapListItem(
+                  doc: doc,
+                  snapData: snapData,
+                  username: username,
+                  isViewed: isViewed,
+                  isVideo: isVideo,
                 );
               },
             );
           },
         );
       },
+    );
+  }
+
+  Widget _buildSnapListItem({
+    required DocumentSnapshot doc,
+    required Map<String, dynamic> snapData,
+    required String username,
+    required bool isViewed,
+    required bool isVideo,
+  }) {
+    // Get media URL (prioritize mediaUrl over imageUrl for backward compatibility)
+    final mediaUrl = snapData['mediaUrl'] ?? snapData['imageUrl'] as String?;
+    final thumbnailUrl = snapData['thumbnailUrl'] as String?;
+    
+    // Use thumbnail for videos, media URL for photos
+    final displayUrl = isVideo && thumbnailUrl != null ? thumbnailUrl : mediaUrl;
+    
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: isViewed ? SnapUIColors.greyLight : SnapUIColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.all(12),
+        leading: _buildSnapThumbnail(
+          displayUrl: displayUrl,
+          isVideo: isVideo,
+          isViewed: isViewed,
+        ),
+        title: Text(
+          isViewed ? "Snap from $username" : "New Snap from $username",
+          style: TextStyle(
+            fontWeight: isViewed ? FontWeight.normal : FontWeight.bold,
+            color: isViewed ? SnapUIColors.greyDark : SnapUIColors.black,
+          ),
+        ),
+        subtitle: Row(
+          children: [
+            Icon(
+              isVideo ? EvaIcons.videoOutline : EvaIcons.cameraOutline,
+              size: 16,
+              color: SnapUIColors.grey,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              isViewed ? 'Tap to replay' : 'Tap to view',
+              style: TextStyle(
+                color: SnapUIColors.grey,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        trailing: Icon(
+          isViewed ? EvaIcons.doneAllOutline : EvaIcons.emailOutline,
+          color: isViewed ? SnapUIColors.grey : SnapUIColors.accentRed,
+          size: 20,
+        ),
+        onTap: () => _viewSnap(doc, snapData),
+      ),
+    );
+  }
+
+  Widget _buildSnapThumbnail({
+    required String? displayUrl,
+    required bool isVideo,
+    required bool isViewed,
+  }) {
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: SnapUIColors.greyLight,
+      ),
+      child: Stack(
+        children: [
+          // Thumbnail image
+          if (displayUrl != null)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: CachedNetworkImage(
+                imageUrl: displayUrl,
+                width: 60,
+                height: 60,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  width: 60,
+                  height: 60,
+                  color: SnapUIColors.greyLight,
+                  child: const Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: SnapUIColors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  width: 60,
+                  height: 60,
+                  color: SnapUIColors.greyLight,
+                  child: const Icon(
+                    EvaIcons.imageOutline,
+                    color: SnapUIColors.grey,
+                    size: 24,
+                  ),
+                ),
+              ),
+            )
+          else
+            // Fallback when no URL available
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: SnapUIColors.greyLight,
+              ),
+              child: Icon(
+                isVideo ? EvaIcons.videoOutline : EvaIcons.imageOutline,
+                color: SnapUIColors.grey,
+                size: 24,
+              ),
+            ),
+          
+          // Video play indicator overlay
+          if (isVideo)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.black.withOpacity(0.3),
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.play_arrow,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+            ),
+          
+          // Viewed indicator
+          if (isViewed)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Container(
+                width: 16,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: SnapUIColors.grey,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1),
+                ),
+                child: const Icon(
+                  Icons.check,
+                  color: Colors.white,
+                  size: 10,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 

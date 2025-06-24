@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:snapameal/services/story_service.dart';
 import 'package:snapameal/services/friend_service.dart';
@@ -15,56 +16,89 @@ class StoryViewPage extends StatefulWidget {
   State<StoryViewPage> createState() => _StoryViewPageState();
 }
 
-class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProviderStateMixin {
+class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateMixin {
   final StoryService _storyService = StoryService();
   final FriendService _friendService = FriendService();
   late PageController _pageController;
-  late AnimationController _animationController;
+  late AnimationController _progressController;
+  late AnimationController _loadingController;
   List<DocumentSnapshot> _stories = [];
   int _currentIndex = 0;
   VideoPlayerController? _videoController;
+  bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = '';
+  bool _isPaused = false;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
-    _animationController = AnimationController(vsync: this);
+    _progressController = AnimationController(vsync: this);
+    _loadingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
 
     _loadStories();
   }
 
   void _loadStories() async {
-    final storiesSnapshot = await _storyService.getStoriesForUserStream(widget.userId).first;
+    try {
+      setState(() {
+        _isLoading = true;
+        _hasError = false;
+      });
 
-    if (!mounted) return;
-
-    if (storiesSnapshot.docs.isNotEmpty) {
-      final now = Timestamp.now();
-      final validStories = storiesSnapshot.docs.where((story) {
-        final data = story.data() as Map<String, dynamic>?;
-        if (data == null || data['timestamp'] == null) return false;
-        final timestamp = data['timestamp'] as Timestamp;
-        return now.toDate().difference(timestamp.toDate()).inHours < 24;
-      }).toList();
+      final storiesSnapshot = await _storyService.getStoriesForUserStream(widget.userId).first;
 
       if (!mounted) return;
 
-      setState(() {
-        _stories = validStories;
-        if (_stories.isNotEmpty) {
+      if (storiesSnapshot.docs.isNotEmpty) {
+        final now = Timestamp.now();
+        final validStories = storiesSnapshot.docs.where((story) {
+          final data = story.data() as Map<String, dynamic>?;
+          if (data == null || data['timestamp'] == null) return false;
+          final timestamp = data['timestamp'] as Timestamp;
+          return now.toDate().difference(timestamp.toDate()).inHours < 24;
+        }).toList();
+
+        if (!mounted) return;
+
+        if (validStories.isNotEmpty) {
+          setState(() {
+            _stories = validStories;
+            _isLoading = false;
+          });
           _startStory();
         } else {
-          // No valid stories, pop back
-          if (mounted) Navigator.of(context).pop();
+          // No valid stories
+          _handleError("No recent stories available");
         }
-      });
-    } else {
-      // No stories at all, pop back
-      if (mounted) Navigator.of(context).pop();
+      } else {
+        // No stories at all
+        _handleError("No stories found");
+      }
+    } catch (e) {
+      debugPrint('StoryViewPage: Error loading stories: $e');
+      _handleError("Failed to load stories");
     }
   }
 
-  void _startStory() {
+  void _handleError(String message) {
+    setState(() {
+      _isLoading = false;
+      _hasError = true;
+      _errorMessage = message;
+    });
+    
+    // Auto-close after showing error
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) Navigator.of(context).pop();
+    });
+  }
+
+  void _startStory() async {
     if (_stories.isEmpty || _currentIndex >= _stories.length) {
       if (mounted) Navigator.of(context).pop();
       return;
@@ -73,41 +107,75 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
     final currentStoryData = _stories[_currentIndex].data() as Map<String, dynamic>?;
 
     if (currentStoryData == null) {
-      // If story data is somehow null, pop
-      if (mounted) Navigator.of(context).pop();
+      _handleError("Story data unavailable");
       return;
     }
 
-    final type = currentStoryData['type'];
-    final duration = (currentStoryData['duration'] ?? 5) * 1000;
+    // Stop current progress and reset
+    _progressController.stop();
+    _progressController.reset();
 
-    _animationController.stop();
-    _animationController.reset();
+    final type = currentStoryData['type'] ?? (currentStoryData['isVideo'] == true ? 'video' : 'image');
+    final duration = currentStoryData['duration'] ?? 5;
 
-    if (type == 'video') {
-      _videoController?.dispose();
-      _videoController = VideoPlayerController.networkUrl(Uri.parse(currentStoryData['mediaUrl']))
-        ..initialize().then((_) {
-          setState(() {});
-          _videoController!.play();
-          _animationController.duration = _videoController!.value.duration;
-          _animationController.forward();
-        });
-    } else {
-      _animationController.duration = Duration(milliseconds: duration);
-      _animationController.forward();
+    try {
+      if (type == 'video') {
+        await _initializeVideo(currentStoryData);
+      } else {
+        // For images, use the specified duration
+        _progressController.duration = Duration(seconds: duration);
+        _progressController.forward();
+      }
+    } catch (e) {
+      debugPrint('StoryViewPage: Error starting story: $e');
+      _nextStory(); // Skip to next story on error
     }
 
-    _animationController.addStatusListener(_onAnimationStatusChange);
+    _progressController.addStatusListener(_onProgressComplete);
+  }
+
+  Future<void> _initializeVideo(Map<String, dynamic> storyData) async {
+    try {
+      _videoController?.dispose();
+      
+      final videoUrl = storyData['mediaUrl'] as String;
+      debugPrint('StoryViewPage: Initializing video: $videoUrl');
+      
+      _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+      
+      await _videoController!.initialize();
+      
+      if (!mounted) return;
+      
+      setState(() {});
+      
+      // Set progress duration to video duration
+      final videoDuration = _videoController!.value.duration;
+      _progressController.duration = videoDuration;
+      
+      // Start video playback
+      await _videoController!.play();
+      _progressController.forward();
+      
+      debugPrint('StoryViewPage: Video initialized and playing');
+      
+    } catch (e) {
+      debugPrint('StoryViewPage: Error initializing video: $e');
+      // Fallback to default duration if video fails
+      _progressController.duration = const Duration(seconds: 5);
+      _progressController.forward();
+    }
   }
   
-  void _onAnimationStatusChange(AnimationStatus status) {
-    if (status == AnimationStatus.completed) {
+  void _onProgressComplete(AnimationStatus status) {
+    if (status == AnimationStatus.completed && !_isPaused) {
       _nextStory();
     }
   }
 
   void _nextStory() {
+    _progressController.removeStatusListener(_onProgressComplete);
+    
     if (_currentIndex < _stories.length - 1) {
       setState(() {
         _currentIndex++;
@@ -123,6 +191,8 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
   }
 
   void _previousStory() {
+    _progressController.removeStatusListener(_onProgressComplete);
+    
     if (_currentIndex > 0) {
       setState(() {
         _currentIndex--;
@@ -134,159 +204,384 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
     }
   }
 
+  void _pauseStory() {
+    setState(() {
+      _isPaused = true;
+    });
+    _progressController.stop();
+    _videoController?.pause();
+    HapticFeedback.lightImpact();
+  }
+
+  void _resumeStory() {
+    setState(() {
+      _isPaused = false;
+    });
+    _progressController.forward();
+    _videoController?.play();
+  }
+
   @override
   void dispose() {
     _pageController.dispose();
-    _animationController.removeStatusListener(_onAnimationStatusChange);
-    _animationController.dispose();
+    _progressController.removeStatusListener(_onProgressComplete);
+    _progressController.dispose();
+    _loadingController.dispose();
     _videoController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return _buildLoadingScreen();
+    }
+    
+    if (_hasError) {
+      return _buildErrorScreen();
+    }
+    
+    if (_stories.isEmpty) {
+      return _buildNoStoriesScreen();
+    }
+
+    return _buildStoryView();
+  }
+
+  Widget _buildLoadingScreen() {
     return Scaffold(
       backgroundColor: SnapUIColors.black,
-      body: _stories.isEmpty
-          ? FutureBuilder<void>(
-              future: null, // This is now handled by the _loadStories initState
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.hasError || _stories.isEmpty) {
-                  return Center(
-                      child: Text("Story data is unavailable.",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyLarge
-                              ?.copyWith(color: SnapUIColors.white)));
-                }
-                // If stories loaded successfully, build the main view
-                return _buildStoryView();
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedBuilder(
+              animation: _loadingController,
+              child: const Icon(
+                EvaIcons.refreshOutline,
+                color: SnapUIColors.white,
+                size: 48,
+              ),
+              builder: (context, child) {
+                return Transform.rotate(
+                  angle: _loadingController.value * 2.0 * 3.14159,
+                  child: child,
+                );
               },
-            )
-          : _buildStoryView(),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Loading stories...',
+              style: TextStyle(
+                color: SnapUIColors.white,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorScreen() {
+    return Scaffold(
+      backgroundColor: SnapUIColors.black,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              EvaIcons.alertTriangleOutline,
+              color: SnapUIColors.accentRed,
+              size: 48,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _errorMessage,
+              style: const TextStyle(
+                color: SnapUIColors.white,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Closing automatically...',
+              style: TextStyle(
+                color: SnapUIColors.grey,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoStoriesScreen() {
+    return Scaffold(
+      backgroundColor: SnapUIColors.black,
+      body: const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              EvaIcons.imageOutline,
+              color: SnapUIColors.grey,
+              size: 48,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No stories available',
+              style: TextStyle(
+                color: SnapUIColors.white,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildStoryView() {
-    if (_stories.isEmpty) {
-      return const Scaffold(
-        backgroundColor: Colors.black,
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    final currentStory = _stories[_currentIndex].data() as Map<String, dynamic>?;
-
-    if (currentStory == null) {
-      // Pop immediately if the story data is null
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) Navigator.of(context).pop();
-      });
-      return Scaffold(
-        backgroundColor: SnapUIColors.black,
-        body: Center(
-            child: Text("Story data is unavailable.",
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge
-                    ?.copyWith(color: SnapUIColors.white))),
-      );
-    }
-
     return GestureDetector(
       onTapUp: (details) {
         final width = MediaQuery.of(context).size.width;
         if (details.globalPosition.dx < width / 3) {
           _previousStory();
-        } else {
+        } else if (details.globalPosition.dx > width * 2 / 3) {
           _nextStory();
+        } else {
+          // Middle tap - pause/resume
+          if (_isPaused) {
+            _resumeStory();
+          } else {
+            _pauseStory();
+          }
         }
       },
-      child: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _stories.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-              _startStory();
-            },
-            itemBuilder: (context, index) {
-              if (index >= _stories.length) return const SizedBox.shrink();
-              final story = _stories[index].data() as Map<String, dynamic>?;
-              
-              if (story == null) return const SizedBox.shrink();
-
-              final timestamp = story['timestamp'] as Timestamp?;
-              if (timestamp == null) return const SizedBox.shrink();
-
-              return FutureBuilder<DocumentSnapshot>(
-                future: _friendService.getUserData(story['senderId']),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return const Center(child: Text("Error loading user data"));
-                  } else {
-                    final userData = snapshot.data?.data() as Map<String, dynamic>?;
-                    if (userData == null) {
-                      return const Center(child: Text("User data is unavailable"));
-                    }
-
-                    if (story['isVideo']) {
-                      return (_videoController?.value.isInitialized ?? false)
-                          ? Center(
-                              child: AspectRatio(
-                                aspectRatio: _videoController!.value.aspectRatio,
-                                child: VideoPlayer(_videoController!),
-                              ),
-                            )
-                          : const Center(child: CircularProgressIndicator());
-                    } else {
-                      return CachedNetworkImage(
-                        imageUrl: story['mediaUrl'],
-                        fit: BoxFit.contain,
-                        placeholder: (context, url) => const Center(child: CircularProgressIndicator()),
-                        errorWidget: (context, url, error) => const Icon(EvaIcons.alertTriangleOutline, color: SnapUIColors.white),
-                      );
-                    }
-                  }
-                },
-              );
-            },
-          ),
-          Positioned(
-            top: 40,
-            left: 10,
-            right: 10,
-            child: Row(
-              children: _stories.asMap().entries.map((entry) {
-                return Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                    child: AnimatedBuilder(
-                      animation: _animationController,
-                      builder: (context, child) {
-                        return LinearProgressIndicator(
-                          value: entry.key == _currentIndex ? _animationController.value : (entry.key < _currentIndex ? 1.0 : 0.0),
-                          backgroundColor: Colors.grey.withValues(alpha: 0.5),
-                          valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              }).toList(),
+      onLongPressStart: (_) => _pauseStory(),
+      onLongPressEnd: (_) => _resumeStory(),
+      child: Scaffold(
+        backgroundColor: SnapUIColors.black,
+        body: Stack(
+          children: [
+            // Main story content
+            PageView.builder(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _stories.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _currentIndex = index;
+                });
+                _startStory();
+              },
+              itemBuilder: (context, index) => _buildStoryContent(index),
             ),
-          ),
-        ],
+            
+            // Progress indicators
+            _buildProgressIndicators(),
+            
+            // User info header
+            _buildUserHeader(),
+            
+            // Pause indicator
+            if (_isPaused) _buildPauseIndicator(),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildStoryContent(int index) {
+    if (index >= _stories.length) return const SizedBox.shrink();
+    
+    final story = _stories[index].data() as Map<String, dynamic>?;
+    if (story == null) return const SizedBox.shrink();
+
+    final type = story['type'] ?? (story['isVideo'] == true ? 'video' : 'image');
+    final mediaUrl = story['mediaUrl'] as String?;
+    
+    if (mediaUrl == null) {
+      return const Center(
+        child: Icon(
+          EvaIcons.alertTriangleOutline,
+          color: SnapUIColors.white,
+          size: 48,
+        ),
+      );
+    }
+
+    if (type == 'video') {
+      return _buildVideoContent();
+    } else {
+      return _buildImageContent(mediaUrl);
+    }
+  }
+
+  Widget _buildVideoContent() {
+    if (_videoController?.value.isInitialized ?? false) {
+      return Center(
+        child: AspectRatio(
+          aspectRatio: _videoController!.value.aspectRatio,
+          child: VideoPlayer(_videoController!),
+        ),
+      );
+    } else {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: SnapUIColors.white,
+        ),
+      );
+    }
+  }
+
+  Widget _buildImageContent(String imageUrl) {
+    return Center(
+      child: CachedNetworkImage(
+        imageUrl: imageUrl,
+        fit: BoxFit.contain,
+        placeholder: (context, url) => const Center(
+          child: CircularProgressIndicator(
+            color: SnapUIColors.white,
+          ),
+        ),
+        errorWidget: (context, url, error) => const Center(
+          child: Icon(
+            EvaIcons.alertTriangleOutline,
+            color: SnapUIColors.white,
+            size: 48,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgressIndicators() {
+    return Positioned(
+      top: 50,
+      left: 10,
+      right: 10,
+      child: Row(
+        children: _stories.asMap().entries.map((entry) {
+          return Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2.0),
+              child: AnimatedBuilder(
+                animation: _progressController,
+                builder: (context, child) {
+                  double value;
+                  if (entry.key == _currentIndex) {
+                    value = _progressController.value;
+                  } else if (entry.key < _currentIndex) {
+                    value = 1.0;
+                  } else {
+                    value = 0.0;
+                  }
+                  
+                  return LinearProgressIndicator(
+                    value: value,
+                    backgroundColor: Colors.white.withOpacity(0.3),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                    minHeight: 3,
+                  );
+                },
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildUserHeader() {
+    if (_stories.isEmpty || _currentIndex >= _stories.length) return const SizedBox.shrink();
+    
+    final story = _stories[_currentIndex].data() as Map<String, dynamic>?;
+    if (story == null) return const SizedBox.shrink();
+    
+    return Positioned(
+      top: 80,
+      left: 16,
+      right: 16,
+      child: FutureBuilder<DocumentSnapshot>(
+        future: _friendService.getUserData(story['senderId'] ?? widget.userId),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) return const SizedBox.shrink();
+          
+          final userData = snapshot.data!.data() as Map<String, dynamic>?;
+          final username = userData?['username'] ?? 'Unknown User';
+          
+          return Row(
+            children: [
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: SnapUIColors.greyLight,
+                child: const Icon(
+                  EvaIcons.personOutline,
+                  color: SnapUIColors.greyDark,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      username,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      _getTimeAgo(story['timestamp'] as Timestamp?),
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.8),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPauseIndicator() {
+    return Positioned.fill(
+      child: Container(
+        color: Colors.black.withOpacity(0.3),
+        child: const Center(
+          child: Icon(
+            Icons.pause,
+            color: Colors.white,
+            size: 64,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getTimeAgo(Timestamp? timestamp) {
+    if (timestamp == null) return '';
+    
+    final now = DateTime.now();
+    final storyTime = timestamp.toDate();
+    final difference = now.difference(storyTime);
+    
+    if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'now';
+    }
   }
 } 

@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/video_compression.dart';
 import 'friend_service.dart';
 
 class SnapService {
@@ -11,27 +12,76 @@ class SnapService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> sendSnap(String imagePath, int duration, List<String> recipientIds, bool isVideo) async {
+  Future<void> sendSnap(String mediaPath, int duration, List<String> recipientIds, bool isVideo) async {
     final user = _auth.currentUser;
     if (user == null) return;
 
-    // 1. Upload image to Firebase Storage
-    String imageUrl;
+    // 1. Process and upload media to Firebase Storage
+    String mediaUrl;
+    String? thumbnailUrl;
     try {
-      debugPrint("Attempting to upload file from path: $imagePath");
-      final file = File(imagePath);
+      debugPrint("Attempting to upload file from path: $mediaPath");
+      final file = File(mediaPath);
 
       // Check if the file exists before uploading
       if (!await file.exists()) {
-        debugPrint("File does not exist at path: $imagePath");
+        debugPrint("File does not exist at path: $mediaPath");
         return;
+      }
+
+      File fileToUpload = file;
+      
+      // If it's a video, compress it first
+      if (isVideo) {
+        debugPrint("Processing video file...");
+        
+        // Validate video file
+        if (!await VideoCompressionUtil.validateVideoFile(mediaPath)) {
+          debugPrint("Video file validation failed");
+          return;
+        }
+
+        // Compress video
+        final compressedFile = await VideoCompressionUtil.compressVideoForSnap(mediaPath);
+        if (compressedFile == null) {
+          debugPrint("Video compression failed");
+          return;
+        }
+        
+        fileToUpload = compressedFile;
+        debugPrint("Video compressed successfully");
+
+        // Generate and upload thumbnail
+        final thumbnailFile = await VideoCompressionUtil.generateThumbnail(compressedFile.path);
+        if (thumbnailFile != null) {
+          try {
+            final thumbnailFileName = '${DateTime.now().millisecondsSinceEpoch}_thumb.jpg';
+            final thumbnailRef = _storage.ref().child('snaps').child(user.uid).child('thumbnails').child(thumbnailFileName);
+            final thumbnailUploadTask = await thumbnailRef.putFile(thumbnailFile);
+            thumbnailUrl = await thumbnailUploadTask.ref.getDownloadURL();
+            debugPrint("Thumbnail uploaded successfully");
+            
+            // Clean up local thumbnail file
+            await thumbnailFile.delete();
+          } catch (e) {
+            debugPrint("Error uploading thumbnail: $e");
+            // Continue without thumbnail - not critical
+          }
+        }
       }
       
       final fileName = '${DateTime.now().millisecondsSinceEpoch}.${isVideo ? 'mp4' : 'jpg'}';
       final ref = _storage.ref().child('snaps').child(user.uid).child(fileName);
       
-      final uploadTask = await ref.putFile(file);
-      imageUrl = await uploadTask.ref.getDownloadURL();
+      final uploadTask = await ref.putFile(fileToUpload);
+      mediaUrl = await uploadTask.ref.getDownloadURL();
+      
+      // Clean up temporary compressed file
+      if (isVideo && fileToUpload.path != mediaPath) {
+        await fileToUpload.delete();
+      }
+      
+      debugPrint("Media uploaded successfully");
     } catch (e) {
       debugPrint("Error uploading snap media: $e");
       return; // Stop execution if upload fails
@@ -41,7 +91,9 @@ class SnapService {
     for (String recipientId in recipientIds) {
       try {
         final snapData = {
-          'imageUrl': imageUrl,
+          'mediaUrl': mediaUrl,
+          'imageUrl': mediaUrl, // Keep for backward compatibility
+          'thumbnailUrl': thumbnailUrl,
           'senderId': user.uid,
           'receiverId': recipientId, // Add receiverId for each recipient
           'timestamp': FieldValue.serverTimestamp(),
@@ -50,6 +102,7 @@ class SnapService {
           'isVideo': isVideo,
           'replayed': false,
           'createdAt': FieldValue.serverTimestamp(), // Add explicit creation timestamp
+          'hasBeenScreenshot': false, // Track screenshot notifications
         };
         
         // Try to add the snap document
