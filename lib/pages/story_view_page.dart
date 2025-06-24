@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:snapameal/services/story_service.dart';
+import 'package:snapameal/services/friend_service.dart';
 import 'package:video_player/video_player.dart';
 
 class StoryViewPage extends StatefulWidget {
@@ -15,6 +16,7 @@ class StoryViewPage extends StatefulWidget {
 
 class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProviderStateMixin {
   final StoryService _storyService = StoryService();
+  final FriendService _friendService = FriendService();
   late PageController _pageController;
   late AnimationController _animationController;
   List<DocumentSnapshot> _stories = [];
@@ -197,7 +199,7 @@ class _StoryViewPageState extends State<StoryViewPage> with SingleTickerProvider
                 if (timestamp == null) return const SizedBox.shrink();
 
                 return FutureBuilder<DocumentSnapshot>(
-                  future: _storyService.getUserData(story['senderId']),
+                  future: _friendService.getUserData(story['senderId']),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
