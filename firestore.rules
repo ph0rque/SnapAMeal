@@ -22,7 +22,8 @@ service cloud.firestore {
         allow create, delete: if request.auth != null && request.auth.uid == userId;
         allow update: if request.auth != null && (
           request.auth.uid == userId || // Owner can update their own friends
-          request.auth.uid == friendId  // Friend can update streak data when sending snaps
+          request.auth.uid == friendId || // Friend can update streak data when sending snaps
+          (request.auth != null && 'streakCount' in request.resource.data) // Allow streak updates
         );
       }
 

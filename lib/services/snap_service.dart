@@ -93,6 +93,9 @@ class SnapService {
         final senderFriendDoc = await transaction.get(senderFriendDocRef);
         final recipientFriendDoc = await transaction.get(recipientFriendDocRef);
 
+        debugPrint("Sender friend doc exists: ${senderFriendDoc.exists}");
+        debugPrint("Recipient friend doc exists: ${recipientFriendDoc.exists}");
+
         // Skip if either friend document doesn't exist
         if (!senderFriendDoc.exists || !recipientFriendDoc.exists) {
           debugPrint("Friend documents don't exist - skipping streak update");
@@ -114,15 +117,33 @@ class SnapService {
           currentStreak = 1; // First snap
         }
 
-        // Update both sides of the friendship
-        transaction.update(senderFriendDocRef, {
-          'streakCount': currentStreak,
-          'lastSnapTimestamp': now,
-        });
-         transaction.update(recipientFriendDocRef, {
-          'streakCount': currentStreak,
-          'lastSnapTimestamp': now,
-        });
+        debugPrint("Updating sender friend doc: /users/$senderId/friends/$recipientId");
+        debugPrint("Updating recipient friend doc: /users/$recipientId/friends/$senderId");
+        debugPrint("Current user: ${_auth.currentUser?.uid}");
+
+        // Try updating sender's friend document first
+        try {
+          transaction.update(senderFriendDocRef, {
+            'streakCount': currentStreak,
+            'lastSnapTimestamp': now,
+          });
+          debugPrint("Successfully updated sender friend doc");
+        } catch (e) {
+          debugPrint("Error updating sender friend doc: $e");
+          throw e;
+        }
+
+        // Try updating recipient's friend document
+        try {
+          transaction.update(recipientFriendDocRef, {
+            'streakCount': currentStreak,
+            'lastSnapTimestamp': now,
+          });
+          debugPrint("Successfully updated recipient friend doc");
+        } catch (e) {
+          debugPrint("Error updating recipient friend doc: $e");
+          throw e;
+        }
       });
     } catch (e) {
       debugPrint("Error in _updateStreak transaction: $e");
