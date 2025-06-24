@@ -156,6 +156,9 @@ This phase focuses on integrating AR filters, a complex feature requiring native
 *   **AR Filters:** High-risk feature; consider basic implementation first with enhancements later.
 *   **Testing:** Includes time for bug fixing and minor iterations, but not major requirement changes.
 
+### Future Technical Debt & Refinements
+*   **Firestore Security Rules:** The project currently lacks deployed Firestore security rules, operating in a less secure test mode. **This is a critical task that must be revisited and completed after Phase 4** to ensure the production application is secure.
+
 ## Conclusion
 
 The SnapAMeal development plan leverages Flutter and Firebase to deliver a scalable, real-time social app. The 4–6 month timeline ensures a robust foundation, core features, and advanced enhancements while managing complexity and risk. 
