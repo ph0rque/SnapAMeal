@@ -14,6 +14,7 @@ This phase establishes the core infrastructure and user authentication systems.
     *   Set up necessary tools (Android Studio, Flutter, etc.)
     *   Test the environment with a sample Flutter project
 *   **Estimate:** 1–2 days
+*   **Status:** Done
 
 **2. Set Up Firebase Project**
 *   **Subtasks:**
@@ -21,6 +22,7 @@ This phase establishes the core infrastructure and user authentication systems.
     *   Integrate configuration files (google-services.json, GoogleService-Info.plist) into Android and iOS projects
     *   Verify setup with a test function (e.g., authentication or Firestore read)
 *   **Estimate:** 0.5–1 day
+*   **Status:** Done
 
 **3. Implement Email/Password Authentication**
 *   **Subtasks:**
@@ -30,6 +32,7 @@ This phase establishes the core infrastructure and user authentication systems.
     *   Implement an AuthGate to manage user sessions and direct users to the correct screen
     *   Test authentication flows (sign-up, login, error handling)
 *   **Estimate:** 1–2 weeks
+*   **Status:** Done
 
 **4. Refine Core Implementation Based on Developer Feedback**
 *   **Subtasks:**
