@@ -1,8 +1,8 @@
-# Project Brief: SnapConnect
+# Project Brief: SnapAMeal
 
 ## Project Goal
 
-The primary goal of this project is to develop a mobile application that clones the core functionalities of Snapchat. The project is codenamed **SnapConnect**.
+The primary goal of this project is to develop a mobile application that clones the core functionalities of Snapchat. The project is codenamed **SnapAMeal**.
 
 ## Initial Milestone
 
