@@ -97,11 +97,11 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
 
     return Column(
       children: [
-        // Welcome message
+        // Welcome message - made more compact
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           decoration: BoxDecoration(
             color: SnapColors.backgroundLight,
             borderRadius: BorderRadius.circular(12),
@@ -113,30 +113,34 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: SnapColors.primaryYellow,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: const Icon(
                       Icons.psychology,
                       color: SnapColors.backgroundDark,
-                      size: 20,
+                      size: 16,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'AI Health Advisor',
-                    style: SnapTypography.heading3.copyWith(color: SnapColors.primaryYellow),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'AI Health Advisor',
+                      style: SnapTypography.titleLarge.copyWith(color: SnapColors.primaryYellow),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 8),
               Text(
-                'Ask me anything about your health, nutrition, fitness, or wellness goals. I\'ll provide personalized advice based on your profile and habits.',
-                style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+                'Ask questions about health, nutrition, fitness, or wellness.',
+                style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
               _buildQuickQuestions(),
             ],
           ),

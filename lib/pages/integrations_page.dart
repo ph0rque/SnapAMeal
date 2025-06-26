@@ -225,12 +225,24 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
 
   @override
   Widget build(BuildContext context) {
+    // Check if this page was accessed via settings route
+    final route = ModalRoute.of(context);
+    final isSettingsRoute = route?.settings.name == '/settings';
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Health Integrations'),
+        title: Text(isSettingsRoute ? 'Settings' : 'Health Integrations'),
         backgroundColor: SnapColors.surface,
         foregroundColor: SnapColors.textPrimary,
         elevation: 0,
+        automaticallyImplyLeading: true, // Ensure back button is shown
+        leading: Navigator.canPop(context) 
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+                tooltip: 'Back',
+              )
+            : null,
         actions: [
           IconButton(
             icon: const Icon(Icons.warning_amber),

@@ -229,6 +229,8 @@ class MyApp extends StatelessWidget {
         return const HealthGroupsPage();
       case '/integrations':
         return const IntegrationsPage();
+      case '/settings':
+        return const IntegrationsPage(); // Using integrations page as settings for now
       default:
         return null;
     }

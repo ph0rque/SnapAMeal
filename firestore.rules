@@ -253,12 +253,31 @@ service cloud.firestore {
         request.auth.uid == request.resource.data.userId;
     }
 
-    // Meal logs - users can only access their own meal logs
+    // Meal logs - users can only access their own meal logs  
     match /meal_logs/{logId} {
       allow read, write: if request.auth != null && 
-        request.auth.uid == resource.data.userId;
+        request.auth.uid == resource.data.user_id;
       allow create: if request.auth != null && 
-        request.auth.uid == request.resource.data.userId;
+        request.auth.uid == request.resource.data.user_id;
+    }
+
+    // Health groups - users can read groups they are members of and create new groups
+    match /health_groups/{groupId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid in resource.data.memberIds);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid in resource.data.memberIds || 
+         request.auth.uid == resource.data.createdBy);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.createdBy;
+    }
+
+    // Health integrations - users can only access their own integrations
+    match /health_integrations/{integrationId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.user_id;
     }
 
     // Admin-only collections
