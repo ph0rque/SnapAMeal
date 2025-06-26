@@ -2,9 +2,9 @@
 
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
-import '../lib/services/demo_data_service.dart';
-import '../lib/services/auth_service.dart';
-import '../lib/config/demo_personas.dart';
+import 'package:snapameal/services/demo_data_service.dart';
+import 'package:snapameal/config/demo_personas.dart';
+import 'package:snapameal/services/auth_service.dart';
 
 /// Automated demo data seeding script for consistent environment setup
 /// 

@@ -362,12 +362,12 @@ class DemoDataService {
         // Add friendship in both directions
         await _firestore
             .collection('${_demoPrefix}friendships')
-            .doc('${user1Id}_${user2Id}')
+            .doc('${user1Id}_$user2Id')
             .set({...friendshipData, 'userId': user2Id});
             
         await _firestore
             .collection('${_demoPrefix}friendships')
-            .doc('${user2Id}_${user1Id}')
+            .doc('${user2Id}_$user1Id')
             .set({...friendshipData, 'userId': user1Id});
       }
     }
@@ -1375,7 +1375,7 @@ class DemoDataService {
     final tags = meal['tags'] as List<String>;
     
     final captions = [
-      'I can see this is $foodName! ${description}. This looks like a ${tags.contains('healthy') ? 'nutritious' : 'delicious'} choice.',
+      'I can see this is $foodName! $description. This looks like a ${tags.contains('healthy') ? 'nutritious' : 'delicious'} choice.',
       'Great choice! This $foodName contains approximately ${meal['calories']} calories and ${meal['protein']}g of protein.',
       'I recognize this as $foodName. ${_getAIHealthComment(meal, persona)}',
       'This $foodName looks perfectly prepared! ${_getAINutritionInsight(meal)}',
@@ -1777,7 +1777,7 @@ class DemoDataService {
       'description': _getProgressDescription(progressType, persona),
       'progressType': progressType,
       'rating': _random.nextInt(3) + 3, // 3-5 rating
-      'imageUrl': 'https://demo.snapameal.com/images/progress/${progressType}.jpg',
+      'imageUrl': 'https://demo.snapameal.com/images/progress/$progressType.jpg',
       'metadata': {
         'category': 'daily_progress',
         'mood': _getMoodAfterFast(persona, true),
@@ -2749,14 +2749,14 @@ class DemoDataService {
           'target': target,
           'achieved': true,
           'achievedDate': Timestamp.fromDate(DateTime.now().subtract(Duration(days: longestStreak - target))),
-          'reward': '${target}-day streak badge',
+          'reward': '$target-day streak badge',
         });
       } else if (currentStreak < target) {
         milestones.add({
           'target': target,
           'achieved': false,
           'progress': (currentStreak / target * 100).round(),
-          'reward': '${target}-day streak badge',
+          'reward': '$target-day streak badge',
         });
         break; // Only show next unachieved milestone
       }
