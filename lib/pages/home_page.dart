@@ -19,6 +19,8 @@ import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:provider/provider.dart';
 import '../providers/fasting_state_provider.dart';
 import '../widgets/fasting_aware_navigation.dart';
+import '../widgets/demo_fasting_showcase.dart';
+import '../widgets/demo_meal_showcase.dart';
 
 import '../design_system/widgets/fasting_status_indicators.dart';
 
@@ -305,6 +307,26 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Demo showcases for investor presentations
+        FutureBuilder<bool>(
+          future: AuthService().isCurrentUserDemo(),
+          builder: (context, snapshot) {
+            final isDemo = snapshot.data ?? false;
+            if (!isDemo) return const SizedBox.shrink();
+            
+            return Column(
+              children: [
+                // Fasting demo showcase
+                const DemoFastingShowcase(),
+                const SizedBox(height: 20),
+                
+                // Meal logging demo showcase
+                const DemoMealShowcase(),
+                const SizedBox(height: 20),
+              ],
+            );
+          },
+        ),
         // Stories section
         if (stories.isNotEmpty) ...[
           Padding(
