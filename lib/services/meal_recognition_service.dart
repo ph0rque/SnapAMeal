@@ -275,14 +275,10 @@ Format the response as JSON with this structure:
     for (int y = 0; y < _inputSize; y++) {
       for (int x = 0; x < _inputSize; x++) {
         final pixel = resized.getPixel(x, y);
-        // Extract RGB values using bit operations
-        final red = (pixel >> 16) & 0xFF;
-        final green = (pixel >> 8) & 0xFF;
-        final blue = pixel & 0xFF;
-        
-        input[pixelIndex++] = red / 255.0;
-        input[pixelIndex++] = green / 255.0;
-        input[pixelIndex++] = blue / 255.0;
+        // Extract RGB values from Pixel object
+        input[pixelIndex++] = pixel.r / 255.0;
+        input[pixelIndex++] = pixel.g / 255.0;
+        input[pixelIndex++] = pixel.b / 255.0;
       }
     }
     
