@@ -38,17 +38,17 @@ Based on PRD-2.1, here are the detailed tasks required to implement the investor
   - [x] 1.5 Add demo account validation and error handling
   - [x] 1.6 Test demo login flow on all platforms (iOS, Android, Web)
 
-- [ ] 2.0 Demo Data Seeding System Development
-  - [ ] 2.1 Create comprehensive health profiles for Alice, Bob, Charlie personas
-  - [ ] 2.2 Generate 30+ days of realistic fasting session history for each user
-  - [ ] 2.3 Create diverse meal logs with AI captions and nutrition data
-  - [ ] 2.4 Build progress stories with varied engagement levels and retention
-  - [ ] 2.5 Establish social connections between demo users (friendships, groups)
-  - [ ] 2.6 Create group chat histories with authentic health discussions
-  - [ ] 2.7 Generate AI advice interaction history showing personalization evolution
-  - [ ] 2.8 Populate health challenges and streak data between users
-  - [ ] 2.9 Create automated seeding script for consistent demo environment setup
-  - [ ] 2.10 Add data validation and integrity checks for seeded content
+- [x] 2.0 Demo Data Seeding System Development
+  - [x] 2.1 Create comprehensive health profiles for Alice, Bob, Charlie personas
+  - [x] 2.2 Generate 30+ days of realistic fasting session history for each user
+  - [x] 2.3 Create diverse meal logs with AI captions and nutrition data
+  - [x] 2.4 Build progress stories with varied engagement levels and retention
+  - [x] 2.5 Establish social connections between demo users (friendships, groups)
+  - [x] 2.6 Create group chat histories with authentic health discussions
+  - [x] 2.7 Generate AI advice interaction history showing personalization evolution
+  - [x] 2.8 Populate health challenges and streak data between users
+  - [x] 2.9 Create automated seeding script for consistent demo environment setup
+  - [x] 2.10 Add data validation and integrity checks for seeded content
 
 - [ ] 3.0 Demo Mode Features Integration
   - [ ] 3.1 Design and implement subtle demo mode indicator in app navigation
