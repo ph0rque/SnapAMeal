@@ -91,7 +91,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
             
             return GestureDetector(
               onTap: widget.onTap ?? () => _handleTimerTap(context, fastingService),
-              child: Container(
+              child: SizedBox(
                 width: widget.size,
                 height: widget.size,
                 child: Stack(
@@ -188,7 +188,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
 
   /// Build the inner content (time display and status)
   Widget _buildInnerContent(FastingSession? session) {
-    return Container(
+    return SizedBox(
       width: widget.size * 0.7,
       height: widget.size * 0.7,
       child: Column(
@@ -636,25 +636,64 @@ class _FastingStartDialogState extends State<FastingStartDialog> {
             SizedBox(height: 12),
             
             // Fasting type selection
-            ...FastingType.values.map((type) => ListTile(
-              leading: Radio<FastingType>(
-                value: type,
-                groupValue: _selectedType,
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() {
-                      _selectedType = value;
-                    });
-                  }
+            ...FastingType.values.map((type) => Card(
+              margin: EdgeInsets.symmetric(vertical: 4),
+              child: InkWell(
+                onTap: () {
+                  setState(() {
+                    _selectedType = type;
+                  });
                 },
+                child: Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: _selectedType == type 
+                          ? Theme.of(context).primaryColor 
+                          : Colors.grey.shade300,
+                      width: _selectedType == type ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _selectedType == type 
+                            ? Icons.radio_button_checked 
+                            : Icons.radio_button_unchecked,
+                        color: _selectedType == type 
+                            ? Theme.of(context).primaryColor 
+                            : Colors.grey,
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getTypeDescription(type),
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: _selectedType == type 
+                                    ? Theme.of(context).primaryColor 
+                                    : null,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              _getTypeDuration(type),
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              title: Text(_getTypeDescription(type)),
-              subtitle: Text(_getTypeDuration(type)),
-              onTap: () {
-                setState(() {
-                  _selectedType = type;
-                });
-              },
             )),
             
             SizedBox(height: 16),

@@ -136,8 +136,6 @@ class APIUsageStats {
 
 /// Cost optimization configuration and tracking
 class CostOptimizer {
-  final SharedPreferences _prefs;
-  
   // Cache for embeddings to reduce duplicate API calls
   final Map<String, List<double>> _embeddingCache = {};
   final Map<String, DateTime> _cacheTimestamps = {};
@@ -150,7 +148,7 @@ class CostOptimizer {
   int _cacheMisses = 0;
   final double _totalSavings = 0.0;
 
-  CostOptimizer(this._prefs);
+  CostOptimizer();
 
   /// Check if embedding is cached and still valid
   List<double>? getCachedEmbedding(String text) {
@@ -289,7 +287,6 @@ class CostOptimizer {
 /// Enhanced OpenAI service with comprehensive monitoring and optimization
 class OpenAIService {
   late final CostOptimizer _optimizer;
-  late final SharedPreferences _prefs;
   
   // Usage tracking
   APIUsageStats _currentStats = APIUsageStats.empty();
@@ -307,8 +304,7 @@ class OpenAIService {
 
   /// Initialize the service and load cached stats
   Future<void> initialize() async {
-    _prefs = await SharedPreferences.getInstance();
-    _optimizer = CostOptimizer(_prefs);
+    _optimizer = CostOptimizer();
     await _loadUsageStats();
     await _checkBudgetStatus();
   }
@@ -713,7 +709,8 @@ class OpenAIService {
 
   /// Load usage stats from persistent storage
   Future<void> _loadUsageStats() async {
-    final statsJson = _prefs.getString('openai_usage_stats');
+    final prefs = await SharedPreferences.getInstance();
+    final statsJson = prefs.getString('openai_usage_stats');
     if (statsJson != null) {
       try {
         final statsData = jsonDecode(statsJson);
@@ -735,8 +732,9 @@ class OpenAIService {
   /// Save usage stats to persistent storage
   Future<void> _saveUsageStats() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
       final statsJson = jsonEncode(_currentStats.toJson());
-      await _prefs.setString('openai_usage_stats', statsJson);
+      await prefs.setString('openai_usage_stats', statsJson);
     } catch (e) {
       debugPrint('Error saving usage stats: $e');
     }
@@ -811,7 +809,8 @@ class OpenAIService {
   /// Clear all caches and reset optimization data
   Future<void> clearCache() async {
     _optimizer.clearCache();
-    await _prefs.remove('openai_usage_stats');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('openai_usage_stats');
   }
 
   /// Get budget and usage warnings

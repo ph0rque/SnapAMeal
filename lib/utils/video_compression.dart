@@ -90,11 +90,6 @@ class VideoCompressionUtil {
         position: 0, // Get first frame
       );
 
-      if (thumbnail == null) {
-        debugPrint('VideoCompressionUtil: Failed to generate thumbnail');
-        return null;
-      }
-
       debugPrint('VideoCompressionUtil: Thumbnail generated at ${thumbnail.path}');
       return thumbnail;
     } catch (e) {

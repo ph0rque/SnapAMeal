@@ -385,7 +385,7 @@ class _FastingProgressOverlayState extends State<FastingProgressOverlay>
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
+                SizedBox(
                   width: 80,
                   height: 80,
                   child: Stack(

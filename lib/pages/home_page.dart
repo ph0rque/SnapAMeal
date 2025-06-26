@@ -690,10 +690,10 @@ class _HomePageState extends State<HomePage> {
             onPressed: () {
               Navigator.pushNamed(context, '/meditation-guide');
             },
-            child: Text('Try Meditation'),
             style: ElevatedButton.styleFrom(
               backgroundColor: fastingState.appThemeColor,
             ),
+            child: Text('Try Meditation'),
           ),
         ],
       ),

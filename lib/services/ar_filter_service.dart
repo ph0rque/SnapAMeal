@@ -358,7 +358,7 @@ class ARFilterService {
       builder: (context, child) {
         return Transform.scale(
           scale: pulseAnimation.value,
-          child: Container(
+          child: SizedBox(
             width: 150,
             height: 150,
             child: CustomPaint(

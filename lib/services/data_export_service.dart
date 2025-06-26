@@ -378,7 +378,7 @@ class DataExportService {
       final List<Map<String, dynamic>> integrations = [];
 
       for (final doc in snapshot.docs) {
-        final data = doc.data() ?? {};
+        final data = doc.data();
         
         final integration = {
           'id': doc.id,
