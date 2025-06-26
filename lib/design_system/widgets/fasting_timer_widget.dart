@@ -147,7 +147,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
         color: SnapColors.surface,
         boxShadow: [
           BoxShadow(
-            color: SnapColors.shadow.withOpacity(0.1),
+            color: SnapColors.shadow.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: Offset(0, 8),
           ),
@@ -322,7 +322,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: SnapColors.primary.withOpacity(0.3),
+                color: SnapColors.primary.withValues(alpha: 0.3),
                 width: 2,
               ),
             ),
@@ -383,7 +383,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
           color: backgroundColor,
           boxShadow: [
             BoxShadow(
-              color: backgroundColor.withOpacity(0.3),
+              color: backgroundColor.withValues(alpha: 0.3),
               blurRadius: 8,
               offset: Offset(0, 4),
             ),
@@ -542,7 +542,7 @@ class CircularProgressPainter extends CustomPainter {
       if (isActive) {
         final gradient = SweepGradient(
           colors: [
-            progressColor.withOpacity(0.3),
+            progressColor.withValues(alpha: 0.3),
             progressColor,
             progressColor,
           ],

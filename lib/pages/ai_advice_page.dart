@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../design_system/snap_ui.dart';
-import '../design_system/widgets/snap_button.dart';
-import '../design_system/widgets/snap_textfield.dart';
+// Removed unnecessary imports - already provided by snap_ui.dart
 import '../models/ai_advice.dart';
 import '../models/health_profile.dart';
 import '../services/ai_advice_service.dart';

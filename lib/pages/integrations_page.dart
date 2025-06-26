@@ -46,7 +46,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
     setState(() => _isLoading = true);
     
     try {
-      _currentUserId = _authService.getCurrentUserId();
+      _currentUserId = _authService.getCurrentUser()?.uid;
       if (_currentUserId != null) {
         await _loadIntegrations();
         await _checkConnectionStatuses();
@@ -62,7 +62,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
     if (_currentUserId == null) return;
     
     try {
-      final integrations = await _integrationService.getUserIntegrations(_currentUserId!);
+      final integrations = await _integrationService.getUserIntegrations().first;
       setState(() {
         _integrations = integrations;
       });
@@ -194,17 +194,14 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
       (i) => i.id == integrationId,
       orElse: () => HealthIntegration(
         id: integrationId,
-        name: integrationId,
-        type: IntegrationType.fitness,
-        isEnabled: false,
         userId: _currentUserId ?? '',
+        type: IntegrationType.myFitnessPal,
+        status: IntegrationStatus.disconnected,
         connectedAt: DateTime.now(),
-        lastSyncAt: null,
         settings: {},
-        permissions: [],
       ),
     );
-    return integration.name;
+    return integration.typeName;
   }
 
   List<HealthIntegration> get _filteredIntegrations {
@@ -213,13 +210,14 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
     return _integrations.where((integration) {
       switch (_selectedCategory) {
         case 'Fitness':
-          return integration.type == IntegrationType.fitness;
+          return integration.type == IntegrationType.googleFit || 
+                 integration.type == IntegrationType.appleHealth;
         case 'Nutrition':
-          return integration.type == IntegrationType.nutrition;
+          return integration.type == IntegrationType.myFitnessPal;
         case 'Wellness':
-          return integration.type == IntegrationType.wellness;
+          return integration.type == IntegrationType.appleHealth;
         case 'Medical':
-          return integration.type == IntegrationType.medical;
+          return integration.type == IntegrationType.appleHealth;
         default:
           return true;
       }
@@ -481,7 +479,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        integration.name,
+                        integration.typeName,
                         style: SnapTypography.heading.copyWith(fontSize: 16),
                       ),
                       const SizedBox(height: 4),
@@ -562,7 +560,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
               ),
               const SizedBox(height: 8),
             ],
-            _buildPermissionChips(integration.permissions),
+            // _buildPermissionChips(integration.permissions), // Permissions not available in model
           ],
         ),
       ),
@@ -583,7 +581,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    integration.name,
+                    integration.typeName,
                     style: SnapTypography.heading.copyWith(fontSize: 16),
                   ),
                   const SizedBox(height: 4),
@@ -599,8 +597,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
             ),
             SnapButton(
               text: 'Connect',
-              onPressed: () => _connectIntegration(integration.id),
-              variant: SnapButtonVariant.outline,
+              onTap: () => _connectIntegration(integration.id),
             ),
           ],
         ),
@@ -613,21 +610,17 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
     Color color;
     
     switch (type) {
-      case IntegrationType.fitness:
-        iconData = Icons.fitness_center;
-        color = SnapColors.primary;
-        break;
-      case IntegrationType.nutrition:
+      case IntegrationType.myFitnessPal:
         iconData = Icons.restaurant;
         color = SnapColors.success;
         break;
-      case IntegrationType.wellness:
-        iconData = Icons.spa;
-        color = SnapColors.warning;
-        break;
-      case IntegrationType.medical:
-        iconData = Icons.medical_services;
+      case IntegrationType.appleHealth:
+        iconData = Icons.favorite;
         color = SnapColors.error;
+        break;
+      case IntegrationType.googleFit:
+        iconData = Icons.fitness_center;
+        color = SnapColors.primary;
         break;
     }
     
@@ -729,7 +722,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
               const SizedBox(height: 24),
               SnapButton(
                 text: actionText,
-                onPressed: onAction,
+                onTap: onAction,
               ),
             ],
           ],
@@ -740,14 +733,12 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
 
   String _getIntegrationDescription(IntegrationType type) {
     switch (type) {
-      case IntegrationType.fitness:
-        return 'Track workouts, steps, and activity data';
-      case IntegrationType.nutrition:
+      case IntegrationType.myFitnessPal:
         return 'Log meals, calories, and nutrition information';
-      case IntegrationType.wellness:
-        return 'Monitor sleep, stress, and wellness metrics';
-      case IntegrationType.medical:
-        return 'Sync medical data and health records';
+      case IntegrationType.appleHealth:
+        return 'Sync health data from Apple Health app';
+      case IntegrationType.googleFit:
+        return 'Track workouts, steps, and activity data';
     }
   }
 

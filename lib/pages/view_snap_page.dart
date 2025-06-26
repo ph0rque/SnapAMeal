@@ -352,7 +352,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
             height: 3,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(1.5),
-              color: Colors.white.withOpacity(0.3),
+              color: Colors.white.withValues(alpha: 0.3),
             ),
             child: FractionallySizedBox(
               widthFactor: progress.clamp(0.0, 1.0),
@@ -382,7 +382,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -400,7 +400,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
   Widget _buildErrorOverlay() {
     return Positioned.fill(
       child: Container(
-        color: Colors.black.withOpacity(0.8),
+        color: Colors.black.withValues(alpha: 0.8),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

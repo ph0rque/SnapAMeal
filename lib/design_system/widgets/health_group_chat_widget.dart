@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../snap_ui.dart';
-import '../widgets/snap_button.dart';
-import '../widgets/snap_avatar.dart';
+// Removed unnecessary imports - already provided by snap_ui.dart
 import '../../services/chat_service.dart';
 import '../../services/streak_service.dart';
 import '../../services/anonymity_service.dart';

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -119,10 +120,10 @@ class FastingService {
       // Emit update
       _sessionController.add(_currentSession);
 
-      print('Started fasting session: ${session.typeDescription}');
+      debugPrint('Started fasting session: ${session.typeDescription}');
       return session;
     } catch (e) {
-      print('Error starting fasting session: $e');
+      debugPrint('Error starting fasting session: $e');
       return null;
     }
   }
@@ -144,10 +145,10 @@ class FastingService {
       await _updateSession(updatedSession);
       _stopTimer();
       
-      print('Paused fasting session');
+      debugPrint('Paused fasting session');
       return true;
     } catch (e) {
-      print('Error pausing fasting session: $e');
+      debugPrint('Error pausing fasting session: $e');
       return false;
     }
   }
@@ -176,10 +177,10 @@ class FastingService {
       await _updateSession(updatedSession);
       _startTimer();
       
-      print('Resumed fasting session');
+      debugPrint('Resumed fasting session');
       return true;
     } catch (e) {
-      print('Error resuming fasting session: $e');
+      debugPrint('Error resuming fasting session: $e');
       return false;
     }
   }
@@ -226,10 +227,10 @@ class FastingService {
       // Generate post-session insights using RAG
       await _generateSessionInsights(updatedSession);
       
-      print('Ended fasting session: $reason');
+      debugPrint('Ended fasting session: $reason');
       return true;
     } catch (e) {
-      print('Error ending fasting session: $e');
+      debugPrint('Error ending fasting session: $e');
       return false;
     }
   }
@@ -270,7 +271,7 @@ class FastingService {
 
       await _updateSession(updatedSession);
     } catch (e) {
-      print('Error recording engagement: $e');
+      debugPrint('Error recording engagement: $e');
     }
   }
 
@@ -327,7 +328,7 @@ class FastingService {
       final randomQuote = _motivationalQuotes[Random().nextInt(_motivationalQuotes.length)];
       return randomQuote;
     } catch (e) {
-      print('Error getting motivational content: $e');
+      debugPrint('Error getting motivational content: $e');
       // Fallback to predefined quotes
       return _motivationalQuotes[Random().nextInt(_motivationalQuotes.length)];
     }
@@ -350,7 +351,7 @@ class FastingService {
           .map((doc) => FastingSession.fromFirestore(doc))
           .toList();
     } catch (e) {
-      print('Error getting fasting history: $e');
+      debugPrint('Error getting fasting history: $e');
       return [];
     }
   }
@@ -397,7 +398,7 @@ class FastingService {
         'last_session_date': sessions.isNotEmpty ? sessions.first.createdAt : null,
       };
     } catch (e) {
-      print('Error getting fasting stats: $e');
+      debugPrint('Error getting fasting stats: $e');
       return {};
     }
   }
@@ -440,7 +441,7 @@ class FastingService {
         }
       }
     } catch (e) {
-      print('Error loading active session: $e');
+      debugPrint('Error loading active session: $e');
       await _clearActiveSession();
     }
   }
@@ -451,7 +452,7 @@ class FastingService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('active_fasting_session', jsonEncode(session.toJson()));
     } catch (e) {
-      print('Error saving active session: $e');
+      debugPrint('Error saving active session: $e');
     }
   }
 
@@ -463,7 +464,7 @@ class FastingService {
       _currentSession = null;
       _sessionController.add(null);
     } catch (e) {
-      print('Error clearing active session: $e');
+      debugPrint('Error clearing active session: $e');
     }
   }
 
@@ -481,7 +482,7 @@ class FastingService {
         _currentSession = FastingSession.fromFirestore(doc);
       }
     } catch (e) {
-      print('Error syncing session with Firestore: $e');
+      debugPrint('Error syncing session with Firestore: $e');
     }
   }
 
@@ -497,7 +498,7 @@ class FastingService {
       await _saveActiveSession(session);
       _sessionController.add(_currentSession);
     } catch (e) {
-      print('Error updating session: $e');
+      debugPrint('Error updating session: $e');
     }
   }
 
@@ -640,7 +641,7 @@ class FastingService {
         'isPersonalBest': isPersonalBest,
       };
     } catch (e) {
-      print('Error updating streak data: $e');
+      debugPrint('Error updating streak data: $e');
       return {'currentStreak': 0, 'longestStreak': 0, 'isPersonalBest': false};
     }
   }
@@ -688,7 +689,7 @@ class FastingService {
             .update(updatedSession.toFirestore());
       }
     } catch (e) {
-      print('Error generating session insights: $e');
+      debugPrint('Error generating session insights: $e');
     }
   }
 
@@ -716,7 +717,7 @@ class FastingService {
         'enableProgressSharing': false,
       };
     } catch (e) {
-      print('Error getting fasting settings: $e');
+      debugPrint('Error getting fasting settings: $e');
       return {
         'filterSeverity': 'moderate',
         'showMotivationalContent': true,
@@ -740,7 +741,7 @@ class FastingService {
         'updated_at': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      print('Error updating fasting settings: $e');
+      debugPrint('Error updating fasting settings: $e');
     }
   }
 
@@ -798,7 +799,7 @@ class FastingService {
         'successRate': totalSessions > 0 ? completedSessions.length / totalSessions : 0.0,
       };
     } catch (e) {
-      print('Error getting fasting statistics: $e');
+      debugPrint('Error getting fasting statistics: $e');
       return {};
     }
   }
@@ -826,7 +827,7 @@ class FastingService {
 
       return true;
     } catch (e) {
-      print('Error pausing fasting session: $e');
+      debugPrint('Error pausing fasting session: $e');
       return false;
     }
   }
@@ -849,7 +850,7 @@ class FastingService {
 
       return true;
     } catch (e) {
-      print('Error resuming fasting session: $e');
+      debugPrint('Error resuming fasting session: $e');
       return false;
     }
   }
@@ -871,7 +872,7 @@ class FastingService {
       await endFastingSession(endReason, completed ? 'Session completed' : 'User ended session');
       return true;
     } catch (e) {
-      print('Error ending fasting session: $e');
+      debugPrint('Error ending fasting session: $e');
       return false;
     }
   }
@@ -893,7 +894,7 @@ class FastingService {
 
       return _currentSession != null && _currentSession!.isActive;
     } catch (e) {
-      print('Error starting fasting session: $e');
+      debugPrint('Error starting fasting session: $e');
       return false;
     }
   }

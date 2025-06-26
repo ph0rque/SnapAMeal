@@ -294,14 +294,14 @@ class ARFilterService {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    config.primaryColor.withOpacity(0.8),
-                    config.accentColor.withOpacity(0.9),
+                    config.primaryColor.withValues(alpha: 0.8),
+                    config.accentColor.withValues(alpha: 0.9),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
-                    color: config.primaryColor.withOpacity(0.4),
+                    color: config.primaryColor.withValues(alpha: 0.4),
                     blurRadius: 20,
                     offset: Offset(0, 8),
                   ),
@@ -315,7 +315,7 @@ class ARFilterService {
                   fontWeight: FontWeight.bold,
                   shadows: [
                     Shadow(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       offset: Offset(0, 2),
                       blurRadius: 4,
                     ),
@@ -409,8 +409,8 @@ class ARFilterService {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    config.primaryColor.withOpacity(0.8),
-                    config.accentColor.withOpacity(0.3),
+                    config.primaryColor.withValues(alpha: 0.8),
+                    config.accentColor.withValues(alpha: 0.3),
                     Colors.transparent,
                   ],
                 ),
@@ -457,8 +457,8 @@ class ARFilterService {
             gradient: RadialGradient(
               colors: [
                 Colors.transparent,
-                config.primaryColor.withOpacity(0.1 * pulseAnimation.value),
-                config.accentColor.withOpacity(0.3 * pulseAnimation.value),
+                config.primaryColor.withValues(alpha: 0.1 * pulseAnimation.value),
+                config.accentColor.withValues(alpha: 0.3 * pulseAnimation.value),
                 Colors.transparent,
               ],
               stops: [0.0, 0.3, 0.7, 1.0],
@@ -494,7 +494,7 @@ class ARFilterService {
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: config.primaryColor.withOpacity(0.9),
+              color: config.primaryColor.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: config.accentColor, width: 2),
             ),
@@ -597,8 +597,8 @@ class ARFilterService {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  config.primaryColor.withOpacity(0.2),
-                  config.accentColor.withOpacity(0.1),
+                  config.primaryColor.withValues(alpha: 0.2),
+                  config.accentColor.withValues(alpha: 0.1),
                   Colors.transparent,
                 ],
               ),
@@ -607,7 +607,7 @@ class ARFilterService {
               child: Icon(
                 Icons.self_improvement,
                 size: 50,
-                color: config.primaryColor.withOpacity(0.7),
+                color: config.primaryColor.withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -642,12 +642,12 @@ class ARFilterService {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: config.primaryColor.withOpacity(intensityAnimation.value),
+              color: config.primaryColor.withValues(alpha: intensityAnimation.value),
               width: 4,
             ),
             boxShadow: [
               BoxShadow(
-                color: config.accentColor.withOpacity(intensityAnimation.value * 0.5),
+                color: config.accentColor.withValues(alpha: intensityAnimation.value * 0.5),
                 blurRadius: 20,
                 spreadRadius: 5,
               ),
@@ -657,7 +657,7 @@ class ARFilterService {
             child: Icon(
               Icons.fitness_center,
               size: 60,
-              color: config.primaryColor.withOpacity(intensityAnimation.value),
+              color: config.primaryColor.withValues(alpha: intensityAnimation.value),
             ),
           ),
         );
@@ -763,7 +763,7 @@ class ProgressRingPainter extends CustomPainter {
     
     // Background ring
     final backgroundPaint = Paint()
-      ..color = primaryColor.withOpacity(0.2)
+      ..color = primaryColor.withValues(alpha: 0.2)
       ..strokeWidth = 8.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;

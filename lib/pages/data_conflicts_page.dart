@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../design_system/snap_ui.dart';
 import '../services/data_conflict_resolution_service.dart';
 import '../services/health_integration_service.dart';
-import '../design_system/widgets/snap_button.dart';
+// Removed unnecessary import - already provided by snap_ui.dart
 
 class DataConflictsPage extends StatefulWidget {
   const DataConflictsPage({super.key});
@@ -500,33 +500,28 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
         if (conflict.suggestedResolution != null)
           SnapButton(
             text: 'Accept Suggestion',
-            onPressed: _isResolving ? null : () => _resolveConflict(
+            onTap: _isResolving ? null : () => _resolveConflict(
               conflict, 
               conflict.suggestedResolution!,
             ),
-            backgroundColor: SnapColors.primaryYellow,
-            isLoading: _isResolving,
           ),
         SnapButton(
           text: 'Keep Highest Priority',
-          onPressed: _isResolving ? null : () => _resolveConflict(
+          onTap: _isResolving ? null : () => _resolveConflict(
             conflict, 
             ConflictResolutionStrategy.highestPriority,
           ),
-          backgroundColor: Colors.blue,
         ),
         SnapButton(
           text: 'Keep Most Recent',
-          onPressed: _isResolving ? null : () => _resolveConflict(
+          onTap: _isResolving ? null : () => _resolveConflict(
             conflict, 
             ConflictResolutionStrategy.mostRecent,
           ),
-          backgroundColor: Colors.green,
         ),
         SnapButton(
           text: 'Manual Choice',
-          onPressed: _isResolving ? null : () => _showManualResolutionDialog(conflict),
-          backgroundColor: Colors.purple,
+          onTap: _isResolving ? null : () => _showManualResolutionDialog(conflict),
         ),
       ],
     );
@@ -715,7 +710,7 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
                 onChanged: (value) {
                   // TODO: Update user settings
                 },
-                activeColor: SnapColors.primaryYellow,
+                activeThumbColor: SnapColors.primaryYellow,
               ),
               const Divider(),
               SwitchListTile(
@@ -735,7 +730,7 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
                 onChanged: (value) {
                   // TODO: Update user settings
                 },
-                activeColor: SnapColors.primaryYellow,
+                activeThumbColor: SnapColors.primaryYellow,
               ),
             ],
           ),

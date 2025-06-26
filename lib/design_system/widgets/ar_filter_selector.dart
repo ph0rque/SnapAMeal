@@ -171,8 +171,8 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
           gradient: isSelected
               ? LinearGradient(
                   colors: [
-                    filter.primaryColor.withOpacity(0.8),
-                    filter.accentColor.withOpacity(0.6),
+                    filter.primaryColor.withValues(alpha: 0.8),
+                    filter.accentColor.withValues(alpha: 0.6),
                   ],
                 )
               : LinearGradient(
@@ -184,7 +184,7 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: filter.primaryColor.withOpacity(0.4),
+                    color: filter.primaryColor.withValues(alpha: 0.4),
                     blurRadius: 12,
                     offset: Offset(0, 4),
                   ),
@@ -196,14 +196,14 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
           children: [
             Icon(
               _getFilterIcon(filter.type),
-              color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+              color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
               size: isSelected ? 28 : 24,
             ),
             SizedBox(height: 4),
             Text(
               filter.name.split(' ').first, // Show first word only
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white.withOpacity(0.7),
+                color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
@@ -373,8 +373,8 @@ class _FastingProgressOverlayState extends State<FastingProgressOverlay>
             decoration: BoxDecoration(
               gradient: RadialGradient(
                 colors: [
-                  widget.primaryColor.withOpacity(0.3),
-                  widget.accentColor.withOpacity(0.1),
+                  widget.primaryColor.withValues(alpha: 0.3),
+                  widget.accentColor.withValues(alpha: 0.1),
                   Colors.transparent,
                 ],
               ),
@@ -393,7 +393,7 @@ class _FastingProgressOverlayState extends State<FastingProgressOverlay>
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.3),
+                            color: Colors.white.withValues(alpha: 0.3),
                             width: 3,
                           ),
                         ),
@@ -423,7 +423,7 @@ class _FastingProgressOverlayState extends State<FastingProgressOverlay>
                             Text(
                               'Complete',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                                 fontSize: 8,
                               ),
                             ),

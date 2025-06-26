@@ -126,7 +126,7 @@ class FastingRouteBlockedDialog extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: fastingState.appThemeColor.withOpacity(0.1),
+              color: fastingState.appThemeColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -342,7 +342,7 @@ class FastingBlockedPage extends StatelessWidget {
       margin: EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: fastingState.appThemeColor.withOpacity(0.1),
+          backgroundColor: fastingState.appThemeColor.withValues(alpha: 0.1),
           child: Icon(
             icon,
             color: fastingState.appThemeColor,

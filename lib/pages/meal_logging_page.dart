@@ -562,7 +562,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                 '${food.name} (${food.confidence.toStringAsFixed(1)}%)',
                 style: SnapUI.captionStyle,
               ),
-              backgroundColor: SnapUI.primaryColor.withOpacity(0.1),
+              backgroundColor: SnapUI.primaryColor.withValues(alpha: 0.1),
               side: BorderSide(color: SnapUI.primaryColor),
             )).toList(),
           ),
@@ -573,9 +573,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: SnapUI.primaryColor.withOpacity(0.05),
+              color: SnapUI.primaryColor.withValues(alpha: 0.05),
               borderRadius: SnapUI.borderRadius,
-              border: Border.all(color: SnapUI.primaryColor.withOpacity(0.2)),
+              border: Border.all(color: SnapUI.primaryColor.withValues(alpha: 0.2)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -594,7 +594,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: SnapUI.borderRadius,
                 border: Border.all(color: Colors.orange),
               ),
@@ -680,7 +680,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                           _regenerateCaption(type);
                         }
                       },
-                      selectedColor: SnapUI.primaryColor.withOpacity(0.2),
+                      selectedColor: SnapUI.primaryColor.withValues(alpha: 0.2),
                       checkmarkColor: SnapUI.primaryColor,
                     ),
                   ))
@@ -698,7 +698,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
               decoration: BoxDecoration(
                 color: SnapUI.backgroundColor,
                 borderRadius: SnapUI.borderRadius,
-                border: Border.all(color: SnapUI.primaryColor.withOpacity(0.3)),
+                border: Border.all(color: SnapUI.primaryColor.withValues(alpha: 0.3)),
               ),
               child: Text(
                 _generatedCaption!,
@@ -854,9 +854,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: SnapUI.primaryColor.withOpacity(0.05),
+              color: SnapUI.primaryColor.withValues(alpha: 0.05),
               borderRadius: SnapUI.borderRadius,
-              border: Border.all(color: SnapUI.primaryColor.withOpacity(0.2)),
+              border: Border.all(color: SnapUI.primaryColor.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

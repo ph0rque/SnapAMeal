@@ -183,7 +183,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                             right: 20,
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.7),
+                                color: Colors.black.withValues(alpha: 0.7),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               padding: EdgeInsets.all(8),
@@ -404,7 +404,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
           child: Container(
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.8),
+              color: Colors.black.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: statusColor,
@@ -455,7 +455,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
         height: 50,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.green.withOpacity(0.8),
+          color: Colors.green.withValues(alpha: 0.8),
           border: Border.all(color: Colors.white, width: 2),
         ),
         child: Icon(
@@ -478,7 +478,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
         height: 50,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.red.withOpacity(0.8),
+          color: Colors.red.withValues(alpha: 0.8),
           border: Border.all(color: Colors.white, width: 2),
         ),
         child: Icon(

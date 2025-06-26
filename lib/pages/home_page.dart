@@ -179,8 +179,8 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
             colors: [
-              fastingState.appThemeColor.withOpacity(0.15),
-              fastingState.appThemeColor.withOpacity(0.05),
+              fastingState.appThemeColor.withValues(alpha: 0.15),
+              fastingState.appThemeColor.withValues(alpha: 0.05),
             ],
           ),
         ),
@@ -489,12 +489,12 @@ class _HomePageState extends State<HomePage> {
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: fastingState.fastingModeEnabled 
-                  ? fastingState.appThemeColor.withOpacity(0.05)
+                  ? fastingState.appThemeColor.withValues(alpha: 0.05)
                   : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: fastingState.fastingModeEnabled 
-                    ? fastingState.appThemeColor.withOpacity(0.2)
+                    ? fastingState.appThemeColor.withValues(alpha: 0.2)
                     : Colors.grey[300]!,
               ),
             ),
@@ -591,7 +591,7 @@ class _HomePageState extends State<HomePage> {
                                   },
                                 )
                               : Container(
-                                  color: _getMilestoneTierColor(tier).withOpacity(0.2),
+                                  color: _getMilestoneTierColor(tier).withValues(alpha: 0.2),
                                   child: Icon(
                                     _getMilestoneTierIcon(tier),
                                     color: _getMilestoneTierColor(tier),
@@ -655,10 +655,10 @@ class _HomePageState extends State<HomePage> {
       margin: EdgeInsets.all(16),
       padding: EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: fastingState.appThemeColor.withOpacity(0.05),
+        color: fastingState.appThemeColor.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: fastingState.appThemeColor.withOpacity(0.2),
+          color: fastingState.appThemeColor.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -800,7 +800,7 @@ class _HomePageState extends State<HomePage> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               color: fastingState.fastingModeEnabled 
-                  ? fastingState.appThemeColor.withOpacity(0.1)
+                  ? fastingState.appThemeColor.withValues(alpha: 0.1)
                   : SnapUIColors.greyLight,
               border: Border.all(
                 color: fastingState.fastingModeEnabled 
@@ -844,8 +844,8 @@ class _HomePageState extends State<HomePage> {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: fastingState.fastingModeEnabled 
-              ? fastingState.appThemeColor.withOpacity(0.1)
-              : SnapUIColors.primaryYellow.withOpacity(0.1),
+              ? fastingState.appThemeColor.withValues(alpha: 0.1)
+              : SnapUIColors.primaryYellow.withValues(alpha: 0.1),
           child: Icon(
             item['type'] == 'health' ? Icons.health_and_safety :
             item['type'] == 'fitness' ? Icons.fitness_center :
@@ -1086,7 +1086,7 @@ class _HomePageState extends State<HomePage> {
         color: isViewed ? SnapUIColors.greyLight : SnapUIColors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -1205,7 +1205,7 @@ class _HomePageState extends State<HomePage> {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                 ),
                 child: const Center(
                   child: Icon(

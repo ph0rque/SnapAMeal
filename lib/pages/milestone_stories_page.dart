@@ -192,7 +192,7 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
                   color: SnapColors.cardBackground,
                   borderRadius: BorderRadius.circular(SnapDimensions.radiusMedium),
                   border: Border.all(
-                    color: _getTierColor(tier).withOpacity(0.3),
+                    color: _getTierColor(tier).withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -367,7 +367,7 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: SnapColors.divider.withOpacity(0.3),
+        color: SnapColors.divider.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(

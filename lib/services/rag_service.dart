@@ -3,6 +3,7 @@
 
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/ai_config.dart';
 import 'openai_service.dart';
@@ -206,7 +207,7 @@ class RAGService {
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Error storing document: $e');
+      debugPrint('Error storing document: $e');
       return false;
     }
   }
@@ -269,7 +270,7 @@ class RAGService {
         healthContext: healthContext,
       );
     } catch (e) {
-      print('Error expanding query: $e');
+      debugPrint('Error expanding query: $e');
       // Fallback to original query
       return ContextualizedQuery(
         originalQuery: originalQuery,
@@ -359,7 +360,7 @@ class RAGService {
 
       return limitedResults;
     } catch (e) {
-      print('Error performing semantic search: $e');
+      debugPrint('Error performing semantic search: $e');
       return [];
     }
   }
@@ -402,7 +403,7 @@ class RAGService {
 
       return response;
     } catch (e) {
-      print('Error generating contextualized response: $e');
+      debugPrint('Error generating contextualized response: $e');
       return null;
     }
   }
@@ -456,7 +457,7 @@ Return only the concepts, one per line, no explanations:
             .toList();
       }
     } catch (e) {
-      print('Error generating related concepts: $e');
+      debugPrint('Error generating related concepts: $e');
     }
     
     return [];
@@ -831,7 +832,7 @@ Keep the response under 200 words.
         };
       }
     } catch (e) {
-      print('Error getting knowledge base stats: $e');
+      debugPrint('Error getting knowledge base stats: $e');
     }
     
     return {
@@ -861,7 +862,7 @@ Keep the response under 200 words.
         tagFilter: detectedFoods,
       );
     } catch (e) {
-      print('Error searching recipe suggestions: $e');
+      debugPrint('Error searching recipe suggestions: $e');
       return [];
     }
   }
@@ -899,7 +900,7 @@ Keep each suggestion concise (2-3 sentences) and motivational.
 
       return await _openAIService.getChatCompletion(prompt);
     } catch (e) {
-      print('Error generating recipe recommendations: $e');
+      debugPrint('Error generating recipe recommendations: $e');
       return null;
     }
   }
@@ -943,7 +944,7 @@ Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods
 
       return await _openAIService.getChatCompletion(prompt);
     } catch (e) {
-      print('Error generating nutrition insights: $e');
+      debugPrint('Error generating nutrition insights: $e');
       return null;
     }
   }

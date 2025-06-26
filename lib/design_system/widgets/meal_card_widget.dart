@@ -173,7 +173,7 @@ class MealCardWidget extends StatelessWidget {
                 color: SnapColors.primary.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: SnapColors.primary.withOpacity(0.2),
+                  color: SnapColors.primary.withValues(alpha: 0.2),
                 ),
               ),
               child: Text(
@@ -207,7 +207,7 @@ class MealCardWidget extends StatelessWidget {
                   color: SnapColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: SnapColors.primary.withOpacity(0.3),
+                    color: SnapColors.primary.withValues(alpha: 0.3),
                   ),
                 ),
                 child: Text(
@@ -270,7 +270,7 @@ class MealCardWidget extends StatelessWidget {
         color: SnapColors.greyBackground,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: SnapColors.primary.withOpacity(0.2),
+          color: SnapColors.primary.withValues(alpha: 0.2),
         ),
       ),
       child: Column(
@@ -310,9 +310,9 @@ class MealCardWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: Colors.orange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -477,15 +477,15 @@ class MealStatsWidget extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            SnapColors.primary.withOpacity(0.1),
-            SnapColors.primary.withOpacity(0.05),
+            SnapColors.primary.withValues(alpha: 0.1),
+            SnapColors.primary.withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
                   borderRadius: BorderRadius.circular(SnapDimensions.borderRadius),
         border: Border.all(
-          color: SnapColors.primary.withOpacity(0.2),
+          color: SnapColors.primary.withValues(alpha: 0.2),
         ),
       ),
       child: Column(

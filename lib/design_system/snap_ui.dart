@@ -215,6 +215,10 @@ class SnapColors {
   static const shadow = black;
   static const warning = primaryYellow;
   static const cardBackground = greyBackground;
+  
+  // Missing properties referenced in data_conflicts_page.dart
+  static const backgroundPrimary = backgroundLight;
+  static const backgroundSecondary = greyBackground;
 }
 
 class SnapTypography {
@@ -233,6 +237,9 @@ class SnapTypography {
   static final heading = headlineMedium; // Generic heading alias
   static final body = bodyLarge;
   static final caption = bodyMedium;
+  
+  // Missing properties referenced in data_conflicts_page.dart
+  static final heading4 = titleLarge;
 }
 
 class SnapDimensions {

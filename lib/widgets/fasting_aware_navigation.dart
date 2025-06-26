@@ -53,7 +53,7 @@ class FastingAwareNavigation extends StatelessWidget {
       primaryColor: fastingState.appThemeColor,
       colorScheme: baseTheme.colorScheme.copyWith(
         primary: fastingState.appThemeColor,
-        secondary: fastingState.appThemeColor.withOpacity(0.7),
+        secondary: fastingState.appThemeColor.withValues(alpha: 0.7),
       ),
       appBarTheme: baseTheme.appBarTheme.copyWith(
         backgroundColor: fastingState.appThemeColor,
@@ -90,7 +90,7 @@ class FastingAwareNavigation extends StatelessWidget {
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: fastingState.appThemeColor.withOpacity(0.3),
+                  color: fastingState.appThemeColor.withValues(alpha: 0.3),
                   blurRadius: 12,
                   offset: Offset(0, 4),
                 ),
@@ -121,16 +121,16 @@ class FastingAwareNavigation extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              fastingState.appThemeColor.withOpacity(0.8),
+              fastingState.appThemeColor.withValues(alpha: 0.8),
               fastingState.appThemeColor,
-              fastingState.appThemeColor.withOpacity(0.8),
+              fastingState.appThemeColor.withValues(alpha: 0.8),
             ],
           ),
         ),
         child: LinearProgressIndicator(
           value: fastingState.progressPercentage,
           backgroundColor: Colors.transparent,
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withOpacity(0.5)),
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withValues(alpha: 0.5)),
         ),
       ),
     );
@@ -204,7 +204,7 @@ class FastingAwareAppBar extends StatelessWidget implements PreferredSizeWidget 
           end: Alignment.bottomRight,
           colors: [
             fastingState.appThemeColor,
-            fastingState.appThemeColor.withOpacity(0.8),
+            fastingState.appThemeColor.withValues(alpha: 0.8),
           ],
         ),
       ),
@@ -253,7 +253,7 @@ class FastingAwareBottomNavigation extends StatelessWidget {
                 ? fastingState.appThemeColor
                 : null,
             unselectedItemColor: fastingState.fastingModeEnabled
-                ? fastingState.appThemeColor.withOpacity(0.6)
+                ? fastingState.appThemeColor.withValues(alpha: 0.6)
                 : null,
             type: BottomNavigationBarType.fixed,
           ),
@@ -384,7 +384,7 @@ class FastingAwareDrawer extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             fastingState.appThemeColor,
-            fastingState.appThemeColor.withOpacity(0.8),
+            fastingState.appThemeColor.withValues(alpha: 0.8),
           ],
         ),
       ),
@@ -406,7 +406,7 @@ class FastingAwareDrawer extends StatelessWidget {
                 ? 'Fasting: ${fastingState.fastingTypeDisplay}'
                 : 'Health & Wellness'),
             style: TextStyle(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               fontSize: 16,
             ),
           ),
@@ -427,8 +427,8 @@ class FastingAwareDrawer extends StatelessWidget {
           borderRadius: BorderRadius.circular(12),
           gradient: LinearGradient(
             colors: [
-              fastingState.appThemeColor.withOpacity(0.1),
-              fastingState.appThemeColor.withOpacity(0.05),
+              fastingState.appThemeColor.withValues(alpha: 0.1),
+              fastingState.appThemeColor.withValues(alpha: 0.05),
             ],
           ),
         ),
