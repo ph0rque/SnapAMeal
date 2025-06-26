@@ -160,7 +160,7 @@ class _DemoTourOverlayState extends State<DemoTourOverlay> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.8),
+      backgroundColor: Colors.black.withValues(alpha: 0.8),
       body: SafeArea(
         child: Column(
           children: [
@@ -225,7 +225,7 @@ class _DemoTourOverlayState extends State<DemoTourOverlay> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
               shape: BoxShape.circle,
               border: Border.all(
                 color: Theme.of(context).colorScheme.primary,
@@ -331,7 +331,7 @@ class _FeatureTourOverlayState extends State<FeatureTourOverlay> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black.withOpacity(0.8),
+      backgroundColor: Colors.black.withValues(alpha: 0.8),
       body: SafeArea(
         child: Column(
           children: [

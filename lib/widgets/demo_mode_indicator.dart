@@ -29,10 +29,10 @@ class DemoModeIndicator extends StatelessWidget {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           decoration: BoxDecoration(
-            color: indicatorColor.withOpacity(0.1),
+            color: indicatorColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12.0),
             border: Border.all(
-              color: indicatorColor.withOpacity(0.3),
+              color: indicatorColor.withValues(alpha: 0.3),
               width: 1.0,
             ),
           ),
@@ -107,13 +107,13 @@ class DemoBannerIndicator extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  bannerColor.withOpacity(0.1),
-                  bannerColor.withOpacity(0.05),
+                  bannerColor.withValues(alpha: 0.1),
+                  bannerColor.withValues(alpha: 0.05),
                 ],
               ),
               border: Border(
                 bottom: BorderSide(
-                  color: bannerColor.withOpacity(0.2),
+                  color: bannerColor.withValues(alpha: 0.2),
                   width: 1.0,
                 ),
               ),
@@ -140,7 +140,7 @@ class DemoBannerIndicator extends StatelessWidget {
                   Icon(
                     Icons.info_outline,
                     size: 16.0,
-                    color: bannerColor.withOpacity(0.7),
+                    color: bannerColor.withValues(alpha: 0.7),
                   ),
                 ],
               ],

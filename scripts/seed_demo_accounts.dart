@@ -1,5 +1,7 @@
 #!/usr/bin/env dart
 
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:snapameal/config/demo_personas.dart';
