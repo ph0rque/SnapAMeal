@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../services/fasting_service.dart';
 import '../services/ar_filter_service.dart';
 import '../services/rag_service.dart';
+import '../services/openai_service.dart';
 import '../models/fasting_session.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
 import '../design_system/widgets/ar_filter_selector.dart';
@@ -25,7 +26,7 @@ class CameraPage extends StatefulWidget {
   State<CameraPage> createState() => _CameraPageState();
 }
 
-class _CameraPageState extends State<CameraPage> {
+class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
   int _selectedCameraIndex = 0;
@@ -397,7 +398,7 @@ class _CameraPageState extends State<CameraPage> {
         final statusColor = FastingStatusIndicators.getStatusColor(progress);
         
         return FastingColorShift(
-          fastingState: Provider.of<FastingService>(context, listen: false),
+          fastingState: Provider.of<FastingStateProvider>(context, listen: false),
           applyToBackground: true,
           child: Container(
             padding: EdgeInsets.all(8),
@@ -413,7 +414,7 @@ class _CameraPageState extends State<CameraPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 FastingBadge(
-                  fastingState: Provider.of<FastingService>(context, listen: false),
+                  fastingState: Provider.of<FastingStateProvider>(context, listen: false),
                   size: 32,
                   animate: true,
                 ),

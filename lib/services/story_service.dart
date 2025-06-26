@@ -271,7 +271,7 @@ class StoryService {
       return await _contentFilterService!.shouldFilterContent(
         content: text,
         contentType: ContentType.story,
-        fastingSession: currentSession,
+        fastingSession: currentSession!,
       );
     } catch (e) {
       debugPrint('Error checking content filter: $e');

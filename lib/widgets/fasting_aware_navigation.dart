@@ -459,17 +459,18 @@ class FastingAwareDrawer extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          CircularProgressIndicator(
-            value: fastingState.progressPercentage,
-            backgroundColor: Colors.grey[300],
-            valueColor: AlwaysStoppedAnimation<Color>(fastingState.appThemeColor),
-          ),
-        ],
+            CircularProgressIndicator(
+              value: fastingState.progressPercentage,
+              backgroundColor: Colors.grey[300],
+              valueColor: AlwaysStoppedAnimation<Color>(fastingState.appThemeColor),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -515,4 +516,4 @@ class FastingAwareDrawer extends StatelessWidget {
     // This would need to be implemented based on your specific drawer items
     return false;
   }
-} 
+}

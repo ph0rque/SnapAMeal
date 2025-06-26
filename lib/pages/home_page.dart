@@ -170,136 +170,78 @@ class _HomePageState extends State<HomePage> {
 
   /// Build fasting status card
   Widget _buildFastingStatusCard(FastingStateProvider fastingState) {
-    return FastingColorShift(
-      fastingState: fastingState,
-      applyToBackground: true,
-      applyToBorder: true,
-      borderWidth: 3,
-      child: Card(
-        margin: EdgeInsets.all(16),
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                fastingState.appThemeColor.withOpacity(0.15),
-                fastingState.appThemeColor.withOpacity(0.05),
+    return Card(
+      margin: const EdgeInsets.all(16),
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: [
+              fastingState.appThemeColor.withOpacity(0.15),
+              fastingState.appThemeColor.withOpacity(0.05),
+            ],
+          ),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.timer,
+                  size: 40,
+                  color: fastingState.appThemeColor,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Fasting in Progress',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: fastingState.appThemeColor,
+                        ),
+                      ),
+                      Text(
+                        fastingState.fastingTypeDisplay,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                CircularProgressIndicator(
+                  value: fastingState.progressPercentage,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(fastingState.appThemeColor),
+                ),
               ],
             ),
-          ),
-          padding: EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  FastingBadge(
-                    fastingState: fastingState,
-                    size: 40,
-                    animate: true,
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          FastingStatusIndicators.getMotivationalText(
-                            fastingState.progressPercentage,
-                          ),
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: fastingState.appThemeColor,
-                          ),
-                        ),
-                        Text(
-                          fastingState.fastingTypeDisplay,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  FastingProgressRing(
-                    fastingState: fastingState,
-                    strokeWidth: 4,
-                    child: FastingTimerWidget(
-                      size: 60,
-                      showControls: false,
-                    ),
-                  ),
-                ],
-              ),
-            
-            SizedBox(height: 16),
-            
-            // Progress bar
+            const SizedBox(height: 16),
             LinearProgressIndicator(
               value: fastingState.progressPercentage,
               backgroundColor: Colors.grey[300],
               valueColor: AlwaysStoppedAnimation<Color>(fastingState.appThemeColor),
             ),
-            
-            SizedBox(height: 8),
-            
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '${fastingState.elapsedTime.inHours}h ${fastingState.elapsedTime.inMinutes.remainder(60)}m elapsed',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-                Text(
-                  '${fastingState.remainingTime.inHours}h ${fastingState.remainingTime.inMinutes.remainder(60)}m remaining',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-            
-            SizedBox(height: 16),
-            
-            // Action buttons
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      if (fastingState.currentSession?.isPaused == true) {
-                        await fastingState.resumeFastingSession();
-                      } else {
-                        await fastingState.pauseFastingSession();
-                      }
-                    },
-                    icon: Icon(
-                      fastingState.currentSession?.isPaused == true 
-                          ? Icons.play_arrow 
-                          : Icons.pause,
-                    ),
-                    label: Text(
-                      fastingState.currentSession?.isPaused == true 
-                          ? 'Resume' 
-                          : 'Pause',
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[600],
-                    ),
-                  ),
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
+                  child: ElevatedButton(
                     onPressed: () {
                       Navigator.pushNamed(context, '/fasting-timer');
                     },
-                    icon: Icon(Icons.fullscreen),
-                    label: Text('Full View'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: fastingState.appThemeColor,
                     ),
+                    child: const Text('View Timer'),
                   ),
                 ),
               ],
@@ -781,6 +723,163 @@ class _HomePageState extends State<HomePage> {
     return _getAllRecommendations();
   }
 
+  /// Get motivational stories for fasting mode
+  List<dynamic> _getMotivationalStories() {
+    return [
+      {
+        'title': 'Fasting Success Story',
+        'description': 'How intermittent fasting changed my life',
+        'type': 'motivation',
+      },
+      {
+        'title': 'Health Benefits',
+        'description': 'The science behind fasting',
+        'type': 'education',
+      },
+    ];
+  }
+  
+  /// Get all stories for normal mode
+  List<dynamic> _getAllStories() {
+    return [
+      {
+        'title': 'Delicious Recipe',
+        'description': 'Try this amazing pasta dish',
+        'type': 'recipe',
+      },
+      {
+        'title': 'Food Adventure',
+        'description': 'Exploring local cuisine',
+        'type': 'adventure',
+      },
+    ];
+  }
+  
+  /// Get health recommendations for fasting mode
+  List<dynamic> _getHealthRecommendations() {
+    return [
+      {
+        'title': 'Stay Hydrated',
+        'description': 'Drink plenty of water during your fast',
+        'type': 'health',
+      },
+      {
+        'title': 'Gentle Exercise',
+        'description': 'Light walking can help during fasting',
+        'type': 'fitness',
+      },
+    ];
+  }
+  
+  /// Get all recommendations for normal mode
+  List<dynamic> _getAllRecommendations() {
+    return [
+      {
+        'title': 'New Restaurant',
+        'description': 'Check out this trendy spot',
+        'type': 'restaurant',
+      },
+      {
+        'title': 'Cooking Tip',
+        'description': 'Master this cooking technique',
+        'type': 'tip',
+      },
+    ];
+  }
+  
+  /// Build story item widget
+  Widget _buildStoryItem(dynamic story, FastingStateProvider fastingState) {
+    return Container(
+      width: 100,
+      margin: EdgeInsets.only(right: 12),
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: fastingState.fastingModeEnabled 
+                  ? fastingState.appThemeColor.withOpacity(0.1)
+                  : SnapUIColors.greyLight,
+              border: Border.all(
+                color: fastingState.fastingModeEnabled 
+                    ? fastingState.appThemeColor 
+                    : SnapUIColors.grey,
+              ),
+            ),
+            child: Icon(
+              story['type'] == 'motivation' ? Icons.favorite :
+              story['type'] == 'education' ? Icons.school :
+              story['type'] == 'recipe' ? Icons.restaurant :
+              Icons.camera_alt,
+              color: fastingState.fastingModeEnabled 
+                  ? fastingState.appThemeColor 
+                  : SnapUIColors.grey,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            story['title'] ?? '',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: fastingState.fastingModeEnabled 
+                  ? fastingState.appThemeColor 
+                  : null,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// Build recommendation item widget
+  Widget _buildRecommendationItem(dynamic item, FastingStateProvider fastingState) {
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: fastingState.fastingModeEnabled 
+              ? fastingState.appThemeColor.withOpacity(0.1)
+              : SnapUIColors.primaryYellow.withOpacity(0.1),
+          child: Icon(
+            item['type'] == 'health' ? Icons.health_and_safety :
+            item['type'] == 'fitness' ? Icons.fitness_center :
+            item['type'] == 'restaurant' ? Icons.restaurant :
+            Icons.lightbulb,
+            color: fastingState.fastingModeEnabled 
+                ? fastingState.appThemeColor 
+                : SnapUIColors.primaryYellow,
+          ),
+        ),
+        title: Text(
+          item['title'] ?? '',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: fastingState.fastingModeEnabled 
+                ? fastingState.appThemeColor 
+                : null,
+          ),
+        ),
+        subtitle: Text(item['description'] ?? ''),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          size: 16,
+          color: fastingState.fastingModeEnabled 
+              ? fastingState.appThemeColor 
+              : null,
+        ),
+        onTap: () {
+          // Handle recommendation tap
+        },
+      ),
+    );
+  }
+
   /// Build floating action button with fasting context
   Widget? _buildFloatingActionButton(FastingStateProvider fastingState) {
     if (fastingState.fastingModeEnabled) {
@@ -1178,294 +1277,6 @@ class _HomePageState extends State<HomePage> {
     ];
   }
 
-  /// Build floating action button with fasting context
-  Widget? _buildFloatingActionButton(FastingStateProvider fastingState) {
-    if (fastingState.fastingModeEnabled) {
-      // Show fasting-specific FAB
-      return FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ARCameraPage()),
-          );
-        },
-        backgroundColor: fastingState.appThemeColor,
-        child: const Icon(Icons.camera_alt),
-      );
-    }
-    
-    // Normal FAB
-    return FloatingActionButton(
-      onPressed: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ARCameraPage()),
-        );
-      },
-      child: const Icon(Icons.camera_alt),
-    );
-  }
 
-  /// Get filtered stories based on fasting state
-  List<dynamic> _getFilteredStories(FastingStateProvider fastingState) {
-    // In a real implementation, you would filter stories based on content
-    // For now, return appropriate content based on fasting state
-    if (fastingState.fastingModeEnabled) {
-      // Return motivation/health-focused stories
-      return _getMotivationalStories();
-    }
-    
-    return _getAllStories();
-  }
 
-  /// Get motivational stories during fasting
-  List<dynamic> _getMotivationalStories() {
-    return [
-      {
-        'id': 'motivation_1',
-        'type': 'motivation',
-        'title': 'Stay Strong',
-        'content': 'You\'re doing great on your fasting journey!',
-        'imageUrl': null,
-      },
-      {
-        'id': 'motivation_2',
-        'type': 'health_tip',
-        'title': 'Hydration',
-        'content': 'Remember to stay hydrated during your fast.',
-        'imageUrl': null,
-      },
-    ];
-  }
-
-  /// Get all stories (for non-fasting mode)
-  List<dynamic> _getAllStories() {
-    // Return regular stories - in real implementation, this would query Firestore
-    return [];
-  }
-
-  /// Get filtered recommendations based on fasting state
-  List<dynamic> _getFilteredRecommendations(FastingStateProvider fastingState) {
-    if (fastingState.fastingModeEnabled) {
-      return _getHealthRecommendations();
-    }
-    
-    return _getAllRecommendations();
-  }
-
-  /// Get health recommendations during fasting
-  List<dynamic> _getHealthRecommendations() {
-    return [
-      {
-        'id': 'health_1',
-        'type': 'meditation',
-        'title': 'Mindful Meditation',
-        'description': 'Try a 10-minute meditation to stay focused',
-        'action': '/meditation-guide',
-        'icon': Icons.self_improvement,
-      },
-      {
-        'id': 'health_2',
-        'type': 'exercise',
-        'title': 'Light Exercise',
-        'description': 'Gentle movements to boost energy',
-        'action': '/workout-guide',
-        'icon': Icons.fitness_center,
-      },
-      {
-        'id': 'health_3',
-        'type': 'hydration',
-        'title': 'Hydration Reminder',
-        'description': 'Time for a glass of water',
-        'action': '/hydration-tracker',
-        'icon': Icons.local_drink,
-      },
-    ];
-  }
-
-  /// Get all recommendations (for non-fasting mode)
-  List<dynamic> _getAllRecommendations() {
-    return [
-      {
-        'id': 'social_1',
-        'type': 'friends',
-        'title': 'Connect with Friends',
-        'description': 'See what your friends are up to',
-        'action': '/friends',
-        'icon': Icons.people,
-      },
-      {
-        'id': 'social_2',
-        'type': 'discover',
-        'title': 'Discover New Content',
-        'description': 'Explore trending snaps',
-        'action': '/discover',
-        'icon': Icons.explore,
-      },
-    ];
-  }
-
-  /// Build story item widget
-  Widget _buildStoryItem(dynamic story, FastingStateProvider fastingState) {
-    return Container(
-      width: 80,
-      margin: const EdgeInsets.only(right: 12),
-      child: Column(
-        children: [
-          Container(
-            width: 68,
-            height: 68,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: fastingState.fastingModeEnabled
-                    ? [
-                        fastingState.appThemeColor,
-                        fastingState.appThemeColor.withOpacity(0.7),
-                      ]
-                    : [
-                        Colors.purple,
-                        Colors.orange,
-                      ],
-              ),
-              border: Border.all(color: Colors.white, width: 2),
-            ),
-            child: Center(
-              child: Icon(
-                fastingState.fastingModeEnabled ? Icons.psychology : Icons.person,
-                color: Colors.white,
-                size: 32,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            story['title'] ?? 'Story',
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build recommendation item widget
-  Widget _buildRecommendationItem(dynamic item, FastingStateProvider fastingState) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: fastingState.fastingModeEnabled 
-              ? fastingState.appThemeColor.withOpacity(0.1)
-              : Colors.blue.withOpacity(0.1),
-          child: Icon(
-            item['icon'] ?? Icons.info,
-            color: fastingState.fastingModeEnabled 
-                ? fastingState.appThemeColor
-                : Colors.blue,
-          ),
-        ),
-        title: Text(
-          item['title'] ?? '',
-          style: const TextStyle(fontWeight: FontWeight.w500),
-        ),
-        subtitle: Text(item['description'] ?? ''),
-        trailing: const Icon(
-          Icons.arrow_forward_ios,
-          size: 16,
-          color: Colors.grey,
-        ),
-        onTap: () {
-          final action = item['action'];
-          if (action != null) {
-            Navigator.pushNamed(context, action);
-          }
-        },
-      ),
-    );
-  }
-
-  /// Build stat item widget
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
-  /// Build fasting empty state
-  Widget _buildFastingEmptyState(FastingStateProvider fastingState) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        color: fastingState.appThemeColor.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: fastingState.appThemeColor.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.shield,
-            size: 64,
-            color: fastingState.appThemeColor,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Fasting Mode Active',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: fastingState.appThemeColor,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Content is being filtered to support your fasting goals. Stay strong!',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pushNamed(context, '/meditation-guide');
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: fastingState.appThemeColor,
-            ),
-            child: const Text('Try Meditation'),
-          ),
-        ],
-      ),
-    );
-  }
-} 
+}

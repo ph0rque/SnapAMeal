@@ -71,25 +71,33 @@ class KnowledgeSeedingService {
     return [
       KnowledgeDocument(
         id: 'nutrition_001',
+        title: 'Protein for Weight Loss',
         content: 'Protein is essential for weight loss as it increases satiety, boosts metabolism through the thermic effect of food, and helps preserve lean muscle mass during calorie restriction. Aim for 0.8-1.2g per kg of body weight daily.',
         category: 'nutrition',
-        contentType: 'fact',
         source: 'curated',
         tags: ['protein', 'weight_loss', 'metabolism', 'satiety'],
         confidenceScore: 0.95,
-        lastUpdated: now,
-        userPreferenceMatch: ['weight_loss', 'muscle_building'],
+        createdAt: now,
+        metadata: {
+          'contentType': 'fact',
+          'lastUpdated': now.toIso8601String(),
+          'userPreferenceMatch': ['weight_loss', 'muscle_building'],
+        },
       ),
       KnowledgeDocument(
         id: 'nutrition_002',
+        title: 'Fiber for Weight Management',
         content: 'Fiber-rich foods help with weight management by promoting fullness, slowing digestion, and stabilizing blood sugar levels. Women should aim for 25g daily, men 38g daily. Best sources include vegetables, fruits, legumes, and whole grains.',
         category: 'nutrition',
-        contentType: 'tip',
         source: 'curated',
         tags: ['fiber', 'satiety', 'blood_sugar', 'vegetables'],
         confidenceScore: 0.92,
-        lastUpdated: now,
-        userPreferenceMatch: ['weight_loss', 'healthy_eating'],
+        createdAt: now,
+        metadata: {
+          'contentType': 'tip',
+          'lastUpdated': now.toIso8601String(),
+          'userPreferenceMatch': ['weight_loss', 'healthy_eating'],
+        },
       ),
     ];
   }

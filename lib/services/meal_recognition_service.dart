@@ -275,13 +275,13 @@ Format the response as JSON with this structure:
     for (int y = 0; y < _inputSize; y++) {
       for (int x = 0; x < _inputSize; x++) {
         final pixel = resized.getPixel(x, y);
-        input[pixelIndex++] = img.getRed(pixel) / 255.0;
-        input[pixelIndex++] = img.getGreen(pixel) / 255.0;
-        input[pixelIndex++] = img.getBlue(pixel) / 255.0;
+        input[pixelIndex++] = img.ColorUint8.getRed(pixel) / 255.0;
+        input[pixelIndex++] = img.ColorUint8.getGreen(pixel) / 255.0;
+        input[pixelIndex++] = img.ColorUint8.getBlue(pixel) / 255.0;
       }
     }
     
-    return input.reshape([1, _inputSize, _inputSize, 3]);
+    return Float32List.fromList(input);
   }
 
   /// Estimate nutrition information for a food item
@@ -598,11 +598,19 @@ Keep it informative and under 100 characters.
       
       // Create health context (simplified for now)
       final healthContext = HealthQueryContext(
+        userId: 'current_user', // This should come from auth
         queryType: 'meal_analysis',
+        userProfile: {
+          'fitnessLevel': 'moderate',
+          'healthConditions': [],
+        },
         currentGoals: ['healthy_eating', 'nutrition'],
         dietaryRestrictions: [],
-        fitnessLevel: 'moderate',
-        healthConditions: [],
+        recentActivity: {
+          'lastMeal': DateTime.now().subtract(Duration(hours: 3)).toIso8601String(),
+          'exerciseToday': false,
+        },
+        contextTimestamp: DateTime.now(),
       );
       
       // Use enhanced RAG recipe search

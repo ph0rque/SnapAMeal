@@ -109,7 +109,7 @@ class ARFilterService {
         type: FastingARFilterType.achievement,
         name: 'Achievement Burst',
         description: 'Celebration effects for milestones',
-        primaryColor: Colors.gold,
+        primaryColor: Colors.amber,
         accentColor: Colors.yellow,
         animationDuration: Duration(seconds: 4),
       ),

@@ -146,7 +146,7 @@ class ChatService {
       final result = await _contentFilterService!.shouldFilterContent(
         content: message,
         contentType: ContentType.chat,
-        fastingSession: currentSession,
+        fastingSession: currentSession!,
       );
 
       return result.shouldFilter;
@@ -194,7 +194,7 @@ class ChatService {
       final result = await _contentFilterService!.shouldFilterContent(
         content: originalMessage,
         contentType: ContentType.chat,
-        fastingSession: currentSession,
+        fastingSession: currentSession!,
       );
 
       if (result.shouldFilter && result.category != null) {

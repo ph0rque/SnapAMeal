@@ -153,7 +153,7 @@ class ContentFilterService {
     }
 
     // Determine filter severity based on session progress and user preferences
-    final severity = customSeverity ?? _determineFilterSeverity(fastingSession);
+    final severity = customSeverity ?? _determineFilterSeverity(fastingSession!);
     
     // Check cache first
     final cacheKey = _generateCacheKey(content, contentType, severity);
@@ -297,7 +297,7 @@ class ContentFilterService {
     try {
       final prompt = _buildAnalysisPrompt(content, contentType, severity, fastingSession);
       
-      final response = await _openAIService.generateChatCompletion(
+      final response = await _openAIService.getChatCompletionWithMessages(
         messages: [
           {'role': 'system', 'content': 'You are a content filtering expert for a health and fasting app.'},
           {'role': 'user', 'content': prompt},
@@ -306,7 +306,7 @@ class ContentFilterService {
         temperature: 0.1, // Low temperature for consistent results
       );
 
-      return _parseAIResponse(response);
+      return _parseAIResponse(response ?? '');
     } catch (e) {
       debugPrint('AI analysis failed: $e');
       // Fallback to conservative filtering

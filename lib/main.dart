@@ -11,6 +11,8 @@ import 'package:snapameal/services/auth_service.dart';
 import 'package:snapameal/services/fasting_service.dart';
 import 'package:snapameal/services/content_filter_service.dart';
 import 'package:snapameal/services/notification_service.dart';
+import 'package:snapameal/services/rag_service.dart';
+import 'package:snapameal/services/openai_service.dart';
 import 'package:snapameal/providers/fasting_state_provider.dart';
 import 'package:snapameal/widgets/fasting_aware_navigation.dart';
 
@@ -97,14 +99,14 @@ class MyApp extends StatelessWidget {
         // Fasting-related services with dependencies
         Provider<FastingService>(
           create: (context) => FastingService(
-            context.read<AuthService>(),
+            RAGService(OpenAIService()),
             context.read<NotificationService>(),
           ),
         ),
         Provider<ContentFilterService>(
-          create: (context) => ContentFilterService(
-            openAIService: context.read<OpenAIService>(),
-            ragService: context.read<RAGService>(),
+          create: (_) => ContentFilterService(
+            openAIService: OpenAIService(),
+            ragService: RAGService(OpenAIService()),
           ),
         ),
         

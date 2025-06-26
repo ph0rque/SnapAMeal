@@ -273,6 +273,74 @@ class HealthKnowledgeData {
     ];
   }
 
+  /// Get all supplement knowledge documents
+  static List<KnowledgeDocument> getSupplementKnowledge() {
+    return [
+      KnowledgeDocument(
+        id: 'supplement_001',
+        title: 'Vitamin D for Health',
+        content: 'Vitamin D supports immune function, bone health, and mood regulation. Most people need 1000-2000 IU daily, especially those with limited sun exposure. Best taken with fat for absorption.',
+        category: 'supplements',
+        source: 'curated',
+        tags: ['vitamin_d', 'immune_function', 'bone_health', 'mood'],
+        confidenceScore: 0.90,
+        createdAt: _now,
+        metadata: {
+          'contentType': 'fact',
+          'userPreferenceMatch': ['immune_health', 'bone_health', 'mood_support'],
+        },
+      ),
+      KnowledgeDocument(
+        id: 'supplement_002',
+        title: 'Omega-3 Fatty Acids Benefits',
+        content: 'Omega-3 fatty acids support heart health, brain function, and reduce inflammation. Aim for 1-2g daily from fish oil or algae-based supplements if you don\'t eat fatty fish regularly.',
+        category: 'supplements',
+        source: 'curated',
+        tags: ['omega_3', 'heart_health', 'brain_function', 'inflammation'],
+        confidenceScore: 0.92,
+        createdAt: _now,
+        metadata: {
+          'contentType': 'fact',
+          'userPreferenceMatch': ['heart_health', 'brain_health', 'anti_inflammatory'],
+        },
+      ),
+    ];
+  }
+
+  /// Get all hydration knowledge documents
+  static List<KnowledgeDocument> getHydrationKnowledge() {
+    return [
+      KnowledgeDocument(
+        id: 'hydration_001',
+        title: 'Daily Water Intake Guidelines',
+        content: 'Aim for 8-10 glasses (64-80 oz) of water daily, more if you exercise or live in hot climates. Proper hydration supports metabolism, appetite control, and energy levels.',
+        category: 'hydration',
+        source: 'curated',
+        tags: ['water_intake', 'metabolism', 'appetite_control', 'energy'],
+        confidenceScore: 0.95,
+        createdAt: _now,
+        metadata: {
+          'contentType': 'tip',
+          'userPreferenceMatch': ['hydration', 'metabolism', 'energy'],
+        },
+      ),
+      KnowledgeDocument(
+        id: 'hydration_002',
+        title: 'Hydration During Exercise',
+        content: 'Drink 16-20 oz of water 2-3 hours before exercise, 8 oz every 15-20 minutes during exercise, and 16-24 oz for every pound lost through sweat after exercise.',
+        category: 'hydration',
+        source: 'curated',
+        tags: ['exercise_hydration', 'pre_workout', 'post_workout', 'sweat_replacement'],
+        confidenceScore: 0.90,
+        createdAt: _now,
+        metadata: {
+          'contentType': 'tip',
+          'userPreferenceMatch': ['exercise', 'hydration', 'performance'],
+        },
+      ),
+    ];
+  }
+
   /// Get all documents combined
   static List<KnowledgeDocument> getAllKnowledge() {
     return [
@@ -283,6 +351,8 @@ class HealthKnowledgeData {
       ...getWellnessKnowledge(),
       ...getBehavioralHealthKnowledge(),
       ...getRecipeKnowledge(),
+      ...getSupplementKnowledge(),
+      ...getHydrationKnowledge(),
     ];
   }
 
@@ -303,6 +373,10 @@ class HealthKnowledgeData {
         return getBehavioralHealthKnowledge();
       case 'recipes':
         return getRecipeKnowledge();
+      case 'supplements':
+        return getSupplementKnowledge();
+      case 'hydration':
+        return getHydrationKnowledge();
       default:
         return [];
     }

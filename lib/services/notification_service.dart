@@ -38,4 +38,23 @@ class NotificationService {
       'fcmToken': token,
     });
   }
+
+  /// Cancel all notifications
+  Future<void> cancelAllNotifications() async {
+    // Placeholder implementation - in a real app you'd use flutter_local_notifications
+    debugPrint("Cancelling all notifications");
+  }
+
+  /// Schedule a notification
+  Future<void> scheduleNotification({
+    String? id,
+    required String title,
+    required String body,
+    DateTime? scheduledDate,
+    DateTime? scheduledTime,
+  }) async {
+    // Placeholder implementation - in a real app you'd use flutter_local_notifications
+    final time = scheduledDate ?? scheduledTime;
+    debugPrint("Scheduling notification ($id): $title at $time");
+  }
 } 

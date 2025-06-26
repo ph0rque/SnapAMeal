@@ -22,6 +22,32 @@ enum FastingType {
   custom,              // User-defined duration
 }
 
+/// Extension to add duration getter to FastingType
+extension FastingTypeDuration on FastingType {
+  Duration get duration {
+    switch (this) {
+      case FastingType.intermittent16_8:
+        return const Duration(hours: 16);
+      case FastingType.intermittent18_6:
+        return const Duration(hours: 18);
+      case FastingType.intermittent20_4:
+        return const Duration(hours: 20);
+      case FastingType.omad:
+        return const Duration(hours: 23);
+      case FastingType.alternate:
+        return const Duration(hours: 24);
+      case FastingType.extended24:
+        return const Duration(hours: 24);
+      case FastingType.extended36:
+        return const Duration(hours: 36);
+      case FastingType.extended48:
+        return const Duration(hours: 48);
+      case FastingType.custom:
+        return const Duration(hours: 16); // Default fallback
+    }
+  }
+}
+
 /// Represents how a fasting session was ended
 enum FastingEndReason {
   completed,           // Successfully completed the planned duration

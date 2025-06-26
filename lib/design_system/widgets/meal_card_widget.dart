@@ -31,11 +31,11 @@ class MealCardWidget extends StatelessWidget {
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(SnapUIDimensions.borderRadius),
+        borderRadius: BorderRadius.circular(SnapDimensions.radiusM),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(SnapUIDimensions.borderRadius),
+        borderRadius: BorderRadius.circular(SnapDimensions.radiusM),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -161,7 +161,7 @@ class MealCardWidget extends StatelessWidget {
                 ),
               ],
             ),
-            SnapUI.verticalSpaceXSmall,
+            const SizedBox(height: SnapDimensions.spacingS),
           ],
           
           // AI Caption
@@ -170,30 +170,30 @@ class MealCardWidget extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: SnapUI.primaryColor.withOpacity(0.05),
+                color: SnapColors.primary.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: SnapUI.primaryColor.withOpacity(0.2),
+                  color: SnapColors.primary.withOpacity(0.2),
                 ),
               ),
               child: Text(
                 mealLog.aiCaption!,
-                style: SnapUI.bodyStyle.copyWith(
+                style: SnapTypography.body.copyWith(
                   fontStyle: FontStyle.italic,
-                  color: SnapUI.primaryColor.withOpacity(0.8),
+                  color: SnapColors.primary.withOpacity(0.8),
                 ),
               ),
             ),
-            SnapUI.verticalSpaceXSmall,
+            const SizedBox(height: SnapDimensions.spacingS),
           ],
           
           // User Caption
           if (mealLog.userCaption != null) ...[
             Text(
               mealLog.userCaption!,
-              style: SnapUI.bodyStyle,
+              style: SnapTypography.body,
             ),
-            SnapUI.verticalSpaceXSmall,
+            const SizedBox(height: SnapDimensions.spacingS),
           ],
           
           // Tags
@@ -204,22 +204,22 @@ class MealCardWidget extends StatelessWidget {
               children: mealLog.tags.map((tag) => Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: SnapUI.primaryColor.withOpacity(0.1),
+                  color: SnapColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: SnapUI.primaryColor.withOpacity(0.3),
+                    color: SnapColors.primary.withOpacity(0.3),
                   ),
                 ),
                 child: Text(
                   '#$tag',
-                  style: SnapUI.captionStyle.copyWith(
-                    color: SnapUI.primaryColor,
+                  style: SnapTypography.caption.copyWith(
+                    color: SnapColors.primary,
                     fontSize: 11,
                   ),
                 ),
               )).toList(),
             ),
-            SnapUI.verticalSpaceXSmall,
+            const SizedBox(height: SnapDimensions.spacingS),
           ],
           
           // Mood and Hunger (if not compact)
@@ -227,7 +227,7 @@ class MealCardWidget extends StatelessWidget {
             Row(
               children: [
                 if (mealLog.moodRating != null) ...[
-                  Icon(
+                  const Icon(
                     Icons.sentiment_satisfied,
                     size: 16,
                     color: Colors.orange,
@@ -235,13 +235,13 @@ class MealCardWidget extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     'Mood: ${mealLog.moodRating!.rating}/5',
-                    style: SnapUI.captionStyle,
+                    style: SnapTypography.caption,
                   ),
                 ],
                 if (mealLog.moodRating != null && mealLog.hungerLevel != null)
                   const SizedBox(width: 16),
                 if (mealLog.hungerLevel != null) ...[
-                  Icon(
+                  const Icon(
                     Icons.restaurant,
                     size: 16,
                     color: Colors.green,
@@ -249,7 +249,7 @@ class MealCardWidget extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     'Hunger: ${mealLog.hungerLevel!.level}/5',
-                    style: SnapUI.captionStyle,
+                    style: SnapTypography.caption,
                   ),
                 ],
               ],
@@ -267,10 +267,10 @@ class MealCardWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: SnapUI.backgroundColor,
+        color: SnapColors.greyBackground,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: SnapUI.primaryColor.withOpacity(0.2),
+          color: SnapColors.primary.withOpacity(0.2),
         ),
       ),
       child: Column(
@@ -281,19 +281,19 @@ class MealCardWidget extends StatelessWidget {
               Icon(
                 Icons.analytics,
                 size: 16,
-                color: SnapUI.primaryColor,
+                color: SnapColors.primary,
               ),
               const SizedBox(width: 4),
               Text(
                 'Nutrition Facts',
-                style: SnapUI.captionStyle.copyWith(
+                style: SnapTypography.caption.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: SnapUI.primaryColor,
+                  color: SnapColors.primary,
                 ),
               ),
             ],
           ),
-          SnapUI.verticalSpaceXSmall,
+          const SizedBox(height: SnapDimensions.spacingS),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -306,7 +306,7 @@ class MealCardWidget extends StatelessWidget {
           
           // Allergen Warnings
           if (mealLog.recognitionResult.allergenWarnings.isNotEmpty) ...[
-            SnapUI.verticalSpaceXSmall,
+            const SizedBox(height: SnapDimensions.spacingS),
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -316,12 +316,12 @@ class MealCardWidget extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.warning, color: Colors.orange, size: 16),
+                  const Icon(Icons.warning, color: Colors.orange, size: 16),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       'Contains: ${mealLog.recognitionResult.allergenWarnings.join(', ')}',
-                      style: SnapUI.captionStyle.copyWith(
+                      style: SnapTypography.caption.copyWith(
                         color: Colors.orange[800],
                         fontSize: 11,
                       ),
@@ -341,22 +341,23 @@ class MealCardWidget extends StatelessWidget {
       children: [
         Text(
           value,
-          style: SnapUI.bodyStyle.copyWith(
+          style: SnapTypography.body.copyWith(
             fontWeight: FontWeight.bold,
-            color: SnapUI.primaryColor,
+            color: SnapColors.primary,
           ),
         ),
         Text(
           unit,
-          style: SnapUI.captionStyle.copyWith(
+          style: SnapTypography.caption.copyWith(
             fontSize: 10,
-            color: SnapUI.primaryColor,
+            color: SnapColors.primary,
           ),
         ),
         Text(
           label,
-          style: SnapUI.captionStyle.copyWith(
+          style: SnapTypography.caption.copyWith(
             fontSize: 10,
+            color: SnapColors.textSecondary,
           ),
         ),
       ],
@@ -367,7 +368,7 @@ class MealCardWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: SnapColors.greyBackground,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(12),
           bottomRight: Radius.circular(12),
@@ -382,26 +383,18 @@ class MealCardWidget extends StatelessWidget {
               label: 'Share',
               onTap: onShare!,
             ),
-          
           if (onEdit != null)
             _buildActionButton(
               icon: Icons.edit,
               label: 'Edit',
               onTap: onEdit!,
             ),
-          
-          _buildActionButton(
-            icon: Icons.favorite_border,
-            label: 'Like',
-            onTap: () {}, // TODO: Implement like functionality
-          ),
-          
           if (onDelete != null)
             _buildActionButton(
-              icon: Icons.delete_outline,
+              icon: Icons.delete,
               label: 'Delete',
               onTap: onDelete!,
-              color: Colors.red,
+              color: SnapColors.error,
             ),
         ],
       ),
@@ -414,8 +407,6 @@ class MealCardWidget extends StatelessWidget {
     required VoidCallback onTap,
     Color? color,
   }) {
-    final buttonColor = color ?? Colors.grey[600];
-    
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -427,13 +418,13 @@ class MealCardWidget extends StatelessWidget {
             Icon(
               icon,
               size: 20,
-              color: buttonColor,
+              color: color ?? SnapColors.textSecondary,
             ),
             const SizedBox(height: 2),
             Text(
               label,
-              style: SnapUI.captionStyle.copyWith(
-                color: buttonColor,
+              style: SnapTypography.caption.copyWith(
+                color: color ?? SnapColors.textSecondary,
                 fontSize: 11,
               ),
             ),
@@ -486,15 +477,15 @@ class MealStatsWidget extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            SnapUI.primaryColor.withOpacity(0.1),
-            SnapUI.primaryColor.withOpacity(0.05),
+            SnapColors.primary.withOpacity(0.1),
+            SnapColors.primary.withOpacity(0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: SnapUI.borderRadius,
+                  borderRadius: BorderRadius.circular(SnapDimensions.borderRadius),
         border: Border.all(
-          color: SnapUI.primaryColor.withOpacity(0.2),
+          color: SnapColors.primary.withOpacity(0.2),
         ),
       ),
       child: Column(
@@ -504,19 +495,19 @@ class MealStatsWidget extends StatelessWidget {
             children: [
               Icon(
                 Icons.analytics,
-                color: SnapUI.primaryColor,
+                color: SnapColors.primary,
                 size: 24,
               ),
               const SizedBox(width: 8),
               Text(
                 'Nutrition Summary - ${period.toUpperCase()}',
-                style: SnapUI.headingStyle.copyWith(
-                  color: SnapUI.primaryColor,
+                style: SnapTypography.heading.copyWith(
+                  color: SnapColors.primary,
                 ),
               ),
             ],
           ),
-          SnapUI.verticalSpaceSmall,
+          const SizedBox(height: SnapDimensions.spacingS),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
@@ -580,20 +571,20 @@ class MealStatsWidget extends StatelessWidget {
       children: [
         Icon(
           icon,
-          color: SnapUI.primaryColor,
+          color: SnapColors.primary,
           size: 20,
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: SnapUI.bodyStyle.copyWith(
+          style: SnapTypography.body.copyWith(
             fontWeight: FontWeight.bold,
-            color: SnapUI.primaryColor,
+            color: SnapColors.primary,
           ),
         ),
         Text(
           label,
-          style: SnapUI.captionStyle,
+          style: SnapTypography.caption,
         ),
       ],
     );

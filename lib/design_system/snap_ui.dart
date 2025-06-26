@@ -1,4 +1,5 @@
 // This file serves as a single entry point for all design system components.
+import 'package:flutter/material.dart';
 
 // Foundations
 export 'colors.dart';
@@ -23,6 +24,139 @@ class SnapUI {
   static const colors = SnapUIColors;
   static const dimensions = SnapUIDimensions;
   static const typography = SnapUITypography;
+  
+  // Color getters for backward compatibility
+  static Color get backgroundColor => SnapUIColors.backgroundLight;
+  static Color get primaryColor => SnapUIColors.primaryYellow;
+  
+  // Spacing getters
+  static EdgeInsets get pagePadding => const EdgeInsets.all(SnapUIDimensions.spacingM);
+  static EdgeInsets get cardPadding => const EdgeInsets.all(SnapUIDimensions.spacingM);
+  static SizedBox get verticalSpaceXSmall => const SizedBox(height: SnapUIDimensions.spacingXXS);
+  static SizedBox get verticalSpaceSmall => const SizedBox(height: SnapUIDimensions.spacingS);
+  static SizedBox get verticalSpaceMedium => const SizedBox(height: SnapUIDimensions.spacingM);
+  static SizedBox get verticalSpaceLarge => const SizedBox(height: SnapUIDimensions.spacingL);
+  static SizedBox get horizontalSpaceSmall => const SizedBox(width: SnapUIDimensions.spacingS);
+  
+  // Border radius getters
+  static BorderRadius get borderRadius => BorderRadius.circular(SnapUIDimensions.radiusM);
+  
+  // Text style getters
+  static TextStyle get headingStyle => SnapUITypography.lightTextTheme.headlineMedium!;
+  static TextStyle get bodyStyle => SnapUITypography.lightTextTheme.bodyLarge!;
+  static TextStyle get captionStyle => SnapUITypography.lightTextTheme.bodyMedium!;
+  
+  // Decoration getters
+  static BoxDecoration get cardDecorationWithBorder => BoxDecoration(
+    color: SnapUIColors.white,
+    borderRadius: BorderRadius.circular(SnapUIDimensions.radiusM),
+    border: Border.all(color: SnapUIColors.border),
+  );
+  
+  // Input decoration getter
+  static InputDecoration get inputDecoration => InputDecoration(
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(SnapUIDimensions.radiusM),
+    ),
+    contentPadding: const EdgeInsets.all(SnapUIDimensions.spacingM),
+  );
+  
+  // AppBar method
+  static AppBar appBar({
+    required String title,
+    List<Widget>? actions,
+    Widget? leading,
+    bool centerTitle = true,
+  }) {
+    return AppBar(
+      title: Text(title),
+      actions: actions,
+      leading: leading,
+      centerTitle: centerTitle,
+      backgroundColor: SnapUIColors.primaryYellow,
+      foregroundColor: SnapUIColors.secondaryDark,
+    );
+  }
+  
+  // Button methods
+  static Widget primaryButton({
+    required String text,
+    required VoidCallback onPressed,
+    bool isLoading = false,
+  }) {
+    return ElevatedButton(
+      onPressed: isLoading ? null : onPressed,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: SnapUIColors.primaryYellow,
+        foregroundColor: SnapUIColors.secondaryDark,
+        padding: const EdgeInsets.symmetric(
+          horizontal: SnapUIDimensions.spacingL,
+          vertical: SnapUIDimensions.spacingM,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(SnapUIDimensions.radiusM),
+        ),
+      ),
+      child: isLoading 
+        ? const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : Text(text),
+    );
+  }
+  
+  static Widget secondaryButton({
+    required String text,
+    required VoidCallback onPressed,
+    bool isLoading = false,
+  }) {
+    return OutlinedButton(
+      onPressed: isLoading ? null : onPressed,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: SnapUIColors.primaryYellow,
+        side: const BorderSide(color: SnapUIColors.primaryYellow),
+        padding: const EdgeInsets.symmetric(
+          horizontal: SnapUIDimensions.spacingL,
+          vertical: SnapUIDimensions.spacingM,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(SnapUIDimensions.radiusM),
+        ),
+      ),
+      child: isLoading 
+        ? const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : Text(text),
+    );
+  }
+  
+  // SnackBar methods
+  static SnackBar successSnackBar(String message) {
+    return SnackBar(
+      content: Text(message),
+      backgroundColor: SnapUIColors.accentGreen,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SnapUIDimensions.radiusM),
+      ),
+    );
+  }
+  
+  static SnackBar errorSnackBar(String message) {
+    return SnackBar(
+      content: Text(message),
+      backgroundColor: SnapUIColors.accentRed,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(SnapUIDimensions.radiusM),
+      ),
+    );
+  }
 }
 
 class SnapColors {
@@ -76,6 +210,7 @@ class SnapTypography {
   static final heading1 = displayLarge;
   static final heading2 = displayMedium;
   static final heading3 = headlineMedium;
+  static final heading = headlineMedium; // Generic heading alias
   static final body = bodyLarge;
   static final caption = bodyMedium;
 }

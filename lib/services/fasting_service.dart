@@ -816,8 +816,8 @@ class FastingService {
 
     try {
       final pausedSession = _currentSession!.copyWith(
-        isPaused: true,
-        pausedAt: DateTime.now(),
+        state: FastingState.paused,
+        pausedTimes: [..._currentSession!.pausedTimes, DateTime.now()],
         updatedAt: DateTime.now(),
       );
 
@@ -839,8 +839,8 @@ class FastingService {
 
     try {
       final resumedSession = _currentSession!.copyWith(
-        isPaused: false,
-        pausedAt: null,
+        state: FastingState.active,
+        resumedTimes: [..._currentSession!.resumedTimes, DateTime.now()],
         updatedAt: DateTime.now(),
       );
 
@@ -866,7 +866,7 @@ class FastingService {
     try {
       final endReason = completed 
           ? FastingEndReason.completed 
-          : FastingEndReason.userStopped;
+          : FastingEndReason.userBreak;
 
       await endFastingSession(endReason, completed ? 'Session completed' : 'User ended session');
       return true;
@@ -886,9 +886,9 @@ class FastingService {
       final duration = customDuration ?? type.duration;
       
       await startFastingSession(
-        type,
-        personalGoal ?? 'Stay focused and healthy',
-        duration,
+        type: type,
+        personalGoal: personalGoal ?? 'Stay focused and healthy',
+        customDuration: duration,
       );
 
       return _currentSession != null && _currentSession!.isActive;

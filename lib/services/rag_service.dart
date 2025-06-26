@@ -229,6 +229,12 @@ class RAGService {
     
     return results;
   }
+  
+  /// Alias for storeDocuments - for backward compatibility
+  Future<bool> storeBatchDocuments(List<KnowledgeDocument> documents) async {
+    final results = await storeDocuments(documents);
+    return results.every((result) => result);
+  }
 
   /// Expand and contextualize a user query for better retrieval
   Future<ContextualizedQuery> expandQuery(
@@ -975,9 +981,9 @@ Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods
       final storyAnalysis = _analyzeStoryContent(stories);
       
       // Search for relevant health insights based on story content
-      final searchResults = await searchHealthAdvice(
-        storyAnalysis['themes'].join(' '),
-        userProfile ?? {},
+      final searchResults = await performSemanticSearch(
+        query: storyAnalysis['themes'].join(' '),
+        maxResults: 5,
       );
 
       // Build context from search results
@@ -1016,7 +1022,7 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
       final response = await _openAIService.getChatCompletion(prompt);
       
       try {
-        final summary = jsonDecode(response) as Map<String, dynamic>;
+        final summary = jsonDecode(response ?? '{}') as Map<String, dynamic>;
         return {
           'summary': summary['summary'] ?? 'Summary generated successfully.',
           'highlights': List<String>.from(summary['highlights'] ?? []),
