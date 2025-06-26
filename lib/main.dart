@@ -5,7 +5,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:snapameal/pages/auth_gate.dart';
 import 'package:snapameal/themes/light_mode.dart';
-import 'package:snapameal/themes/dark_mode.dart';
 import 'package:camera/camera.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:snapameal/services/fasting_service.dart';
