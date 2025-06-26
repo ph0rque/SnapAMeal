@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class SnapUIColors {
   // Prevent instantiation
-  SnapUIColors._();
+  const SnapUIColors._();
 
   // Primary Palette
   static const Color primaryYellow = Color(0xFFFFC107); // A vibrant, golden yellow

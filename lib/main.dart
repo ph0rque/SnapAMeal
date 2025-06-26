@@ -97,12 +97,15 @@ class MyApp extends StatelessWidget {
         // Fasting-related services with dependencies
         Provider<FastingService>(
           create: (context) => FastingService(
-            authService: context.read<AuthService>(),
-            notificationService: context.read<NotificationService>(),
+            context.read<AuthService>(),
+            context.read<NotificationService>(),
           ),
         ),
         Provider<ContentFilterService>(
-          create: (_) => ContentFilterService(),
+          create: (context) => ContentFilterService(
+            openAIService: context.read<OpenAIService>(),
+            ragService: context.read<RAGService>(),
+          ),
         ),
         
         // Fasting state provider that manages app-wide fasting state

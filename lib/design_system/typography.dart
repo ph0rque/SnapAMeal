@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:snapameal/design_system/colors.dart';
 
 class SnapUITypography {
-  SnapUITypography._();
+  const SnapUITypography._();
 
   static final TextTheme lightTextTheme = TextTheme(
     displayLarge: GoogleFonts.nunitoSans(fontSize: 32, fontWeight: FontWeight.bold, color: SnapUIColors.textPrimaryLight),

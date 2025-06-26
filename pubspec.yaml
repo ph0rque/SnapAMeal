@@ -56,6 +56,7 @@ dependencies:
   eva_icons_flutter: ^3.1.0
   google_fonts: ^6.2.1
   timeago: ^3.6.1
+  intl: ^0.19.0
 
   # AI & HTTP Dependencies
   http: ^1.2.1

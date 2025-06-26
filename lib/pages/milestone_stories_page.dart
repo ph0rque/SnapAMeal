@@ -3,9 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../services/story_service.dart';
-import '../design_system/colors.dart';
-import '../design_system/typography.dart';
-import '../design_system/dimensions.dart';
+import '../design_system/snap_ui.dart';
 import 'story_view_page.dart';
 
 class MilestoneStoriesPage extends StatefulWidget {
@@ -436,8 +434,6 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => StoryViewPage(
-          stories: [story],
-          initialIndex: 0,
           userId: widget.userId ?? _auth.currentUser?.uid ?? '',
         ),
       ),

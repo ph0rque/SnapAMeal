@@ -228,7 +228,6 @@ class _HomePageState extends State<HomePage> {
                     fastingState: fastingState,
                     strokeWidth: 4,
                     child: FastingTimerWidget(
-                      session: fastingState.currentSession!,
                       size: 60,
                       showControls: false,
                     ),

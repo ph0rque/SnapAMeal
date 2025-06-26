@@ -96,11 +96,10 @@ class FastingAwareNavigation extends StatelessWidget {
                 ),
               ],
             ),
-            child: FastingProgressRing(
+            child:             FastingProgressRing(
               fastingState: fastingState,
               strokeWidth: 3,
               child: FastingTimerWidget(
-                session: fastingState.currentSession!,
                 size: 60,
                 showControls: false,
               ),
@@ -192,7 +191,6 @@ class FastingAwareAppBar extends StatelessWidget implements PreferredSizeWidget 
         size: 36,
         animate: true,
         showProgress: true,
-        ),
       ),
     );
   }

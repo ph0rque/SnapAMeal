@@ -77,7 +77,7 @@ class FastingEngagement {
   final Map<String, int> featureUsage;  // Feature name -> usage count
   final Duration totalAppTime;
 
-  FastingEngagement({
+  const FastingEngagement({
     this.snapsTaken = 0,
     this.motivationViews = 0,
     this.appOpens = 0,
@@ -257,6 +257,9 @@ class FastingSession {
     };
   }
 
+  /// Alias for toJson() - some services expect toMap()
+  Map<String, dynamic> toMap() => toJson();
+
   /// Create from JSON (Firestore document)
   factory FastingSession.fromJson(Map<String, dynamic> json) {
     return FastingSession(
@@ -323,6 +326,9 @@ class FastingSession {
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
     );
   }
+
+  /// Alias for fromJson() - some services expect fromMap()
+  factory FastingSession.fromMap(Map<String, dynamic> map) => FastingSession.fromJson(map);
 
   /// Create from Firestore DocumentSnapshot
   factory FastingSession.fromFirestore(DocumentSnapshot doc) {

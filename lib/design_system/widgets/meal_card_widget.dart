@@ -31,11 +31,11 @@ class MealCardWidget extends StatelessWidget {
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
-        borderRadius: SnapUIDimensions.borderRadius,
+        borderRadius: BorderRadius.circular(SnapUIDimensions.borderRadius),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: SnapUIDimensions.borderRadius,
+        borderRadius: BorderRadius.circular(SnapUIDimensions.borderRadius),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -91,7 +91,7 @@ class MealCardWidget extends StatelessWidget {
             ),
             child: Text(
               timeago.format(mealLog.timestamp),
-              style: SnapUI.captionStyle.copyWith(
+              style: SnapTypography.caption.copyWith(
                 color: Colors.white,
                 fontSize: 12,
               ),
@@ -117,7 +117,7 @@ class MealCardWidget extends StatelessWidget {
                   const SizedBox(width: 2),
                   Text(
                     'AI Verified',
-                    style: SnapUI.captionStyle.copyWith(
+                    style: SnapTypography.caption.copyWith(
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -144,7 +144,7 @@ class MealCardWidget extends StatelessWidget {
                 Icon(
                   Icons.local_dining,
                   size: 16,
-                  color: SnapUI.primaryColor,
+                  color: SnapColors.primary,
                 ),
                 const SizedBox(width: 4),
                 Expanded(
@@ -152,7 +152,7 @@ class MealCardWidget extends StatelessWidget {
                     mealLog.recognitionResult.detectedFoods
                         .map((food) => food.name)
                         .join(', '),
-                    style: SnapUI.bodyStyle.copyWith(
+                    style: SnapTypography.body.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,

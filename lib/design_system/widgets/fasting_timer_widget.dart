@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/fasting_session.dart';
 import '../../services/fasting_service.dart';
-import '../colors.dart';
-import '../typography.dart';
+import '../snap_ui.dart';
 
 /// Circular fasting timer widget with progress visualization and interactive controls
 class FastingTimerWidget extends StatefulWidget {

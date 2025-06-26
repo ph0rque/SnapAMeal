@@ -1209,6 +1209,8 @@ PODS:
     - FlutterMacOS
   - ffmpeg_kit_flutter_new/full-gpl (1.0.0):
     - FlutterMacOS
+  - file_selector_macos (0.0.1):
+    - FlutterMacOS
   - Firebase/Auth (11.13.0):
     - Firebase/CoreOnly
     - FirebaseAuth (~> 11.13.0)
@@ -1445,8 +1447,13 @@ PODS:
     - Flutter
     - FlutterMacOS
   - PromisesObjC (2.4.0)
+  - shared_preferences_foundation (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - sqflite_darwin (0.0.4):
     - Flutter
+    - FlutterMacOS
+  - tflite_flutter (0.0.1):
     - FlutterMacOS
   - video_compress (0.3.0):
     - FlutterMacOS
@@ -1458,13 +1465,16 @@ DEPENDENCIES:
   - cloud_firestore (from `Flutter/ephemeral/.symlinks/plugins/cloud_firestore/macos`)
   - cloud_functions (from `Flutter/ephemeral/.symlinks/plugins/cloud_functions/macos`)
   - ffmpeg_kit_flutter_new (from `Flutter/ephemeral/.symlinks/plugins/ffmpeg_kit_flutter_new/macos`)
+  - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - firebase_auth (from `Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos`)
   - firebase_core (from `Flutter/ephemeral/.symlinks/plugins/firebase_core/macos`)
   - firebase_messaging (from `Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos`)
   - firebase_storage (from `Flutter/ephemeral/.symlinks/plugins/firebase_storage/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - path_provider_foundation (from `Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin`)
+  - shared_preferences_foundation (from `Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin`)
+  - tflite_flutter (from `Flutter/ephemeral/.symlinks/plugins/tflite_flutter/macos`)
   - video_compress (from `Flutter/ephemeral/.symlinks/plugins/video_compress/macos`)
   - video_player_avfoundation (from `Flutter/ephemeral/.symlinks/plugins/video_player_avfoundation/darwin`)
 
@@ -1503,6 +1513,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/cloud_functions/macos
   ffmpeg_kit_flutter_new:
     :path: Flutter/ephemeral/.symlinks/plugins/ffmpeg_kit_flutter_new/macos
+  file_selector_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos
   firebase_auth:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_auth/macos
   firebase_core:
@@ -1515,8 +1527,12 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   path_provider_foundation:
     :path: Flutter/ephemeral/.symlinks/plugins/path_provider_foundation/darwin
+  shared_preferences_foundation:
+    :path: Flutter/ephemeral/.symlinks/plugins/shared_preferences_foundation/darwin
   sqflite_darwin:
     :path: Flutter/ephemeral/.symlinks/plugins/sqflite_darwin/darwin
+  tflite_flutter:
+    :path: Flutter/ephemeral/.symlinks/plugins/tflite_flutter/macos
   video_compress:
     :path: Flutter/ephemeral/.symlinks/plugins/video_compress/macos
   video_player_avfoundation:
@@ -1528,6 +1544,7 @@ SPEC CHECKSUMS:
   cloud_firestore: d34908376e18469872332afef90891e76282155a
   cloud_functions: 29e63b3c177720f117edd0f0a2d6a75de16227c8
   ffmpeg_kit_flutter_new: ba31edb57dbc09d35cabc7df23e0dc876c525946
+  file_selector_macos: cc3858c981fe6889f364731200d6232dac1d812d
   Firebase: 3435bc66b4d494c2f22c79fd3aae4c1db6662327
   firebase_auth: 9d64180ae34942d56073274d50a0f2dd07a01c84
   firebase_core: 071e73c34a225e1e1e492b7023c7c0b99b0f2a2f
@@ -1557,7 +1574,9 @@ SPEC CHECKSUMS:
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
+  shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
+  tflite_flutter: b186ea3c62c076a90652f47c01005fe36c75171e
   video_compress: c896234f100791b5fef7f049afa38f6d2ef7b42f
   video_player_avfoundation: 7c6c11d8470e1675df7397027218274b6d2360b3
 

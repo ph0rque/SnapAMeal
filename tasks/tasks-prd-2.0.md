@@ -1,6 +1,6 @@
-# Tasks: Phase II PRD — Snap-A-Meal
+# Tasks:  PRD 2.0 — Snap-A-Meal
 
-Based on the Phase II PRD for transforming SnapAMeal from a Snapchat clone to a health & fitness tracking app with AI/RAG capabilities.
+Based on the Phase 2.0 PRD for transforming SnapAMeal from a Snapchat clone to a health & fitness tracking app with AI/RAG capabilities.
 
 ## Technology Decisions
 - **Build Strategy**: Extend existing Flutter/Firebase codebase

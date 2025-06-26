@@ -1,6 +1,6 @@
 # Task Breakdown: Short Video Snaps Feature
 
-*Generated from PRD: Short Video Snaps Feature*
+*Generated from PRD 1.2*
 
 ## Task 1.0: Develop Video Recording Infrastructure ✅ COMPLETED
 - [x] 1.1 Add video recording dependencies to pubspec.yaml
