@@ -8,8 +8,11 @@ import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:provider/provider.dart';
 import '../services/fasting_service.dart';
+import '../services/ar_filter_service.dart';
+import '../services/rag_service.dart';
 import '../models/fasting_session.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
+import '../design_system/widgets/ar_filter_selector.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key, required this.cameras, this.onStoryPosted});
@@ -29,7 +32,11 @@ class _CameraPageState extends State<CameraPage> {
   bool _noCamerasAvailable = false;
   bool _flashOn = false;
   bool _showFastingTimer = false;
+  bool _showARFilters = false;
   FastingSession? _currentFastingSession;
+  FastingARFilterType? _selectedARFilter;
+  late ARFilterService _arFilterService;
+  List<ARFilterOverlay> _activeAROverlays = [];
 
   @override
   void initState() {
@@ -41,6 +48,12 @@ class _CameraPageState extends State<CameraPage> {
       return;
     }
     _initializeCamera();
+    _initializeARFilterService();
+  }
+
+  void _initializeARFilterService() {
+    final ragService = RAGService();
+    _arFilterService = ARFilterService(ragService);
   }
 
   void _initializeCamera() {
@@ -68,6 +81,7 @@ class _CameraPageState extends State<CameraPage> {
   void dispose() {
     // Dispose of the controller when the widget is disposed.
     _controller.dispose();
+    _arFilterService.dispose();
     super.dispose();
   }
 
@@ -96,6 +110,13 @@ class _CameraPageState extends State<CameraPage> {
                       children: [
                         CameraPreview(_controller),
                         
+                        // AR Filter Overlays
+                        if (_activeAROverlays.isNotEmpty)
+                          ARFilterOverlayWidget(
+                            activeOverlays: _activeAROverlays,
+                            screenSize: MediaQuery.of(context).size,
+                          ),
+                        
                         // Top controls
                         Positioned(
                           top: 40,
@@ -104,17 +125,38 @@ class _CameraPageState extends State<CameraPage> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              // Fasting timer toggle
-                              IconButton(
-                                icon: Icon(
-                                  _showFastingTimer ? Icons.timer_off : Icons.timer,
-                                  color: SnapUIColors.white,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _showFastingTimer = !_showFastingTimer;
-                                  });
-                                },
+                              Row(
+                                children: [
+                                  // Fasting timer toggle
+                                  IconButton(
+                                    icon: Icon(
+                                      _showFastingTimer ? Icons.timer_off : Icons.timer,
+                                      color: SnapUIColors.white,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _showFastingTimer = !_showFastingTimer;
+                                      });
+                                    },
+                                  ),
+                                  
+                                  // AR Filters toggle (only show if fasting)
+                                  if (_currentFastingSession?.isActive == true)
+                                    IconButton(
+                                      icon: Icon(
+                                        _showARFilters ? Icons.auto_awesome_outlined : Icons.auto_awesome,
+                                        color: _showARFilters ? Colors.yellow : SnapUIColors.white,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _showARFilters = !_showARFilters;
+                                          if (!_showARFilters) {
+                                            _clearARFilters();
+                                          }
+                                        });
+                                      },
+                                    ),
+                                ],
                               ),
                               
                               // Flash toggle
@@ -164,6 +206,21 @@ class _CameraPageState extends State<CameraPage> {
                             onPressed: _switchCamera,
                           ),
                         ),
+                        
+                        // AR Filter Selector
+                        if (_showARFilters && _currentFastingSession?.isActive == true)
+                          Positioned(
+                            bottom: 140,
+                            left: 0,
+                            right: 0,
+                            child: ARFilterSelector(
+                              fastingSession: _currentFastingSession,
+                              arFilterService: _arFilterService,
+                              onFilterSelected: _onARFilterSelected,
+                              selectedFilter: _selectedARFilter,
+                              isVisible: _showARFilters,
+                            ),
+                          ),
                         
                         // Main camera controls
                         Positioned(
@@ -545,4 +602,55 @@ class _CameraPageState extends State<CameraPage> {
       await fastingService.endFastingSession(FastingEndReason.completed);
     }
   }
+
+  /// Handle AR filter selection
+  void _onARFilterSelected(FastingARFilterType filterType) async {
+    if (_selectedARFilter == filterType) {
+      // Deselect the filter
+      _clearARFilters();
+      return;
+    }
+
+    setState(() {
+      _selectedARFilter = filterType;
+    });
+
+    // Clear existing overlays
+    _clearARFilters();
+
+    // Apply new filter
+    if (_currentFastingSession != null) {
+      final overlay = await _arFilterService.applyFilter(
+        filterType,
+        _currentFastingSession!,
+        this,
+      );
+
+      if (overlay != null) {
+        setState(() {
+          _activeAROverlays.add(overlay);
+        });
+
+        // Auto-remove overlay after duration
+        if (overlay.duration != Duration.zero) {
+          Future.delayed(overlay.duration, () {
+            setState(() {
+              _activeAROverlays.remove(overlay);
+            });
+          });
+        }
+      }
+    }
+  }
+
+  /// Clear all active AR filters
+  void _clearARFilters() {
+    setState(() {
+      _selectedARFilter = null;
+      _activeAROverlays.clear();
+    });
+    _arFilterService.clearAllOverlays();
+  }
+
+
 } 
