@@ -11,11 +11,11 @@ class FastingAwareNavigation extends StatelessWidget {
   final bool adaptiveTheme;
 
   const FastingAwareNavigation({
-    Key? key,
+    super.key,
     required this.child,
     this.showFloatingTimer = true,
     this.adaptiveTheme = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -145,12 +145,12 @@ class FastingAwareAppBar extends StatelessWidget implements PreferredSizeWidget 
   final Widget? leading;
 
   const FastingAwareAppBar({
-    Key? key,
+    super.key,
     this.title,
     this.actions,
     this.automaticallyImplyLeading = true,
     this.leading,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -222,11 +222,11 @@ class FastingAwareBottomNavigation extends StatelessWidget {
   final List<BottomNavigationBarItem> items;
 
   const FastingAwareBottomNavigation({
-    Key? key,
+    super.key,
     required this.currentIndex,
     required this.onTap,
     required this.items,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -343,11 +343,11 @@ class FastingAwareDrawer extends StatelessWidget {
   final String? headerSubtitle;
 
   const FastingAwareDrawer({
-    Key? key,
+    super.key,
     required this.children,
     this.headerTitle,
     this.headerSubtitle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

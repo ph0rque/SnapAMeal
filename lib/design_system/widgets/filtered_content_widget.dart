@@ -10,12 +10,12 @@ class FilteredContentWidget extends StatelessWidget {
   final VoidCallback? onViewAlternatives;
 
   const FilteredContentWidget({
-    Key? key,
+    super.key,
     required this.filterResult,
     required this.fastingSession,
     this.onViewProgress,
     this.onViewAlternatives,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -264,10 +264,10 @@ class FilteredContentListItem extends StatelessWidget {
   final VoidCallback? onTap;
 
   const FilteredContentListItem({
-    Key? key,
+    super.key,
     required this.filterResult,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -334,9 +334,9 @@ class AlternativeContentWidget extends StatelessWidget {
   final AlternativeContent content;
 
   const AlternativeContentWidget({
-    Key? key,
+    super.key,
     required this.content,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

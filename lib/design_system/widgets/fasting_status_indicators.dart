@@ -59,12 +59,12 @@ class FastingBadge extends StatefulWidget {
   final bool animate;
 
   const FastingBadge({
-    Key? key,
+    super.key,
     required this.fastingState,
     this.size = 32,
     this.showProgress = true,
     this.animate = true,
-  }) : super(key: key);
+  });
 
   @override
   State<FastingBadge> createState() => _FastingBadgeState();
@@ -243,14 +243,14 @@ class FastingColorShift extends StatefulWidget {
   final double borderWidth;
 
   const FastingColorShift({
-    Key? key,
+    super.key,
     required this.child,
     required this.fastingState,
     this.animationDuration = const Duration(milliseconds: 500),
     this.applyToBackground = false,
     this.applyToBorder = true,
     this.borderWidth = 2,
-  }) : super(key: key);
+  });
 
   @override
   State<FastingColorShift> createState() => _FastingColorShiftState();
@@ -349,12 +349,12 @@ class FastingProgressRing extends StatefulWidget {
   final bool showPercentage;
 
   const FastingProgressRing({
-    Key? key,
+    super.key,
     required this.child,
     required this.fastingState,
     this.strokeWidth = 4,
     this.showPercentage = false,
-  }) : super(key: key);
+  });
 
   @override
   State<FastingProgressRing> createState() => _FastingProgressRingState();
@@ -373,7 +373,8 @@ class _FastingProgressRingState extends State<FastingProgressRing>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-
+    
+    _progressAnimation = AlwaysStoppedAnimation<double>(0.0);
     _updateProgress();
   }
 
@@ -389,7 +390,7 @@ class _FastingProgressRingState extends State<FastingProgressRing>
 
   void _updateProgress() {
     _progressAnimation = Tween<double>(
-      begin: _progressAnimation?.value ?? 0,
+      begin: _progressAnimation.value,
       end: widget.fastingState.progressPercentage,
     ).animate(CurvedAnimation(
       parent: _controller,
@@ -519,11 +520,11 @@ class FastingStatusBanner extends StatefulWidget {
   final VoidCallback? onDismiss;
 
   const FastingStatusBanner({
-    Key? key,
+    super.key,
     required this.fastingState,
     this.showDismiss = false,
     this.onDismiss,
-  }) : super(key: key);
+  });
 
   @override
   State<FastingStatusBanner> createState() => _FastingStatusBannerState();

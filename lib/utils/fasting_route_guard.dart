@@ -80,11 +80,11 @@ class FastingRouteBlockedDialog extends StatelessWidget {
   final FastingStateProvider fastingState;
 
   const FastingRouteBlockedDialog({
-    Key? key,
+    super.key,
     required this.blockedRoute,
     this.alternativeRoute,
     required this.fastingState,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -202,10 +202,10 @@ class FastingBlockedPage extends StatelessWidget {
   final FastingStateProvider fastingState;
 
   const FastingBlockedPage({
-    Key? key,
+    super.key,
     required this.blockedRoute,
     required this.fastingState,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

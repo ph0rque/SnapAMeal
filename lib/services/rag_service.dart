@@ -1,5 +1,6 @@
 /// RAG (Retrieval-Augmented Generation) Service for SnapAMeal Phase II
 /// Orchestrates between OpenAI and Pinecone for context-aware health advice
+library;
 
 import 'dart:convert';
 import 'dart:developer' as developer;

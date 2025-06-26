@@ -1,5 +1,6 @@
 /// Meal Recognition Service for SnapAMeal Phase II
 /// Provides AI-powered food detection, calorie estimation, and nutrition analysis
+library;
 
 import 'dart:io';
 import 'dart:typed_data';
@@ -17,8 +18,6 @@ import 'rag_service.dart';
 
 /// Comprehensive meal recognition service with AI-powered analysis
 class MealRecognitionService {
-  static const String _modelPath = 'assets/models/food_classifier.tflite';
-  static const String _labelsPath = 'assets/models/food_labels.txt';
   static const int _inputSize = 224;
   static const int _maxDetections = 5;
 

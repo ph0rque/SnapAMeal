@@ -1,5 +1,6 @@
 /// AI Configuration for SnapAMeal Phase II
 /// Handles Pinecone vector database and OpenAI API configurations
+library;
 
 class AIConfig {
   // Pinecone Configuration

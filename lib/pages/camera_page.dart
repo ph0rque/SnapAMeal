@@ -39,7 +39,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   FastingSession? _currentFastingSession;
   FastingARFilterType? _selectedARFilter;
   late ARFilterService _arFilterService;
-  List<ARFilterOverlay> _activeAROverlays = [];
+  final List<ARFilterOverlay> _activeAROverlays = [];
 
   @override
   void initState() {
@@ -502,6 +502,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
       // Record engagement and add snap to session
       await fastingService.recordEngagement(snapTaken: true);
       
+      if (!mounted) return;
       // Show quick success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -592,6 +593,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
       // End the fasting session
       await fastingService.endFastingSession(FastingEndReason.completed);
       
+      if (!mounted) return;
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

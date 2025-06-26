@@ -21,11 +21,9 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
   
   late TabController _tabController;
   
-  bool _isLoading = false;
   bool _isGeneratingAdvice = false;
   String? _currentUserId;
   HealthProfile? _healthProfile;
-  List<AIAdvice> _quickSuggestions = [];
 
   @override
   void initState() {
@@ -542,7 +540,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                   style: SnapTypography.headlineMedium.copyWith(color: SnapColors.textPrimary),
                 ),
                 const SizedBox(height: 16),
-                ...bookmarkedAdvice.map((advice) => _buildAdviceCard(advice)).toList(),
+                ...bookmarkedAdvice.map((advice) => _buildAdviceCard(advice)),
                 const SizedBox(height: 24),
               ],
               
@@ -552,7 +550,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                 style: SnapTypography.headlineMedium.copyWith(color: SnapColors.textPrimary),
               ),
               const SizedBox(height: 16),
-              ...recentAdvice.map((advice) => _buildAdviceCard(advice)).toList(),
+              ...recentAdvice.map((advice) => _buildAdviceCard(advice)),
             ],
           ),
         );

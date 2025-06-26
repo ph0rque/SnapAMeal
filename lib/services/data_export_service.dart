@@ -5,11 +5,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:csv/csv.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/meal_log.dart';
-import '../models/fasting_session.dart';
-import '../models/health_profile.dart';
-import '../models/ai_advice.dart';
-import '../models/health_integration.dart';
 import '../services/auth_service.dart';
 
 enum ExportFormat { csv, json }
@@ -111,13 +106,13 @@ class DataExportService {
         case ExportDataType.mealLogs:
           final mealLogs = await _exportMealLogs(userId, options);
           exportData['mealLogs'] = mealLogs;
-          totalRecords += (mealLogs as List).length;
+          totalRecords += mealLogs.length;
           break;
 
         case ExportDataType.fastingSessions:
           final fastingSessions = await _exportFastingSessions(userId, options);
           exportData['fastingSessions'] = fastingSessions;
-          totalRecords += (fastingSessions as List).length;
+          totalRecords += fastingSessions.length;
           break;
 
         case ExportDataType.healthProfile:
@@ -129,13 +124,13 @@ class DataExportService {
         case ExportDataType.aiAdvice:
           final aiAdvice = await _exportAiAdvice(userId, options);
           exportData['aiAdvice'] = aiAdvice;
-          totalRecords += (aiAdvice as List).length;
+          totalRecords += aiAdvice.length;
           break;
 
         case ExportDataType.integrations:
           final integrations = await _exportIntegrations(userId, options);
           exportData['integrations'] = integrations;
-          totalRecords += (integrations as List).length;
+          totalRecords += integrations.length;
           break;
 
         case ExportDataType.all:
@@ -383,7 +378,7 @@ class DataExportService {
       final List<Map<String, dynamic>> integrations = [];
 
       for (final doc in snapshot.docs) {
-        final data = doc.data() as Map<String, dynamic>;
+        final data = doc.data() ?? {};
         
         final integration = {
           'id': doc.id,

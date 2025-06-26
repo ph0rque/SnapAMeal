@@ -427,7 +427,6 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
   void _viewStory(DocumentSnapshot story) {
     final data = story.data() as Map<String, dynamic>;
     final mediaUrl = data['mediaUrl'] as String?;
-    final isVideo = data['isVideo'] as bool? ?? false;
     
     if (mediaUrl == null) return;
     

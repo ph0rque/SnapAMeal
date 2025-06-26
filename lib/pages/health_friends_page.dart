@@ -20,7 +20,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
   late FriendService _friendService;
   
   List<Map<String, dynamic>> _healthSuggestions = [];
-  List<Map<String, dynamic>> _currentFriends = [];
   bool _isLoading = false;
   String? _currentUserId;
 
@@ -36,7 +35,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
     
     _getCurrentUser();
     _loadHealthSuggestions();
-    _loadFriends();
   }
 
   void _getCurrentUser() {
@@ -72,28 +70,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
       setState(() {
         _isLoading = false;
       });
-    }
-  }
-
-  Future<void> _loadFriends() async {
-    if (_currentUserId == null) return;
-
-    try {
-      final friendsStream = _friendService.getFriendsStream();
-      friendsStream.listen((friends) {
-        if (mounted) {
-          setState(() {
-            _currentFriends = friends.map((friendId) {
-              return {
-                'id': friendId,
-                'display_name': 'Friend $friendId', // Placeholder - would need to fetch actual data
-              };
-            }).toList();
-          });
-        }
-      });
-    } catch (e) {
-      debugPrint('Error loading friends: $e');
     }
   }
 
@@ -200,7 +176,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
   Widget _buildHealthSuggestionCard(Map<String, dynamic> suggestion) {
     final userId = suggestion['user_id'] as String;
     final healthGoals = List<String>.from(suggestion['health_goals'] ?? []);
-    final interests = List<String>.from(suggestion['interests'] ?? []);
     final similarityScore = suggestion['similarity_score'] as double? ?? 0.0;
     final suggestionReason = suggestion['suggestion_reason'] as String? ?? 
         'You share similar health goals and could motivate each other!';

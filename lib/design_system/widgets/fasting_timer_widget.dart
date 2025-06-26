@@ -13,12 +13,12 @@ class FastingTimerWidget extends StatefulWidget {
   final Function(FastingSession?)? onSessionChanged;
 
   const FastingTimerWidget({
-    Key? key,
+    super.key,
     this.size = 280.0,
     this.showControls = true,
     this.onTap,
     this.onSessionChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<FastingTimerWidget> createState() => _FastingTimerWidgetState();
@@ -600,9 +600,9 @@ class FastingStartDialog extends StatefulWidget {
   final Function(FastingType type, String? goal) onStart;
 
   const FastingStartDialog({
-    Key? key,
+    super.key,
     required this.onStart,
-  }) : super(key: key);
+  });
 
   @override
   State<FastingStartDialog> createState() => _FastingStartDialogState();

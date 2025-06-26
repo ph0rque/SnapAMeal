@@ -1,4 +1,3 @@
-
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/fasting_session.dart';
@@ -253,10 +252,15 @@ class ContentFilterService {
         confidence += 0.1;
         
         // Categorize the content
-        if (_isFoodCategory(keyword)) category = FilterCategory.food;
-        else if (_isRestaurantCategory(keyword)) category = FilterCategory.restaurant;
-        else if (_isCookingCategory(keyword)) category = FilterCategory.cooking;
-        else if (_isDrinkCategory(keyword)) category = FilterCategory.drinks;
+        if (_isFoodCategory(keyword)) {
+          category = FilterCategory.food;
+        } else if (_isRestaurantCategory(keyword)) {
+          category = FilterCategory.restaurant;
+        } else if (_isCookingCategory(keyword)) {
+          category = FilterCategory.cooking;
+        } else if (_isDrinkCategory(keyword)) {
+          category = FilterCategory.drinks;
+        }
       }
     }
 

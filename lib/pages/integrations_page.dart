@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../design_system/snap_ui.dart';
 import '../services/health_integration_service.dart';
 import '../models/health_integration.dart';
@@ -636,24 +635,6 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         color: color,
         size: 24,
       ),
-    );
-  }
-
-  Widget _buildPermissionChips(List<String> permissions) {
-    return Wrap(
-      spacing: 6,
-      runSpacing: 4,
-      children: permissions.map((permission) {
-        return Chip(
-          label: Text(
-            permission,
-            style: const TextStyle(fontSize: 10),
-          ),
-          backgroundColor: SnapColors.primary.withValues(alpha: 0.1),
-          labelStyle: TextStyle(color: SnapColors.primary),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        );
-      }).toList(),
     );
   }
 

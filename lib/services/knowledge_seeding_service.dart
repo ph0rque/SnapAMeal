@@ -1,5 +1,6 @@
 /// Knowledge Base Seeding Service for SnapAMeal Phase II
 /// Populates the Pinecone vector database with curated health knowledge
+library;
 
 import 'dart:developer' as developer;
 import 'rag_service.dart';

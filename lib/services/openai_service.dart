@@ -1,5 +1,6 @@
 /// OpenAI API Integration Service for SnapAMeal Phase II
 /// Handles GPT-4 chat completions and embedding generation with cost optimization
+library;
 
 import 'dart:convert';
 import 'dart:developer' as developer;
@@ -143,12 +144,11 @@ class CostOptimizer {
   
   // Batch processing queues
   final List<String> _embeddingQueue = [];
-  final List<Map<String, dynamic>> _chatQueue = [];
   
   // Performance tracking
   int _cacheHits = 0;
   int _cacheMisses = 0;
-  double _totalSavings = 0.0;
+  final double _totalSavings = 0.0;
 
   CostOptimizer(this._prefs);
 
@@ -216,7 +216,7 @@ class CostOptimizer {
       for (int i = 0; i < uncachedTexts.length; i += batchSize) {
         final batch = uncachedTexts.skip(i).take(batchSize).toList();
         // Note: OpenAI API doesn't support batch embeddings, so we process individually
-        for (final text in batch) {
+        for (final _ in batch) {
           // This would be implemented in the main service
           // results[text] = await generateSingleEmbedding(text);
         }

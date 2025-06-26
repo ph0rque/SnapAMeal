@@ -344,8 +344,6 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
   }
 
   Widget _buildStreakCard(Map<String, dynamic> streak, int rank) {
-    final userId = streak['user_id'] as String;
-    final currentStreak = streak['current_streak'] as int;
     final completedToday = streak['completed_today'] as bool;
     
     return Container(
@@ -383,7 +381,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 FutureBuilder<Map<String, dynamic>>(
-                  future: _getUserDisplayName(userId),
+                  future: _getUserDisplayName(streak['user_id'] as String),
                   builder: (context, snapshot) {
                     final userData = snapshot.data ?? {};
                     return Text(
@@ -393,7 +391,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
                   },
                 ),
                 Text(
-                  '\$currentStreak day streak',
+                  '${streak['current_streak']} day streak',
                   style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
                 ),
               ],

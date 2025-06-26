@@ -255,10 +255,10 @@ class ARFilterOverlayWidget extends StatefulWidget {
   final Size screenSize;
 
   const ARFilterOverlayWidget({
-    Key? key,
+    super.key,
     required this.activeOverlays,
     required this.screenSize,
-  }) : super(key: key);
+  });
 
   @override
   State<ARFilterOverlayWidget> createState() => _ARFilterOverlayWidgetState();
@@ -321,11 +321,11 @@ class FastingProgressOverlay extends StatefulWidget {
   final Color accentColor;
 
   const FastingProgressOverlay({
-    Key? key,
+    super.key,
     required this.fastingSession,
     this.primaryColor = Colors.blue,
     this.accentColor = Colors.lightBlue,
-  }) : super(key: key);
+  });
 
   @override
   State<FastingProgressOverlay> createState() => _FastingProgressOverlayState();

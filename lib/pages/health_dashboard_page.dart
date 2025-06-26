@@ -3,27 +3,19 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../design_system/snap_ui.dart';
-import '../services/fasting_service.dart';
-// import '../services/health_integration_service.dart'; // Unused
-// import '../services/ai_advice_service.dart'; // Unused
-import '../services/rag_service.dart';
-import '../services/openai_service.dart';
-import '../services/notification_service.dart';
+
+
 import '../providers/fasting_state_provider.dart';
 import '../models/fasting_session.dart';
 import '../models/health_profile.dart';
 import '../models/ai_advice.dart';
 import '../widgets/fasting_aware_navigation.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
-// import '../design_system/widgets/fasting_status_indicators.dart'; // Unused import
+
 import 'ai_advice_page.dart';
 import 'meal_logging_page.dart';
 import 'health_groups_page.dart';
 import 'integrations_page.dart';
-import '../design_system/colors.dart';
-import '../design_system/typography.dart';
-import '../design_system/widgets/fasting_timer_widget.dart';
-import '../design_system/widgets/snap_button.dart';
 
 class HealthDashboardPage extends StatefulWidget {
   const HealthDashboardPage({super.key});
@@ -34,9 +26,7 @@ class HealthDashboardPage extends StatefulWidget {
 
 class _HealthDashboardPageState extends State<HealthDashboardPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  late final FastingService _fastingService;
-  // final HealthIntegrationService _healthService = HealthIntegrationService(); // Unused
-  // final AIAdviceService _aiAdviceService = AIAdviceService(); // Unused
+
 
   HealthProfile? _healthProfile;
   List<FastingSession> _recentSessions = [];
@@ -47,10 +37,6 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
   @override
   void initState() {
     super.initState();
-    _fastingService = FastingService(
-      RAGService(OpenAIService()),
-      NotificationService(),
-    );
     _loadDashboardData();
   }
 
@@ -183,8 +169,8 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
           .toList();
       
       final completedSessions = sessions.where((s) => s.state == FastingState.completed).length;
-      final totalHours = sessions.fold<double>(0, (sum, session) => 
-          sum + (session.actualDuration?.inMinutes ?? 0) / 60.0);
+      final totalHours = sessions.fold<double>(0, (totalHoursSum, session) => 
+          totalHoursSum + (session.actualDuration?.inMinutes ?? 0) / 60.0);
       final averageHours = sessions.isNotEmpty ? totalHours / sessions.length : 0.0;
       
       return {

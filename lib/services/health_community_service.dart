@@ -3,8 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../models/health_group.dart';
 import '../models/health_challenge.dart';
-import '../models/fasting_session.dart';
-import '../models/meal_log.dart';
 import 'rag_service.dart';
 import 'friend_service.dart';
 
@@ -532,12 +530,6 @@ class HealthCommunityService {
       User Profile: ${userProfile['health_goals']?.join(', ')}
       Suggested User: ${suggestion['health_goals']?.join(', ')}
       Similarity Score: ${suggestion['similarity_score']}
-      ''';
-
-      final prompt = '''
-      Based on the health profiles, suggest why these two users would be good fitness buddies.
-      Focus on shared goals, complementary strengths, and potential for mutual motivation.
-      Keep it brief and encouraging (1-2 sentences).
       ''';
 
       // Use RAG service to get health-related advice for friend suggestions

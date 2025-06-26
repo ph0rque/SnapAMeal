@@ -111,6 +111,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       }
     } catch (e) {
       developer.log('Error initializing services: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.errorSnackBar('Failed to initialize AI services'),
       );
@@ -140,6 +141,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       }
     } catch (e) {
       developer.log('Error capturing image: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.errorSnackBar('Failed to capture image'),
       );
@@ -148,6 +150,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
   Future<void> _analyzeMeal(String imagePath) async {
     if (!_isInitialized) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.errorSnackBar('AI services not ready'),
       );
@@ -181,6 +184,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       // Provide haptic feedback
       HapticFeedback.lightImpact();
       
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.successSnackBar('Meal analyzed successfully!'),
       );
@@ -191,6 +195,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         _isAnalyzing = false;
       });
       
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.errorSnackBar('Failed to analyze meal'),
       );
@@ -214,6 +219,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       HapticFeedback.selectionClick();
     } catch (e) {
       developer.log('Error regenerating caption: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.errorSnackBar('Failed to generate caption'),
       );
@@ -222,6 +228,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
   Future<void> _saveMealLog() async {
     if (_selectedImagePath == null || _analysisResult == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.errorSnackBar('Please capture and analyze a meal first'),
       );
@@ -301,12 +308,14 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
       _slideAnimationController.reset();
 
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.successSnackBar('Meal logged successfully!'),
       );
 
     } catch (e) {
       developer.log('Error saving meal log: $e');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.errorSnackBar('Failed to save meal log'),
       );

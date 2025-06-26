@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../design_system/snap_ui.dart';
 import '../models/health_profile.dart';
-import '../services/health_integration_service.dart';
+
 import 'health_dashboard_page.dart';
 
 class HealthOnboardingPage extends StatefulWidget {
@@ -15,7 +15,6 @@ class HealthOnboardingPage extends StatefulWidget {
 
 class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
   final PageController _pageController = PageController();
-  final HealthIntegrationService _healthService = HealthIntegrationService();
   
   int _currentPage = 0;
   final int _totalPages = 6;
@@ -28,8 +27,8 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
   double _currentWeight = 70.0; // kg
   double _targetWeight = 65.0; // kg
   ActivityLevel _activityLevel = ActivityLevel.moderatelyActive;
-  Set<HealthGoalType> _selectedGoals = {};
-  Set<DietaryPreference> _selectedDietaryPrefs = {};
+  final Set<HealthGoalType> _selectedGoals = {};
+  final Set<DietaryPreference> _selectedDietaryPrefs = {};
   
   bool _isLoading = false;
 

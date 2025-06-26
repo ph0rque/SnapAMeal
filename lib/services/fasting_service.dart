@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/fasting_session.dart';
 import '../services/rag_service.dart';
 import '../services/notification_service.dart';
-import '../config/ai_config.dart';
 
 /// Service for managing fasting sessions with timer logic and state persistence
 class FastingService {
@@ -21,12 +20,7 @@ class FastingService {
   // Current session state
   FastingSession? _currentSession;
   Timer? _timer;
-  StreamController<FastingSession?> _sessionController = StreamController<FastingSession?>.broadcast();
-  
-  // Session tracking
-  int _timerTicks = 0;
-  DateTime? _lastAppOpen;
-  DateTime? _sessionStartTime;
+  final StreamController<FastingSession?> _sessionController = StreamController<FastingSession?>.broadcast();
   
   // Motivational content
   final List<String> _motivationalQuotes = [
@@ -108,7 +102,6 @@ class FastingService {
 
       // Update local state
       _currentSession = session;
-      _sessionStartTime = now;
       _startTimer();
       
       // Schedule notifications
@@ -507,9 +500,6 @@ class FastingService {
     _stopTimer(); // Ensure no duplicate timers
     
     _timer = Timer.periodic(Duration(seconds: 30), (timer) async {
-      _timerTicks++;
-      
-      // Update session every 30 seconds
       if (_currentSession != null && _currentSession!.isActive) {
         await recordEngagement(timerChecked: true);
         await checkSessionCompletion();

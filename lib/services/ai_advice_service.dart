@@ -242,11 +242,7 @@ class AIAdviceService {
       for (var doc in fastingSessions.docs) {
         final session = FastingSession.fromJson(doc.data());
         
-        if (session.actualDuration != null) {
-          totalDuration += session.actualDuration!.inHours;
-        } else if (session.plannedDuration != null) {
-          totalDuration += session.plannedDuration.inHours;
-        }
+        totalDuration += (session.actualDuration?.inHours ?? session.plannedDuration.inHours);
 
         if (session.state == FastingState.completed) {
           completedSessions++;
@@ -319,17 +315,6 @@ class AIAdviceService {
     };
   }
 
-  double _calculateConsistencyScore(List<double> values) {
-    if (values.length < 2) return 0.0;
-    
-    final mean = values.reduce((a, b) => a + b) / values.length;
-    final variance = values.map((x) => pow(x - mean, 2)).reduce((a, b) => a + b) / values.length;
-    final standardDeviation = sqrt(variance);
-    
-    // Convert to 0-1 score (lower deviation = higher consistency)
-    return max(0.0, 1.0 - (standardDeviation / mean));
-  }
-
   double _calculateOverallHealthScore(
     Map<String, dynamic> mealPatterns,
     Map<String, dynamic> fastingPatterns,
@@ -389,9 +374,44 @@ class AIAdviceService {
         type ?? AdviceType.custom,
       );
 
-      // Create advice object
-      final advice = AIAdvice(
-        id: '', // Will be set by Firestore
+      // Save advice to Firestore first to get the document ID
+      final docRef = await _adviceCollection.add({
+        'userId': userId,
+        'createdAt': Timestamp.fromDate(DateTime.now()),
+        'title': adviceContent['title'] ?? 'Health Advice',
+        'content': adviceContent['content'] ?? 'No advice generated',
+        'summary': adviceContent['summary'],
+        'type': (type ?? AdviceType.custom).name,
+        'category': (category ?? AdviceCategory.tip).name,
+        'priority': _determinePriority(adviceContent, healthProfile).name,
+        'context': ragContext,
+        'tags': adviceContent['tags'] ?? [],
+        'personalizationFactors': _extractPersonalizationFactors(healthProfile, behaviorAnalysis),
+        'trigger': (userQuery != null ? AdviceTrigger.userRequested : AdviceTrigger.behavioral).name,
+        'sourceQuery': userQuery,
+        'ragSources': adviceContent['sources'] ?? [],
+        'confidenceScore': adviceContent['confidence']?.toDouble(),
+        'generationMetadata': {
+          'model': 'gpt-4',
+          'timestamp': DateTime.now().toIso8601String(),
+          'version': '1.0',
+        },
+        'suggestedActions': adviceContent['actions'] ?? [],
+        'deliveredAt': Timestamp.fromDate(DateTime.now()),
+        'isRead': false,
+        'isDismissed': false,
+        'isBookmarked': false,
+        'isProactive': userQuery == null,
+        'interactionData': {},
+        'actionTracking': {},
+        'viewCount': 0,
+        'shareCount': 0,
+        'outcomeData': {},
+      });
+
+      // Create advice object with the correct ID
+      final savedAdvice = AIAdvice(
+        id: docRef.id,
         userId: userId,
         createdAt: DateTime.now(),
         title: adviceContent['title'] ?? 'Health Advice',
@@ -415,10 +435,6 @@ class AIAdviceService {
         suggestedActions: adviceContent['actions'] ?? [],
         deliveredAt: DateTime.now(),
       );
-
-      // Save advice to Firestore
-      final docRef = await _adviceCollection.add(advice.toFirestore());
-      final savedAdvice = advice.copyWith();
 
       return savedAdvice;
     } catch (e) {
@@ -947,29 +963,6 @@ Make the advice:
       });
     } catch (e) {
       debugPrint('Error dismissing advice: $e');
-    }
-  }
-
-  Future<String> _generateContextualAdvice(Map<String, dynamic> context, String query) async {
-    try {
-      // Use RAG to get relevant health knowledge
-      final relevantKnowledge = await _ragService.performSemanticSearch(
-        query: query,
-        maxResults: 5,
-      );
-      
-      // Generate advice using OpenAI
-      final advice = await OpenAIService().getChatCompletion(
-        'Based on the following context and knowledge, provide health advice for: $query\n\n'
-        'User Context: ${context.toString()}\n\n'
-        'Relevant Knowledge: ${relevantKnowledge.map((r) => r.document.content).join('\n')}\n\n'
-        'Please provide specific, actionable advice.',
-      );
-      
-      return advice ?? 'I apologize, but I cannot generate advice at this time. Please try again later.';
-    } catch (e) {
-      debugPrint('Error generating contextual advice: $e');
-      return 'I apologize, but I cannot generate advice at this time. Please try again later.';
     }
   }
 } 

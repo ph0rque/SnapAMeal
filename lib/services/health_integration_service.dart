@@ -599,7 +599,7 @@ class HealthIntegrationService {
 
       await _updateLastSyncTime(integration.id);
       
-      final totalDataPoints = healthData.values.fold(0, (sum, list) => sum + list.length);
+      final totalDataPoints = healthData.values.fold(0, (currentSum, list) => currentSum + list.length);
       debugPrint('Imported $totalDataPoints health data points from Apple Health');
       
       return {
@@ -701,7 +701,7 @@ class HealthIntegrationService {
         endDate: endOfDay,
       );
       
-      final totalSteps = stepsData.fold(0.0, (sum, item) => sum + (item['value'] ?? 0.0));
+      final totalSteps = stepsData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
       summary['steps'] = totalSteps.toInt();
 
       // Get active energy burned
@@ -711,7 +711,7 @@ class HealthIntegrationService {
         endDate: endOfDay,
       );
       
-      final totalActiveEnergy = activeEnergyData.fold(0.0, (sum, item) => sum + (item['value'] ?? 0.0));
+      final totalActiveEnergy = activeEnergyData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
       summary['active_calories'] = totalActiveEnergy.toInt();
 
       // Get distance
@@ -721,7 +721,7 @@ class HealthIntegrationService {
         endDate: endOfDay,
       );
       
-      final totalDistance = distanceData.fold(0.0, (sum, item) => sum + (item['value'] ?? 0.0));
+      final totalDistance = distanceData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
       summary['distance_km'] = (totalDistance / 1000).toStringAsFixed(2);
 
       summary['date'] = startOfDay.toIso8601String();
@@ -983,7 +983,7 @@ class HealthIntegrationService {
 
       await _updateLastSyncTime(integration.id);
       
-      final totalDataPoints = fitnessData.values.fold(0, (sum, list) => sum + list.length);
+      final totalDataPoints = fitnessData.values.fold(0, (currentSum, list) => currentSum + list.length);
       debugPrint('Imported $totalDataPoints fitness data points from Google Fit');
       
       return {
@@ -1035,7 +1035,7 @@ class HealthIntegrationService {
         accessToken: integration.accessToken!,
       );
       
-      final totalSteps = stepsData.fold(0.0, (sum, item) => sum + (item['value'] ?? 0.0));
+      final totalSteps = stepsData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
       summary['steps'] = totalSteps.toInt();
 
       // Get calories
@@ -1046,7 +1046,7 @@ class HealthIntegrationService {
         accessToken: integration.accessToken!,
       );
       
-      final totalCalories = caloriesData.fold(0.0, (sum, item) => sum + (item['value'] ?? 0.0));
+      final totalCalories = caloriesData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
       summary['calories_burned'] = totalCalories.toInt();
 
       // Get distance
@@ -1057,7 +1057,7 @@ class HealthIntegrationService {
         accessToken: integration.accessToken!,
       );
       
-      final totalDistance = distanceData.fold(0.0, (sum, item) => sum + (item['value'] ?? 0.0));
+      final totalDistance = distanceData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
       summary['distance_m'] = totalDistance.toInt();
 
       // Get active minutes
@@ -1068,7 +1068,7 @@ class HealthIntegrationService {
         accessToken: integration.accessToken!,
       );
       
-      final totalActiveMinutes = activeMinutesData.fold(0.0, (sum, item) => sum + (item['value'] ?? 0.0));
+      final totalActiveMinutes = activeMinutesData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
       summary['active_minutes'] = totalActiveMinutes.toInt();
 
       summary['date'] = startOfDay.toIso8601String();

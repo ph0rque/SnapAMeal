@@ -175,7 +175,7 @@ class FastingStateProvider extends ChangeNotifier {
         _fastingModeEnabled = session?.isActive ?? false;
         
         // Update app theme when fasting state changes
-        if (wasActive != (_currentSession?.isActive ?? false)) {
+        if (wasActive != (session?.isActive ?? false)) {
           _updateAppTheme();
         }
         
@@ -407,7 +407,7 @@ class FastingStateProvider extends ChangeNotifier {
     }
 
     try {
-      final result = await _contentFilterService!.shouldFilterContent(
+      final result = await _contentFilterService.shouldFilterContent(
         content: content,
         contentType: contentType,
         fastingSession: _currentSession,
@@ -423,14 +423,15 @@ class FastingStateProvider extends ChangeNotifier {
 
   /// Get alternative content for filtered item
   Future<AlternativeContent?> getAlternativeContent(FilterCategory category) async {
-    if (!_fastingModeEnabled || _contentFilterService == null || _currentSession == null) {
+    final currentSession = _currentSession;
+    if (!_fastingModeEnabled || _contentFilterService == null || currentSession == null) {
       return null;
     }
 
     try {
-      return await _contentFilterService!.generateAlternativeContent(
+      return await _contentFilterService.generateAlternativeContent(
         category,
-        _currentSession!,
+        currentSession,
       );
     } catch (e) {
       debugPrint('Error getting alternative content: $e');

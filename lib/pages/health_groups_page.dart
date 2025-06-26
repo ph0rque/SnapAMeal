@@ -5,7 +5,7 @@ import '../services/rag_service.dart';
 import '../services/friend_service.dart';
 import '../services/openai_service.dart';
 import '../models/health_group.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 
 class HealthGroupsPage extends StatefulWidget {
   const HealthGroupsPage({super.key});
@@ -21,12 +21,6 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   
-  List<HealthGroup> _myGroups = [];
-  List<HealthGroup> _discoverGroups = [];
-  List<HealthGroup> _challenges = [];
-  bool _isLoading = false;
-  String? _currentUserId;
-  
   HealthGroupType? _selectedType;
   HealthGroupPrivacy? _selectedPrivacy = HealthGroupPrivacy.public;
 
@@ -40,22 +34,6 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
     final ragService = RAGService(OpenAIService());
     _healthCommunityService = HealthCommunityService(ragService, friendService);
     
-    _getCurrentUser();
-    _loadGroups();
-  }
-
-  void _getCurrentUser() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      setState(() {
-        _currentUserId = user.uid;
-      });
-    }
-  }
-
-  Future<void> _loadGroups() async {
-    // Groups are loaded via streams in the UI
-    // This method can be used for any initial setup if needed
   }
 
   @override

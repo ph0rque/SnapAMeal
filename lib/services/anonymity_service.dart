@@ -127,7 +127,6 @@ class AnonymityService {
 
   late final CollectionReference _anonymousIdentitiesCollection;
   late final CollectionReference _anonymousMessagesCollection;
-  late final CollectionReference _supportGroupsCollection;
 
   // Predefined anonymous names for health contexts
   static const List<String> _healthyAnimalNames = [
@@ -153,7 +152,6 @@ class AnonymityService {
   AnonymityService() {
     _anonymousIdentitiesCollection = _firestore.collection('anonymous_identities');
     _anonymousMessagesCollection = _firestore.collection('anonymous_messages');
-    _supportGroupsCollection = _firestore.collection('support_groups');
   }
 
   String? get currentUserId => _auth.currentUser?.uid;
