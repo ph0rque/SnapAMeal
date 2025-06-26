@@ -1,5 +1,6 @@
 import 'package:snapameal/pages/ar_camera_page.dart';
 import 'package:snapameal/pages/friends_page.dart';
+import 'package:snapameal/pages/meal_logging_page.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:snapameal/services/snap_service.dart';
@@ -38,15 +39,50 @@ class _HomePageState extends State<HomePage> {
 
   void _onItemTapped(int index) {
     if (index == 1) { // Middle button for camera
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ARCameraPage()),
-      );
+      _showCameraOptions();
       return;
     }
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _showCameraOptions() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take Photo'),
+              subtitle: const Text('Capture moments with AR filters'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ARCameraPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.restaurant),
+              title: const Text('Log Meal'),
+              subtitle: const Text('AI-powered meal recognition and tracking'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MealLoggingPage()),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
 

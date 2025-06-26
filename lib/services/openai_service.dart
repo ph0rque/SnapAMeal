@@ -135,7 +135,6 @@ class APIUsageStats {
 
 /// Cost optimization configuration and tracking
 class CostOptimizer {
-  final AIConfig _config;
   final SharedPreferences _prefs;
   
   // Cache for embeddings to reduce duplicate API calls
@@ -151,7 +150,7 @@ class CostOptimizer {
   int _cacheMisses = 0;
   double _totalSavings = 0.0;
 
-  CostOptimizer(this._config, this._prefs);
+  CostOptimizer(this._prefs);
 
   /// Check if embedding is cached and still valid
   List<double>? getCachedEmbedding(String text) {
@@ -160,7 +159,7 @@ class CostOptimizer {
     
     if (timestamp != null && _embeddingCache.containsKey(key)) {
       final age = DateTime.now().difference(timestamp);
-      if (age.inHours < _config.cacheExpirationHours) {
+      if (age.inHours < AIConfig.cacheExpirationHours) {
         _cacheHits++;
         return _embeddingCache[key];
       } else {
@@ -181,7 +180,7 @@ class CostOptimizer {
     _cacheTimestamps[key] = DateTime.now();
     
     // Clean old cache entries if cache is getting too large
-    if (_embeddingCache.length > _config.maxCacheSize) {
+    if (_embeddingCache.length > AIConfig.maxCacheSize) {
       _cleanCache();
     }
   }
@@ -240,7 +239,7 @@ class CostOptimizer {
     final expiredKeys = <String>[];
     
     for (final entry in _cacheTimestamps.entries) {
-      if (now.difference(entry.value).inHours >= _config.cacheExpirationHours) {
+      if (now.difference(entry.value).inHours >= AIConfig.cacheExpirationHours) {
         expiredKeys.add(entry.key);
       }
     }
@@ -251,11 +250,11 @@ class CostOptimizer {
     }
     
     // If still too large, remove oldest entries
-    if (_embeddingCache.length > _config.maxCacheSize) {
+    if (_embeddingCache.length > AIConfig.maxCacheSize) {
       final sortedEntries = _cacheTimestamps.entries.toList()
         ..sort((a, b) => a.value.compareTo(b.value));
       
-      final toRemove = _embeddingCache.length - _config.maxCacheSize + 10;
+      final toRemove = _embeddingCache.length - AIConfig.maxCacheSize + 10;
       for (int i = 0; i < toRemove && i < sortedEntries.length; i++) {
         final key = sortedEntries[i].key;
         _embeddingCache.remove(key);
@@ -289,7 +288,6 @@ class CostOptimizer {
 
 /// Enhanced OpenAI service with comprehensive monitoring and optimization
 class OpenAIService {
-  final AIConfig _config;
   late final SharedPreferences _prefs;
   late final CostOptimizer _optimizer;
   
@@ -305,18 +303,27 @@ class OpenAIService {
   bool _budgetExceeded = false;
   String? _budgetExceededMessage;
 
-  OpenAIService(this._config);
+  OpenAIService();
 
   /// Initialize the service and load cached stats
   Future<void> initialize() async {
     _prefs = await SharedPreferences.getInstance();
-    _optimizer = CostOptimizer(_config, _prefs);
+    _optimizer = CostOptimizer(_prefs);
     await _loadUsageStats();
     await _checkBudgetStatus();
   }
 
+  /// Simple chat completion with a single prompt
+  Future<String?> getChatCompletion(String prompt) async {
+    return await getChatCompletionWithMessages(
+      messages: [
+        {'role': 'user', 'content': prompt}
+      ],
+    );
+  }
+
   /// Generate chat completion with monitoring and optimization
-  Future<String?> getChatCompletion({
+  Future<String?> getChatCompletionWithMessages({
     required List<Map<String, String>> messages,
     String model = 'gpt-4',
     int maxTokens = 500,
@@ -338,9 +345,9 @@ class OpenAIService {
       final startTime = DateTime.now();
       
       final response = await http.post(
-        Uri.parse('${_config.openaiBaseUrl}/chat/completions'),
+        Uri.parse('https://api.openai.com/v1/chat/completions'),
         headers: {
-          'Authorization': 'Bearer ${_config.openaiApiKey}',
+          'Authorization': 'Bearer ${AIConfig.openaiApiKey}',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
@@ -369,8 +376,8 @@ class OpenAIService {
       } else if (response.statusCode == 429) {
         // Rate limit exceeded
         print('OpenAI rate limit exceeded. Waiting before retry...');
-        await Future.delayed(Duration(seconds: _config.rateLimitBackoffSeconds));
-        return await getChatCompletion(
+        await Future.delayed(Duration(seconds: AIConfig.rateLimitBackoffSeconds));
+        return await getChatCompletionWithMessages(
           messages: messages,
           model: model,
           maxTokens: maxTokens,
@@ -409,9 +416,9 @@ class OpenAIService {
       final startTime = DateTime.now();
       
       final response = await http.post(
-        Uri.parse('${_config.openaiBaseUrl}/embeddings'),
+        Uri.parse('https://api.openai.com/v1/embeddings'),
         headers: {
-          'Authorization': 'Bearer ${_config.openaiApiKey}',
+          'Authorization': 'Bearer ${AIConfig.openaiApiKey}',
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
@@ -441,7 +448,7 @@ class OpenAIService {
       } else if (response.statusCode == 429) {
         // Rate limit exceeded
         print('OpenAI rate limit exceeded. Waiting before retry...');
-        await Future.delayed(Duration(seconds: _config.rateLimitBackoffSeconds));
+        await Future.delayed(Duration(seconds: AIConfig.rateLimitBackoffSeconds));
         return await generateEmbedding(text, model: model, useCache: useCache);
       } else {
         throw Exception('OpenAI API error: ${response.statusCode} - ${response.body}');
@@ -495,13 +502,13 @@ class OpenAIService {
     await _cleanOldRequestTimes();
     
     if (requestType == 'chat') {
-      if (_chatRequestTimes.length >= _config.maxDailyChatRequests) {
+      if (_chatRequestTimes.length >= AIConfig.maxDailyChatRequests) {
         print('Daily chat request limit exceeded');
         return false;
       }
       _chatRequestTimes.add(DateTime.now());
     } else if (requestType == 'embedding') {
-      if (_embeddingRequestTimes.length >= _config.maxDailyEmbeddingRequests) {
+      if (_embeddingRequestTimes.length >= AIConfig.maxDailyEmbeddingRequests) {
         print('Daily embedding request limit exceeded');
         return false;
       }
@@ -640,14 +647,55 @@ class OpenAIService {
     return updatedCosts;
   }
 
+  /// Check rate limits for API calls
+  Future<bool> _checkRateLimit(String requestType) async {
+    await _cleanOldRequestTimes();
+    
+    if (requestType == 'chat') {
+      if (_chatRequestTimes.length >= AIConfig.maxDailyChatRequests) {
+        return false;
+      }
+      _chatRequestTimes.add(DateTime.now());
+    }
+    
+    return true;
+  }
+
+  /// Record chat usage for tracking
+  Future<void> _recordChatUsage(
+    String model,
+    int promptTokens,
+    int completionTokens,
+  ) async {
+    final cost = _calculateChatCost(model, promptTokens, completionTokens);
+    
+    _currentStats = APIUsageStats(
+      chatCompletions: _currentStats.chatCompletions + 1,
+      embeddings: _currentStats.embeddings,
+      totalTokensUsed: _currentStats.totalTokensUsed + promptTokens + completionTokens,
+      promptTokens: _currentStats.promptTokens + promptTokens,
+      completionTokens: _currentStats.completionTokens + completionTokens,
+      estimatedCost: _currentStats.estimatedCost + cost,
+      lastReset: _currentStats.lastReset,
+      modelUsage: {
+        ..._currentStats.modelUsage,
+        model: (_currentStats.modelUsage[model] ?? 0) + 1,
+      },
+      dailyCosts: _updateDailyCosts(_currentStats.dailyCosts, cost),
+    );
+
+    await _saveUsageStats();
+    await _checkBudgetStatus();
+  }
+
   /// Check if budget has been exceeded
   Future<void> _checkBudgetStatus() async {
     final today = DateTime.now().toIso8601String().split('T')[0];
     final todayCost = _currentStats.dailyCosts[today] ?? 0.0;
     
-    if (todayCost >= _config.maxDailyBudget) {
+    if (todayCost >= AIConfig.maxDailyBudget) {
       _budgetExceeded = true;
-      _budgetExceededMessage = 'Daily budget of \$${_config.maxDailyBudget.toStringAsFixed(2)} exceeded. Current: \$${todayCost.toStringAsFixed(4)}';
+      _budgetExceededMessage = 'Daily budget of \$${AIConfig.maxDailyBudget.toStringAsFixed(2)} exceeded. Current: \$${todayCost.toStringAsFixed(4)}';
     }
   }
 
@@ -705,17 +753,17 @@ class OpenAIService {
       'current_stats': _currentStats.toJson(),
       'cache_performance': cacheStats,
       'budget_status': {
-        'daily_budget': _config.maxDailyBudget,
+        'daily_budget': AIConfig.maxDailyBudget,
         'today_cost': todayCost,
         'budget_exceeded': _budgetExceeded,
-        'remaining_budget': max(0, _config.maxDailyBudget - todayCost),
-        'budget_utilization': todayCost / _config.maxDailyBudget,
+        'remaining_budget': max(0, AIConfig.maxDailyBudget - todayCost),
+        'budget_utilization': todayCost / AIConfig.maxDailyBudget,
       },
       'rate_limits': {
         'chat_requests_today': _chatRequestTimes.length,
         'embedding_requests_today': _embeddingRequestTimes.length,
-        'max_chat_requests': _config.maxDailyChatRequests,
-        'max_embedding_requests': _config.maxDailyEmbeddingRequests,
+        'max_chat_requests': AIConfig.maxDailyChatRequests,
+        'max_embedding_requests': AIConfig.maxDailyEmbeddingRequests,
       },
       'optimization_insights': _getOptimizationInsights(),
     };
@@ -760,19 +808,85 @@ class OpenAIService {
     final today = DateTime.now().toIso8601String().split('T')[0];
     final todayCost = _currentStats.dailyCosts[today] ?? 0.0;
     
-    if (todayCost >= _config.maxDailyBudget * 0.8) {
-      warnings.add('Approaching daily budget limit (${((todayCost / _config.maxDailyBudget) * 100).toInt()}% used)');
+    if (todayCost >= AIConfig.maxDailyBudget * 0.8) {
+      warnings.add('Approaching daily budget limit (${((todayCost / AIConfig.maxDailyBudget) * 100).toInt()}% used)');
     }
     
-    if (_chatRequestTimes.length >= _config.maxDailyChatRequests * 0.8) {
-      warnings.add('Approaching daily chat request limit (${_chatRequestTimes.length}/${_config.maxDailyChatRequests})');
+    if (_chatRequestTimes.length >= AIConfig.maxDailyChatRequests * 0.8) {
+      warnings.add('Approaching daily chat request limit (${_chatRequestTimes.length}/${AIConfig.maxDailyChatRequests})');
     }
     
-    if (_embeddingRequestTimes.length >= _config.maxDailyEmbeddingRequests * 0.8) {
-      warnings.add('Approaching daily embedding request limit (${_embeddingRequestTimes.length}/${_config.maxDailyEmbeddingRequests})');
+    if (_embeddingRequestTimes.length >= AIConfig.maxDailyEmbeddingRequests * 0.8) {
+      warnings.add('Approaching daily embedding request limit (${_embeddingRequestTimes.length}/${AIConfig.maxDailyEmbeddingRequests})');
     }
     
     return warnings;
+  }
+
+  /// Analyze image with OpenAI Vision API
+  Future<String?> analyzeImageWithPrompt(String base64Image, String prompt) async {
+    if (_budgetExceeded) {
+      throw Exception(_budgetExceededMessage ?? 'Budget exceeded');
+    }
+
+    if (!await _checkRateLimit('chat')) {
+      throw Exception('Chat request rate limit exceeded. Please try again later.');
+    }
+
+    try {
+      developer.log('Sending image analysis request to OpenAI Vision API');
+
+      final response = await http.post(
+        Uri.parse('https://api.openai.com/v1/chat/completions'),
+        headers: {
+          'Authorization': 'Bearer ${AIConfig.openaiApiKey}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'model': 'gpt-4-vision-preview',
+          'messages': [
+            {
+              'role': 'user',
+              'content': [
+                {
+                  'type': 'text',
+                  'text': prompt,
+                },
+                {
+                  'type': 'image_url',
+                  'image_url': {
+                    'url': base64Image,
+                  },
+                },
+              ],
+            },
+          ],
+          'max_tokens': 1000,
+          'temperature': 0.7,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final chatResponse = ChatCompletionResponse.fromJson(responseData);
+        
+        await _recordChatUsage(
+          'gpt-4-vision-preview',
+          chatResponse.promptTokens,
+          chatResponse.completionTokens,
+        );
+
+        developer.log('OpenAI Vision analysis completed successfully');
+        return chatResponse.content;
+      } else {
+        final errorData = jsonDecode(response.body);
+        developer.log('OpenAI Vision API error: ${response.statusCode} - ${errorData['error']['message']}');
+        throw Exception('OpenAI Vision API error: ${errorData['error']['message']}');
+      }
+    } catch (e) {
+      developer.log('Error in OpenAI Vision analysis: $e');
+      rethrow;
+    }
   }
 
   /// Export usage data for analysis

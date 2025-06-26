@@ -154,7 +154,6 @@ class ContextualizedQuery {
 /// Comprehensive RAG service with advanced retrieval and context injection
 class RAGService {
   final OpenAIService _openAIService;
-  final AIConfig _config;
 
   // Performance tracking
   int _totalQueries = 0;
@@ -162,7 +161,7 @@ class RAGService {
   double _averageResponseTime = 0.0;
   Map<String, int> _queryTypeStats = {};
 
-  RAGService(this._openAIService, this._config);
+  RAGService(this._openAIService);
 
   /// Store a single document in the vector database
   Future<bool> storeDocument(KnowledgeDocument document) async {
@@ -190,9 +189,9 @@ class RAGService {
 
       // Store in Pinecone
       final response = await http.post(
-        Uri.parse('${_config.pineconeEnvironment}/vectors/upsert'),
+        Uri.parse('${AIConfig.pineconeBaseUrl}/vectors/upsert'),
         headers: {
-          'Api-Key': _config.pineconeApiKey,
+          'Api-Key': AIConfig.pineconeApiKey,
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
@@ -203,7 +202,7 @@ class RAGService {
               'metadata': metadata,
             }
           ],
-          'namespace': _config.pineconeNamespace,
+          'namespace': AIConfig.pineconeNamespace,
         }),
       );
 
@@ -224,7 +223,7 @@ class RAGService {
       
       // Rate limiting - wait between requests
       if (i < documents.length - 1) {
-        await Future.delayed(Duration(milliseconds: _config.rateLimitDelayMs));
+        await Future.delayed(Duration(milliseconds: AIConfig.rateLimitDelayMs));
       }
     }
     
@@ -313,9 +312,9 @@ class RAGService {
 
       // Query Pinecone
       final response = await http.post(
-        Uri.parse('${_config.pineconeEnvironment}/query'),
+        Uri.parse('${AIConfig.pineconeBaseUrl}/query'),
         headers: {
-          'Api-Key': _config.pineconeApiKey,
+          'Api-Key': AIConfig.pineconeApiKey,
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
@@ -323,7 +322,7 @@ class RAGService {
           'topK': maxResults * 2, // Get more results for better filtering
           'includeMetadata': true,
           'includeValues': false,
-          'namespace': _config.pineconeNamespace,
+          'namespace': AIConfig.pineconeNamespace,
           if (filter.isNotEmpty) 'filter': filter,
         }),
       );
@@ -388,7 +387,7 @@ class RAGService {
       final userPrompt = _buildUserPrompt(userQuery, context, healthContext);
 
       // Generate response using OpenAI
-      final response = await _openAIService.getChatCompletion(
+      final response = await _openAIService.getChatCompletionWithMessages(
         messages: [
           {'role': 'system', 'content': systemPrompt},
           {'role': 'user', 'content': userPrompt},
@@ -438,7 +437,7 @@ ${healthContext != null ? 'User context: ${healthContext.queryType}, Goals: ${he
 Return only the concepts, one per line, no explanations:
 ''';
 
-      final response = await _openAIService.getChatCompletion(
+      final response = await _openAIService.getChatCompletionWithMessages(
         messages: [{'role': 'user', 'content': prompt}],
         maxTokens: 100,
         temperature: 0.3,
@@ -786,7 +785,7 @@ I don't have specific information in my knowledge base to answer this question c
 Keep the response under 200 words.
 ''';
 
-    return await _openAIService.getChatCompletion(
+    return await _openAIService.getChatCompletionWithMessages(
       messages: [{'role': 'user', 'content': prompt}],
       maxTokens: 250,
       temperature: 0.7,
@@ -808,9 +807,9 @@ Keep the response under 200 words.
   Future<Map<String, dynamic>> getKnowledgeBaseStats() async {
     try {
       final response = await http.post(
-        Uri.parse('${_config.pineconeEnvironment}/describe_index_stats'),
+        Uri.parse('${AIConfig.pineconeBaseUrl}/describe_index_stats'),
         headers: {
-          'Api-Key': _config.pineconeApiKey,
+          'Api-Key': AIConfig.pineconeApiKey,
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
@@ -837,6 +836,112 @@ Keep the response under 200 words.
       'index_fullness': 0.0,
       'namespaces': {},
     };
+  }
+
+  /// Search for recipe suggestions based on detected foods
+  Future<List<SearchResult>> searchRecipeSuggestions({
+    required List<String> detectedFoods,
+    required HealthQueryContext healthContext,
+    int maxResults = 5,
+  }) async {
+    try {
+      // Build recipe-focused query
+      final query = 'healthy recipes using ${detectedFoods.join(", ")} ingredients';
+      
+      // Search with recipe-specific filters
+      return await performSemanticSearch(
+        query: query,
+        healthContext: healthContext,
+        maxResults: maxResults,
+        categoryFilter: ['recipes', 'meal_planning', 'nutrition'],
+        tagFilter: detectedFoods,
+      );
+    } catch (e) {
+      print('Error searching recipe suggestions: $e');
+      return [];
+    }
+  }
+
+  /// Generate personalized recipe recommendations
+  Future<String?> generateRecipeRecommendations({
+    required List<String> detectedFoods,
+    required HealthQueryContext healthContext,
+    required List<SearchResult> recipeResults,
+  }) async {
+    try {
+      // Build context from recipe search results
+      final recipeContext = _buildLLMContext(recipeResults, 1500);
+      
+      // Create personalized prompt
+      final prompt = '''
+Based on the detected foods: ${detectedFoods.join(", ")}
+
+User Profile:
+- Goals: ${healthContext.currentGoals.join(", ")}
+- Dietary Restrictions: ${healthContext.dietaryRestrictions.isEmpty ? 'None' : healthContext.dietaryRestrictions.join(", ")}
+
+Recipe Knowledge Base:
+$recipeContext
+
+Please provide 2-3 personalized recipe suggestions that:
+1. Use the detected ingredients
+2. Align with the user's health goals
+3. Respect dietary restrictions
+4. Include brief preparation tips
+5. Mention nutritional benefits
+
+Keep each suggestion concise (2-3 sentences) and motivational.
+''';
+
+      return await _openAIService.getChatCompletion(prompt);
+    } catch (e) {
+      print('Error generating recipe recommendations: $e');
+      return null;
+    }
+  }
+
+  /// Search for nutrition insights about detected foods
+  Future<String?> generateNutritionInsights({
+    required List<String> detectedFoods,
+    required HealthQueryContext healthContext,
+  }) async {
+    try {
+      // Search for nutrition information
+      final nutritionQuery = 'nutrition facts health benefits ${detectedFoods.join(" ")}';
+      
+      final nutritionResults = await performSemanticSearch(
+        query: nutritionQuery,
+        healthContext: healthContext,
+        maxResults: 3,
+        categoryFilter: ['nutrition', 'wellness'],
+      );
+      
+      if (nutritionResults.isEmpty) {
+        return null;
+      }
+      
+      final nutritionContext = _buildLLMContext(nutritionResults, 1000);
+      
+      final prompt = '''
+Based on these detected foods: ${detectedFoods.join(", ")}
+
+User Goals: ${healthContext.currentGoals.join(", ")}
+
+Nutrition Knowledge:
+$nutritionContext
+
+Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods that:
+1. Highlights key nutritional benefits
+2. Connects to the user's health goals
+3. Offers practical advice
+4. Maintains a positive, motivational tone
+''';
+
+      return await _openAIService.getChatCompletion(prompt);
+    } catch (e) {
+      print('Error generating nutrition insights: $e');
+      return null;
+    }
   }
 
   /// Clear performance statistics

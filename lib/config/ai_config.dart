@@ -73,4 +73,9 @@ class AIConfig {
   static const bool enableCaching = true;
   static const int cacheExpirationHours = 24;
   static const double similarityThreshold = 0.7; // Minimum similarity for results
+  static const int maxCacheSize = 1000;
+  static const int rateLimitBackoffSeconds = 1;
+  static const double maxDailyBudget = 10.0; // $10 daily budget
+  static const int rateLimitDelayMs = 100;
+  static const String pineconeNamespace = 'default';
 } 

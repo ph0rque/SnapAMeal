@@ -52,8 +52,10 @@ class _CameraPageState extends State<CameraPage> {
     _initializeARFilterService();
   }
 
-  void _initializeARFilterService() {
-    final ragService = RAGService();
+  Future<void> _initializeARFilterService() async {
+    final openAIService = OpenAIService();
+    await openAIService.initialize();
+    final ragService = RAGService(openAIService);
     _arFilterService = ARFilterService(ragService);
   }
 
