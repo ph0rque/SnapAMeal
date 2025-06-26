@@ -29,6 +29,37 @@ class DemoDataService {
     }
   }
 
+  /// Seed data for a specific persona by ID and user ID (public method for reset service)
+  static Future<void> seedPersonaData(String personaId, String userId) async {
+    final persona = DemoPersonas.getById(personaId);
+    if (persona == null) {
+      debugPrint('❌ Persona not found: $personaId');
+      return;
+    }
+
+    debugPrint('🔄 Seeding data for ${persona.displayName} (userId: $userId)...');
+    
+    // Seed health profile enhancements
+    await _seedHealthProfile(userId, persona);
+    
+    // Generate 30+ days of fasting history
+    await _seedFastingHistory(userId, persona);
+    
+    // Create diverse meal logs
+    await _seedMealLogs(userId, persona);
+    
+    // Generate progress stories
+    await _seedProgressStories(userId, persona);
+    
+    // Create AI advice history
+    await _seedAIAdviceHistory(userId, persona);
+    
+    // Generate health challenges and streaks
+    await _seedHealthChallenges(userId, persona);
+    
+    debugPrint('✅ Completed seeding for ${persona.displayName}');
+  }
+
   /// Seed comprehensive data for a single persona
   static Future<void> _seedPersonaData(DemoPersona persona) async {
     debugPrint('🔄 Seeding data for ${persona.displayName}...');
