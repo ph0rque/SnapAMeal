@@ -692,6 +692,212 @@ class FastingService {
     }
   }
 
+  /// Get fasting settings for app-wide configuration
+  Future<Map<String, dynamic>> getFastingSettings() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return {};
+
+      final doc = await _firestore
+          .collection('user_settings')
+          .doc(user.uid)
+          .get();
+
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>;
+        return data['fasting_settings'] ?? {};
+      }
+
+      // Return default settings
+      return {
+        'filterSeverity': 'moderate',
+        'showMotivationalContent': true,
+        'enableNotifications': true,
+        'enableProgressSharing': false,
+      };
+    } catch (e) {
+      print('Error getting fasting settings: $e');
+      return {
+        'filterSeverity': 'moderate',
+        'showMotivationalContent': true,
+        'enableNotifications': true,
+        'enableProgressSharing': false,
+      };
+    }
+  }
+
+  /// Update fasting settings
+  Future<void> updateFastingSettings(Map<String, dynamic> settings) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      await _firestore
+          .collection('user_settings')
+          .doc(user.uid)
+          .set({
+        'fasting_settings': settings,
+        'updated_at': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      print('Error updating fasting settings: $e');
+    }
+  }
+
+  /// Get comprehensive fasting statistics for state management
+  Future<Map<String, dynamic>> getFastingStatistics() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return {};
+
+      final sessions = await getFastingHistory(limit: 100);
+      
+      final completedSessions = sessions.where((s) => s.isCompleted).toList();
+      final totalSessions = sessions.length;
+      
+      final totalFastingTime = sessions.fold<Duration>(
+        Duration.zero,
+        (total, session) => total + (session.actualDuration ?? Duration.zero),
+      );
+      
+      // Calculate current and longest streaks
+      int currentStreak = 0;
+      int longestStreak = 0;
+      int tempStreak = 0;
+      
+      // Calculate current streak from most recent sessions
+      for (final session in sessions) {
+        if (session.isCompleted) {
+          if (currentStreak == 0) currentStreak = 1; // Start counting
+          tempStreak++;
+          longestStreak = max(longestStreak, tempStreak);
+        } else {
+          if (currentStreak == 0) break; // Only count from most recent completed
+          tempStreak = 0;
+        }
+      }
+      
+      // Find longest streak start date
+      DateTime? longestStreakStart;
+      if (longestStreak > 0 && sessions.isNotEmpty) {
+        // This is a simplified calculation - in production, you'd want more precise tracking
+        longestStreakStart = sessions.first.createdAt;
+      }
+
+      return {
+        'totalSessions': totalSessions,
+        'completedSessions': completedSessions.length,
+        'totalFastingSeconds': totalFastingTime.inSeconds,
+        'currentStreak': currentStreak,
+        'longestStreak': longestStreak,
+        'longestStreakStart': longestStreakStart?.toIso8601String(),
+        'lastSessionDate': sessions.isNotEmpty ? sessions.first.createdAt.toIso8601String() : null,
+        'averageDuration': completedSessions.isNotEmpty 
+            ? totalFastingTime.inSeconds / completedSessions.length 
+            : 0,
+        'successRate': totalSessions > 0 ? completedSessions.length / totalSessions : 0.0,
+      };
+    } catch (e) {
+      print('Error getting fasting statistics: $e');
+      return {};
+    }
+  }
+
+  /// Get current session stream for real-time updates
+  Stream<FastingSession?> currentSessionStream() {
+    return _sessionController.stream;
+  }
+
+  /// Pause current fasting session
+  Future<bool> pauseFasting() async {
+    if (_currentSession == null || !_currentSession!.isActive) {
+      return false;
+    }
+
+    try {
+      final pausedSession = _currentSession!.copyWith(
+        isPaused: true,
+        pausedAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
+      await _updateSession(pausedSession);
+      _stopTimer();
+
+      return true;
+    } catch (e) {
+      print('Error pausing fasting session: $e');
+      return false;
+    }
+  }
+
+  /// Resume paused fasting session
+  Future<bool> resumeFasting() async {
+    if (_currentSession == null || !_currentSession!.isPaused) {
+      return false;
+    }
+
+    try {
+      final resumedSession = _currentSession!.copyWith(
+        isPaused: false,
+        pausedAt: null,
+        updatedAt: DateTime.now(),
+      );
+
+      await _updateSession(resumedSession);
+      _startTimer();
+
+      return true;
+    } catch (e) {
+      print('Error resuming fasting session: $e');
+      return false;
+    }
+  }
+
+  /// Get current session (synchronous access)
+  Future<FastingSession?> getCurrentSession() async {
+    return _currentSession;
+  }
+
+  /// End current fasting session with completion status
+  Future<bool> endFasting({bool completed = false}) async {
+    if (_currentSession == null) return false;
+
+    try {
+      final endReason = completed 
+          ? FastingEndReason.completed 
+          : FastingEndReason.userStopped;
+
+      await endFastingSession(endReason, completed ? 'Session completed' : 'User ended session');
+      return true;
+    } catch (e) {
+      print('Error ending fasting session: $e');
+      return false;
+    }
+  }
+
+  /// Start a fasting session with custom duration support
+  Future<bool> startFasting({
+    required FastingType type,
+    String? personalGoal,
+    Duration? customDuration,
+  }) async {
+    try {
+      final duration = customDuration ?? type.duration;
+      
+      await startFastingSession(
+        type,
+        personalGoal ?? 'Stay focused and healthy',
+        duration,
+      );
+
+      return _currentSession != null && _currentSession!.isActive;
+    } catch (e) {
+      print('Error starting fasting session: $e');
+      return false;
+    }
+  }
+
   /// Dispose of resources
   void dispose() {
     _stopTimer();
