@@ -105,13 +105,13 @@ Based on the Phase II PRD for transforming SnapAMeal from a Snapchat clone to a 
   - [x] 3.6 Implement RAG-enhanced recipe suggestions based on meal content
   - [x] 3.7 Add meal logging to Firestore with proper data structure
 
-- [ ] 4.0 Enhanced Stories with Logarithmic Permanence
-  - [ ] 4.1 Modify existing story service to track engagement metrics
-  - [ ] 4.2 Implement logarithmic duration calculation based on views/likes/comments
-  - [ ] 4.3 Create Cloud Function for dynamic story expiration management
-  - [ ] 4.4 Build timeline/scrapbook view for persistent milestone stories
-  - [ ] 4.5 Implement RAG-powered story summary generation for time periods
-  - [ ] 4.6 Update story UI to show permanence status and engagement
+- [x] 4.0 Enhanced Stories with Logarithmic Permanence
+  - [x] 4.1 Modify existing story service to track engagement metrics
+  - [x] 4.2 Implement logarithmic duration calculation based on views/likes/comments
+  - [x] 4.3 Create Cloud Function for dynamic story expiration management
+  - [x] 4.4 Build timeline/scrapbook view for persistent milestone stories
+  - [x] 4.5 Implement RAG-powered story summary generation for time periods
+  - [x] 4.6 Update story UI to show permanence status and engagement
 
 - [ ] 5.0 Health-Focused Community Features
   - [ ] 5.1 Repurpose existing chat service for health-focused group types

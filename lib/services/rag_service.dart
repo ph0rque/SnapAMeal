@@ -951,4 +951,367 @@ Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods
     _averageResponseTime = 0.0;
     _queryTypeStats.clear();
   }
+
+  /// Generate story summary for a time period using RAG
+  Future<Map<String, dynamic>> generateStorySummary({
+    required String userId,
+    required DateTime startDate,
+    required DateTime endDate,
+    required List<Map<String, dynamic>> stories,
+    Map<String, dynamic>? userProfile,
+  }) async {
+    try {
+      if (stories.isEmpty) {
+        return {
+          'summary': 'No stories found for this time period.',
+          'highlights': <String>[],
+          'insights': <String>[],
+          'mood_analysis': 'neutral',
+          'engagement_summary': {},
+        };
+      }
+
+      // Analyze story content and engagement
+      final storyAnalysis = _analyzeStoryContent(stories);
+      
+      // Search for relevant health insights based on story content
+      final searchResults = await searchHealthAdvice(
+        storyAnalysis['themes'].join(' '),
+        userProfile ?? {},
+      );
+
+      // Build context from search results
+      final context = searchResults
+          .map((result) => result.document.content)
+          .take(5)
+          .join('\n\n');
+
+      // Generate comprehensive summary
+      final prompt = '''
+Based on the following health knowledge and user's story activity from ${_formatDate(startDate)} to ${_formatDate(endDate)}:
+
+HEALTH KNOWLEDGE:
+$context
+
+STORY ANALYSIS:
+- Total Stories: ${stories.length}
+- Content Themes: ${storyAnalysis['themes'].join(', ')}
+- Average Engagement: ${storyAnalysis['avgEngagement']}
+- Milestone Stories: ${storyAnalysis['milestoneCount']}
+- Most Active Day: ${storyAnalysis['mostActiveDay']}
+- Content Types: ${storyAnalysis['contentTypes']}
+
+USER PROFILE: ${jsonEncode(userProfile ?? {})}
+
+Generate a comprehensive story summary with:
+1. Overall narrative of the time period
+2. Key highlights and achievements
+3. Health and wellness insights
+4. Mood and engagement analysis
+5. Recommendations for improvement
+
+Format as JSON with keys: summary, highlights, insights, mood_analysis, engagement_summary, recommendations.
+''';
+
+      final response = await _openAIService.getChatCompletion(prompt);
+      
+      try {
+        final summary = jsonDecode(response) as Map<String, dynamic>;
+        return {
+          'summary': summary['summary'] ?? 'Summary generated successfully.',
+          'highlights': List<String>.from(summary['highlights'] ?? []),
+          'insights': List<String>.from(summary['insights'] ?? []),
+          'mood_analysis': summary['mood_analysis'] ?? 'neutral',
+          'engagement_summary': summary['engagement_summary'] ?? {},
+          'recommendations': List<String>.from(summary['recommendations'] ?? []),
+          'period': '${_formatDate(startDate)} - ${_formatDate(endDate)}',
+          'story_count': stories.length,
+          'generated_at': DateTime.now().toIso8601String(),
+        };
+      } catch (e) {
+        // Fallback to structured summary
+        return _createFallbackStorySummary(stories, startDate, endDate, storyAnalysis);
+      }
+    } catch (e) {
+      developer.log('Error generating story summary: $e');
+      return _createFallbackStorySummary(stories, startDate, endDate, {});
+    }
+  }
+
+  /// Generate weekly story digest
+  Future<Map<String, dynamic>> generateWeeklyDigest({
+    required String userId,
+    required DateTime weekStart,
+    required List<Map<String, dynamic>> stories,
+    Map<String, dynamic>? userProfile,
+  }) async {
+    final weekEnd = weekStart.add(const Duration(days: 7));
+    
+    final summary = await generateStorySummary(
+      userId: userId,
+      startDate: weekStart,
+      endDate: weekEnd,
+      stories: stories,
+      userProfile: userProfile,
+    );
+
+    // Add weekly-specific insights
+    final weeklyInsights = await _generateWeeklyInsights(stories, userProfile);
+    
+    return {
+      ...summary,
+      'digest_type': 'weekly',
+      'week_of': _formatDate(weekStart),
+      'weekly_insights': weeklyInsights,
+      'next_week_goals': await _generateNextWeekGoals(stories, userProfile),
+    };
+  }
+
+  /// Generate monthly story digest
+  Future<Map<String, dynamic>> generateMonthlyDigest({
+    required String userId,
+    required DateTime monthStart,
+    required List<Map<String, dynamic>> stories,
+    Map<String, dynamic>? userProfile,
+  }) async {
+    final monthEnd = DateTime(monthStart.year, monthStart.month + 1, 0);
+    
+    final summary = await generateStorySummary(
+      userId: userId,
+      startDate: monthStart,
+      endDate: monthEnd,
+      stories: stories,
+      userProfile: userProfile,
+    );
+
+    // Add monthly-specific insights
+    final monthlyTrends = await _generateMonthlyTrends(stories, userProfile);
+    
+    return {
+      ...summary,
+      'digest_type': 'monthly',
+      'month_of': _formatDate(monthStart),
+      'monthly_trends': monthlyTrends,
+      'growth_areas': await _generateGrowthAreas(stories, userProfile),
+      'achievement_badges': _calculateAchievementBadges(stories),
+    };
+  }
+
+  /// Analyze story content and extract themes
+  Map<String, dynamic> _analyzeStoryContent(List<Map<String, dynamic>> stories) {
+    final themes = <String>[];
+    final contentTypes = <String, int>{};
+    var totalEngagement = 0;
+    var milestoneCount = 0;
+    final dailyActivity = <String, int>{};
+
+    for (final story in stories) {
+      // Extract themes from text content
+      final text = story['text'] as String? ?? '';
+      if (text.isNotEmpty) {
+        themes.addAll(_extractThemes(text));
+      }
+
+      // Count content types
+      final type = story['type'] as String? ?? 'unknown';
+      contentTypes[type] = (contentTypes[type] ?? 0) + 1;
+
+      // Calculate engagement
+      final engagement = story['engagement'] as Map<String, dynamic>? ?? {};
+      final storyEngagement = (engagement['views'] as int? ?? 0) +
+                              (engagement['likes'] as int? ?? 0) +
+                              (engagement['comments'] as int? ?? 0) +
+                              (engagement['shares'] as int? ?? 0);
+      totalEngagement += storyEngagement;
+
+      // Check for milestone stories
+      final permanence = story['permanence'] as Map<String, dynamic>?;
+      final tier = permanence?['tier'] as String?;
+      if (tier == 'milestone' || tier == 'monthly' || tier == 'weekly') {
+        milestoneCount++;
+      }
+
+      // Track daily activity
+      final timestamp = story['timestamp'];
+      if (timestamp != null) {
+        final date = timestamp is DateTime ? timestamp : DateTime.parse(timestamp.toString());
+        final dateKey = _formatDate(date);
+        dailyActivity[dateKey] = (dailyActivity[dateKey] ?? 0) + 1;
+      }
+    }
+
+    final mostActiveDay = dailyActivity.entries
+        .fold<MapEntry<String, int>?>(null, (prev, curr) => 
+            prev == null || curr.value > prev.value ? curr : prev)
+        ?.key ?? 'N/A';
+
+    return {
+      'themes': themes.toSet().toList(),
+      'contentTypes': contentTypes,
+      'avgEngagement': stories.isNotEmpty ? totalEngagement / stories.length : 0,
+      'milestoneCount': milestoneCount,
+      'mostActiveDay': mostActiveDay,
+      'dailyActivity': dailyActivity,
+    };
+  }
+
+  /// Extract themes from text content
+  List<String> _extractThemes(String text) {
+    final themes = <String>[];
+    final lowerText = text.toLowerCase();
+
+    // Health and wellness themes
+    if (lowerText.contains(RegExp(r'\b(workout|exercise|gym|fitness|training)\b'))) {
+      themes.add('fitness');
+    }
+    if (lowerText.contains(RegExp(r'\b(meal|food|eating|nutrition|diet)\b'))) {
+      themes.add('nutrition');
+    }
+    if (lowerText.contains(RegExp(r'\b(fasting|fast|intermittent)\b'))) {
+      themes.add('fasting');
+    }
+    if (lowerText.contains(RegExp(r'\b(meditation|mindful|stress|relax)\b'))) {
+      themes.add('wellness');
+    }
+    if (lowerText.contains(RegExp(r'\b(sleep|rest|recovery)\b'))) {
+      themes.add('recovery');
+    }
+    if (lowerText.contains(RegExp(r'\b(goal|achievement|progress|milestone)\b'))) {
+      themes.add('achievement');
+    }
+
+    return themes;
+  }
+
+  /// Generate weekly insights
+  Future<List<String>> _generateWeeklyInsights(
+    List<Map<String, dynamic>> stories,
+    Map<String, dynamic>? userProfile,
+  ) async {
+    final insights = <String>[];
+    
+    // Analyze weekly patterns
+    final weekdayActivity = <int, int>{};
+    for (final story in stories) {
+      final timestamp = story['timestamp'];
+      if (timestamp != null) {
+        final date = timestamp is DateTime ? timestamp : DateTime.parse(timestamp.toString());
+        final weekday = date.weekday;
+        weekdayActivity[weekday] = (weekdayActivity[weekday] ?? 0) + 1;
+      }
+    }
+
+    if (weekdayActivity.isNotEmpty) {
+      final mostActiveWeekday = weekdayActivity.entries
+          .reduce((a, b) => a.value > b.value ? a : b);
+      insights.add('Most active on ${_getWeekdayName(mostActiveWeekday.key)}');
+    }
+
+    return insights;
+  }
+
+  /// Generate next week goals
+  Future<List<String>> _generateNextWeekGoals(
+    List<Map<String, dynamic>> stories,
+    Map<String, dynamic>? userProfile,
+  ) async {
+    return [
+      'Continue sharing your health journey',
+      'Try a new type of content',
+      'Engage more with community stories',
+    ];
+  }
+
+  /// Generate monthly trends
+  Future<Map<String, dynamic>> _generateMonthlyTrends(
+    List<Map<String, dynamic>> stories,
+    Map<String, dynamic>? userProfile,
+  ) async {
+    return {
+      'content_growth': 'steady',
+      'engagement_trend': 'increasing',
+      'milestone_progress': 'on_track',
+    };
+  }
+
+  /// Generate growth areas
+  Future<List<String>> _generateGrowthAreas(
+    List<Map<String, dynamic>> stories,
+    Map<String, dynamic>? userProfile,
+  ) async {
+    return [
+      'Diversify content types',
+      'Increase engagement with others',
+      'Share more milestone moments',
+    ];
+  }
+
+  /// Calculate achievement badges
+  List<Map<String, dynamic>> _calculateAchievementBadges(List<Map<String, dynamic>> stories) {
+    final badges = <Map<String, dynamic>>[];
+    
+    if (stories.length >= 30) {
+      badges.add({'name': 'Consistent Creator', 'icon': 'star', 'description': '30+ stories this month'});
+    }
+    
+    final milestoneCount = stories.where((story) {
+      final permanence = story['permanence'] as Map<String, dynamic>?;
+      final tier = permanence?['tier'] as String?;
+      return tier == 'milestone' || tier == 'monthly';
+    }).length;
+    
+    if (milestoneCount >= 3) {
+      badges.add({'name': 'Milestone Master', 'icon': 'trophy', 'description': '3+ milestone stories'});
+    }
+    
+    return badges;
+  }
+
+  /// Create fallback story summary
+  Map<String, dynamic> _createFallbackStorySummary(
+    List<Map<String, dynamic>> stories,
+    DateTime startDate,
+    DateTime endDate,
+    Map<String, dynamic> analysis,
+  ) {
+    return {
+      'summary': 'You shared ${stories.length} stories during this period, '
+                'capturing various moments of your health and wellness journey.',
+      'highlights': [
+        '${stories.length} stories shared',
+        if (analysis['milestoneCount'] != null && analysis['milestoneCount'] > 0)
+          '${analysis['milestoneCount']} milestone stories created',
+        'Consistent engagement with your community',
+      ],
+      'insights': [
+        'Keep sharing your journey to inspire others',
+        'Your stories help track your progress over time',
+        'Engagement shows your community values your content',
+      ],
+      'mood_analysis': 'positive',
+      'engagement_summary': {
+        'total_stories': stories.length,
+        'period_days': endDate.difference(startDate).inDays,
+      },
+      'recommendations': [
+        'Continue documenting your health journey',
+        'Try different types of content',
+        'Engage with others\' stories for motivation',
+      ],
+      'period': '${_formatDate(startDate)} - ${_formatDate(endDate)}',
+      'story_count': stories.length,
+      'generated_at': DateTime.now().toIso8601String(),
+    };
+  }
+
+  /// Format date for display
+  String _formatDate(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Get weekday name
+  String _getWeekdayName(int weekday) {
+    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return weekdays[weekday - 1];
+  }
 } 

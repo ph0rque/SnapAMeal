@@ -194,3 +194,330 @@ export const sendScreenshotNotification = onCall(async (request) => {
     logger.error("Error sending screenshot notification:", error);
   }
 });
+
+/**
+ * Scheduled function to manage story expiration based on logarithmic permanence
+ * Runs every hour to check and expire stories that have passed their dynamic expiration time
+ */
+export const manageStoryExpiration = onSchedule("every 1 hours", async () => {
+  logger.info("Running manageStoryExpiration scheduled function");
+
+  try {
+    const now = new Date();
+
+    // Find all expired stories across all users
+    const expiredStoriesQuery = await db
+      .collectionGroup("stories")
+      .where("permanence.expiresAt", "<=", now)
+      .get();
+
+    if (expiredStoriesQuery.empty) {
+      logger.log("No expired stories found.");
+      return;
+    }
+
+    const batch = db.batch();
+    let deletedCount = 0;
+    let archivedCount = 0;
+
+    for (const storyDoc of expiredStoriesQuery.docs) {
+      const storyData = storyDoc.data();
+      const permanence = storyData.permanence || {};
+      const tier = permanence.tier || "standard";
+
+      // Archive milestone stories instead of deleting them
+      if (tier === "milestone" || tier === "monthly") {
+        // Move to archived stories collection
+        const userId = storyDoc.ref.parent.parent?.id;
+        if (userId) {
+          const archivedStoryRef = db
+            .collection("users")
+            .doc(userId)
+            .collection("archived_stories")
+            .doc(storyDoc.id);
+
+          batch.set(archivedStoryRef, {
+            ...storyData,
+            archivedAt: admin.firestore.FieldValue.serverTimestamp(),
+            originalStoryId: storyDoc.id,
+          });
+
+          batch.delete(storyDoc.ref);
+          archivedCount++;
+        }
+      } else {
+        // Delete regular expired stories and their media
+        await deleteStoryMedia(storyData);
+        batch.delete(storyDoc.ref);
+        deletedCount++;
+      }
+    }
+
+    await batch.commit();
+
+    logger.log(
+      `Story expiration completed: ${deletedCount} stories deleted, ` +
+      `${archivedCount} stories archived`
+    );
+  } catch (error) {
+    logger.error("Error in manageStoryExpiration:", error);
+  }
+});
+
+/**
+ * Function to recalculate story permanence when engagement is updated
+ * Triggered when story engagement collection is updated
+ */
+export const recalculateStoryPermanence = onDocumentUpdated(
+  "story_engagement/{engagementId}",
+  async (event) => {
+    logger.info("Story engagement updated, recalculating permanence");
+
+    const change = event.data;
+    if (!change) {
+      logger.warn("No data associated with engagement event");
+      return;
+    }
+
+    const engagementData = change.after.data();
+    const storyId = engagementData.storyId;
+    const storyOwnerId = engagementData.storyOwnerId;
+
+    if (!storyId || !storyOwnerId) {
+      logger.warn("Missing storyId or storyOwnerId in engagement data");
+      return;
+    }
+
+    try {
+      // Get the story document
+      const storyRef = db
+        .collection("users")
+        .doc(storyOwnerId)
+        .collection("stories")
+        .doc(storyId);
+
+      const storyDoc = await storyRef.get();
+      if (!storyDoc.exists) {
+        logger.warn(`Story ${storyId} not found for user ${storyOwnerId}`);
+        return;
+      }
+
+      const storyData = storyDoc.data()!;
+      const engagement = storyData.engagement || {};
+      const totalScore = storyData.totalEngagementScore || 0;
+      const timestamp = storyData.timestamp;
+
+      if (!timestamp) {
+        logger.warn("Story missing timestamp");
+        return;
+      }
+
+      // Calculate new permanence duration
+      const permanenceDuration = calculateLogarithmicDuration(
+        totalScore,
+        engagement.views || 0,
+        engagement.likes || 0,
+        engagement.comments || 0,
+        engagement.shares || 0,
+      );
+
+      // Calculate new expiration time
+      const storyCreatedAt = timestamp.toDate();
+      const expiresAt = new Date(
+        storyCreatedAt.getTime() + permanenceDuration
+      );
+
+      // Determine permanence tier
+      const permanenceTier = getPermanenceTier(permanenceDuration);
+
+      // Update story permanence
+      await storyRef.update({
+        "permanence.duration": permanenceDuration / 1000,
+        "permanence.expiresAt": admin.firestore.Timestamp.fromDate(expiresAt),
+        "permanence.tier": permanenceTier,
+        "permanence.calculatedAt": admin.firestore.FieldValue.serverTimestamp(),
+        "permanence.isExtended": permanenceDuration > 24 * 60 * 60 * 1000,
+      });
+
+      const hours = Math.round(permanenceDuration / (60 * 60 * 1000));
+      logger.log(
+        `Updated story ${storyId} permanence: ${hours} hours ` +
+        `(tier: ${permanenceTier})`
+      );
+    } catch (error) {
+      logger.error("Error recalculating story permanence:", error);
+    }
+  }
+);
+
+/**
+ * Calculate logarithmic duration based on engagement metrics
+ * @param {number} totalScore - Total weighted engagement score
+ * @param {number} views - Number of views
+ * @param {number} likes - Number of likes
+ * @param {number} comments - Number of comments
+ * @param {number} shares - Number of shares
+ * @return {number} Duration in milliseconds
+ */
+function calculateLogarithmicDuration(
+  totalScore: number,
+  views: number,
+  likes: number,
+  comments: number,
+  shares: number
+): number {
+  // Base duration: 24 hours in milliseconds
+  const baseDuration = 24 * 60 * 60 * 1000;
+  
+  // Calculate engagement multiplier using logarithmic scale
+  const engagementMultiplier = Math.log(1 + totalScore) * 0.5;
+  
+  // Calculate view velocity bonus (views in first hour)
+  const viewVelocityBonus = Math.min(views / 10.0, 2.0); // Max 2x bonus
+  
+  // Calculate interaction quality bonus
+  const interactionQuality = (likes * 0.3) + (comments * 0.5) + (shares * 0.7);
+  const qualityMultiplier = Math.log(1 + interactionQuality) * 0.3;
+  
+  // Total multiplier (capped at 30 days max)
+  const totalMultiplier = Math.min(
+    1 + engagementMultiplier + viewVelocityBonus + qualityMultiplier,
+    30.0 // Max 30x = 30 days
+  );
+  
+  return Math.round(baseDuration * totalMultiplier);
+}
+
+/**
+ * Get permanence tier based on duration
+ * @param {number} durationMs - Duration in milliseconds
+ * @return {string} Permanence tier
+ */
+function getPermanenceTier(durationMs: number): string {
+  const hours = durationMs / (60 * 60 * 1000);
+  
+  if (hours <= 24) return 'standard';
+  if (hours <= 72) return 'extended';
+  if (hours <= 168) return 'weekly';
+  if (hours <= 720) return 'monthly';
+  return 'milestone';
+}
+
+/**
+ * Delete story media files from Firebase Storage
+ * @param {any} storyData - Story document data
+ */
+async function deleteStoryMedia(storyData: any): Promise<void> {
+  try {
+    // Delete main media file
+    if (storyData.mediaUrl) {
+      const mediaType = storyData.isVideo ? "video" : "image";
+      await deleteFileFromStorage(storyData.mediaUrl, mediaType);
+    }
+
+    // Delete thumbnail if it exists
+    if (storyData.thumbnailUrl) {
+      await deleteFileFromStorage(storyData.thumbnailUrl, "thumbnail");
+    }
+  } catch (error) {
+    logger.error("Error deleting story media:", error);
+  }
+}
+
+/**
+ * Cloud Function to get story analytics and permanence insights
+ */
+export const getStoryInsights = onCall(async (request) => {
+  const {userId, storyId} = request.data;
+
+  if (!userId || !storyId) {
+    throw new Error("Missing required parameters: userId and storyId");
+  }
+
+  try {
+    // Get story data
+    const storyDoc = await db
+      .collection('users')
+      .doc(userId)
+      .collection('stories')
+      .doc(storyId)
+      .get();
+
+    if (!storyDoc.exists) {
+      throw new Error("Story not found");
+    }
+
+    const storyData = storyDoc.data()!;
+    
+    // Get engagement events
+    const engagementEvents = await db
+      .collection('story_engagement')
+      .where('storyId', '==', storyId)
+      .orderBy('timestamp', 'desc')
+      .get();
+
+    // Calculate insights
+    const insights = {
+      story: storyData,
+      analytics: {
+        totalEngagement: storyData.totalEngagementScore || 0,
+        engagement: storyData.engagement || {},
+        permanence: storyData.permanence || {},
+        engagementEvents: engagementEvents.docs.length,
+        uniqueViewers: getUniqueViewers(engagementEvents.docs),
+        engagementRate: calculateEngagementRate(storyData.engagement),
+        timeToExpiry: getTimeToExpiry(storyData.permanence),
+      },
+    };
+
+    return insights;
+  } catch (error) {
+    logger.error("Error getting story insights:", error);
+    throw new Error("Failed to get story insights");
+  }
+});
+
+/**
+ * Calculate unique viewers from engagement events
+ */
+function getUniqueViewers(events: admin.firestore.QueryDocumentSnapshot[]): number {
+  const uniqueViewers = new Set<string>();
+  
+  for (const event of events) {
+    const data = event.data();
+    const viewerId = data.viewerId;
+    if (viewerId) {
+      uniqueViewers.add(viewerId);
+    }
+  }
+  
+  return uniqueViewers.size;
+}
+
+/**
+ * Calculate engagement rate (interactions / views)
+ */
+function calculateEngagementRate(engagement: any): number {
+  if (!engagement) return 0.0;
+  
+  const views = engagement.views || 0;
+  if (views === 0) return 0.0;
+  
+  const interactions = (engagement.likes || 0) +
+                      (engagement.comments || 0) +
+                      (engagement.shares || 0);
+  
+  return interactions / views;
+}
+
+/**
+ * Get time remaining until story expires
+ */
+function getTimeToExpiry(permanence: any): number {
+  if (!permanence || !permanence.expiresAt) return 0;
+  
+  const now = new Date();
+  const expiresAt = permanence.expiresAt.toDate();
+  
+  return Math.max(0, expiresAt.getTime() - now.getTime());
+}

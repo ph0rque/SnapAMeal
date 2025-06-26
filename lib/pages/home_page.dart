@@ -1,6 +1,7 @@
 import 'package:snapameal/pages/ar_camera_page.dart';
 import 'package:snapameal/pages/friends_page.dart';
 import 'package:snapameal/pages/meal_logging_page.dart';
+import 'package:snapameal/pages/milestone_stories_page.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:snapameal/services/snap_service.dart';
@@ -348,6 +349,45 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
         
+        // Milestone Stories section
+        Padding(
+          padding: EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Milestone Stories',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: fastingState.fastingModeEnabled 
+                      ? fastingState.appThemeColor 
+                      : null,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MilestoneStoriesPage(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'View All',
+                  style: TextStyle(
+                    color: fastingState.fastingModeEnabled 
+                        ? fastingState.appThemeColor 
+                        : Theme.of(context).primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        _buildMilestoneStoriesPreview(fastingState),
+
         // Recommendations section
         if (recommendations.isNotEmpty) ...[
           Padding(
@@ -476,6 +516,196 @@ class _HomePageState extends State<HomePage> {
         ),
       ],
     );
+  }
+
+  /// Build milestone stories preview
+  Widget _buildMilestoneStoriesPreview(FastingStateProvider fastingState) {
+    return FutureBuilder<List<DocumentSnapshot>>(
+      future: _storyService.getMilestoneStories(
+        FirebaseAuth.instance.currentUser?.uid ?? '',
+        limit: 3,
+      ),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            height: 120,
+            margin: EdgeInsets.symmetric(horizontal: 16),
+            child: Center(
+              child: CircularProgressIndicator(
+                color: fastingState.fastingModeEnabled 
+                    ? fastingState.appThemeColor 
+                    : Theme.of(context).primaryColor,
+              ),
+            ),
+          );
+        }
+
+        final milestoneStories = snapshot.data ?? [];
+        
+        if (milestoneStories.isEmpty) {
+          return Container(
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: fastingState.fastingModeEnabled 
+                  ? fastingState.appThemeColor.withOpacity(0.05)
+                  : Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: fastingState.fastingModeEnabled 
+                    ? fastingState.appThemeColor.withOpacity(0.2)
+                    : Colors.grey[300]!,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.auto_awesome_outlined,
+                  color: fastingState.fastingModeEnabled 
+                      ? fastingState.appThemeColor 
+                      : Colors.grey[600],
+                  size: 32,
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'No milestone stories yet',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: fastingState.fastingModeEnabled 
+                              ? fastingState.appThemeColor 
+                              : Colors.grey[800],
+                        ),
+                      ),
+                      Text(
+                        'Stories with high engagement become milestones',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            itemCount: milestoneStories.length,
+            itemBuilder: (context, index) {
+              final story = milestoneStories[index];
+              final data = story.data() as Map<String, dynamic>;
+              final permanence = data['permanence'] as Map<String, dynamic>?;
+              final tier = permanence?['tier'] ?? 'standard';
+              final mediaUrl = data['mediaUrl'] as String?;
+              
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MilestoneStoriesPage(
+                        userId: FirebaseAuth.instance.currentUser?.uid,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 80,
+                  margin: EdgeInsets.only(right: 12),
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 68,
+                        height: 68,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: _getMilestoneTierColor(tier),
+                            width: 3,
+                          ),
+                        ),
+                        child: ClipOval(
+                          child: mediaUrl != null
+                              ? Image.network(
+                                  mediaUrl,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Colors.grey[300],
+                                      child: Icon(
+                                        Icons.broken_image,
+                                        color: Colors.grey[600],
+                                      ),
+                                    );
+                                  },
+                                )
+                              : Container(
+                                  color: _getMilestoneTierColor(tier).withOpacity(0.2),
+                                  child: Icon(
+                                    _getMilestoneTierIcon(tier),
+                                    color: _getMilestoneTierColor(tier),
+                                    size: 24,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        tier.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: _getMilestoneTierColor(tier),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  /// Get milestone tier color
+  Color _getMilestoneTierColor(String tier) {
+    switch (tier) {
+      case 'weekly':
+        return Colors.amber;
+      case 'monthly':
+        return Colors.purple;
+      case 'milestone':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  /// Get milestone tier icon
+  IconData _getMilestoneTierIcon(String tier) {
+    switch (tier) {
+      case 'weekly':
+        return Icons.star;
+      case 'monthly':
+        return Icons.auto_awesome;
+      case 'milestone':
+        return Icons.emoji_events;
+      default:
+        return Icons.circle;
+    }
   }
 
   /// Build fasting empty state

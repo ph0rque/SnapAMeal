@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -104,6 +105,15 @@ class StoryService {
           'likes': 0,
           'comments': 0,
           'shares': 0,
+          'saves': 0,
+        },
+        'totalEngagementScore': 0,
+        'permanence': {
+          'duration': const Duration(hours: 24).inSeconds,
+          'expiresAt': FieldValue.serverTimestamp(), // Will be updated when first engagement happens
+          'tier': 'standard',
+          'calculatedAt': FieldValue.serverTimestamp(),
+          'isExtended': false,
         },
       });
       
@@ -269,31 +279,277 @@ class StoryService {
     }
   }
 
-  /// Update story engagement metrics
-  Future<void> updateStoryEngagement(String userId, String storyId, String engagementType) async {
+  /// Update story engagement metrics with enhanced tracking
+  Future<void> updateStoryEngagement(String userId, String storyId, String engagementType, {String? viewerId}) async {
     try {
+      final currentUser = _auth.currentUser;
+      final actualViewerId = viewerId ?? currentUser?.uid;
+      
+      if (actualViewerId == null) return;
+
       final storyRef = _firestore
           .collection('users')
           .doc(userId)
           .collection('stories')
           .doc(storyId);
 
+      // Update engagement metrics
       await storyRef.update({
         'engagement.$engagementType': FieldValue.increment(1),
         'lastEngagementTime': FieldValue.serverTimestamp(),
+        'totalEngagementScore': FieldValue.increment(_getEngagementWeight(engagementType)),
       });
 
-      // Track engagement for logarithmic permanence calculation
+      // Track individual engagement event for detailed analytics
       await _firestore.collection('story_engagement').add({
         'storyId': storyId,
-        'userId': userId,
-        'viewerId': _auth.currentUser?.uid,
+        'storyOwnerId': userId,
+        'viewerId': actualViewerId,
         'engagementType': engagementType,
         'timestamp': FieldValue.serverTimestamp(),
+        'weight': _getEngagementWeight(engagementType),
       });
+
+      // Update story permanence after engagement
+      await _calculateAndUpdateStoryPermanence(userId, storyId);
     } catch (e) {
       debugPrint('Error updating story engagement: $e');
     }
+  }
+
+  /// Get engagement weight for different interaction types
+  int _getEngagementWeight(String engagementType) {
+    switch (engagementType) {
+      case 'views':
+        return 1;
+      case 'likes':
+        return 3;
+      case 'comments':
+        return 5;
+      case 'shares':
+        return 8;
+      case 'saves':
+        return 10;
+      default:
+        return 1;
+    }
+  }
+
+  /// Calculate logarithmic permanence duration for a story
+  Future<void> _calculateAndUpdateStoryPermanence(String userId, String storyId) async {
+    try {
+      final storyDoc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('stories')
+          .doc(storyId)
+          .get();
+
+      if (!storyDoc.exists) return;
+
+      final storyData = storyDoc.data() as Map<String, dynamic>;
+      final engagement = storyData['engagement'] as Map<String, dynamic>? ?? {};
+      final totalScore = storyData['totalEngagementScore'] as int? ?? 0;
+      final timestamp = storyData['timestamp'] as Timestamp?;
+
+      if (timestamp == null) return;
+
+      // Calculate logarithmic duration based on engagement
+      final permanenceDuration = _calculateLogarithmicDuration(
+        totalScore,
+        engagement['views'] as int? ?? 0,
+        engagement['likes'] as int? ?? 0,
+        engagement['comments'] as int? ?? 0,
+        engagement['shares'] as int? ?? 0,
+      );
+
+      // Calculate expiration time
+      final expiresAt = timestamp.toDate().add(permanenceDuration);
+      
+      // Determine permanence tier
+      final permanenceTier = _getPermanenceTier(permanenceDuration);
+
+      await storyDoc.reference.update({
+        'permanence': {
+          'duration': permanenceDuration.inSeconds,
+          'expiresAt': Timestamp.fromDate(expiresAt),
+          'tier': permanenceTier,
+          'calculatedAt': FieldValue.serverTimestamp(),
+          'isExtended': permanenceDuration.inHours > 24,
+        }
+      });
+
+      debugPrint('Updated story permanence: ${permanenceDuration.inHours} hours (tier: $permanenceTier)');
+    } catch (e) {
+      debugPrint('Error calculating story permanence: $e');
+    }
+  }
+
+  /// Calculate logarithmic duration based on engagement metrics
+  Duration _calculateLogarithmicDuration(int totalScore, int views, int likes, int comments, int shares) {
+    // Base duration: 24 hours
+    const baseDuration = Duration(hours: 24);
+    
+    // Calculate engagement multiplier using logarithmic scale
+    // Formula: log(1 + engagement_score) * scaling_factor
+    final engagementMultiplier = math.log(1 + totalScore) * 0.5;
+    
+    // Calculate view velocity bonus (views in first hour)
+    final viewVelocityBonus = math.min(views / 10.0, 2.0); // Max 2x bonus
+    
+    // Calculate interaction quality bonus
+    final interactionQuality = (likes * 0.3) + (comments * 0.5) + (shares * 0.7);
+    final qualityMultiplier = math.log(1 + interactionQuality) * 0.3;
+    
+    // Total multiplier (capped at 30 days max)
+    final totalMultiplier = math.min(
+      1 + engagementMultiplier + viewVelocityBonus + qualityMultiplier,
+      30.0 // Max 30x = 30 days
+    );
+    
+    final finalDuration = Duration(
+      seconds: (baseDuration.inSeconds * totalMultiplier).round()
+    );
+    
+    return finalDuration;
+  }
+
+  /// Get permanence tier based on duration
+  String _getPermanenceTier(Duration duration) {
+    final hours = duration.inHours;
+    
+    if (hours <= 24) return 'standard';
+    if (hours <= 72) return 'extended';
+    if (hours <= 168) return 'weekly';
+    if (hours <= 720) return 'monthly';
+    return 'milestone';
+  }
+
+  /// Get stories with enhanced permanence data
+  Stream<QuerySnapshot> getStoriesWithPermanenceStream(String userId) {
+    final now = DateTime.now();
+    
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('stories')
+        .where('permanence.expiresAt', isGreaterThan: Timestamp.fromDate(now))
+        .orderBy('permanence.expiresAt', descending: false)
+        .snapshots();
+  }
+
+  /// Get milestone stories (stories with extended permanence)
+  Future<List<DocumentSnapshot>> getMilestoneStories(String userId, {int limit = 20}) async {
+    try {
+      final milestoneQuery = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('stories')
+          .where('permanence.tier', whereIn: ['weekly', 'monthly', 'milestone'])
+          .orderBy('permanence.calculatedAt', descending: true)
+          .limit(limit)
+          .get();
+
+      return milestoneQuery.docs;
+    } catch (e) {
+      debugPrint('Error getting milestone stories: $e');
+      return [];
+    }
+  }
+
+  /// Get engagement analytics for a story
+  Future<Map<String, dynamic>> getStoryAnalytics(String userId, String storyId) async {
+    try {
+      // Get story data
+      final storyDoc = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('stories')
+          .doc(storyId)
+          .get();
+
+      if (!storyDoc.exists) return {};
+
+      final storyData = storyDoc.data() as Map<String, dynamic>;
+      
+      // Get detailed engagement events
+      final engagementEvents = await _firestore
+          .collection('story_engagement')
+          .where('storyId', isEqualTo: storyId)
+          .orderBy('timestamp', descending: true)
+          .get();
+
+      // Calculate analytics
+      final analytics = {
+        'totalEngagement': storyData['totalEngagementScore'] ?? 0,
+        'engagement': storyData['engagement'] ?? {},
+        'permanence': storyData['permanence'] ?? {},
+        'engagementEvents': engagementEvents.docs.length,
+        'uniqueViewers': _getUniqueViewers(engagementEvents.docs),
+        'engagementRate': _calculateEngagementRate(storyData['engagement']),
+        'peakEngagementTime': _getPeakEngagementTime(engagementEvents.docs),
+      };
+
+      return analytics;
+    } catch (e) {
+      debugPrint('Error getting story analytics: $e');
+      return {};
+    }
+  }
+
+  /// Calculate unique viewers from engagement events
+  int _getUniqueViewers(List<DocumentSnapshot> events) {
+    final uniqueViewers = <String>{};
+    for (final event in events) {
+      final data = event.data() as Map<String, dynamic>;
+      final viewerId = data['viewerId'] as String?;
+      if (viewerId != null) {
+        uniqueViewers.add(viewerId);
+      }
+    }
+    return uniqueViewers.length;
+  }
+
+  /// Calculate engagement rate (interactions / views)
+  double _calculateEngagementRate(Map<String, dynamic>? engagement) {
+    if (engagement == null) return 0.0;
+    
+    final views = engagement['views'] as int? ?? 0;
+    if (views == 0) return 0.0;
+    
+    final interactions = (engagement['likes'] as int? ?? 0) +
+                        (engagement['comments'] as int? ?? 0) +
+                        (engagement['shares'] as int? ?? 0);
+    
+    return interactions / views;
+  }
+
+  /// Get peak engagement time from events
+  DateTime? _getPeakEngagementTime(List<DocumentSnapshot> events) {
+    if (events.isEmpty) return null;
+    
+    // Group events by hour and find the hour with most activity
+    final hourlyActivity = <int, int>{};
+    
+    for (final event in events) {
+      final data = event.data() as Map<String, dynamic>;
+      final timestamp = data['timestamp'] as Timestamp?;
+      if (timestamp != null) {
+        final hour = timestamp.toDate().hour;
+        hourlyActivity[hour] = (hourlyActivity[hour] ?? 0) + 1;
+      }
+    }
+    
+    if (hourlyActivity.isEmpty) return null;
+    
+    // Find hour with maximum activity
+    final peakHour = hourlyActivity.entries
+        .reduce((a, b) => a.value > b.value ? a : b)
+        .key;
+    
+    // Return a datetime for that hour today
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day, peakHour);
   }
 
   /// Get filtered alternative content for blocked story

@@ -506,52 +506,313 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       top: 80,
       left: 16,
       right: 16,
-      child: FutureBuilder<DocumentSnapshot>(
-        future: _friendService.getUserData(story['senderId'] ?? widget.userId),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) return const SizedBox.shrink();
-          
-          final userData = snapshot.data!.data() as Map<String, dynamic>?;
-          final username = userData?['username'] ?? 'Unknown User';
-          
-          return Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: SnapUIColors.greyLight,
-                child: const Icon(
-                  EvaIcons.personOutline,
-                  color: SnapUIColors.greyDark,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      username,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
+      child: Column(
+        children: [
+          FutureBuilder<DocumentSnapshot>(
+            future: _friendService.getUserData(story['senderId'] ?? widget.userId),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) return const SizedBox.shrink();
+              
+              final userData = snapshot.data!.data() as Map<String, dynamic>?;
+              final username = userData?['username'] ?? 'Unknown User';
+              
+              return Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: SnapUIColors.greyLight,
+                    child: const Icon(
+                      EvaIcons.personOutline,
+                      color: SnapUIColors.greyDark,
                     ),
-                    Text(
-                      _getTimeAgo(story['timestamp'] as Timestamp?),
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
-                        fontSize: 12,
-                      ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              username,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _buildPermanenceBadge(story),
+                          ],
+                        ),
+                        Text(
+                          _getTimeAgo(story['timestamp'] as Timestamp?),
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
+                  ),
+                  _buildEngagementActions(story),
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+          _buildEngagementStats(story),
+        ],
       ),
     );
+  }
+
+  Widget _buildPermanenceBadge(Map<String, dynamic> story) {
+    final permanence = story['permanence'] as Map<String, dynamic>?;
+    final tier = permanence?['tier'] as String?;
+    
+    if (tier == null || tier == 'standard') return const SizedBox.shrink();
+    
+    Color badgeColor;
+    IconData badgeIcon;
+    
+    switch (tier) {
+      case 'weekly':
+        badgeColor = Colors.amber;
+        badgeIcon = Icons.star;
+        break;
+      case 'monthly':
+        badgeColor = Colors.purple;
+        badgeIcon = Icons.auto_awesome;
+        break;
+      case 'milestone':
+        badgeColor = Colors.orange;
+        badgeIcon = Icons.emoji_events;
+        break;
+      default:
+        return const SizedBox.shrink();
+    }
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: badgeColor,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            badgeIcon,
+            size: 12,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 2),
+          Text(
+            tier.toUpperCase(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEngagementActions(Map<String, dynamic> story) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: () => _handleEngagement('likes'),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.favorite_border,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => _handleEngagement('shares'),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.3),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.share,
+              color: Colors.white,
+              size: 20,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEngagementStats(Map<String, dynamic> story) {
+    final engagement = story['engagement'] as Map<String, dynamic>? ?? {};
+    final permanence = story['permanence'] as Map<String, dynamic>?;
+    
+    final views = engagement['views'] as int? ?? 0;
+    final likes = engagement['likes'] as int? ?? 0;
+    final comments = engagement['comments'] as int? ?? 0;
+    final shares = engagement['shares'] as int? ?? 0;
+    
+    // Show permanence info if story is extended
+    final isExtended = permanence?['isExtended'] as bool? ?? false;
+    final expiresAt = permanence?['expiresAt'] as Timestamp?;
+    
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildEngagementStat(Icons.visibility, views),
+          const SizedBox(width: 12),
+          _buildEngagementStat(Icons.favorite, likes),
+          const SizedBox(width: 12),
+          _buildEngagementStat(Icons.comment, comments),
+          const SizedBox(width: 12),
+          _buildEngagementStat(Icons.share, shares),
+          if (isExtended && expiresAt != null) ...[
+            const SizedBox(width: 12),
+            const Icon(
+              Icons.access_time,
+              color: Colors.white,
+              size: 14,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              _getTimeUntilExpiry(expiresAt),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEngagementStat(IconData icon, int count) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: Colors.white,
+          size: 14,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          count.toString(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleEngagement(String engagementType) async {
+    if (_stories.isEmpty || _currentIndex >= _stories.length) return;
+    
+    final storyId = _stories[_currentIndex].id;
+    final storyOwnerId = widget.userId;
+    
+    try {
+      await _storyService.updateStoryEngagement(
+        storyOwnerId,
+        storyId,
+        engagementType,
+      );
+      
+      // Provide haptic feedback
+      HapticFeedback.lightImpact();
+      
+      // Show visual feedback
+      _showEngagementFeedback(engagementType);
+    } catch (e) {
+      debugPrint('Error updating engagement: $e');
+    }
+  }
+
+  void _showEngagementFeedback(String engagementType) {
+    IconData icon;
+    Color color;
+    
+    switch (engagementType) {
+      case 'likes':
+        icon = Icons.favorite;
+        color = Colors.red;
+        break;
+      case 'shares':
+        icon = Icons.share;
+        color = Colors.blue;
+        break;
+      default:
+        return;
+    }
+    
+    // Show animated feedback
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Center(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 500),
+          builder: (context, value, child) {
+            return Transform.scale(
+              scale: value,
+              child: Icon(
+                icon,
+                color: color,
+                size: 64,
+              ),
+            );
+          },
+          onEnd: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+    );
+  }
+
+  String _getTimeUntilExpiry(Timestamp expiresAt) {
+    final now = DateTime.now();
+    final expiry = expiresAt.toDate();
+    final difference = expiry.difference(now);
+    
+    if (difference.isNegative) {
+      return 'Expired';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays}d left';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h left';
+    } else {
+      return '${difference.inMinutes}m left';
+    }
   }
 
   Widget _buildPauseIndicator() {
