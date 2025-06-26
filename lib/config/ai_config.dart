@@ -5,12 +5,20 @@ library;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class AIConfig {
-  // Pinecone Configuration
-  static String get pineconeEnvironment => dotenv.env['PINECONE_ENVIRONMENT'] ?? 'us-east1-gcp-free';
-  
+  // Pinecone Configuration - Updated for 2025 API
   static String get pineconeApiKey => dotenv.env['PINECONE_API_KEY'] ?? '';
   
   static String get pineconeIndexName => dotenv.env['PINECONE_INDEX_NAME'] ?? 'snapameal-health-knowledge';
+  
+  // Modern Pinecone API base URL (2025 format)
+  static String get pineconeBaseUrl => 'https://api.pinecone.io';
+  
+  // Index-specific host URL - to be retrieved dynamically
+  static String? _indexHost;
+  static String? get indexHost => _indexHost;
+  static void setIndexHost(String host) {
+    _indexHost = host;
+  }
   
   // OpenAI Configuration
   static String get openaiApiKey => dotenv.env['OPENAI_API_KEY'] ?? '';
@@ -52,10 +60,6 @@ class AIConfig {
            openaiApiKey.isNotEmpty;
   }
   
-  static String get pineconeBaseUrl {
-    return 'https://$pineconeIndexName-$pineconeEnvironment.pineconeapi.io';
-  }
-  
   // Cost optimization settings
   static const bool enableCaching = true;
   static const int cacheExpirationHours = 24;
@@ -65,4 +69,7 @@ class AIConfig {
   static const double maxDailyBudget = 10.0; // $10 daily budget
   static const int rateLimitDelayMs = 100;
   static const String pineconeNamespace = 'default';
+  
+  // Modern Pinecone API version
+  static const String pineconeApiVersion = '2025-04';
 } 

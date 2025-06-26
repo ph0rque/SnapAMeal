@@ -163,9 +163,137 @@ class RAGService {
 
   RAGService(this._openAIService);
 
+  /// Initialize the service and retrieve the index host URL
+  Future<bool> initialize() async {
+    try {
+      // First check if index host is already cached
+      if (AIConfig.indexHost != null) {
+        return true;
+      }
+
+      // Get index information from Pinecone
+      final response = await http.get(
+        Uri.parse('${AIConfig.pineconeBaseUrl}/indexes/${AIConfig.pineconeIndexName}'),
+        headers: {
+          'Api-Key': AIConfig.pineconeApiKey,
+          'Content-Type': 'application/json',
+          'X-Pinecone-API-Version': AIConfig.pineconeApiVersion,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final host = data['host'];
+        if (host != null) {
+          AIConfig.setIndexHost(host);
+          developer.log('Pinecone index host set: $host');
+          return true;
+        }
+      } else {
+        developer.log('Failed to get index info: ${response.statusCode} - ${response.body}');
+      }
+      
+      return false;
+    } catch (e) {
+      developer.log('Error initializing RAG service: $e');
+      return false;
+    }
+  }
+
+  /// Test Pinecone connectivity and return detailed status
+  Future<Map<String, dynamic>> testConnectionWithDetails() async {
+    final result = <String, dynamic>{
+      'success': false,
+      'api_key_valid': false,
+      'index_exists': false,
+      'index_host': null,
+      'connection_test': false,
+      'error': null,
+    };
+    
+    try {
+      developer.log('🔍 Testing Pinecone connection...');
+      
+      // Step 1: Test API key by listing indexes
+      final listResponse = await http.get(
+        Uri.parse('${AIConfig.pineconeBaseUrl}/indexes'),
+        headers: {
+          'Api-Key': AIConfig.pineconeApiKey,
+          'Content-Type': 'application/json',
+          'X-Pinecone-API-Version': AIConfig.pineconeApiVersion,
+        },
+      );
+      
+      if (listResponse.statusCode == 200) {
+        result['api_key_valid'] = true;
+        developer.log('✅ API key is valid');
+        
+        // Step 2: Check if our specific index exists
+        final indexes = jsonDecode(listResponse.body);
+        final indexList = indexes['indexes'] as List;
+        final ourIndex = indexList.firstWhere(
+          (index) => index['name'] == AIConfig.pineconeIndexName,
+          orElse: () => null,
+        );
+        
+        if (ourIndex != null) {
+          result['index_exists'] = true;
+          result['index_host'] = ourIndex['host'];
+          AIConfig.setIndexHost(ourIndex['host']);
+          developer.log('✅ Index "${AIConfig.pineconeIndexName}" found');
+          developer.log('Host: ${ourIndex['host']}');
+          
+          // Step 3: Test direct connection to index
+          final statsResponse = await http.post(
+            Uri.parse('https://${ourIndex['host']}/describe_index_stats'),
+            headers: {
+              'Api-Key': AIConfig.pineconeApiKey,
+              'Content-Type': 'application/json',
+            },
+            body: jsonEncode({}),
+          );
+          
+          if (statsResponse.statusCode == 200) {
+            result['connection_test'] = true;
+            result['success'] = true;
+            final stats = jsonDecode(statsResponse.body);
+            result['index_stats'] = stats;
+            developer.log('✅ Index connection successful!');
+            developer.log('Vector count: ${stats['totalVectorCount']}');
+          } else {
+            result['error'] = 'Failed to connect to index: ${statsResponse.statusCode}';
+            developer.log('❌ Index connection failed: ${statsResponse.statusCode}');
+          }
+        } else {
+          result['error'] = 'Index "${AIConfig.pineconeIndexName}" not found';
+          developer.log('❌ Index not found');
+        }
+      } else {
+        result['error'] = 'Invalid API key: ${listResponse.statusCode}';
+        developer.log('❌ API key invalid: ${listResponse.statusCode}');
+      }
+    } catch (e) {
+      result['error'] = e.toString();
+      developer.log('❌ Connection test error: $e');
+    }
+    
+    return result;
+  }
+
+  /// Test Pinecone connectivity (simple version)
+  Future<bool> testConnection() async {
+    final result = await testConnectionWithDetails();
+    return result['success'] == true;
+  }
+
   /// Store a single document in the vector database
   Future<bool> storeDocument(KnowledgeDocument document) async {
     try {
+      // Ensure service is initialized
+      if (!(await initialize())) {
+        throw Exception('Failed to initialize RAG service');
+      }
+
       // Generate embedding for the document
       final embedding = await _openAIService.generateEmbedding(
         '${document.title} ${document.content}',
@@ -187,9 +315,9 @@ class RAGService {
         ...document.metadata,
       };
 
-      // Store in Pinecone
+      // Store in Pinecone using the modern API
       final response = await http.post(
-        Uri.parse('${AIConfig.pineconeBaseUrl}/vectors/upsert'),
+        Uri.parse('https://${AIConfig.indexHost}/vectors/upsert'),
         headers: {
           'Api-Key': AIConfig.pineconeApiKey,
           'Content-Type': 'application/json',
@@ -316,9 +444,14 @@ class RAGService {
         healthContext,
       );
 
-      // Query Pinecone
+      // Ensure service is initialized
+      if (!(await initialize())) {
+        throw Exception('Failed to initialize RAG service');
+      }
+
+      // Query Pinecone using the correct index host
       final response = await http.post(
-        Uri.parse('${AIConfig.pineconeBaseUrl}/query'),
+        Uri.parse('https://${AIConfig.indexHost}/query'),
         headers: {
           'Api-Key': AIConfig.pineconeApiKey,
           'Content-Type': 'application/json',

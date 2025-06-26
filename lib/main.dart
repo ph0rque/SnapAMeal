@@ -20,6 +20,7 @@ import 'package:snapameal/pages/ai_advice_page.dart';
 import 'package:snapameal/pages/meal_logging_page.dart';
 import 'package:snapameal/pages/health_groups_page.dart';
 import 'package:snapameal/pages/integrations_page.dart';
+import 'pages/debug_pinecone_page.dart';
 
 late List<CameraDescription> cameras;
 
@@ -231,6 +232,8 @@ class MyApp extends StatelessWidget {
         return const IntegrationsPage();
       case '/settings':
         return const IntegrationsPage(); // Using integrations page as settings for now
+      case '/debug-pinecone':
+        return const DebugPineconePage();
       default:
         return null;
     }
