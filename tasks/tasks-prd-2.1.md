@@ -50,15 +50,15 @@ Based on PRD-2.1, here are the detailed tasks required to implement the investor
   - [x] 2.9 Create automated seeding script for consistent demo environment setup
   - [x] 2.10 Add data validation and integrity checks for seeded content
 
-- [ ] 3.0 Demo Mode Features Integration
-  - [ ] 3.1 Design and implement subtle demo mode indicator in app navigation
-  - [ ] 3.2 Create demo reset functionality accessible from settings menu
-  - [ ] 3.3 Build demo-specific onboarding flow highlighting key features
-  - [ ] 3.4 Add contextual tooltips for complex features (RAG insights, story permanence)
-  - [ ] 3.5 Implement demo tour system with guided feature walkthrough
-  - [ ] 3.6 Create demo configuration management for feature toggling
-  - [ ] 3.7 Add demo session persistence and state management
-  - [ ] 3.8 Ensure demo features don't interfere with production functionality
+- [x] 3.0 Demo Mode Features Integration
+  - [x] 3.1 Design and implement subtle demo mode indicator in app navigation
+  - [x] 3.2 Create demo reset functionality accessible from settings menu
+  - [x] 3.3 Build demo-specific onboarding flow highlighting key features
+  - [x] 3.4 Add contextual tooltips for complex features (RAG insights, story permanence)
+  - [x] 3.5 Implement demo tour system with guided feature walkthrough
+  - [x] 3.6 Create demo configuration management for feature toggling
+  - [x] 3.7 Add demo session persistence and state management
+  - [x] 3.8 Ensure demo features don't interfere with production functionality
 
 - [ ] 4.0 Feature Showcase Optimization
   - [ ] 4.1 Optimize fasting timer display with AR filters and content blocking demo
