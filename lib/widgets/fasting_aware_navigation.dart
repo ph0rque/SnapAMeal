@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/fasting_state_provider.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
+import '../design_system/widgets/fasting_status_indicators.dart';
 
 /// Navigation wrapper that adapts based on fasting state
 class FastingAwareNavigation extends StatelessWidget {
@@ -80,22 +81,30 @@ class FastingAwareNavigation extends StatelessWidget {
         onTap: () {
           // Navigate to full fasting page
         },
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 8,
-                offset: Offset(0, 2),
+        child: FastingColorShift(
+          fastingState: fastingState,
+          applyToBackground: true,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(30),
+              boxShadow: [
+                BoxShadow(
+                  color: fastingState.appThemeColor.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: Offset(0, 4),
+                ),
+              ],
+            ),
+            child: FastingProgressRing(
+              fastingState: fastingState,
+              strokeWidth: 3,
+              child: FastingTimerWidget(
+                session: fastingState.currentSession!,
+                size: 60,
+                showControls: false,
               ),
-            ],
-          ),
-          child: FastingTimerWidget(
-            session: fastingState.currentSession!,
-            size: 60,
-            showControls: false,
+            ),
           ),
         ),
       ),
@@ -178,26 +187,11 @@ class FastingAwareAppBar extends StatelessWidget implements PreferredSizeWidget 
   Widget _buildFastingProgressAction(FastingStateProvider fastingState) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${(fastingState.progressPercentage * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            Text(
-              '${fastingState.elapsedTime.inHours}h ${fastingState.elapsedTime.inMinutes.remainder(60)}m',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.white.withOpacity(0.9),
-              ),
-            ),
-          ],
+      child: FastingBadge(
+        fastingState: fastingState,
+        size: 36,
+        animate: true,
+        showProgress: true,
         ),
       ),
     );
@@ -287,11 +281,48 @@ class FastingAwareBottomNavigation extends StatelessWidget {
       
       // Check if this item should be hidden (based on label or custom logic)
       if (!_shouldHideNavigationItem(item, fastingState)) {
-        filteredItems.add(item);
+        // Add visual indicators to relevant items
+        final enhancedItem = _enhanceNavigationItem(item, fastingState);
+        filteredItems.add(enhancedItem);
       }
     }
 
     return filteredItems;
+  }
+
+  /// Enhance navigation item with fasting visual indicators
+  BottomNavigationBarItem _enhanceNavigationItem(
+    BottomNavigationBarItem item,
+    FastingStateProvider fastingState,
+  ) {
+    final label = item.label?.toLowerCase() ?? '';
+    
+    // Add badge to camera/snap tab during fasting
+    if ((label.contains('camera') || label.contains('snap')) && fastingState.isActiveFasting) {
+      return BottomNavigationBarItem(
+        icon: Stack(
+          children: [
+            item.icon,
+            Positioned(
+              right: 0,
+              top: 0,
+              child: FastingBadge(
+                fastingState: fastingState,
+                size: 12,
+                showProgress: false,
+                animate: true,
+              ),
+            ),
+          ],
+        ),
+        label: item.label,
+        activeIcon: item.activeIcon,
+        backgroundColor: item.backgroundColor,
+        tooltip: item.tooltip,
+      );
+    }
+    
+    return item;
   }
 
   /// Check if navigation item should be hidden
@@ -388,41 +419,48 @@ class FastingAwareDrawer extends StatelessWidget {
 
   /// Build fasting status section
   Widget _buildFastingStatusSection(FastingStateProvider fastingState) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: fastingState.appThemeColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: fastingState.appThemeColor.withOpacity(0.3),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.timer,
-            color: fastingState.appThemeColor,
-            size: 24,
+    return FastingColorShift(
+      fastingState: fastingState,
+      applyToBackground: true,
+      child: Container(
+        padding: EdgeInsets.all(16),
+        margin: EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            colors: [
+              fastingState.appThemeColor.withOpacity(0.1),
+              fastingState.appThemeColor.withOpacity(0.05),
+            ],
           ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Active Fasting',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: fastingState.appThemeColor,
+        ),
+        child: Row(
+          children: [
+            FastingBadge(
+              fastingState: fastingState,
+              size: 32,
+              animate: true,
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    FastingStatusIndicators.getMotivationalText(
+                      fastingState.progressPercentage,
+                    ),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: fastingState.appThemeColor,
+                    ),
                   ),
-                ),
-                Text(
-                  '${fastingState.elapsedTime.inHours}h ${fastingState.elapsedTime.inMinutes.remainder(60)}m elapsed',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
+                  Text(
+                    '${fastingState.elapsedTime.inHours}h ${fastingState.elapsedTime.inMinutes.remainder(60)}m elapsed',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
                   ),
                 ),
               ],

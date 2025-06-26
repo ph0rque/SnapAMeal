@@ -18,6 +18,7 @@ import 'package:provider/provider.dart';
 import '../providers/fasting_state_provider.dart';
 import '../widgets/fasting_aware_navigation.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
+import '../design_system/widgets/fasting_status_indicators.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -92,80 +93,111 @@ class _HomePageState extends State<HomePage> {
 
   /// Build main body with fasting-aware content
   Widget _buildBody(FastingStateProvider fastingState) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Fasting status card (shown when fasting is active)
-          if (fastingState.isActiveFasting)
-            _buildFastingStatusCard(fastingState),
-          
-          // Main content with conditional visibility
-          _buildMainContent(fastingState),
-          
-          // Fasting insights (shown after sessions)
-          if (fastingState.totalSessionsCount > 0)
-            _buildFastingInsights(fastingState),
-        ],
-      ),
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          child: Column(
+            children: [
+              // Add top padding when banner is showing
+              if (fastingState.isActiveFasting)
+                SizedBox(height: 80),
+              
+              // Fasting status card (shown when fasting is active)
+              if (fastingState.isActiveFasting)
+                _buildFastingStatusCard(fastingState),
+              
+              // Main content with conditional visibility
+              _buildMainContent(fastingState),
+              
+              // Fasting insights (shown after sessions)
+              if (fastingState.totalSessionsCount > 0)
+                _buildFastingInsights(fastingState),
+            ],
+          ),
+        ),
+        
+        // Floating status banner
+        if (fastingState.isActiveFasting)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: FastingStatusBanner(
+              fastingState: fastingState,
+              showDismiss: true,
+            ),
+          ),
+      ],
     );
   }
 
   /// Build fasting status card
   Widget _buildFastingStatusCard(FastingStateProvider fastingState) {
-    return Card(
-      margin: EdgeInsets.all(16),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            colors: [
-              fastingState.appThemeColor.withOpacity(0.1),
-              fastingState.appThemeColor.withOpacity(0.05),
-            ],
-          ),
-        ),
-        padding: EdgeInsets.all(20),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.timer,
-                  color: fastingState.appThemeColor,
-                  size: 24,
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Active Fasting',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: fastingState.appThemeColor,
-                        ),
-                      ),
-                      Text(
-                        fastingState.fastingTypeDisplay,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                FastingTimerWidget(
-                  session: fastingState.currentSession!,
-                  size: 60,
-                  showControls: false,
-                ),
+    return FastingColorShift(
+      fastingState: fastingState,
+      applyToBackground: true,
+      applyToBorder: true,
+      borderWidth: 3,
+      child: Card(
+        margin: EdgeInsets.all(16),
+        elevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [
+                fastingState.appThemeColor.withOpacity(0.15),
+                fastingState.appThemeColor.withOpacity(0.05),
               ],
             ),
+          ),
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  FastingBadge(
+                    fastingState: fastingState,
+                    size: 40,
+                    animate: true,
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          FastingStatusIndicators.getMotivationalText(
+                            fastingState.progressPercentage,
+                          ),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: fastingState.appThemeColor,
+                          ),
+                        ),
+                        Text(
+                          fastingState.fastingTypeDisplay,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  FastingProgressRing(
+                    fastingState: fastingState,
+                    strokeWidth: 4,
+                    child: FastingTimerWidget(
+                      session: fastingState.currentSession!,
+                      size: 60,
+                      showControls: false,
+                    ),
+                  ),
+                ],
+              ),
             
             SizedBox(height: 16),
             

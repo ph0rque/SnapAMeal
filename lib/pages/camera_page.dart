@@ -13,6 +13,7 @@ import '../services/rag_service.dart';
 import '../models/fasting_session.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
 import '../design_system/widgets/ar_filter_selector.dart';
+import '../design_system/widgets/fasting_status_indicators.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key, required this.cameras, this.onStoryPosted});
@@ -384,46 +385,58 @@ class _CameraPageState extends State<CameraPage> {
 
   /// Build fasting status indicator
   Widget _buildFastingStatusIndicator(FastingSession session) {
-    Color statusColor;
-    IconData statusIcon;
-    String statusText;
-
-    switch (session.state) {
-      case FastingState.active:
-        statusColor = Colors.green;
-        statusIcon = Icons.timer;
-        statusText = 'Fasting Active';
-        break;
-      case FastingState.paused:
-        statusColor = Colors.orange;
-        statusIcon = Icons.pause;
-        statusText = 'Fasting Paused';
-        break;
-      default:
-        return SizedBox.shrink();
+    if (session.state != FastingState.active) {
+      return SizedBox.shrink();
     }
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(statusIcon, color: Colors.white, size: 16),
-          SizedBox(width: 4),
-          Text(
-            statusText,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+    return Consumer<FastingService>(
+      builder: (context, fastingService, _) {
+        final progress = session.progressPercentage;
+        final statusColor = FastingStatusIndicators.getStatusColor(progress);
+        
+        return FastingColorShift(
+          fastingState: Provider.of<FastingService>(context, listen: false),
+          applyToBackground: true,
+          child: Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: statusColor,
+                width: 2,
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FastingBadge(
+                  fastingState: Provider.of<FastingService>(context, listen: false),
+                  size: 32,
+                  animate: true,
+                ),
+                SizedBox(height: 4),
+                Text(
+                  FastingStatusIndicators.getMotivationalText(progress),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '${(progress * 100).toInt()}%',
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
