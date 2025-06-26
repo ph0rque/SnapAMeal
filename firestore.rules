@@ -214,6 +214,53 @@ service cloud.firestore {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
+    // Filter analytics - anonymous data collection
+    match /filter_analytics/{documentId} {
+      allow create: if request.auth != null;
+      allow read: if false; // Only admin access
+    }
+
+    // User streaks - users can only access their own streaks
+    match /user_streaks/{streakId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Shared streaks - users can read shared streaks and create their own
+    match /shared_streaks/{sharedStreakId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Story engagement tracking
+    match /story_engagement/{engagementId} {
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      allow read: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+
+    // AI advice - users can only access their own AI advice
+    match /ai_advice/{adviceId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Meal logs - users can only access their own meal logs
+    match /meal_logs/{logId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
     // Admin-only collections
     match /admin/{document=**} {
       allow read, write: if false; // Only server-side admin operations
