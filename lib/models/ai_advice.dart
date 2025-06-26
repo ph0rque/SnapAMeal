@@ -14,6 +14,11 @@ enum AdviceType {
   medicalReminder,
   lifestyle,
   social,
+  // Additional types referenced in dashboard
+  nutritionTip,
+  fastingGuidance,
+  exerciseRecommendation,
+  motivationalMessage,
   custom
 }
 
@@ -358,6 +363,14 @@ class AIAdvice {
         return 'Lifestyle';
       case AdviceType.social:
         return 'Social';
+      case AdviceType.nutritionTip:
+        return 'Nutrition Tip';
+      case AdviceType.fastingGuidance:
+        return 'Fasting Guidance';
+      case AdviceType.exerciseRecommendation:
+        return 'Exercise Recommendation';
+      case AdviceType.motivationalMessage:
+        return 'Motivational Message';
       case AdviceType.custom:
         return 'Custom';
     }

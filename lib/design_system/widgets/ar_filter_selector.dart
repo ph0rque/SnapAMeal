@@ -11,13 +11,13 @@ class ARFilterSelector extends StatefulWidget {
   final bool isVisible;
 
   const ARFilterSelector({
-    Key? key,
+    super.key,
     required this.fastingSession,
     required this.arFilterService,
     required this.onFilterSelected,
     this.selectedFilter,
     this.isVisible = true,
-  }) : super(key: key);
+  });
 
   @override
   State<ARFilterSelector> createState() => _ARFilterSelectorState();

@@ -19,6 +19,9 @@ enum FastingType {
   extended24,          // 24-hour fast
   extended36,          // 36-hour fast
   extended48,          // 48-hour fast
+  // Additional types referenced in dashboard
+  sixteenEight,        // Alias for 16:8
+  twentyFourHour,      // Alias for 24-hour
   custom,              // User-defined duration
 }
 
@@ -27,6 +30,7 @@ extension FastingTypeDuration on FastingType {
   Duration get duration {
     switch (this) {
       case FastingType.intermittent16_8:
+      case FastingType.sixteenEight:
         return const Duration(hours: 16);
       case FastingType.intermittent18_6:
         return const Duration(hours: 18);
@@ -37,6 +41,7 @@ extension FastingTypeDuration on FastingType {
       case FastingType.alternate:
         return const Duration(hours: 24);
       case FastingType.extended24:
+      case FastingType.twentyFourHour:
         return const Duration(hours: 24);
       case FastingType.extended36:
         return const Duration(hours: 36);
@@ -512,6 +517,7 @@ class FastingSession {
   String get typeDescription {
     switch (type) {
       case FastingType.intermittent16_8:
+      case FastingType.sixteenEight:
         return '16:8 Intermittent Fasting';
       case FastingType.intermittent18_6:
         return '18:6 Intermittent Fasting';
@@ -522,6 +528,7 @@ class FastingSession {
       case FastingType.alternate:
         return 'Alternate Day Fasting';
       case FastingType.extended24:
+      case FastingType.twentyFourHour:
         return '24-Hour Extended Fast';
       case FastingType.extended36:
         return '36-Hour Extended Fast';
@@ -536,6 +543,7 @@ class FastingSession {
   static Duration getStandardDuration(FastingType type) {
     switch (type) {
       case FastingType.intermittent16_8:
+      case FastingType.sixteenEight:
         return Duration(hours: 16);
       case FastingType.intermittent18_6:
         return Duration(hours: 18);
@@ -546,6 +554,7 @@ class FastingSession {
       case FastingType.alternate:
         return Duration(hours: 24);
       case FastingType.extended24:
+      case FastingType.twentyFourHour:
         return Duration(hours: 24);
       case FastingType.extended36:
         return Duration(hours: 36);

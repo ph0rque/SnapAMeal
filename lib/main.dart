@@ -15,6 +15,12 @@ import 'package:snapameal/services/rag_service.dart';
 import 'package:snapameal/services/openai_service.dart';
 import 'package:snapameal/providers/fasting_state_provider.dart';
 import 'package:snapameal/widgets/fasting_aware_navigation.dart';
+import 'package:snapameal/pages/health_dashboard_page.dart';
+import 'package:snapameal/pages/health_onboarding_page.dart';
+import 'package:snapameal/pages/ai_advice_page.dart';
+import 'package:snapameal/pages/meal_logging_page.dart';
+import 'package:snapameal/pages/health_groups_page.dart';
+import 'package:snapameal/pages/integrations_page.dart';
 
 late List<CameraDescription> cameras;
 
@@ -122,7 +128,7 @@ class MyApp extends StatelessWidget {
         builder: (context, fastingState, child) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            title: fastingState.appBarTitle,
+            title: 'SnapAMeal - Health & Wellness',
             
             // Dynamic theme based on fasting state
             theme: fastingState.fastingModeEnabled 
@@ -211,14 +217,20 @@ class MyApp extends StatelessWidget {
       case '/':
         return const AuthGate();
       case '/home':
-        // Import and return HomePage
-        return const AuthGate(); // Placeholder
-      case '/fasting-timer':
-        // Import and return fasting timer page
-        return const AuthGate(); // Placeholder
+        // Health dashboard is now the main home
+        return const HealthDashboardPage();
       case '/health-dashboard':
-        // Import and return health dashboard
-        return const AuthGate(); // Placeholder
+        return const HealthDashboardPage();
+      case '/health-onboarding':
+        return const HealthOnboardingPage();
+      case '/ai-advice':
+        return const AIAdvicePage();
+      case '/meal-logging':
+        return const MealLoggingPage();
+      case '/health-groups':
+        return const HealthGroupsPage();
+      case '/integrations':
+        return const IntegrationsPage();
       default:
         return null;
     }

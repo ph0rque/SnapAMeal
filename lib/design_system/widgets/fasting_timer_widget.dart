@@ -693,6 +693,7 @@ class _FastingStartDialogState extends State<FastingStartDialog> {
   String _getTypeDescription(FastingType type) {
     switch (type) {
       case FastingType.intermittent16_8:
+      case FastingType.sixteenEight:
         return '16:8 Intermittent Fasting';
       case FastingType.intermittent18_6:
         return '18:6 Intermittent Fasting';
@@ -703,6 +704,7 @@ class _FastingStartDialogState extends State<FastingStartDialog> {
       case FastingType.alternate:
         return 'Alternate Day Fasting';
       case FastingType.extended24:
+      case FastingType.twentyFourHour:
         return '24-Hour Extended Fast';
       case FastingType.extended36:
         return '36-Hour Extended Fast';

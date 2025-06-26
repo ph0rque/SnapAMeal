@@ -1,5 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+enum Gender {
+  male,
+  female,
+  other,
+  preferNotToSay
+}
+
 enum HealthGoalType {
   weightLoss,
   weightGain,
@@ -12,6 +19,15 @@ enum HealthGoalType {
   sleepImprovement,
   stressReduction,
   habitBuilding,
+  // Additional health goals referenced in onboarding
+  fatLoss,
+  intermittentFasting,
+  improveMetabolism,
+  betterSleep,
+  increaseEnergy,
+  improveDigestion,
+  longevity,
+  mentalClarity,
   custom
 }
 
@@ -20,7 +36,8 @@ enum ActivityLevel {
   lightlyActive, // Light exercise 1-3 days/week
   moderatelyActive, // Moderate exercise 3-5 days/week
   veryActive,    // Hard exercise 6-7 days/week
-  extremelyActive // Very hard exercise, physical job, or training twice a day
+  extremelyActive, // Very hard exercise, physical job, or training twice a day
+  extraActive    // Referenced in onboarding
 }
 
 enum DietaryPreference {
@@ -36,6 +53,10 @@ enum DietaryPreference {
   intermittentFasting,
   glutenFree,
   dairyFree,
+  // Additional preferences referenced in onboarding
+  nutFree,
+  lowSodium,
+  diabetic,
   custom
 }
 
@@ -269,6 +290,8 @@ class HealthProfile {
         return bmrValue * 1.725;
       case ActivityLevel.extremelyActive:
         return bmrValue * 1.9;
+      case ActivityLevel.extraActive:
+        return bmrValue * 1.9; // Same as extremely active
     }
   }
 
@@ -362,6 +385,8 @@ class HealthProfile {
         return 'Very Active';
       case ActivityLevel.extremelyActive:
         return 'Extremely Active';
+      case ActivityLevel.extraActive:
+        return 'Extra Active';
     }
   }
 
@@ -390,9 +415,31 @@ class HealthProfile {
           return 'Stress Reduction';
         case HealthGoalType.habitBuilding:
           return 'Habit Building';
+        case HealthGoalType.fatLoss:
+          return 'Fat Loss';
+        case HealthGoalType.intermittentFasting:
+          return 'Intermittent Fasting';
+        case HealthGoalType.improveMetabolism:
+          return 'Improve Metabolism';
+        case HealthGoalType.betterSleep:
+          return 'Better Sleep';
+        case HealthGoalType.increaseEnergy:
+          return 'Increase Energy';
+        case HealthGoalType.improveDigestion:
+          return 'Improve Digestion';
+        case HealthGoalType.longevity:
+          return 'Longevity';
+        case HealthGoalType.mentalClarity:
+          return 'Mental Clarity';
         case HealthGoalType.custom:
           return 'Custom Goal';
       }
     }).toList();
   }
+
+  // Convenience getters for backward compatibility
+  double? get currentWeight => weightKg;
+  double? get targetWeight => targetWeightKg;
+  List<HealthGoalType> get healthGoals => primaryGoals;
+  String? get name => gender != null ? 'User' : null; // Placeholder name
 } 

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import '../models/fasting_session.dart';
@@ -333,6 +332,21 @@ class FastingStateProvider extends ChangeNotifier {
     }
   }
 
+  /// Pause fasting - alias for dashboard compatibility
+  Future<void> pauseFasting() async {
+    await pauseFastingSession();
+  }
+
+  /// End fasting - alias for dashboard compatibility  
+  Future<void> endFasting() async {
+    await endFastingSession(completed: false);
+  }
+
+  /// Start fasting with specified type
+  Future<void> startFasting(FastingType type) async {
+    await startFastingSession(type: type);
+  }
+
   /// Resume current fasting session
   Future<bool> resumeFastingSession() async {
     if (_currentSession == null) return false;
@@ -445,7 +459,7 @@ class FastingStateProvider extends ChangeNotifier {
   void _sendFastingStartNotification() {
     if (_enableNotifications && _currentSession != null) {
       // Implementation would depend on notification service
-      debugPrint('Fasting session started: ${_currentSession!.typeDescription}');
+      debugPrint('Fasting session started: ${_currentSession?.typeDescription}');
     }
   }
 
