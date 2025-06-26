@@ -2,38 +2,22 @@
 /// Handles Pinecone vector database and OpenAI API configurations
 library;
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class AIConfig {
   // Pinecone Configuration
-  static const String pineconeEnvironment = String.fromEnvironment(
-    'PINECONE_ENVIRONMENT',
-    defaultValue: 'us-east1-gcp-free', // Free tier default
-  );
+  static String get pineconeEnvironment => dotenv.env['PINECONE_ENVIRONMENT'] ?? 'us-east1-gcp-free';
   
-  static const String pineconeApiKey = String.fromEnvironment(
-    'PINECONE_API_KEY',
-    defaultValue: '', // Must be set in environment
-  );
+  static String get pineconeApiKey => dotenv.env['PINECONE_API_KEY'] ?? '';
   
-  static const String pineconeIndexName = String.fromEnvironment(
-    'PINECONE_INDEX_NAME',
-    defaultValue: 'snapameal-health-knowledge',
-  );
+  static String get pineconeIndexName => dotenv.env['PINECONE_INDEX_NAME'] ?? 'snapameal-health-knowledge';
   
   // OpenAI Configuration
-  static const String openaiApiKey = String.fromEnvironment(
-    'OPENAI_API_KEY',
-    defaultValue: '', // Must be set in environment
-  );
+  static String get openaiApiKey => dotenv.env['OPENAI_API_KEY'] ?? '';
   
-  static const String openaiModel = String.fromEnvironment(
-    'OPENAI_MODEL',
-    defaultValue: 'gpt-4-turbo-preview', // Cost-optimized GPT-4 variant
-  );
+  static String get openaiModel => dotenv.env['OPENAI_MODEL'] ?? 'gpt-4-turbo-preview';
   
-  static const String openaiEmbeddingModel = String.fromEnvironment(
-    'OPENAI_EMBEDDING_MODEL',
-    defaultValue: 'text-embedding-3-small', // Cost-efficient embedding model
-  );
+  static String get openaiEmbeddingModel => dotenv.env['OPENAI_EMBEDDING_MODEL'] ?? 'text-embedding-3-small';
   
   // Vector Database Settings
   static const int embeddingDimensions = 1536; // text-embedding-3-small dimensions

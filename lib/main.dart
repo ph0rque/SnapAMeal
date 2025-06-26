@@ -134,9 +134,8 @@ class MyApp extends StatelessWidget {
             theme: fastingState.fastingModeEnabled 
                 ? _buildFastingTheme(lightMode, fastingState.appThemeColor)
                 : lightMode,
-            darkTheme: fastingState.fastingModeEnabled
-                ? _buildFastingTheme(darkMode, fastingState.appThemeColor)
-                : darkMode,
+            // Force light mode for consistency
+            themeMode: ThemeMode.light,
             
             // Wrap the entire app with fasting-aware navigation
             home: FastingAwareNavigation(

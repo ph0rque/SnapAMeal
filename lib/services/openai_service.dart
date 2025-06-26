@@ -330,6 +330,12 @@ class OpenAIService {
     double temperature = 0.7,
     bool useOptimization = true,
   }) async {
+    // Check if API key is configured
+    if (AIConfig.openaiApiKey.isEmpty) {
+      debugPrint('OpenAI API key not configured. Please add OPENAI_API_KEY to your .env file.');
+      return null;
+    }
+
     // Check budget and rate limits
     if (!await _checkBudgetAndLimits('chat')) {
       return null;
@@ -399,6 +405,12 @@ class OpenAIService {
     String model = 'text-embedding-ada-002',
     bool useCache = true,
   }) async {
+    // Check if API key is configured
+    if (AIConfig.openaiApiKey.isEmpty) {
+      debugPrint('OpenAI API key not configured. Please add OPENAI_API_KEY to your .env file.');
+      return null;
+    }
+
     // Check cache first
     if (useCache) {
       final cached = _optimizer.getCachedEmbedding(text);
