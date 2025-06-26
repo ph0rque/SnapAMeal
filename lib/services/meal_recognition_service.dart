@@ -1,6 +1,5 @@
 /// Meal Recognition Service for SnapAMeal Phase II
 /// Provides AI-powered food detection, calorie estimation, and nutrition analysis
-library meal_recognition_service;
 
 import 'dart:io';
 import 'dart:typed_data';
@@ -9,10 +8,10 @@ import 'dart:developer' as developer;
 import 'dart:convert';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
-import 'package:path_provider/path_provider.dart' as path;
+
 import 'package:flutter/services.dart';
 import '../models/meal_log.dart';
-import '../data/health_knowledge_data.dart';
+
 import 'openai_service.dart';
 import 'rag_service.dart';
 

@@ -1,6 +1,5 @@
 /// Comprehensive Health Knowledge Data for SnapAMeal Phase II
 /// Curated evidence-based health content for the RAG system
-library health_knowledge_data;
 
 import '../services/rag_service.dart';
 

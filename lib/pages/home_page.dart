@@ -1,5 +1,5 @@
 import 'package:snapameal/pages/ar_camera_page.dart';
-import 'package:snapameal/pages/friends_page.dart';
+
 import 'package:snapameal/pages/meal_logging_page.dart';
 import 'package:snapameal/pages/milestone_stories_page.dart';
 import 'package:snapameal/services/auth_service.dart';
@@ -12,14 +12,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:snapameal/pages/story_view_page.dart';
 import 'package:snapameal/services/friend_service.dart';
 import 'package:snapameal/services/story_service.dart';
-import 'package:snapameal/pages/chats_page.dart';
+
 import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import '../providers/fasting_state_provider.dart';
 import '../widgets/fasting_aware_navigation.dart';
-import '../design_system/widgets/fasting_timer_widget.dart';
+
 import '../design_system/widgets/fasting_status_indicators.dart';
 
 class HomePage extends StatefulWidget {

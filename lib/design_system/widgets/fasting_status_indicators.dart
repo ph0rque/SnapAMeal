@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
-import '../../models/fasting_session.dart';
 import '../../providers/fasting_state_provider.dart';
 
 /// Comprehensive visual indicator system for fasting status
@@ -174,12 +173,12 @@ class _FastingBadgeState extends State<FastingBadge>
         gradient: RadialGradient(
           colors: [
             color,
-            color.withOpacity(0.7),
+            color.withValues(alpha: 0.7),
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 8,
             spreadRadius: 2,
           ),
@@ -193,7 +192,7 @@ class _FastingBadgeState extends State<FastingBadge>
               child: CircularProgressIndicator(
                 value: widget.fastingState.progressPercentage,
                 strokeWidth: 3,
-                backgroundColor: Colors.white.withOpacity(0.3),
+                backgroundColor: Colors.white.withValues(alpha: 0.3),
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ),
@@ -325,11 +324,11 @@ class _FastingColorShiftState extends State<FastingColorShift>
         return Container(
           decoration: BoxDecoration(
             color: widget.applyToBackground 
-                ? animatedColor.withOpacity(0.1)
+                ? animatedColor.withValues(alpha: 0.1)
                 : null,
             border: widget.applyToBorder && animatedColor != Colors.transparent
                 ? Border.all(
-                    color: animatedColor.withOpacity(0.5),
+                    color: animatedColor.withValues(alpha: 0.5),
                     width: widget.borderWidth,
                   )
                 : null,
@@ -439,7 +438,7 @@ class _FastingProgressRingState extends State<FastingProgressRing>
                   child: Container(
                     padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -481,7 +480,7 @@ class ProgressRingPainter extends CustomPainter {
 
     // Background circle
     final backgroundPaint = Paint()
-      ..color = color.withOpacity(0.2)
+      ..color = color.withValues(alpha: 0.2)
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -605,13 +604,13 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
               gradient: LinearGradient(
                 colors: [
                   widget.fastingState.appThemeColor,
-                  widget.fastingState.appThemeColor.withOpacity(0.8),
+                  widget.fastingState.appThemeColor.withValues(alpha: 0.8),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: widget.fastingState.appThemeColor.withOpacity(0.3),
+                  color: widget.fastingState.appThemeColor.withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: Offset(0, 4),
                 ),
@@ -645,7 +644,7 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
                       Text(
                         '${widget.fastingState.elapsedTime.inHours}h ${widget.fastingState.elapsedTime.inMinutes.remainder(60)}m elapsed',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 14,
                         ),
                       ),
@@ -658,7 +657,7 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
                     onPressed: _dismiss,
                     icon: Icon(
                       Icons.close,
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                     ),
                   ),
               ],

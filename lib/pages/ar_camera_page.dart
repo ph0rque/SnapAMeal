@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
@@ -11,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:snapameal/pages/preview_page.dart';
-import 'package:snapameal/utils/video_config.dart';
 
 class ARCameraPage extends StatefulWidget {
   const ARCameraPage({super.key});

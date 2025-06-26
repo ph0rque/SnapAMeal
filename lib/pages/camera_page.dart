@@ -12,6 +12,7 @@ import '../services/ar_filter_service.dart';
 import '../services/rag_service.dart';
 import '../services/openai_service.dart';
 import '../models/fasting_session.dart';
+import '../providers/fasting_state_provider.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
 import '../design_system/widgets/ar_filter_selector.dart';
 import '../design_system/widgets/fasting_status_indicators.dart';

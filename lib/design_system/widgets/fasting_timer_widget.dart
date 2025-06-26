@@ -32,7 +32,6 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   late Animation<double> _progressAnimation;
   
   FastingSession? _currentSession;
-  bool _isAnimating = false;
 
   @override
   void initState() {

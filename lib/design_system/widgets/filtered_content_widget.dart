@@ -27,13 +27,13 @@ class FilteredContentWidget extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.blue.withOpacity(0.1),
-            Colors.green.withOpacity(0.1),
+            Colors.blue.withValues(alpha: 0.1),
+            Colors.green.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.blue.withOpacity(0.3),
+          color: Colors.blue.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -46,7 +46,7 @@ class FilteredContentWidget extends StatelessWidget {
               Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.2),
+                  color: Colors.blue.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(

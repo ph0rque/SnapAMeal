@@ -1,7 +1,5 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/fasting_session.dart';
 import '../services/rag_service.dart';
 
@@ -254,7 +252,7 @@ class ARFilterService {
       _activeOverlays.add(overlay);
       return overlay;
     } catch (e) {
-      print('Error applying AR filter: $e');
+      debugPrint('Error applying AR filter: $e');
       return null;
     }
   }
@@ -708,7 +706,7 @@ class ARFilterService {
         return aiText;
       }
     } catch (e) {
-      print('Error getting AI motivational text: $e');
+      debugPrint('Error getting AI motivational text: $e');
     }
 
     // Fallback to predefined motivational texts

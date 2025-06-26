@@ -156,8 +156,8 @@ class MyApp extends StatelessWidget {
       primaryColor: fastingColor,
       colorScheme: baseTheme.colorScheme.copyWith(
         primary: fastingColor,
-        secondary: fastingColor.withOpacity(0.7),
-        surface: fastingColor.withOpacity(0.05),
+        secondary: fastingColor.withValues(alpha: 0.7),
+        surface: fastingColor.withValues(alpha: 0.05),
       ),
       appBarTheme: baseTheme.appBarTheme.copyWith(
         backgroundColor: fastingColor,

@@ -1,10 +1,10 @@
 /// OpenAI API Integration Service for SnapAMeal Phase II
 /// Handles GPT-4 chat completions and embedding generation with cost optimization
-library openai_service;
 
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config/ai_config.dart';
@@ -375,7 +375,7 @@ class OpenAIService {
         return content;
       } else if (response.statusCode == 429) {
         // Rate limit exceeded
-        print('OpenAI rate limit exceeded. Waiting before retry...');
+        debugPrint('OpenAI rate limit exceeded. Waiting before retry...');
         await Future.delayed(Duration(seconds: AIConfig.rateLimitBackoffSeconds));
         return await getChatCompletionWithMessages(
           messages: messages,
@@ -388,7 +388,7 @@ class OpenAIService {
         throw Exception('OpenAI API error: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error getting chat completion: $e');
+      debugPrint('Error getting chat completion: $e');
       return null;
     }
   }
@@ -447,14 +447,14 @@ class OpenAIService {
         return embedding;
       } else if (response.statusCode == 429) {
         // Rate limit exceeded
-        print('OpenAI rate limit exceeded. Waiting before retry...');
+        debugPrint('OpenAI rate limit exceeded. Waiting before retry...');
         await Future.delayed(Duration(seconds: AIConfig.rateLimitBackoffSeconds));
         return await generateEmbedding(text, model: model, useCache: useCache);
       } else {
         throw Exception('OpenAI API error: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      print('Error generating embedding: $e');
+      debugPrint('Error generating embedding: $e');
       return null;
     }
   }
@@ -494,7 +494,7 @@ class OpenAIService {
   Future<bool> _checkBudgetAndLimits(String requestType) async {
     // Check daily budget
     if (_budgetExceeded) {
-      print('Daily budget exceeded: $_budgetExceededMessage');
+      debugPrint('Daily budget exceeded: $_budgetExceededMessage');
       return false;
     }
 
@@ -503,13 +503,13 @@ class OpenAIService {
     
     if (requestType == 'chat') {
       if (_chatRequestTimes.length >= AIConfig.maxDailyChatRequests) {
-        print('Daily chat request limit exceeded');
+        debugPrint('Daily chat request limit exceeded');
         return false;
       }
       _chatRequestTimes.add(DateTime.now());
     } else if (requestType == 'embedding') {
       if (_embeddingRequestTimes.length >= AIConfig.maxDailyEmbeddingRequests) {
-        print('Daily embedding request limit exceeded');
+        debugPrint('Daily embedding request limit exceeded');
         return false;
       }
       _embeddingRequestTimes.add(DateTime.now());
@@ -714,7 +714,7 @@ class OpenAIService {
           await resetDailyStats();
         }
       } catch (e) {
-        print('Error loading usage stats: $e');
+        debugPrint('Error loading usage stats: $e');
         _currentStats = APIUsageStats.empty();
       }
     }
@@ -726,7 +726,7 @@ class OpenAIService {
       final statsJson = jsonEncode(_currentStats.toJson());
       await _prefs.setString('openai_usage_stats', statsJson);
     } catch (e) {
-      print('Error saving usage stats: $e');
+      debugPrint('Error saving usage stats: $e');
     }
   }
 

@@ -88,8 +88,8 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Colors.black.withOpacity(0.7),
-              Colors.black.withOpacity(0.9),
+              Colors.black.withValues(alpha: 0.7),
+              Colors.black.withValues(alpha: 0.9),
             ],
           ),
         ),
@@ -120,7 +120,7 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
                       child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(0.8),
+                          color: Colors.red.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -165,7 +165,7 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? filter.primaryColor : Colors.white.withOpacity(0.3),
+                          color: isSelected ? filter.primaryColor : Colors.white.withValues(alpha: 0.3),
             width: isSelected ? 3 : 1,
           ),
           gradient: isSelected
@@ -176,10 +176,10 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
                   ],
                 )
               : LinearGradient(
-                  colors: [
-                    Colors.grey.withOpacity(0.3),
-                    Colors.grey.withOpacity(0.2),
-                  ],
+                              colors: [
+              Colors.grey.withValues(alpha: 0.3),
+              Colors.grey.withValues(alpha: 0.2),
+            ],
                 ),
           boxShadow: isSelected
               ? [

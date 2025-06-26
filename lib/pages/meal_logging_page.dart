@@ -2,19 +2,19 @@ import 'dart:io';
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:provider/provider.dart';
+
 import 'package:image_picker/image_picker.dart';
-import 'package:camera/camera.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../design_system/snap_ui.dart';
-import '../design_system/widgets/meal_card_widget.dart';
+
 import '../models/meal_log.dart';
 import '../services/meal_recognition_service.dart';
 import '../services/openai_service.dart';
 import '../services/rag_service.dart';
-import '../config/ai_config.dart';
+
 
 /// AI-Powered Meal Logging Page
 /// Allows users to snap meals for instant calorie estimates and AI captions
