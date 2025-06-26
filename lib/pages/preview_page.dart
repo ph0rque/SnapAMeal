@@ -6,6 +6,7 @@ import 'package:snapameal/services/story_service.dart';
 import 'package:video_player/video_player.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:snapameal/design_system/snap_ui.dart';
+import '../models/fasting_session.dart';
 
 class PreviewPage extends StatefulWidget {
   const PreviewPage({
@@ -13,11 +14,17 @@ class PreviewPage extends StatefulWidget {
     required this.picture,
     this.isVideo = false,
     this.onStoryPosted,
+    this.fastingSession,
+    this.isFastingProgressSnap = false,
+    this.isFastingCompletionSnap = false,
   });
 
   final XFile picture;
   final bool isVideo;
   final VoidCallback? onStoryPosted;
+  final FastingSession? fastingSession;
+  final bool isFastingProgressSnap;
+  final bool isFastingCompletionSnap;
 
   @override
   State<PreviewPage> createState() => _PreviewPageState();
@@ -73,6 +80,15 @@ class _PreviewPageState extends State<PreviewPage> {
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
+          // Fasting context overlay
+          if (widget.fastingSession != null)
+            Positioned(
+              top: 80,
+              left: 20,
+              right: 20,
+              child: _buildFastingContextOverlay(),
+            ),
+          
           Positioned(
             bottom: 0,
             left: 0,
@@ -266,5 +282,77 @@ class _PreviewPageState extends State<PreviewPage> {
         _durationInSeconds = selectedDuration;
       });
     }
+  }
+
+  /// Build fasting context overlay
+  Widget _buildFastingContextOverlay() {
+    if (widget.fastingSession == null) return SizedBox.shrink();
+
+    String title;
+    String subtitle;
+    Color backgroundColor;
+    IconData icon;
+
+    if (widget.isFastingCompletionSnap) {
+      title = 'Fasting Completed! 🎉';
+      subtitle = 'Celebrate your achievement!';
+      backgroundColor = Colors.green;
+      icon = Icons.celebration;
+    } else if (widget.isFastingProgressSnap) {
+      final progress = (widget.fastingSession!.progressPercentage * 100).toInt();
+      title = 'Fasting Progress: $progress%';
+      subtitle = 'Keep going strong! 💪';
+      backgroundColor = Colors.blue;
+      icon = Icons.trending_up;
+    } else {
+      title = 'Fasting Session Active';
+      subtitle = widget.fastingSession!.typeDescription;
+      backgroundColor = Colors.orange;
+      icon = Icons.timer;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: backgroundColor.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white, size: 24),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 } 

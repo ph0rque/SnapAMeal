@@ -6,6 +6,10 @@ import 'package:path_provider/path_provider.dart';
 import 'package:snapameal/pages/preview_page.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:snapameal/design_system/snap_ui.dart';
+import 'package:provider/provider.dart';
+import '../services/fasting_service.dart';
+import '../models/fasting_session.dart';
+import '../design_system/widgets/fasting_timer_widget.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key, required this.cameras, this.onStoryPosted});
@@ -24,6 +28,8 @@ class _CameraPageState extends State<CameraPage> {
   bool _isRecording = false;
   bool _noCamerasAvailable = false;
   bool _flashOn = false;
+  bool _showFastingTimer = false;
+  FastingSession? _currentFastingSession;
 
   @override
   void initState() {
@@ -79,55 +85,134 @@ class _CameraPageState extends State<CameraPage> {
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return Stack(
-              children: [
-                CameraPreview(_controller),
-                Positioned(
-                  top: 40,
-                  right: 20,
-                  child: IconButton(
-                    icon: Icon(
-                      _flashOn ? EvaIcons.flash : EvaIcons.flashOff,
-                      color: SnapUIColors.white,
-                    ),
-                    onPressed: _toggleFlash,
-                  ),
-                ),
-                Positioned(
-                  bottom: 20,
-                  left: 20,
-                  child: IconButton(
-                    icon: const Icon(EvaIcons.flip2, color: SnapUIColors.white),
-                    onPressed: _switchCamera,
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    color: SnapUIColors.black.withAlpha(128),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            return Consumer<FastingService>(
+              builder: (context, fastingService, child) {
+                return StreamBuilder<FastingSession?>(
+                  stream: fastingService.sessionStream,
+                  builder: (context, snapshot) {
+                    _currentFastingSession = snapshot.data;
+                    
+                    return Stack(
                       children: [
-                        GestureDetector(
-                          onTap: _takePicture,
-                          onLongPressStart: (_) => _startVideoRecording(),
-                          onLongPressEnd: (_) => _stopVideoRecording(),
+                        CameraPreview(_controller),
+                        
+                        // Top controls
+                        Positioned(
+                          top: 40,
+                          left: 20,
+                          right: 20,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Fasting timer toggle
+                              IconButton(
+                                icon: Icon(
+                                  _showFastingTimer ? Icons.timer_off : Icons.timer,
+                                  color: SnapUIColors.white,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _showFastingTimer = !_showFastingTimer;
+                                  });
+                                },
+                              ),
+                              
+                              // Flash toggle
+                              IconButton(
+                                icon: Icon(
+                                  _flashOn ? EvaIcons.flash : EvaIcons.flashOff,
+                                  color: SnapUIColors.white,
+                                ),
+                                onPressed: _toggleFlash,
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        // Fasting timer overlay
+                        if (_showFastingTimer)
+                          Positioned(
+                            top: 100,
+                            right: 20,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.7),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              padding: EdgeInsets.all(8),
+                              child: FastingTimerWidget(
+                                size: 120,
+                                showControls: false,
+                              ),
+                            ),
+                          ),
+                        
+                        // Fasting status indicator
+                        if (_currentFastingSession != null)
+                          Positioned(
+                            top: 100,
+                            left: 20,
+                            child: _buildFastingStatusIndicator(_currentFastingSession!),
+                          ),
+                        
+                        // Camera switch button
+                        Positioned(
+                          bottom: 20,
+                          left: 20,
+                          child: IconButton(
+                            icon: const Icon(EvaIcons.flip2, color: SnapUIColors.white),
+                            onPressed: _switchCamera,
+                          ),
+                        ),
+                        
+                        // Main camera controls
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
                           child: Container(
-                            width: 70,
-                            height: 70,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: _isRecording ? SnapUIColors.accentRed : SnapUIColors.white,
+                            color: SnapUIColors.black.withAlpha(128),
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                // Fasting snap button (if fasting is active)
+                                if (_currentFastingSession?.isActive == true)
+                                  _buildFastingSnapButton(fastingService),
+                                
+                                // Main camera button
+                                GestureDetector(
+                                  onTap: () => _takePicture(fastingService),
+                                  onLongPressStart: (_) => _startVideoRecording(),
+                                  onLongPressEnd: (_) => _stopVideoRecording(),
+                                  child: Container(
+                                    width: 70,
+                                    height: 70,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: _isRecording ? SnapUIColors.accentRed : SnapUIColors.white,
+                                      border: _currentFastingSession?.isActive == true
+                                          ? Border.all(color: Colors.green, width: 3)
+                                          : null,
+                                    ),
+                                    child: _currentFastingSession?.isActive == true
+                                        ? Icon(Icons.restaurant_menu, color: Colors.green, size: 30)
+                                        : null,
+                                  ),
+                                ),
+                                
+                                // End fasting snap button (if fasting is active)
+                                if (_currentFastingSession?.isActive == true)
+                                  _buildEndFastingSnapButton(fastingService),
+                              ],
                             ),
                           ),
                         ),
                       ],
-                    ),
-                  ),
-                ),
-              ],
+                    );
+                  },
+                );
+              },
             );
           } else {
             return const Center(child: CircularProgressIndicator());
@@ -145,13 +230,18 @@ class _CameraPageState extends State<CameraPage> {
     return XFile(newPath);
   }
 
-  Future<void> _takePicture() async {
+  Future<void> _takePicture(FastingService fastingService) async {
     try {
       await _initializeControllerFuture;
       final image = await _controller.takePicture();
       if (!mounted) return;
 
-            final savedImage = await _saveFilePermanently(image);
+      final savedImage = await _saveFilePermanently(image);
+      
+      // Record snap engagement if fasting is active
+      if (_currentFastingSession?.isActive == true) {
+        await fastingService.recordEngagement(snapTaken: true);
+      }
       
       if (!mounted) return;
       await Navigator.of(context).push(
@@ -160,6 +250,7 @@ class _CameraPageState extends State<CameraPage> {
             picture: savedImage, 
             isVideo: false,
             onStoryPosted: widget.onStoryPosted,
+            fastingSession: _currentFastingSession,
           ),
         ),
       );
@@ -231,6 +322,227 @@ class _CameraPageState extends State<CameraPage> {
           });
         }
       });
+    }
+  }
+
+  /// Build fasting status indicator
+  Widget _buildFastingStatusIndicator(FastingSession session) {
+    Color statusColor;
+    IconData statusIcon;
+    String statusText;
+
+    switch (session.state) {
+      case FastingState.active:
+        statusColor = Colors.green;
+        statusIcon = Icons.timer;
+        statusText = 'Fasting Active';
+        break;
+      case FastingState.paused:
+        statusColor = Colors.orange;
+        statusIcon = Icons.pause;
+        statusText = 'Fasting Paused';
+        break;
+      default:
+        return SizedBox.shrink();
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(statusIcon, color: Colors.white, size: 16),
+          SizedBox(width: 4),
+          Text(
+            statusText,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build fasting snap button (for motivation/progress snaps)
+  Widget _buildFastingSnapButton(FastingService fastingService) {
+    return GestureDetector(
+      onTap: () async {
+        await _takeFastingProgressSnap(fastingService);
+      },
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.green.withOpacity(0.8),
+          border: Border.all(color: Colors.white, width: 2),
+        ),
+        child: Icon(
+          Icons.favorite,
+          color: Colors.white,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  /// Build end fasting snap button
+  Widget _buildEndFastingSnapButton(FastingService fastingService) {
+    return GestureDetector(
+      onTap: () async {
+        await _showEndFastingDialog(fastingService);
+      },
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.red.withOpacity(0.8),
+          border: Border.all(color: Colors.white, width: 2),
+        ),
+        child: Icon(
+          Icons.stop,
+          color: Colors.white,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  /// Take a progress snap during fasting
+  Future<void> _takeFastingProgressSnap(FastingService fastingService) async {
+    try {
+      await _initializeControllerFuture;
+      final image = await _controller.takePicture();
+      if (!mounted) return;
+
+      final savedImage = await _saveFilePermanently(image);
+      
+      // Record engagement and add snap to session
+      await fastingService.recordEngagement(snapTaken: true);
+      
+      // Show quick success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Progress snap captured! 💪'),
+          duration: Duration(seconds: 2),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PreviewPage(
+            picture: savedImage, 
+            isVideo: false,
+            onStoryPosted: widget.onStoryPosted,
+            fastingSession: _currentFastingSession,
+            isFastingProgressSnap: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint("Error taking fasting progress snap: $e");
+    }
+  }
+
+  /// Show dialog to end fasting session with snap
+  Future<void> _showEndFastingDialog(FastingService fastingService) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('End Fasting Session?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Would you like to take a completion snap before ending your fasting session?'),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                Icon(Icons.camera_alt, color: Colors.green),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Capture your achievement!',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.green,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text('Just End Session'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+            ),
+            child: Text('Take Completion Snap'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await _takeCompletionSnap(fastingService);
+    } else if (result == false) {
+      await fastingService.endFastingSession(FastingEndReason.completed);
+    }
+  }
+
+  /// Take a completion snap when ending fasting
+  Future<void> _takeCompletionSnap(FastingService fastingService) async {
+    try {
+      await _initializeControllerFuture;
+      final image = await _controller.takePicture();
+      if (!mounted) return;
+
+      final savedImage = await _saveFilePermanently(image);
+      
+      // End the fasting session
+      await fastingService.endFastingSession(FastingEndReason.completed);
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Fasting completed! Great job! 🎉'),
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PreviewPage(
+            picture: savedImage, 
+            isVideo: false,
+            onStoryPosted: widget.onStoryPosted,
+            fastingSession: _currentFastingSession,
+            isFastingCompletionSnap: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint("Error taking completion snap: $e");
+      // Fallback: just end the session
+      await fastingService.endFastingSession(FastingEndReason.completed);
     }
   }
 } 
