@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../colors.dart';
-import '../typography.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../snap_ui.dart';
 import '../widgets/snap_button.dart';
 import '../widgets/snap_avatar.dart';
 import '../../services/chat_service.dart';
@@ -94,7 +94,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
           IconButton(
             icon: Icon(
               _isAnonymousMode ? Icons.visibility_off : Icons.visibility,
-              color: _isAnonymousMode ? SnapColors.snapYellow : SnapColors.textSecondary,
+              color: _isAnonymousMode ? SnapColors.primaryYellow : SnapColors.textSecondary,
             ),
             onPressed: _toggleAnonymousMode,
           ),
@@ -105,9 +105,9 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: SnapColors.snapYellow,
+          labelColor: SnapColors.primaryYellow,
           unselectedLabelColor: SnapColors.textSecondary,
-          indicatorColor: SnapColors.snapYellow,
+          indicatorColor: SnapColors.primaryYellow,
           tabs: const [
             Tab(text: 'Chat'),
             Tab(text: 'Streaks'),
@@ -143,27 +143,15 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
       child: Row(
         children: [
           Expanded(
-            child: _buildStatItem(
-              'Members',
-              '\${_groupStats['totalMembers'] ?? 0}',
-              Icons.people,
-            ),
+            child: _buildStatItem('Members', '${_groupStats['totalMembers'] ?? 0}', Icons.people),
           ),
           if (_groupStats['activeFasters'] != null) ...[
             Expanded(
-              child: _buildStatItem(
-                'Active Fasters',
-                '\${_groupStats['activeFasters']}',
-                Icons.timer,
-              ),
+              child: _buildStatItem('Active Fasters', '${_groupStats['activeFasters']}', Icons.timer),
             ),
           ],
           Expanded(
-            child: _buildStatItem(
-              'Today\'s Goal',
-              '80%',
-              Icons.target,
-            ),
+            child: _buildStatItem('Today\'s Goal', '80%', Icons.track_changes),
           ),
           IconButton(
             icon: Icon(
@@ -180,11 +168,11 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
   Widget _buildStatItem(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, color: SnapColors.snapYellow, size: 16),
+        Icon(icon, color: SnapColors.primaryYellow, size: 16),
         const SizedBox(height: 4),
         Text(
           value,
-          style: SnapTypography.heading4.copyWith(color: SnapColors.snapYellow),
+          style: SnapTypography.heading3.copyWith(color: SnapColors.primaryYellow),
         ),
         Text(
           label,
@@ -204,7 +192,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
-                  child: CircularProgressIndicator(color: SnapColors.snapYellow),
+                  child: CircularProgressIndicator(color: SnapColors.primaryYellow),
                 );
               }
 
@@ -212,7 +200,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
                 return Center(
                   child: Text(
                     'Error loading messages',
-                    style: SnapTypography.body1.copyWith(color: SnapColors.textSecondary),
+                    style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
                   ),
                 );
               }
@@ -254,11 +242,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
               ),
               SnapButton(
                 text: 'Start Streak',
-                onPressed: _showCreateStreakDialog,
-                backgroundColor: SnapColors.snapYellow,
-                textColor: SnapColors.backgroundDark,
-                fontSize: 12,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                onTap: _showCreateStreakDialog,
               ),
             ],
           ),
@@ -284,7 +268,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(color: SnapColors.snapYellow),
+            child: CircularProgressIndicator(color: SnapColors.primaryYellow),
           );
         }
 
@@ -316,7 +300,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SnapAvatar(userId: senderId, radius: 16),
+          SnapAvatar(name: 'User', radius: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -329,7 +313,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
                     return Text(
                       userData['display_name'] ?? 'Unknown',
                       style: SnapTypography.caption.copyWith(
-                        color: SnapColors.snapYellow,
+                        color: SnapColors.primaryYellow,
                         fontWeight: FontWeight.w600,
                       ),
                     );
@@ -344,7 +328,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
                   ),
                   child: Text(
                     messageText,
-                    style: SnapTypography.body2.copyWith(color: SnapColors.textPrimary),
+                    style: SnapTypography.caption.copyWith(color: SnapColors.textPrimary),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -393,7 +377,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
             ),
           ),
           const SizedBox(width: 12),
-          SnapAvatar(userId: userId, radius: 20),
+          SnapAvatar(name: 'User', radius: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -405,7 +389,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
                     final userData = snapshot.data ?? {};
                     return Text(
                       userData['display_name'] ?? 'Unknown',
-                      style: SnapTypography.body1.copyWith(color: SnapColors.textPrimary),
+                      style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
                     );
                   },
                 ),
@@ -461,7 +445,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
                         width: 30,
                         height: 30,
                         decoration: BoxDecoration(
-                          color: SnapColors.snapYellow,
+                          color: SnapColors.primaryYellow,
                           borderRadius: BorderRadius.circular(15),
                         ),
                         child: Center(
@@ -475,7 +459,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
                       Text(
                         info?['name'] ?? 'Anonymous',
                         style: SnapTypography.caption.copyWith(
-                          color: SnapColors.snapYellow,
+                          color: SnapColors.primaryYellow,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -503,7 +487,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
           const SizedBox(height: 12),
           Text(
             message.content,
-            style: SnapTypography.body2.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.caption.copyWith(color: SnapColors.textPrimary),
           ),
           const SizedBox(height: 12),
           Row(
@@ -550,9 +534,9 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            widget.group.typeIcon.codeUnits.first,
+            Icons.groups,
             size: 60,
-            color: SnapColors.snapYellow,
+            color: SnapColors.primaryYellow,
           ),
           const SizedBox(height: 16),
           Text(
@@ -562,7 +546,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
           const SizedBox(height: 8),
           Text(
             'Share your health journey with the group',
-            style: SnapTypography.body2.copyWith(color: SnapColors.textSecondary),
+            style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
           ),
         ],
       ),
@@ -577,7 +561,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
           const Icon(
             Icons.emoji_events,
             size: 60,
-            color: SnapColors.snapYellow,
+            color: SnapColors.primaryYellow,
           ),
           const SizedBox(height: 16),
           Text(
@@ -587,7 +571,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
           const SizedBox(height: 8),
           Text(
             'Start a group challenge to motivate each other',
-            style: SnapTypography.body2.copyWith(color: SnapColors.textSecondary),
+            style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
           ),
         ],
       ),
@@ -602,7 +586,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
           const Icon(
             Icons.favorite,
             size: 60,
-            color: SnapColors.snapYellow,
+            color: SnapColors.primaryYellow,
           ),
           const SizedBox(height: 16),
           Text(
@@ -612,7 +596,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
           const SizedBox(height: 8),
           Text(
             'Share sensitive topics anonymously\nand get support from the community',
-            style: SnapTypography.body2.copyWith(color: SnapColors.textSecondary),
+            style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
             textAlign: TextAlign.center,
           ),
         ],
@@ -628,16 +612,16 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
         children: [
           if (_tabController.index == 2) // Support tab
             IconButton(
-              icon: const Icon(Icons.psychology, color: SnapColors.snapYellow),
+              icon: const Icon(Icons.psychology, color: SnapColors.primaryYellow),
               onPressed: _showSensitiveTopicDialog,
             ),
           Expanded(
             child: TextField(
               controller: _messageController,
-              style: SnapTypography.body1.copyWith(color: SnapColors.textPrimary),
+              style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
               decoration: InputDecoration(
                 hintText: _getMessageHint(),
-                hintStyle: SnapTypography.body1.copyWith(color: SnapColors.textSecondary),
+                hintStyle: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
@@ -652,7 +636,7 @@ class _HealthGroupChatWidgetState extends State<HealthGroupChatWidget> with Tick
           ),
           const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.send, color: SnapColors.snapYellow),
+            icon: const Icon(Icons.send, color: SnapColors.primaryYellow),
             onPressed: _sendMessage,
           ),
         ],
