@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import '../services/content_filter_service.dart';
 import '../services/fasting_service.dart';
 import '../models/fasting_session.dart';
+import '../models/health_group.dart';
 
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
