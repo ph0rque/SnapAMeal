@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import '../design_system/snap_ui.dart';
 import '../services/health_community_service.dart';
 import '../services/rag_service.dart';
 import '../services/friend_service.dart';
+import '../services/openai_service.dart';
 import '../models/health_group.dart';
-import '../design_system/snap_ui.dart';
-import '../design_system/widgets/snap_button.dart';
-import '../design_system/widgets/snap_textfield.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HealthGroupsPage extends StatefulWidget {
   const HealthGroupsPage({super.key});
@@ -19,24 +18,52 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
   late TabController _tabController;
   late HealthCommunityService _healthCommunityService;
   final TextEditingController _searchController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  
+  List<HealthGroup> _myGroups = [];
+  List<HealthGroup> _discoverGroups = [];
+  List<HealthGroup> _challenges = [];
+  bool _isLoading = false;
+  String? _currentUserId;
+  
   HealthGroupType? _selectedType;
-  String _searchTerm = '';
+  HealthGroupPrivacy? _selectedPrivacy = HealthGroupPrivacy.public;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     
-    // Initialize the health community service
-    final ragService = Provider.of<RAGService>(context, listen: false);
-    final friendService = Provider.of<FriendService>(context, listen: false);
+    // Initialize services
+    final friendService = FriendService();
+    final ragService = RAGService(OpenAIService());
     _healthCommunityService = HealthCommunityService(ragService, friendService);
+    
+    _getCurrentUser();
+    _loadGroups();
+  }
+
+  void _getCurrentUser() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _currentUserId = user.uid;
+      });
+    }
+  }
+
+  Future<void> _loadGroups() async {
+    // Groups are loaded via streams in the UI
+    // This method can be used for any initial setup if needed
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _nameController.dispose();
+    _descriptionController.dispose();
     super.dispose();
   }
 
@@ -65,7 +92,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
         actions: [
           IconButton(
             icon: const Icon(Icons.add, color: SnapColors.primaryYellow),
-            onTap: _showCreateGroupDialog,
+            onPressed: _showCreateGroupDialog,
           ),
         ],
       ),
@@ -124,7 +151,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           child: StreamBuilder<List<HealthGroup>>(
             stream: _healthCommunityService.searchHealthGroups(
               type: _selectedType,
-              searchTerm: _searchTerm.isEmpty ? null : _searchTerm,
+              searchTerm: _searchController.text.isEmpty ? null : _searchController.text,
             ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -177,16 +204,16 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
       color: SnapColors.backgroundLight,
       child: Column(
         children: [
-          SnapTextField(
-            controller: _searchController,
-            hintText: 'Search groups...',
-            prefixIcon: Icons.search,
-            onChanged: (value) {
-              setState(() {
-                _searchTerm = value;
-              });
-            },
-          ),
+                      TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search groups...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
           const SizedBox(height: 12),
           SizedBox(
             height: 40,
@@ -334,15 +361,13 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                 child: SnapButton(
                   text: isMyGroup ? 'View Group' : 'Join Group',
                   onTap: () => _handleGroupAction(group, isMyGroup),
-                  
-                  
                 ),
               ),
               if (!isMyGroup) ...[
                 const SizedBox(width: 8),
                 IconButton(
                   icon: const Icon(Icons.info_outline, color: SnapColors.textSecondary),
-                  onTap: () => _showGroupDetails(group),
+                  onPressed: () => _showGroupDetails(group),
                 ),
               ],
             ],
@@ -385,8 +410,6 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           SnapButton(
             text: 'Discover Groups',
             onTap: () => _tabController.animateTo(1),
-            
-            
           ),
         ],
       ),
@@ -524,12 +547,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                 width: double.infinity,
                 child: SnapButton(
                   text: 'Join Group',
-                  onTap: () {
-                    Navigator.pop(context);
-                    _joinGroup(group);
-                  },
-                  
-                  
+                  onTap: () => _joinGroup(group),
                 ),
               ),
             ],
@@ -557,11 +575,6 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
   }
 
   void _showCreateGroupDialog() {
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-    HealthGroupType selectedType = HealthGroupType.support;
-    HealthGroupPrivacy selectedPrivacy = HealthGroupPrivacy.public;
-
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -576,18 +589,21 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
               mainAxisSize: MainAxisSize.min,
               children: [
                 SnapTextField(
-                  controller: nameController,
+                  controller: _nameController,
                   hintText: 'Group name',
                 ),
                 const SizedBox(height: 12),
-                SnapTextField(
-                  controller: descriptionController,
-                  hintText: 'Group description',
-                  maxLines: 3,
-                ),
+                                  TextField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(
+                      hintText: 'Group description',
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<HealthGroupType>(
-                  value: selectedType,
+                  value: _selectedType,
                   decoration: const InputDecoration(
                     labelText: 'Group Type',
                     border: OutlineInputBorder(),
@@ -601,14 +617,14 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                   onChanged: (value) {
                     if (value != null) {
                       setState(() {
-                        selectedType = value;
+                        _selectedType = value;
                       });
                     }
                   },
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<HealthGroupPrivacy>(
-                  value: selectedPrivacy,
+                  value: _selectedPrivacy,
                   decoration: const InputDecoration(
                     labelText: 'Privacy',
                     border: OutlineInputBorder(),
@@ -622,7 +638,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                   onChanged: (value) {
                     if (value != null) {
                       setState(() {
-                        selectedPrivacy = value;
+                        _selectedPrivacy = value;
                       });
                     }
                   },
@@ -632,22 +648,15 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           ),
           actions: [
             TextButton(
-              onTap: () => Navigator.pop(context),
+              onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancel',
                 style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
               ),
             ),
             SnapButton(
-              text: 'Create',
-              onTap: () => _createGroup(
-                nameController.text,
-                descriptionController.text,
-                selectedType,
-                selectedPrivacy,
-              ),
-              
-              
+              text: 'Create Group',
+              onTap: _createGroup,
             ),
           ],
         ),
@@ -676,7 +685,12 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
     }
   }
 
-  void _createGroup(String name, String description, HealthGroupType type, HealthGroupPrivacy privacy) async {
+  void _createGroup() async {
+    final name = _nameController.text;
+    final description = _descriptionController.text;
+    final type = _selectedType!;
+    final privacy = _selectedPrivacy!;
+
     if (name.isEmpty || description.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

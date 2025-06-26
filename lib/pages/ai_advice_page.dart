@@ -26,6 +26,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
   bool _isGeneratingAdvice = false;
   String? _currentUserId;
   HealthProfile? _healthProfile;
+  List<AIAdvice> _quickSuggestions = [];
 
   @override
   void initState() {
@@ -256,15 +257,15 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _getAdviceTypeColor(advice.type),
-                  borderRadius: BorderRadius.circular(6),
+                  color: _getAdviceTypeColor(advice.type).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
                   _getAdviceTypeIcon(advice.type),
-                  size: 16,
-                  color: SnapColors.backgroundDark,
+                  color: _getAdviceTypeColor(advice.type),
+                  size: 20,
                 ),
               ),
               const SizedBox(width: 8),
@@ -274,7 +275,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                   children: [
                     Text(
                       advice.title,
-                      style: SnapTypography.heading4.copyWith(color: SnapColors.textPrimary),
+                      style: SnapTypography.titleLarge.copyWith(color: SnapColors.textPrimary),
                     ),
                     Text(
                       '${advice.typeDisplayName} • ${advice.categoryDisplayName}',
@@ -300,7 +301,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
             const SizedBox(height: 16),
             Text(
               'Suggested Actions:',
-              style: SnapTypography.heading5.copyWith(color: SnapColors.primaryYellow),
+              style: SnapTypography.headlineMedium.copyWith(color: SnapColors.primaryYellow),
             ),
             const SizedBox(height: 8),
             ...advice.suggestedActions.map((action) => Padding(
@@ -326,7 +327,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                   ),
                 ],
               ),
-            )).toList(),
+            )),
           ],
           
           const SizedBox(height: 16),
@@ -469,11 +470,9 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
       child: Row(
         children: [
           Expanded(
-            child: SnapTextfield(
+            child: SnapTextField(
               controller: _queryController,
               hintText: 'Ask for health advice...',
-              maxLines: null,
-              enabled: !_isGeneratingAdvice,
             ),
           ),
           const SizedBox(width: 12),
@@ -541,7 +540,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
               if (bookmarkedAdvice.isNotEmpty) ...[
                 Text(
                   'Bookmarked Advice',
-                  style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+                  style: SnapTypography.headlineMedium.copyWith(color: SnapColors.textPrimary),
                 ),
                 const SizedBox(height: 16),
                 ...bookmarkedAdvice.map((advice) => _buildAdviceCard(advice)).toList(),
@@ -551,7 +550,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
               // Recent advice
               Text(
                 'Recent Advice',
-                style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+                style: SnapTypography.headlineMedium.copyWith(color: SnapColors.textPrimary),
               ),
               const SizedBox(height: 16),
               ...recentAdvice.map((advice) => _buildAdviceCard(advice)).toList(),
@@ -581,7 +580,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         children: [
           Text(
             'Your AI Advice Stats',
-            style: SnapTypography.heading4.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.titleLarge.copyWith(color: SnapColors.textPrimary),
           ),
           const SizedBox(height: 16),
           Row(
@@ -667,7 +666,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         children: [
           Text(
             'Health Profile',
-            style: SnapTypography.heading4.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.titleLarge.copyWith(color: SnapColors.textPrimary),
           ),
           const SizedBox(height: 16),
           if (_healthProfile != null) ...[
@@ -724,7 +723,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         children: [
           Text(
             'Advice Preferences',
-            style: SnapTypography.heading4.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.titleLarge.copyWith(color: SnapColors.textPrimary),
           ),
           const SizedBox(height: 16),
           SwitchListTile(
@@ -738,7 +737,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
             ),
             value: _healthProfile?.receiveAdvice ?? true,
             onChanged: _toggleAdvicePreference,
-            activeColor: SnapColors.primaryYellow,
+                                  activeThumbColor: SnapColors.primaryYellow,
           ),
         ],
       ),

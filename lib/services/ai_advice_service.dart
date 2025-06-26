@@ -17,8 +17,7 @@ class AIAdviceService {
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final RAGService _ragService = RAGService();
-  final OpenAIService _openAIService = OpenAIService();
+  final RAGService _ragService = RAGService(OpenAIService());
 
   // Collections
   CollectionReference get _adviceCollection => _firestore.collection('ai_advice');
@@ -140,114 +139,149 @@ class AIAdviceService {
 
   Future<Map<String, dynamic>> _analyzeMealPatterns(String userId) async {
     try {
-      final mealLogsQuery = await _firestore
+      final mealLogs = await _firestore
           .collection('meal_logs')
-          .where('userId', isEqualTo: userId)
+          .where('user_id', isEqualTo: userId)
           .orderBy('timestamp', descending: true)
-          .limit(100)
+          .limit(30)
           .get();
 
-      if (mealLogsQuery.docs.isEmpty) return {};
-
-      final mealLogs = mealLogsQuery.docs.map((doc) => MealLog.fromFirestore(doc)).toList();
-
-      // Analyze timing patterns
-      final mealTimes = mealLogs.map((log) => log.timestamp.hour + (log.timestamp.minute / 60.0)).toList();
-      final avgMealTime = mealTimes.reduce((a, b) => a + b) / mealTimes.length;
-
-      // Analyze frequency
-      final daysWithMeals = mealLogs.map((log) => DateTime(log.timestamp.year, log.timestamp.month, log.timestamp.day)).toSet().length;
-      final avgMealsPerDay = mealLogs.length / max(daysWithMeals, 1);
-
-      // Analyze portion sizes and calories
-      final caloriesData = mealLogs.where((log) => log.estimatedCalories != null).map((log) => log.estimatedCalories!).toList();
-      final avgCalories = caloriesData.isEmpty ? 0.0 : caloriesData.reduce((a, b) => a + b) / caloriesData.length;
-
-      // Analyze meal types and nutrition
-      final mealTypes = <String, int>{};
-      final nutritionTrends = <String, List<double>>{
-        'calories': [],
-        'protein': [],
-        'carbs': [],
-        'fat': [],
-      };
-
-      for (final log in mealLogs) {
-        // Count meal types
-        if (log.mealType != null) {
-          mealTypes[log.mealType!] = (mealTypes[log.mealType!] ?? 0) + 1;
-        }
-
-        // Track nutrition trends
-        if (log.estimatedCalories != null) nutritionTrends['calories']!.add(log.estimatedCalories!);
-        if (log.nutritionAnalysis != null) {
-          final nutrition = log.nutritionAnalysis!;
-          if (nutrition['protein'] != null) nutritionTrends['protein']!.add(nutrition['protein'].toDouble());
-          if (nutrition['carbs'] != null) nutritionTrends['carbs']!.add(nutrition['carbs'].toDouble());
-          if (nutrition['fat'] != null) nutritionTrends['fat']!.add(nutrition['fat'].toDouble());
-        }
+      if (mealLogs.docs.isEmpty) {
+        return {
+          'average_calories': 0.0,
+          'meal_frequency': 0.0,
+          'most_common_meal_types': <String>[],
+          'nutrition_balance': <String, double>{},
+          'eating_schedule': <String, double>{},
+        };
       }
 
+      double totalCalories = 0;
+      Map<String, int> mealTypeCount = {};
+      Map<String, double> nutritionTotals = {'protein': 0, 'carbs': 0, 'fat': 0};
+      Map<int, int> hourlyMeals = {};
+
+      for (var doc in mealLogs.docs) {
+        final mealLog = MealLog.fromFirestore(doc);
+        final calories = mealLog.recognitionResult.totalNutrition.calories;
+        totalCalories += calories;
+
+        // Analyze meal timing
+        final hour = mealLog.timestamp.hour;
+        hourlyMeals[hour] = (hourlyMeals[hour] ?? 0) + 1;
+
+        // Analyze nutrition
+        final nutrition = mealLog.recognitionResult.totalNutrition;
+        nutritionTotals['protein'] = (nutritionTotals['protein'] ?? 0) + nutrition.protein;
+        nutritionTotals['carbs'] = (nutritionTotals['carbs'] ?? 0) + nutrition.carbs;
+        nutritionTotals['fat'] = (nutritionTotals['fat'] ?? 0) + nutrition.fat;
+
+        // Categorize meal by time
+        String mealType;
+        if (hour >= 5 && hour < 11) {
+          mealType = 'breakfast';
+        } else if (hour >= 11 && hour < 16) {
+          mealType = 'lunch';
+        } else if (hour >= 16 && hour < 22) {
+          mealType = 'dinner';
+        } else {
+          mealType = 'snack';
+        }
+        mealTypeCount[mealType] = (mealTypeCount[mealType] ?? 0) + 1;
+      }
+
+      final avgCalories = totalCalories / mealLogs.docs.length;
+      final mealFrequency = mealLogs.docs.length / 7.0; // Per week
+
+      // Get most common meal types
+      final sortedMealTypes = mealTypeCount.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      final mostCommonMealTypes = sortedMealTypes.take(3).map((e) => e.key).toList();
+
       return {
-        'averageMealTime': avgMealTime,
-        'averageMealsPerDay': avgMealsPerDay,
-        'averageCaloriesPerMeal': avgCalories,
-        'mealTypeDistribution': mealTypes,
-        'nutritionTrends': nutritionTrends,
-        'totalMealsLogged': mealLogs.length,
-        'daysActive': daysWithMeals,
-        'consistency': _calculateConsistencyScore(mealTimes),
-        'lastAnalyzed': DateTime.now().toIso8601String(),
+        'average_calories': avgCalories,
+        'meal_frequency': mealFrequency,
+        'most_common_meal_types': mostCommonMealTypes,
+        'nutrition_balance': nutritionTotals,
+        'eating_schedule': hourlyMeals.map((k, v) => MapEntry(k.toString(), v.toDouble())),
       };
     } catch (e) {
       debugPrint('Error analyzing meal patterns: $e');
-      return {};
+      return {
+        'average_calories': 0.0,
+        'meal_frequency': 0.0,
+        'most_common_meal_types': <String>[],
+        'nutrition_balance': <String, double>{},
+        'eating_schedule': <String, double>{},
+      };
     }
   }
 
   Future<Map<String, dynamic>> _analyzeFastingPatterns(String userId) async {
     try {
-      final fastingQuery = await _firestore
+      final fastingSessions = await _firestore
           .collection('fasting_sessions')
-          .where('userId', isEqualTo: userId)
-          .orderBy('startTime', descending: true)
-          .limit(50)
+          .where('user_id', isEqualTo: userId)
+          .orderBy('created_at', descending: true)
+          .limit(30)
           .get();
 
-      if (fastingQuery.docs.isEmpty) return {};
+      if (fastingSessions.docs.isEmpty) {
+        return {
+          'average_duration': 0.0,
+          'completion_rate': 0.0,
+          'preferred_times': <String>[],
+          'success_factors': <String>[],
+        };
+      }
 
-      final fastingSessions = fastingQuery.docs.map((doc) => FastingSession.fromFirestore(doc)).toList();
+      double totalDuration = 0;
+      int completedSessions = 0;
+      Map<int, int> startTimeCount = {};
 
-      // Analyze fasting duration patterns
-      final durations = fastingSessions.where((session) => session.duration != null).map((session) => session.duration!.inHours).toList();
-      final avgDuration = durations.isEmpty ? 0.0 : durations.reduce((a, b) => a + b) / durations.length;
+      for (var doc in fastingSessions.docs) {
+        final session = FastingSession.fromJson(doc.data());
+        
+        if (session.actualDuration != null) {
+          totalDuration += session.actualDuration!.inHours;
+        } else if (session.plannedDuration != null) {
+          totalDuration += session.plannedDuration.inHours;
+        }
 
-      // Analyze success rate
-      final completedSessions = fastingSessions.where((session) => session.isCompleted).length;
-      final successRate = fastingSessions.isEmpty ? 0.0 : completedSessions / fastingSessions.length;
+        if (session.state == FastingState.completed) {
+          completedSessions++;
+        }
 
-      // Analyze frequency
-      final daysWithFasting = fastingSessions.map((session) => DateTime(session.startTime.year, session.startTime.month, session.startTime.day)).toSet().length;
-      final avgSessionsPerWeek = (fastingSessions.length / max(daysWithFasting, 1)) * 7;
+        // Analyze start times
+        DateTime? startTime = session.actualStartTime ?? session.plannedStartTime;
+        if (startTime != null) {
+          final hour = startTime.hour;
+          startTimeCount[hour] = (startTimeCount[hour] ?? 0) + 1;
+        }
+      }
 
-      // Analyze timing patterns
-      final startTimes = fastingSessions.map((session) => session.startTime.hour + (session.startTime.minute / 60.0)).toList();
-      final avgStartTime = startTimes.isEmpty ? 0.0 : startTimes.reduce((a, b) => a + b) / startTimes.length;
+      final avgDuration = totalDuration / fastingSessions.docs.length;
+      final completionRate = completedSessions / fastingSessions.docs.length;
+
+      // Get preferred start times
+      final sortedStartTimes = startTimeCount.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      final preferredTimes = sortedStartTimes.take(3).map((e) => '${e.key}:00').toList();
 
       return {
-        'averageDurationHours': avgDuration,
-        'successRate': successRate,
-        'averageSessionsPerWeek': avgSessionsPerWeek,
-        'averageStartTime': avgStartTime,
-        'totalSessions': fastingSessions.length,
-        'completedSessions': completedSessions,
-        'daysActive': daysWithFasting,
-        'consistency': _calculateConsistencyScore(startTimes),
-        'lastAnalyzed': DateTime.now().toIso8601String(),
+        'average_duration': avgDuration,
+        'completion_rate': completionRate,
+        'preferred_times': preferredTimes,
+        'success_factors': <String>['consistency', 'preparation', 'motivation'],
       };
     } catch (e) {
       debugPrint('Error analyzing fasting patterns: $e');
-      return {};
+      return {
+        'average_duration': 0.0,
+        'completion_rate': 0.0,
+        'preferred_times': <String>[],
+        'success_factors': <String>[],
+      };
     }
   }
 
@@ -312,8 +346,8 @@ class AIAdviceService {
     }
 
     // Fasting success rate
-    if (fastingPatterns['successRate'] != null) {
-      score += fastingPatterns['successRate'] * 0.25;
+    if (fastingPatterns['completion_rate'] != null) {
+      score += fastingPatterns['completion_rate'] * 0.25;
       factors++;
     }
 
@@ -441,16 +475,23 @@ class AIAdviceService {
   ) async {
     try {
       // Use RAG service to get relevant health knowledge
-      final ragResults = await _ragService.queryHealthKnowledge(query, context: context);
+      final ragResults = await _ragService.performSemanticSearch(
+        query: query,
+        maxResults: 5,
+      );
 
-      // Build prompt for OpenAI
-      final prompt = _buildAdvicePrompt(query, context, ragResults, type);
+              // Build prompt for OpenAI
+        final prompt = _buildAdvicePrompt(query, context, ragResults.map((r) => r.document.content).toList(), type);
 
-      // Generate advice using OpenAI
-      final response = await _openAIService.generateText(prompt);
+        // Generate advice using OpenAI
+        final response = await OpenAIService().getChatCompletion(prompt);
 
-      // Parse response (assuming structured JSON response)
-      return _parseAdviceResponse(response, ragResults);
+        // Parse response (assuming structured JSON response)
+        if (response != null && response.isNotEmpty) {
+          return _parseAdviceResponse(response, type, query, context);
+        } else {
+          throw Exception('Empty response from OpenAI');
+        }
     } catch (e) {
       debugPrint('Error generating advice with RAG: $e');
       return {
@@ -466,7 +507,7 @@ class AIAdviceService {
   String _buildAdvicePrompt(
     String query,
     Map<String, dynamic> context,
-    Map<String, dynamic> ragResults,
+    List<String> ragResults,
     AdviceType type,
   ) {
     return '''
@@ -508,19 +549,17 @@ Make the advice:
     return buffer.toString();
   }
 
-  String _formatRAGResultsForPrompt(Map<String, dynamic> ragResults) {
+  String _formatRAGResultsForPrompt(List<String> ragResults) {
     if (ragResults.isEmpty) return 'No specific knowledge retrieved.';
     
     final buffer = StringBuffer();
-    if (ragResults['results'] != null) {
-      for (final result in ragResults['results']) {
-        buffer.writeln('- ${result['content']}');
-      }
+    for (final result in ragResults) {
+      buffer.writeln('- $result');
     }
     return buffer.toString();
   }
 
-  Map<String, dynamic> _parseAdviceResponse(String response, Map<String, dynamic> ragResults) {
+  Map<String, dynamic> _parseAdviceResponse(String response, AdviceType type, String query, Map<String, dynamic> context) {
     try {
       // This would parse the JSON response from OpenAI
       // For now, return a structured response
@@ -529,7 +568,7 @@ Make the advice:
         'content': response,
         'summary': 'AI-generated health advice based on your profile',
         'actions': ['Follow the advice provided'],
-        'sources': ragResults['sources'] ?? [],
+        'sources': context['sources'] ?? [],
         'confidence': 0.8,
       };
     } catch (e) {
@@ -908,6 +947,29 @@ Make the advice:
       });
     } catch (e) {
       debugPrint('Error dismissing advice: $e');
+    }
+  }
+
+  Future<String> _generateContextualAdvice(Map<String, dynamic> context, String query) async {
+    try {
+      // Use RAG to get relevant health knowledge
+      final relevantKnowledge = await _ragService.performSemanticSearch(
+        query: query,
+        maxResults: 5,
+      );
+      
+      // Generate advice using OpenAI
+      final advice = await OpenAIService().getChatCompletion(
+        'Based on the following context and knowledge, provide health advice for: $query\n\n'
+        'User Context: ${context.toString()}\n\n'
+        'Relevant Knowledge: ${relevantKnowledge.map((r) => r.document.content).join('\n')}\n\n'
+        'Please provide specific, actionable advice.',
+      );
+      
+      return advice ?? 'I apologize, but I cannot generate advice at this time. Please try again later.';
+    } catch (e) {
+      debugPrint('Error generating contextual advice: $e');
+      return 'I apologize, but I cannot generate advice at this time. Please try again later.';
     }
   }
 } 

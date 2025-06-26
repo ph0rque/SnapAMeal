@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../services/health_community_service.dart';
-import '../services/rag_service.dart';
-import '../services/friend_service.dart';
 import '../design_system/snap_ui.dart';
-import '../design_system/widgets/snap_button.dart';
-import '../design_system/widgets/snap_textfield.dart';
-import '../design_system/widgets/snap_avatar.dart';
+import '../services/health_community_service.dart';
+import '../services/friend_service.dart';
+import '../services/rag_service.dart';
+import '../services/openai_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HealthFriendsPage extends StatefulWidget {
   const HealthFriendsPage({super.key});
@@ -20,19 +18,34 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
   late TabController _tabController;
   late HealthCommunityService _healthCommunityService;
   late FriendService _friendService;
+  
   List<Map<String, dynamic>> _healthSuggestions = [];
-  bool _isLoadingSuggestions = false;
+  List<Map<String, dynamic>> _currentFriends = [];
+  bool _isLoading = false;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
     
-    final ragService = Provider.of<RAGService>(context, listen: false);
-    _friendService = Provider.of<FriendService>(context, listen: false);
+    // Initialize services
+    _friendService = FriendService();
+    final ragService = RAGService(OpenAIService());
     _healthCommunityService = HealthCommunityService(ragService, _friendService);
     
+    _getCurrentUser();
     _loadHealthSuggestions();
+    _loadFriends();
+  }
+
+  void _getCurrentUser() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _currentUserId = user.uid;
+      });
+    }
   }
 
   @override
@@ -42,8 +55,10 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
   }
 
   Future<void> _loadHealthSuggestions() async {
+    if (_currentUserId == null) return;
+    
     setState(() {
-      _isLoadingSuggestions = true;
+      _isLoading = true;
     });
 
     try {
@@ -52,11 +67,33 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
         _healthSuggestions = suggestions;
       });
     } catch (e) {
-      debugPrint('Error loading health suggestions: \$e');
+      debugPrint('Error loading health suggestions: $e');
     } finally {
       setState(() {
-        _isLoadingSuggestions = false;
+        _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadFriends() async {
+    if (_currentUserId == null) return;
+
+    try {
+      final friendsStream = _friendService.getFriendsStream();
+      friendsStream.listen((friends) {
+        if (mounted) {
+          setState(() {
+            _currentFriends = friends.map((friendId) {
+              return {
+                'id': friendId,
+                'display_name': 'Friend $friendId', // Placeholder - would need to fetch actual data
+              };
+            }).toList();
+          });
+        }
+      });
+    } catch (e) {
+      debugPrint('Error loading friends: $e');
     }
   }
 
@@ -79,7 +116,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
           tabs: const [
             Tab(text: 'AI Matches'),
             Tab(text: 'Discover'),
-            Tab(text: 'My Friends'),
           ],
         ),
         actions: [
@@ -94,14 +130,13 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
         children: [
           _buildAIMatchesTab(),
           _buildDiscoverTab(),
-          _buildMyFriendsTab(),
         ],
       ),
     );
   }
 
   Widget _buildAIMatchesTab() {
-    if (_isLoadingSuggestions) {
+    if (_isLoading) {
       return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -156,51 +191,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
           itemCount: users.length,
           itemBuilder: (context, index) {
             return _buildUserCard(users[index]);
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildMyFriendsTab() {
-    return StreamBuilder<List<Map<String, dynamic>>>(
-      stream: _friendService.getFriendsStream().asyncMap((friendIds) async {
-        List<Map<String, dynamic>> friends = [];
-        for (String friendId in friendIds) {
-          final userData = await _friendService.getUserData(friendId);
-          if (userData.exists) {
-            friends.add(userData.data() as Map<String, dynamic>);
-          }
-        }
-        return friends;
-      }),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: SnapColors.primaryYellow),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Center(
-            child: Text(
-              'Error loading friends: \${snapshot.error}',
-              style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
-            ),
-          );
-        }
-
-        final friends = snapshot.data ?? [];
-
-        if (friends.isEmpty) {
-          return _buildEmptyFriendsState();
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: friends.length,
-          itemBuilder: (context, index) {
-            return _buildFriendCard(friends[index]);
           },
         );
       },
@@ -328,8 +318,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
                 child: SnapButton(
                   text: 'Add Friend',
                   onTap: () => _sendFriendRequest(userId),
-                  
-                  
                 ),
               ),
               const SizedBox(width: 8),
@@ -394,8 +382,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
                 child: SnapButton(
                   text: 'Add Friend',
                   onTap: () => _sendFriendRequest(userId),
-                  
-                  
                 ),
               ),
               const SizedBox(width: 8),
@@ -404,57 +390,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
                 onPressed: () => _showUserProfile(userId),
               ),
             ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFriendCard(Map<String, dynamic> friend) {
-    final userId = friend['uid'] as String;
-    final displayName = friend['display_name'] as String? ?? 'Unknown User';
-    final bio = friend['bio'] as String? ?? '';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: SnapColors.backgroundLight,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.border),
-      ),
-      child: Row(
-        children: [
-          SnapAvatar(
-            name: 'User',
-            radius: 25,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  displayName,
-                  style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
-                ),
-                if (bio.isNotEmpty)
-                  Text(
-                    bio,
-                    style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.chat, color: SnapColors.primaryYellow),
-            onTap: () => _startChat(userId),
-          ),
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: SnapColors.textSecondary),
-            onTap: () => _showFriendOptions(userId, displayName),
           ),
         ],
       ),
@@ -494,49 +429,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
           SnapButton(
             text: 'Complete Profile',
             onTap: _showHealthProfileSetup,
-            
-            
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyFriendsState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: SnapColors.primaryYellow.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(40),
-            ),
-            child: const Icon(
-              Icons.people,
-              size: 40,
-              color: SnapColors.primaryYellow,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No Friends Yet',
-            style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start connecting with people who share\nyour health and fitness goals',
-            style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          SnapButton(
-            text: 'Find Friends',
-            onTap: () => _tabController.animateTo(0),
-            
-            
           ),
         ],
       ),
@@ -551,124 +443,37 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
   }
 
   void _sendFriendRequest(String userId) async {
-    final success = await _friendService.sendFriendRequest(userId);
-    
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success ? 'Friend request sent!' : 'Failed to send friend request',
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: success ? Colors.green : Colors.red,
-        ),
-      );
-    }
-  }
-
-  void _startChat(String userId) {
-    Navigator.pushNamed(context, '/chat', arguments: userId);
-  }
-
-  void _showUserProfile(String userId) {
-    Navigator.pushNamed(context, '/user_profile', arguments: userId);
-  }
-
-  void _showFriendOptions(String userId, String displayName) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: SnapColors.backgroundLight,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.chat, color: SnapColors.primaryYellow),
-              title: Text(
-                'Message \$displayName',
-                style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _startChat(userId);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person, color: SnapColors.primaryYellow),
-              title: Text(
-                'View Profile',
-                style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _showUserProfile(userId);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person_remove, color: Colors.red),
-              title: Text(
-                'Remove Friend',
-                style: SnapTypography.body.copyWith(color: Colors.red),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                _removeFriend(userId, displayName);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _removeFriend(String userId, String displayName) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: SnapColors.backgroundLight,
-        title: Text(
-          'Remove Friend',
-          style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
-        ),
-        content: Text(
-          'Are you sure you want to remove \$displayName from your friends?',
-          style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onTap: () => Navigator.pop(context, false),
-            child: Text(
-              'Cancel',
-              style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
-            ),
-          ),
-          TextButton(
-            onTap: () => Navigator.pop(context, true),
-            child: Text(
-              'Remove',
-              style: SnapTypography.body.copyWith(color: Colors.red),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      final success = await _friendService.removeFriend(userId);
+    try {
+      await _friendService.sendFriendRequest(userId);
       
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Friend request sent!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              success ? 'Friend removed' : 'Failed to remove friend',
+              'Failed to send friend request: $e',
               style: const TextStyle(color: Colors.white),
             ),
-            backgroundColor: success ? Colors.green : Colors.red,
+            backgroundColor: Colors.red,
           ),
         );
       }
     }
+  }
+
+  void _showUserProfile(String userId) {
+    Navigator.pushNamed(context, '/user_profile', arguments: userId);
   }
 
   void _showHealthProfileSetup() {
@@ -754,8 +559,6 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
                     // TODO: Implement profile saving
                     _loadHealthSuggestions();
                   },
-                  
-                  
                 ),
               ),
             ],

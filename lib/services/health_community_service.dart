@@ -540,12 +540,13 @@ class HealthCommunityService {
       Keep it brief and encouraging (1-2 sentences).
       ''';
 
-      final response = await _ragService.getHealthAdvice(
-        query: prompt,
-        context: {'user_profile': userProfile, 'suggestion': suggestion},
+      // Use RAG service to get health-related advice for friend suggestions
+      final healthAdvice = await _ragService.performSemanticSearch(
+        query: 'health friend recommendations based on profile: $context',
+        maxResults: 3,
       );
-
-      return response ?? 'You share similar health goals and could motivate each other!';
+      
+      return healthAdvice.map((result) => result.document.content).join('\n');
     } catch (e) {
       debugPrint('Error generating suggestion reason: $e');
       return 'You share similar health goals and could motivate each other!';
