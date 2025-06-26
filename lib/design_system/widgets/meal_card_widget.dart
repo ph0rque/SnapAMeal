@@ -550,6 +550,7 @@ class MealStatsWidget extends StatelessWidget {
       fiber: totalFiber,
       sugar: totalSugar,
       sodium: totalSodium,
+      servingSize: mealLogs.fold(0.0, (sum, meal) => sum + meal.recognitionResult.totalNutrition.servingSize),
       vitamins: {},
       minerals: {},
     );

@@ -15,6 +15,7 @@ class MealLog {
   final HungerLevel? hungerLevel;
   final List<RecipeSuggestion>? recipeSuggestions;
   final Map<String, dynamic> metadata;
+  final String? myFitnessPalFoodId; // For MyFitnessPal integration
 
   MealLog({
     required this.id,
@@ -30,6 +31,7 @@ class MealLog {
     this.hungerLevel,
     this.recipeSuggestions,
     required this.metadata,
+    this.myFitnessPalFoodId,
   });
 
   Map<String, dynamic> toJson() {
@@ -47,6 +49,7 @@ class MealLog {
       'hunger_level': hungerLevel?.toJson(),
       'recipe_suggestions': recipeSuggestions?.map((r) => r.toJson()).toList(),
       'metadata': metadata,
+      'myfitnesspal_food_id': myFitnessPalFoodId,
     };
   }
 
@@ -67,6 +70,7 @@ class MealLog {
           ? (json['recipe_suggestions'] as List).map((r) => RecipeSuggestion.fromJson(r)).toList()
           : null,
       metadata: json['metadata'] ?? {},
+      myFitnessPalFoodId: json['myfitnesspal_food_id'],
     );
   }
 
@@ -176,6 +180,7 @@ class NutritionInfo {
   final double fiber; // grams
   final double sugar; // grams
   final double sodium; // mg
+  final double servingSize; // serving size in grams
   final Map<String, double> vitamins; // vitamin -> amount
   final Map<String, double> minerals; // mineral -> amount
 
@@ -187,6 +192,7 @@ class NutritionInfo {
     required this.fiber,
     required this.sugar,
     required this.sodium,
+    required this.servingSize,
     required this.vitamins,
     required this.minerals,
   });
@@ -200,6 +206,7 @@ class NutritionInfo {
       'fiber': fiber,
       'sugar': sugar,
       'sodium': sodium,
+      'serving_size': servingSize,
       'vitamins': vitamins,
       'minerals': minerals,
     };
@@ -214,6 +221,7 @@ class NutritionInfo {
       fiber: json['fiber']?.toDouble() ?? 0.0,
       sugar: json['sugar']?.toDouble() ?? 0.0,
       sodium: json['sodium']?.toDouble() ?? 0.0,
+      servingSize: json['serving_size']?.toDouble() ?? 100.0,
       vitamins: Map<String, double>.from(json['vitamins'] ?? {}),
       minerals: Map<String, double>.from(json['minerals'] ?? {}),
     );

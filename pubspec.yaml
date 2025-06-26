@@ -68,6 +68,10 @@ dependencies:
   image: ^4.1.7
   image_picker: ^1.0.7
 
+  # Data Export Dependencies
+  csv: ^6.0.0
+  share_plus: ^7.2.2
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

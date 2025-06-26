@@ -330,6 +330,7 @@ Format the response as JSON with this structure:
           fiber: (baseNutrition['fiber'] ?? 2.0) * scaleFactor,
           sugar: (baseNutrition['sugar'] ?? 5.0) * scaleFactor,
           sodium: (baseNutrition['sodium'] ?? 50.0) * scaleFactor,
+          servingSize: weightGrams,
           vitamins: {},
           minerals: {},
         );
@@ -369,6 +370,7 @@ All values should be numbers (not strings) and represent the total amount for th
           fiber: nutritionData['fiber']?.toDouble() ?? 0.0,
           sugar: nutritionData['sugar']?.toDouble() ?? 0.0,
           sodium: nutritionData['sodium']?.toDouble() ?? 0.0,
+          servingSize: weightGrams,
           vitamins: {},
           minerals: {},
         );
@@ -392,6 +394,7 @@ All values should be numbers (not strings) and represent the total amount for th
       fiber: weightGrams * 0.02,
       sugar: weightGrams * 0.05,
       sodium: weightGrams * 0.5,
+      servingSize: weightGrams,
       vitamins: {},
       minerals: {},
     );
@@ -425,6 +428,7 @@ All values should be numbers (not strings) and represent the total amount for th
       fiber: totalFiber,
       sugar: totalSugar,
       sodium: totalSodium,
+      servingSize: foods.fold(0.0, (sum, food) => sum + food.nutrition.servingSize),
       vitamins: {},
       minerals: {},
     );

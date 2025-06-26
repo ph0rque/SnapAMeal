@@ -131,13 +131,13 @@ Based on the Phase 2.0 PRD for transforming SnapAMeal from a Snapchat clone to a
   - [x] 6.7 Add proactive advice triggers based on user context and timing
 
 - [ ] 7.0 Health App Integrations & Data Export
-  - [ ] 7.1 Implement MyFitnessPal API integration for food database and logging sync
-  - [ ] 7.2 Build Apple Health integration for iOS health data sync
-  - [ ] 7.3 Create Google Fit integration for Android health data sync
-  - [ ] 7.4 Design modular integration dashboard for connection management
-  - [ ] 7.5 Implement comprehensive data export functionality (CSV, JSON formats)
-  - [ ] 7.6 Create data conflict resolution logic for overlapping information
-  - [ ] 7.7 Add privacy controls for data sharing and integration permissions
+  - [x] 7.1 Implement MyFitnessPal API integration for food database and logging sync
+  - [x] 7.2 Build Apple Health integration for iOS health data sync
+  - [x] 7.3 Create Google Fit integration for Android health data sync
+  - [x] 7.4 Design modular integration dashboard for connection management
+  - [x] 7.5 Implement comprehensive data export functionality (CSV, JSON formats)
+  - [x] 7.6 Create data conflict resolution logic for overlapping information
+  - [x] 7.7 Add privacy controls for data sharing and integration permissions
 
 - [ ] 8.0 User Experience Transformation & Health Data Migration
   - [ ] 8.1 Redesign main navigation from social media to health-focused layout
