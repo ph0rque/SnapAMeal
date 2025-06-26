@@ -16,6 +16,7 @@ class AIAdvicePage extends StatefulWidget {
 
 class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMixin {
   final AIAdviceService _adviceService = AIAdviceService();
+  final AuthService _authService = AuthService();
   final TextEditingController _queryController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   
@@ -653,6 +654,25 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
             text: 'Update Health Profile',
             onTap: _updateHealthProfile,
           ),
+          
+          const SizedBox(height: 16),
+          
+          // Logout button
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _showLogoutDialog,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: SnapColors.error,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Logout'),
+            ),
+          ),
         ],
       ),
     );
@@ -858,5 +878,29 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         }
       }
     }
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _authService.signOut();
+            },
+            style: TextButton.styleFrom(foregroundColor: SnapColors.error),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
   }
 } 

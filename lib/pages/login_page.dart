@@ -73,6 +73,28 @@ class LoginPage extends StatelessWidget {
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
 
+              const SizedBox(height: 10),
+
+              // user switching info
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.symmetric(horizontal: 32),
+                decoration: BoxDecoration(
+                  color: SnapUIColors.primaryYellow.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: SnapUIColors.primaryYellow.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Text(
+                  "💡 Tip: You can easily switch between different user accounts by logging out and logging back in with different credentials.",
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: SnapUIColors.secondaryDark,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+
               const SizedBox(height: 25),
 
               // email textfield

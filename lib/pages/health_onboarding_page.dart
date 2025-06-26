@@ -401,7 +401,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Help us calculate your personalized metrics',
+              'Help us personalize your health recommendations',
               style: SnapTypography.body.copyWith(
                 color: SnapColors.textSecondary,
               ),
@@ -465,25 +465,25 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
             ),
             const SizedBox(height: 24),
             
-            // BMI calculation
+            // Health info summary
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: SnapColors.accentGreen.withValues(alpha: 0.1),
+                color: SnapColors.accentBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
                 children: [
                   Icon(
-                    Icons.calculate,
-                    color: SnapColors.accentGreen,
+                    Icons.info_outline,
+                    color: SnapColors.accentBlue,
                     size: 24,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Your current BMI: ${(_currentWeight / ((_height / 100) * (_height / 100))).toStringAsFixed(1)}',
+                      'We\'ll use your height and weight to calculate personalized daily calorie needs and provide tailored nutrition recommendations.',
                       style: SnapTypography.body.copyWith(
                         color: SnapColors.textPrimary,
                         fontWeight: FontWeight.w600,

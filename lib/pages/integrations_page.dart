@@ -512,7 +512,43 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
             ),
           ],
         ),
+        const SizedBox(height: 24),
+        _buildSettingsSection(
+          'Account',
+          [
+            _buildSettingsTile(
+              'Logout',
+              'Sign out of your account',
+              Icons.logout,
+              onTap: _showLogoutDialog,
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _authService.signOut();
+            },
+            style: TextButton.styleFrom(foregroundColor: SnapColors.error),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
     );
   }
 

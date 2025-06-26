@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../design_system/snap_ui.dart';
+import '../services/auth_service.dart';
 
 
 import '../providers/fasting_state_provider.dart';
@@ -26,6 +27,7 @@ class HealthDashboardPage extends StatefulWidget {
 
 class _HealthDashboardPageState extends State<HealthDashboardPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final AuthService _authService = AuthService();
 
 
   HealthProfile? _healthProfile;
@@ -297,6 +299,28 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
                     ),
                   );
                 },
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.account_circle_outlined),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'logout':
+                      _showLogoutDialog();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: SnapColors.error),
+                        SizedBox(width: 8),
+                        Text('Logout', style: TextStyle(color: SnapColors.error)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1004,6 +1028,30 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _authService.signOut();
+            },
+            style: TextButton.styleFrom(foregroundColor: SnapColors.error),
+            child: const Text('Logout'),
+          ),
+        ],
       ),
     );
   }

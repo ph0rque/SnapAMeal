@@ -96,6 +96,30 @@ class _HomePageState extends State<HomePage> {
     _authService.signOut();
   }
 
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              await _authService.signOut();
+            },
+            style: TextButton.styleFrom(foregroundColor: SnapUIColors.accentRed),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<FastingStateProvider>(
@@ -111,6 +135,28 @@ class _HomePageState extends State<HomePage> {
                 onPressed: () {
                   Navigator.pushNamed(context, '/settings');
                 },
+              ),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.account_circle_outlined),
+                onSelected: (value) {
+                  switch (value) {
+                    case 'logout':
+                      _showLogoutDialog();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'logout',
+                    child: Row(
+                      children: [
+                        Icon(Icons.logout, color: SnapUIColors.accentRed),
+                        SizedBox(width: 8),
+                        Text('Logout', style: TextStyle(color: SnapUIColors.accentRed)),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
