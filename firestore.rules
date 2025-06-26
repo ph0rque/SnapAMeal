@@ -104,6 +104,14 @@ service cloud.firestore {
       }
     }
 
+    // Fasting sessions (alternative structure used by the service)
+    match /fasting_sessions/{sessionId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.user_id;
+    }
+
     // Meal logs - users can only access their own meal logs
     match /mealLogs/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
@@ -181,6 +189,11 @@ service cloud.firestore {
 
     // User preferences and settings
     match /userPreferences/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // User settings (including fasting settings)
+    match /user_settings/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 

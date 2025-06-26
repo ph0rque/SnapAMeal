@@ -182,65 +182,69 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
   Widget _buildWelcomePage() {
     return Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              color: SnapColors.primaryYellow.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: SnapColors.primaryYellow.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.favorite,
+                size: 60,
+                color: SnapColors.primaryYellow,
+              ),
             ),
-            child: Icon(
-              Icons.favorite,
-              size: 60,
-              color: SnapColors.primaryYellow,
+            const SizedBox(height: 32),
+            Text(
+              'Welcome to Your Health Journey! 🌟',
+              style: SnapTypography.heading1.copyWith(
+                color: SnapColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(height: 32),
-          Text(
-            'Welcome to Your Health Journey! 🌟',
-            style: SnapTypography.heading1.copyWith(
-              color: SnapColors.textPrimary,
+            const SizedBox(height: 16),
+            Text(
+              'Let\'s set up your personalized health profile to provide you with AI-powered insights and recommendations tailored just for you.',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Let\'s set up your personalized health profile to provide you with AI-powered insights and recommendations tailored just for you.',
-            style: SnapTypography.body.copyWith(
-              color: SnapColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: SnapColors.accentBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.security,
-                  color: SnapColors.accentBlue,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Your health data is private and secure. We use it only to provide personalized recommendations.',
-                    style: SnapTypography.caption.copyWith(
-                      color: SnapColors.textSecondary,
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: SnapColors.accentBlue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.security,
+                    color: SnapColors.accentBlue,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Your health data is private and secure. We use it only to provide personalized recommendations.',
+                      style: SnapTypography.caption.copyWith(
+                        color: SnapColors.textSecondary,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            // Add some bottom padding for smaller screens
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
@@ -248,110 +252,114 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
   Widget _buildBasicInfoPage() {
     return Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Tell us about yourself',
-            style: SnapTypography.heading2.copyWith(
-              color: SnapColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'This helps us personalize your experience',
-            style: SnapTypography.body.copyWith(
-              color: SnapColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 32),
-          
-          // Name input
-          Text(
-            'What should we call you?',
-            style: SnapTypography.body.copyWith(
-              fontWeight: FontWeight.w600,
-              color: SnapColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            onChanged: (value) => setState(() => _name = value),
-            decoration: InputDecoration(
-              hintText: 'Enter your name',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tell us about yourself',
+              style: SnapTypography.heading2.copyWith(
+                color: SnapColors.textPrimary,
               ),
-              filled: true,
-              fillColor: SnapColors.white,
             ),
-          ),
-          const SizedBox(height: 24),
-          
-          // Age slider
-          Text(
-            'Age: $_age years',
-            style: SnapTypography.body.copyWith(
-              fontWeight: FontWeight.w600,
-              color: SnapColors.textPrimary,
+            const SizedBox(height: 8),
+            Text(
+              'This helps us personalize your experience',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Slider(
-            value: _age.toDouble(),
-            min: 16,
-            max: 80,
-            divisions: 64,
-            activeColor: SnapColors.primaryYellow,
-            onChanged: (value) => setState(() => _age = value.round()),
-          ),
-          const SizedBox(height: 24),
-          
-          // Gender selection
-          Text(
-            'Gender',
-            style: SnapTypography.body.copyWith(
-              fontWeight: FontWeight.w600,
-              color: SnapColors.textPrimary,
+            const SizedBox(height: 32),
+            
+            // Name input
+            Text(
+              'What should we call you?',
+              style: SnapTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: SnapColors.textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: Gender.values.map((gender) {
-              final isSelected = _gender == gender;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: GestureDetector(
-                    onTap: () => setState(() => _gender = gender),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      decoration: BoxDecoration(
-                        color: isSelected 
-                            ? SnapColors.primaryYellow.withValues(alpha: 0.1)
-                            : SnapColors.greyLight,
-                        borderRadius: BorderRadius.circular(12),
-                        border: isSelected 
-                            ? Border.all(color: SnapColors.primaryYellow, width: 2)
-                            : null,
-                      ),
-                      child: Text(
-                        _getGenderDisplayName(gender),
-                        style: SnapTypography.body.copyWith(
+            const SizedBox(height: 8),
+            TextField(
+              onChanged: (value) => setState(() => _name = value),
+              decoration: InputDecoration(
+                hintText: 'Enter your name',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                filled: true,
+                fillColor: SnapColors.white,
+              ),
+            ),
+            const SizedBox(height: 24),
+            
+            // Age slider
+            Text(
+              'Age: $_age years',
+              style: SnapTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: SnapColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Slider(
+              value: _age.toDouble(),
+              min: 16,
+              max: 80,
+              divisions: 64,
+              activeColor: SnapColors.primaryYellow,
+              onChanged: (value) => setState(() => _age = value.round()),
+            ),
+            const SizedBox(height: 24),
+            
+            // Gender selection
+            Text(
+              'Gender',
+              style: SnapTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: SnapColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: Gender.values.map((gender) {
+                final isSelected = _gender == gender;
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: GestureDetector(
+                      onTap: () => setState(() => _gender = gender),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
                           color: isSelected 
-                              ? SnapColors.primaryYellow 
-                              : SnapColors.textSecondary,
-                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                              ? SnapColors.primaryYellow.withValues(alpha: 0.1)
+                              : SnapColors.greyLight,
+                          borderRadius: BorderRadius.circular(12),
+                          border: isSelected 
+                              ? Border.all(color: SnapColors.primaryYellow, width: 2)
+                              : null,
                         ),
-                        textAlign: TextAlign.center,
+                        child: Text(
+                          _getGenderDisplayName(gender),
+                          style: SnapTypography.body.copyWith(
+                            color: isSelected 
+                                ? SnapColors.primaryYellow 
+                                : SnapColors.textSecondary,
+                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
+                );
+              }).toList(),
+            ),
+            // Add some bottom padding to ensure scrolling works properly
+            const SizedBox(height: 40),
+          ],
+        ),
       ),
     );
   }
