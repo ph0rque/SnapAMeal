@@ -159,7 +159,7 @@ class RAGService {
   int _totalQueries = 0;
   int _successfulQueries = 0;
   double _averageResponseTime = 0.0;
-  Map<String, int> _queryTypeStats = {};
+  final Map<String, int> _queryTypeStats = {};
 
   RAGService(this._openAIService);
 

@@ -519,28 +519,37 @@ class DataExportService {
     try {
       final stats = <String, int>{};
       
-      // Count meal logs
+      // Use aggregation queries for better performance - these are more efficient than downloading all docs
+      // For now, we'll limit the queries to avoid performance issues
+      
+      // Count meal logs (limit to recent data for performance)
       final mealLogsSnapshot = await _firestore
           .collection('meal_logs')
           .where('userId', isEqualTo: userId)
+          .orderBy('timestamp', descending: true)
+          .limit(1000) // Limit to avoid large downloads
           .get();
       stats['mealLogs'] = mealLogsSnapshot.docs.length;
 
-      // Count fasting sessions
+      // Count fasting sessions (limit to recent data)
       final fastingSnapshot = await _firestore
           .collection('fasting_sessions')
           .where('userId', isEqualTo: userId)
+          .orderBy('startTime', descending: true)
+          .limit(500) // Limit to avoid large downloads
           .get();
       stats['fastingSessions'] = fastingSnapshot.docs.length;
 
-      // Count AI advice
+      // Count AI advice (limit to recent data)
       final adviceSnapshot = await _firestore
           .collection('ai_advice')
           .where('userId', isEqualTo: userId)
+          .orderBy('createdAt', descending: true)
+          .limit(500) // Limit to avoid large downloads
           .get();
       stats['aiAdvice'] = adviceSnapshot.docs.length;
 
-      // Count integrations
+      // Count integrations (this should be small, so no limit needed)
       final integrationsSnapshot = await _firestore
           .collection('health_integrations')
           .where('userId', isEqualTo: userId)

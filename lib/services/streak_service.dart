@@ -140,7 +140,7 @@ class SharedStreak {
   /// Get average streak across all members
   double get averageStreak {
     if (memberStreaks.isEmpty) return 0.0;
-    final total = memberStreaks.values.fold(0, (sum, streak) => sum + streak.currentStreak);
+    final total = memberStreaks.values.fold(0, (acc, streak) => acc + streak.currentStreak);
     return total / memberStreaks.length;
   }
 

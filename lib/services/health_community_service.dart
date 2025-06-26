@@ -158,23 +158,29 @@ class HealthCommunityService {
       query = query.where('type', isEqualTo: type.name);
     }
 
+    // Add server-side filtering for tags when possible
+    if (tags.isNotEmpty && tags.length == 1) {
+      // For single tag, we can use server-side filtering
+      query = query.where('tags', arrayContains: tags.first);
+    }
+
     return query
-        .orderBy('member_ids', descending: true)
-        .limit(20)
+        .orderBy('member_count', descending: true) // Order by member count for better results
+        .limit(50) // Increased limit to account for client-side filtering
         .snapshots()
         .map((snapshot) {
       var groups = snapshot.docs
           .map((doc) => HealthGroup.fromFirestore(doc))
           .toList();
 
-      // Filter by tags if provided
-      if (tags.isNotEmpty) {
+      // Filter by multiple tags if provided (client-side for complex queries)
+      if (tags.length > 1) {
         groups = groups.where((group) => 
             group.tags.any((tag) => tags.contains(tag))
         ).toList();
       }
 
-      // Filter by search term if provided
+      // Filter by search term if provided (client-side for text search)
       if (searchTerm != null && searchTerm.isNotEmpty) {
         final lowerSearchTerm = searchTerm.toLowerCase();
         groups = groups.where((group) =>
@@ -184,7 +190,8 @@ class HealthCommunityService {
         ).toList();
       }
 
-      return groups;
+      // Limit final results after filtering
+      return groups.take(20).toList();
     });
   }
 

@@ -19,7 +19,9 @@ class SnapUITypography {
         fontSize: fontSize,
         fontWeight: fontWeight,
         color: color,
-        fallbackFontFamily: _fallbackFontFamily,
+      ).copyWith(
+        // Add fallback fonts in the fontFamilyFallback list
+        fontFamilyFallback: const [_fallbackFontFamily, 'Helvetica', 'Arial'],
       );
     } catch (e) {
       // Fallback to system font if Google Fonts fails
@@ -28,6 +30,7 @@ class SnapUITypography {
         fontSize: fontSize,
         fontWeight: fontWeight,
         color: color,
+        fontFamilyFallback: const ['Helvetica', 'Arial'],
       );
     }
   }

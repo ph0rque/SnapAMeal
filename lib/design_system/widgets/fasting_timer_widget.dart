@@ -636,17 +636,24 @@ class _FastingStartDialogState extends State<FastingStartDialog> {
             SizedBox(height: 12),
             
             // Fasting type selection
-            ...FastingType.values.map((type) => RadioListTile<FastingType>(
+            ...FastingType.values.map((type) => ListTile(
+              leading: Radio<FastingType>(
+                value: type,
+                groupValue: _selectedType,
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() {
+                      _selectedType = value;
+                    });
+                  }
+                },
+              ),
               title: Text(_getTypeDescription(type)),
               subtitle: Text(_getTypeDuration(type)),
-              value: type,
-              groupValue: _selectedType,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedType = value;
-                  });
-                }
+              onTap: () {
+                setState(() {
+                  _selectedType = type;
+                });
               },
             )),
             

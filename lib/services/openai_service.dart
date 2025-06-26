@@ -288,8 +288,8 @@ class CostOptimizer {
 
 /// Enhanced OpenAI service with comprehensive monitoring and optimization
 class OpenAIService {
-  late final SharedPreferences _prefs;
   late final CostOptimizer _optimizer;
+  late final SharedPreferences _prefs;
   
   // Usage tracking
   APIUsageStats _currentStats = APIUsageStats.empty();
