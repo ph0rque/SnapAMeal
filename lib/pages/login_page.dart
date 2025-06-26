@@ -3,26 +3,28 @@ import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 
-class LoginPage extends StatelessWidget {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _pwController = TextEditingController();
-
+class LoginPage extends StatefulWidget {
   final void Function()? onTap;
 
-  LoginPage({super.key, required this.onTap});
+  const LoginPage({super.key, required this.onTap});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _pwController = TextEditingController();
+  bool _isLoading = false;
 
   void login(BuildContext context) async {
-    // auth service
-    final authService = AuthService();
+    if (_isLoading) return; // Prevent multiple simultaneous login attempts
+    
+    setState(() {
+      _isLoading = true;
+    });
 
-    // show loading circle
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    final authService = AuthService();
 
     // try login
     try {
@@ -30,22 +32,64 @@ class LoginPage extends StatelessWidget {
         _emailController.text,
         _pwController.text,
       );
-
-      // pop loading circle
-      if (context.mounted) Navigator.pop(context);
-    }
-
-    // catch any errors
-    catch (e) {
-      // pop loading circle
-      if (context.mounted) Navigator.pop(context);
+    } catch (e) {
       if (context.mounted) {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(e.toString()),
+            title: const Text('Login Failed'),
+            content: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
           ),
         );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _demoLogin(BuildContext context, String persona) async {
+    if (_isLoading) return; // Prevent multiple simultaneous login attempts
+    
+    setState(() {
+      _isLoading = true;
+    });
+
+    final authService = AuthService();
+
+    // try demo login
+    try {
+      await authService.signInWithDemoAccount(persona);
+    } catch (e) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Demo Login Failed'),
+            content: Text(e.toString()),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -54,9 +98,11 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Column(
+      body: Stack(
+        children: [
+          Center(
+            child: SingleChildScrollView(
+              child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // logo
@@ -97,6 +143,79 @@ class LoginPage extends StatelessWidget {
 
               const SizedBox(height: 25),
 
+              // demo login section
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(horizontal: 32),
+                decoration: BoxDecoration(
+                  color: SnapUIColors.secondaryDark.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: SnapUIColors.secondaryDark.withValues(alpha: 0.1),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      "Quick Demo Login",
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: SnapUIColors.secondaryDark,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SnapButton(
+                            onTap: _isLoading ? null : () => _demoLogin(context, 'alice'),
+                            text: "Alice",
+                            type: SnapButtonType.secondary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: SnapButton(
+                            onTap: _isLoading ? null : () => _demoLogin(context, 'bob'),
+                            text: "Bob",
+                            type: SnapButtonType.secondary,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: SnapButton(
+                            onTap: _isLoading ? null : () => _demoLogin(context, 'charlie'),
+                            text: "Charlie",
+                            type: SnapButtonType.secondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 25),
+
+              // divider
+              Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      "or",
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: SnapUIColors.secondaryDark.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ),
+                  const Expanded(child: Divider()),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
               // email textfield
               SnapTextField(
                 hintText: "Email",
@@ -117,8 +236,8 @@ class LoginPage extends StatelessWidget {
 
               // sign in button
               SnapButton(
-                onTap: () => login(context),
-                text: "Login",
+                onTap: _isLoading ? null : () => login(context),
+                text: _isLoading ? "Signing in..." : "Login",
               ),
 
               const SizedBox(height: 25),
@@ -132,7 +251,7 @@ class LoginPage extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   GestureDetector(
-                    onTap: onTap,
+                    onTap: widget.onTap,
                     child: Text(
                       "Register now",
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -145,6 +264,16 @@ class LoginPage extends StatelessWidget {
             ],
           ),
         ),
+        ),
+          // Loading overlay
+          if (_isLoading)
+            Container(
+              color: Colors.black.withValues(alpha: 0.3),
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
       ),
     );
   }
