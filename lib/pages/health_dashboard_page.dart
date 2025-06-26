@@ -134,11 +134,10 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
       final fastingStats = await _calculateFastingStats(userId);
       metrics.addAll(fastingStats);
       
-      // Weight and BMI from health profile
+      // Weight and health metrics from health profile
       if (_healthProfile != null) {
         metrics['current_weight'] = _healthProfile!.currentWeight;
         metrics['target_weight'] = _healthProfile!.targetWeight;
-        metrics['bmi'] = _healthProfile!.bmi;
         metrics['bmr'] = _healthProfile!.bmr;
         metrics['tdee'] = _healthProfile!.tdee;
       }
@@ -585,9 +584,9 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
               SnapColors.primaryYellow,
             ),
             _buildMetricCard(
-              'BMI',
-              _healthProfile?.bmi?.toStringAsFixed(1) ?? '--',
-              Icons.monitor_weight,
+              'BMR',
+              _healthProfile?.bmr?.toStringAsFixed(0) ?? '--',
+              Icons.local_fire_department,
               SnapColors.accentGreen,
             ),
             _buildMetricCard(

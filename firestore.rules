@@ -247,10 +247,14 @@ service cloud.firestore {
 
     // AI advice - users can only access their own AI advice
     match /ai_advice/{adviceId} {
-      allow read, write: if request.auth != null && 
-        request.auth.uid == resource.data.userId;
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
       allow create: if request.auth != null && 
         request.auth.uid == request.resource.data.userId;
+      // Allow listing for authenticated users (needed for queries)
+      allow list: if request.auth != null;
     }
 
     // Meal logs - users can only access their own meal logs  
@@ -264,20 +268,47 @@ service cloud.firestore {
     // Health groups - users can read groups they are members of and create new groups
     match /health_groups/{groupId} {
       allow read: if request.auth != null && 
-        (resource == null || request.auth.uid in resource.data.memberIds);
+        (resource == null || 
+         request.auth.uid in resource.data.member_ids ||
+         resource.data.privacy == 'public');
       allow write: if request.auth != null && 
-        (resource == null || request.auth.uid in resource.data.memberIds || 
-         request.auth.uid == resource.data.createdBy);
+        (resource == null || 
+         request.auth.uid in resource.data.member_ids || 
+         request.auth.uid == resource.data.creator_id);
       allow create: if request.auth != null && 
-        request.auth.uid == request.resource.data.createdBy;
+        request.auth.uid == request.resource.data.creator_id;
+      // Allow listing for authenticated users (needed for queries)
+      allow list: if request.auth != null;
     }
 
     // Health integrations - users can only access their own integrations
     match /health_integrations/{integrationId} {
-      allow read, write: if request.auth != null && 
-        request.auth.uid == resource.data.user_id;
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.user_id);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.user_id);
       allow create: if request.auth != null && 
         request.auth.uid == request.resource.data.user_id;
+    }
+
+    // Data conflicts - users can only access their own conflicts
+    match /data_conflicts/{conflictId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Conflict resolutions - users can only access their own conflict resolutions
+    match /conflict_resolutions/{resolutionId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.resolvedBy);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.resolvedBy);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.resolvedBy;
     }
 
     // Admin-only collections

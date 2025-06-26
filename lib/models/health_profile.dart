@@ -121,7 +121,6 @@ class HealthProfile {
   final double? engagementScore;
   
   // Calculated Metrics
-  final double? bmi;
   final double? bmr; // Basal Metabolic Rate
   final double? tdee; // Total Daily Energy Expenditure
   final Map<String, double> healthScores; // Various health metrics (0-100)
@@ -164,7 +163,6 @@ class HealthProfile {
     this.dismissedAdviceTypes = const [],
     this.personalizedInsights = const {},
     this.engagementScore,
-    this.bmi,
     this.bmr,
     this.tdee,
     this.healthScores = const {},
@@ -220,7 +218,6 @@ class HealthProfile {
       dismissedAdviceTypes: List<String>.from(data['dismissedAdviceTypes'] ?? []),
       personalizedInsights: Map<String, dynamic>.from(data['personalizedInsights'] ?? {}),
       engagementScore: data['engagementScore']?.toDouble(),
-      bmi: data['bmi']?.toDouble(),
       bmr: data['bmr']?.toDouble(),
       tdee: data['tdee']?.toDouble(),
       healthScores: Map<String, double>.from(
@@ -261,19 +258,13 @@ class HealthProfile {
       'dismissedAdviceTypes': dismissedAdviceTypes,
       'personalizedInsights': personalizedInsights,
       'engagementScore': engagementScore,
-      'bmi': bmi,
       'bmr': bmr,
       'tdee': tdee,
       'healthScores': healthScores,
     };
   }
 
-  // Calculate BMI
-  double? calculateBMI() {
-    if (heightCm == null || weightKg == null) return null;
-    final heightM = heightCm! / 100;
-    return weightKg! / (heightM * heightM);
-  }
+
 
   // Calculate BMR using Mifflin-St Jeor Equation
   double? calculateBMR() {
@@ -305,16 +296,7 @@ class HealthProfile {
     }
   }
 
-  // Get BMI category
-  String getBMICategory() {
-    final bmiValue = calculateBMI();
-    if (bmiValue == null) return 'Unknown';
-    
-    if (bmiValue < 18.5) return 'Underweight';
-    if (bmiValue < 25) return 'Normal weight';
-    if (bmiValue < 30) return 'Overweight';
-    return 'Obese';
-  }
+
 
   // Copy with method for updates
   HealthProfile copyWith({
@@ -375,7 +357,6 @@ class HealthProfile {
       dismissedAdviceTypes: dismissedAdviceTypes ?? this.dismissedAdviceTypes,
       personalizedInsights: personalizedInsights ?? this.personalizedInsights,
       engagementScore: engagementScore ?? this.engagementScore,
-      bmi: calculateBMI(),
       bmr: calculateBMR(),
       tdee: calculateTDEE(),
       healthScores: healthScores ?? this.healthScores,

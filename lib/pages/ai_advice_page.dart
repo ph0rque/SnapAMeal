@@ -172,22 +172,26 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.chat_bubble_outline,
-                        size: 64,
+                        size: 48,
                         color: SnapColors.textSecondary.withValues(alpha: 0.5),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Text(
                         'No advice yet',
                         style: SnapTypography.heading3.copyWith(color: SnapColors.textSecondary),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Ask a question or tap one of the suggestions above',
-                        style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
-                        textAlign: TextAlign.center,
+                      const SizedBox(height: 4),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'Ask a question or tap one of the suggestions above',
+                          style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ],
                   ),
@@ -674,8 +678,6 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
             _buildProfileItem('Age', _healthProfile!.age?.toString() ?? 'Not set'),
             _buildProfileItem('Activity Level', _healthProfile!.activityLevelDisplayName),
             _buildProfileItem('Primary Goals', _healthProfile!.primaryGoalsDisplayNames.join(', ')),
-            if (_healthProfile!.calculateBMI() != null)
-              _buildProfileItem('BMI', '${_healthProfile!.calculateBMI()!.toStringAsFixed(1)} (${_healthProfile!.getBMICategory()})'),
           ] else ...[
             Text(
               'No health profile found. Please update your profile to get personalized advice.',

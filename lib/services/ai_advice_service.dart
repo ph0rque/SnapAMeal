@@ -467,7 +467,6 @@ class AIAdviceService {
       context['healthProfile'] = {
         'age': profile.age,
         'gender': profile.gender,
-        'bmi': profile.calculateBMI(),
         'activityLevel': profile.activityLevel.name,
         'primaryGoals': profile.primaryGoals.map((g) => g.name).toList(),
         'dietaryPreferences': profile.dietaryPreferences.map((d) => d.name).toList(),

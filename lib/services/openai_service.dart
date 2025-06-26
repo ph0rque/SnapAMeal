@@ -286,7 +286,7 @@ class CostOptimizer {
 
 /// Enhanced OpenAI service with comprehensive monitoring and optimization
 class OpenAIService {
-  late final CostOptimizer _optimizer;
+  final CostOptimizer _optimizer = CostOptimizer();
   
   // Usage tracking
   APIUsageStats _currentStats = APIUsageStats.empty();
@@ -304,7 +304,6 @@ class OpenAIService {
 
   /// Initialize the service and load cached stats
   Future<void> initialize() async {
-    _optimizer = CostOptimizer();
     await _loadUsageStats();
     await _checkBudgetStatus();
   }
