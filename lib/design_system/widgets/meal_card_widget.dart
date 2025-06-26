@@ -155,7 +155,7 @@ class MealCardWidget extends StatelessWidget {
                     style: SnapTypography.body.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -297,10 +297,10 @@ class MealCardWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNutritionItem('Calories', '${nutrition.calories.round()}', 'kcal'),
-              _buildNutritionItem('Protein', '${nutrition.protein.round()}', 'g'),
-              _buildNutritionItem('Carbs', '${nutrition.carbs.round()}', 'g'),
-              _buildNutritionItem('Fat', '${nutrition.fat.round()}', 'g'),
+              Flexible(child: _buildNutritionItem('Calories', '${nutrition.calories.round()}', 'kcal')),
+              Flexible(child: _buildNutritionItem('Protein', '${nutrition.protein.round()}', 'g')),
+              Flexible(child: _buildNutritionItem('Carbs', '${nutrition.carbs.round()}', 'g')),
+              Flexible(child: _buildNutritionItem('Fat', '${nutrition.fat.round()}', 'g')),
             ],
           ),
           
@@ -345,20 +345,17 @@ class MealCardWidget extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: SnapColors.primary,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         Text(
-          unit,
+          '$label ($unit)',
           style: SnapTypography.caption.copyWith(
-            fontSize: 10,
-            color: SnapColors.primary,
-          ),
-        ),
-        Text(
-          label,
-          style: SnapTypography.caption.copyWith(
-            fontSize: 10,
             color: SnapColors.textSecondary,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
         ),
       ],
     );

@@ -416,7 +416,7 @@ class DataConflictResolutionService {
     
     if (weight1 != null && weight2 != null) {
       final weightDiff = (weight1 - weight2).abs();
-      return weightDiff < 0.5; // Within 0.5 kg/lbs
+      return weightDiff < 0.5; // Within 0.5 lbs
     }
     
     return false;
@@ -469,7 +469,7 @@ class DataConflictResolutionService {
     
     if (weight1 != null && weight2 != null) {
       final weightDiff = (weight1 - weight2).abs();
-      return weightDiff > 2.0; // More than 2 kg/lbs difference
+      return weightDiff > 2.0; // More than 2 lbs difference
     }
     
     return false;

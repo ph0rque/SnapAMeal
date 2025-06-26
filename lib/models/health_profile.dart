@@ -3,8 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 enum Gender {
   male,
   female,
-  other,
-  preferNotToSay
 }
 
 enum HealthGoalType {
@@ -90,6 +88,12 @@ class HealthProfile {
   final double? targetWeightKg;
   final ActivityLevel activityLevel;
   
+  // Imperial unit properties (for UI display)
+  double? get heightFeet => heightCm != null ? heightCm! / 30.48 : null;
+  double? get heightInches => heightCm != null ? (heightCm! % 30.48) / 2.54 : null;
+  double? get weightLbs => weightKg != null ? weightKg! * 2.20462 : null;
+  double? get targetWeightLbs => targetWeightKg != null ? targetWeightKg! * 2.20462 : null;
+  
   // Health Goals & Preferences
   final List<HealthGoalType> primaryGoals;
   final List<DietaryPreference> dietaryPreferences;
@@ -122,6 +126,15 @@ class HealthProfile {
   final double? bmr; // Basal Metabolic Rate
   final double? tdee; // Total Daily Energy Expenditure
   final Map<String, double> healthScores; // Various health metrics (0-100)
+  
+  // Conversion methods
+  static double feetInchesToCm(int feet, double inches) {
+    return (feet * 30.48) + (inches * 2.54);
+  }
+  
+  static double lbsToKg(double lbs) {
+    return lbs / 2.20462;
+  }
 
   const HealthProfile({
     required this.userId,

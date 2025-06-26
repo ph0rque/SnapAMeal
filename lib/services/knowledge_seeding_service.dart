@@ -72,7 +72,7 @@ class KnowledgeSeedingService {
       KnowledgeDocument(
         id: 'nutrition_001',
         title: 'Protein for Weight Loss',
-        content: 'Protein is essential for weight loss as it increases satiety, boosts metabolism through the thermic effect of food, and helps preserve lean muscle mass during calorie restriction. Aim for 0.8-1.2g per kg of body weight daily.',
+        content: 'Protein is essential for weight loss as it increases satiety, boosts metabolism through the thermic effect of food, and helps preserve lean muscle mass during calorie restriction. Aim for 0.36-0.54g per pound of body weight daily.',
         category: 'nutrition',
         source: 'curated',
         tags: ['protein', 'weight_loss', 'metabolism', 'satiety'],
@@ -97,6 +97,21 @@ class KnowledgeSeedingService {
           'contentType': 'tip',
           'lastUpdated': now.toIso8601String(),
           'userPreferenceMatch': ['weight_loss', 'healthy_eating'],
+        },
+      ),
+      KnowledgeDocument(
+        id: 'protein_requirements',
+        title: 'Daily Protein Requirements',
+        content: 'Protein needs vary by activity level and goals. Sedentary adults need 0.36-0.54g per pound of body weight daily. Active individuals and those building muscle may need 0.54-0.8g per pound daily.',
+        category: 'Nutrition',
+        source: 'curated',
+        tags: ['protein', 'nutrition', 'muscle building'],
+        confidenceScore: 0.95,
+        createdAt: DateTime(2024, 1, 15),
+        metadata: {
+          'contentType': 'fact',
+          'lastUpdated': DateTime(2024, 1, 15).toIso8601String(),
+          'userPreferenceMatch': ['weight_loss', 'muscle_building'],
         },
       ),
     ];

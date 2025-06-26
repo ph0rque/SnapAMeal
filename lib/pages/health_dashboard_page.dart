@@ -617,20 +617,29 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
               color: color,
             ),
             const SizedBox(height: 8),
-            Text(
-              value,
-              style: SnapTypography.heading3.copyWith(
-                color: SnapColors.textPrimary,
-                fontSize: 18,
+            Flexible(
+              child: Text(
+                value,
+                style: SnapTypography.heading3.copyWith(
+                  color: SnapColors.textPrimary,
+                  fontSize: 18,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              title,
-              style: SnapTypography.caption.copyWith(
-                color: SnapColors.textSecondary,
+            Flexible(
+              child: Text(
+                title,
+                style: SnapTypography.caption.copyWith(
+                  color: SnapColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),

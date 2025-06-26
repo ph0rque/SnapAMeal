@@ -357,111 +357,120 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
   }
 
   Widget _buildPhysicalStatsPage() {
+    // Convert metric to imperial for display
+    final heightFeet = (_height / 30.48).floor();
+    final heightInches = ((_height % 30.48) / 2.54);
+    final currentWeightLbs = _currentWeight * 2.20462;
+    final targetWeightLbs = _targetWeight * 2.20462;
+    
     return Padding(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Physical Stats',
-            style: SnapTypography.heading2.copyWith(
-              color: SnapColors.textPrimary,
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Physical Stats',
+              style: SnapTypography.heading2.copyWith(
+                color: SnapColors.textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Help us calculate your personalized metrics',
-            style: SnapTypography.body.copyWith(
-              color: SnapColors.textSecondary,
+            const SizedBox(height: 8),
+            Text(
+              'Help us calculate your personalized metrics',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
             ),
-          ),
-          const SizedBox(height: 32),
-          
-          // Height
-          Text(
-            'Height: ${_height.round()} cm',
-            style: SnapTypography.body.copyWith(
-              fontWeight: FontWeight.w600,
-              color: SnapColors.textPrimary,
+            const SizedBox(height: 32),
+            
+            // Height
+            Text(
+              'Height: $heightFeet\'${heightInches.toStringAsFixed(1)}"',
+              style: SnapTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: SnapColors.textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Slider(
-            value: _height,
-            min: 140,
-            max: 220,
-            divisions: 80,
-            activeColor: SnapColors.primaryYellow,
-            onChanged: (value) => setState(() => _height = value),
-          ),
-          const SizedBox(height: 24),
-          
-          // Current weight
-          Text(
-            'Current Weight: ${_currentWeight.round()} kg',
-            style: SnapTypography.body.copyWith(
-              fontWeight: FontWeight.w600,
-              color: SnapColors.textPrimary,
+            const SizedBox(height: 8),
+            Slider(
+              value: _height,
+              min: 140, // ~4'7"
+              max: 220, // ~7'2"
+              divisions: 80,
+              activeColor: SnapColors.primaryYellow,
+              onChanged: (value) => setState(() => _height = value),
             ),
-          ),
-          const SizedBox(height: 8),
-          Slider(
-            value: _currentWeight,
-            min: 40,
-            max: 150,
-            divisions: 110,
-            activeColor: SnapColors.primaryYellow,
-            onChanged: (value) => setState(() => _currentWeight = value),
-          ),
-          const SizedBox(height: 24),
-          
-          // Target weight
-          Text(
-            'Target Weight: ${_targetWeight.round()} kg',
-            style: SnapTypography.body.copyWith(
-              fontWeight: FontWeight.w600,
-              color: SnapColors.textPrimary,
+            const SizedBox(height: 24),
+            
+            // Current weight
+            Text(
+              'Current Weight: ${currentWeightLbs.round()} lbs',
+              style: SnapTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: SnapColors.textPrimary,
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Slider(
-            value: _targetWeight,
-            min: 40,
-            max: 150,
-            divisions: 110,
-            activeColor: SnapColors.primaryYellow,
-            onChanged: (value) => setState(() => _targetWeight = value),
-          ),
-          const SizedBox(height: 24),
-          
-          // BMI calculation
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: SnapColors.accentGreen.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 8),
+            Slider(
+              value: _currentWeight,
+              min: 40, // ~88 lbs
+              max: 150, // ~330 lbs
+              divisions: 110,
+              activeColor: SnapColors.primaryYellow,
+              onChanged: (value) => setState(() => _currentWeight = value),
             ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calculate,
-                  color: SnapColors.accentGreen,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Your current BMI: ${(_currentWeight / ((_height / 100) * (_height / 100))).toStringAsFixed(1)}',
-                    style: SnapTypography.body.copyWith(
-                      color: SnapColors.textPrimary,
-                      fontWeight: FontWeight.w600,
+            const SizedBox(height: 24),
+            
+            // Target weight
+            Text(
+              'Target Weight: ${targetWeightLbs.round()} lbs',
+              style: SnapTypography.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: SnapColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Slider(
+              value: _targetWeight,
+              min: 40, // ~88 lbs
+              max: 150, // ~330 lbs
+              divisions: 110,
+              activeColor: SnapColors.primaryYellow,
+              onChanged: (value) => setState(() => _targetWeight = value),
+            ),
+            const SizedBox(height: 24),
+            
+            // BMI calculation
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: SnapColors.accentGreen.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.calculate,
+                    color: SnapColors.accentGreen,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Your current BMI: ${(_currentWeight / ((_height / 100) * (_height / 100))).toStringAsFixed(1)}',
+                      style: SnapTypography.body.copyWith(
+                        color: SnapColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -801,10 +810,6 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
         return 'Male';
       case Gender.female:
         return 'Female';
-      case Gender.other:
-        return 'Other';
-      case Gender.preferNotToSay:
-        return 'Prefer not to say';
     }
   }
 

@@ -8,6 +8,7 @@ class FilteredContentWidget extends StatelessWidget {
   final FastingSession fastingSession;
   final VoidCallback? onViewProgress;
   final VoidCallback? onViewAlternatives;
+  final VoidCallback? onShowAnyway;
 
   const FilteredContentWidget({
     super.key,
@@ -15,6 +16,7 @@ class FilteredContentWidget extends StatelessWidget {
     required this.fastingSession,
     this.onViewProgress,
     this.onViewAlternatives,
+    this.onShowAnyway,
   });
 
   @override
@@ -23,17 +25,10 @@ class FilteredContentWidget extends StatelessWidget {
       margin: EdgeInsets.all(16),
       padding: EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.blue.withValues(alpha: 0.1),
-            Colors.green.withValues(alpha: 0.1),
-          ],
-        ),
+        color: Colors.blue.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.blue.withValues(alpha: 0.3),
+          color: Colors.blue.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -67,6 +62,8 @@ class FilteredContentWidget extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       'Supporting your fasting journey',
@@ -74,6 +71,8 @@ class FilteredContentWidget extends StatelessWidget {
                         fontSize: 14,
                         color: Colors.grey[600],
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -109,6 +108,8 @@ class FilteredContentWidget extends StatelessWidget {
                     color: Colors.grey[800],
                   ),
                   textAlign: TextAlign.center,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 
                 SizedBox(height: 16),
@@ -125,16 +126,19 @@ class FilteredContentWidget extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: onViewProgress,
-                  icon: Icon(Icons.timeline, size: 18),
-                  label: Text('View Progress'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.blue,
-                    side: BorderSide(color: Colors.blue),
+                child: ElevatedButton(
+                  onPressed: onViewAlternatives,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                  ),
+                  child: Text(
+                    'View Alternatives',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -142,16 +146,19 @@ class FilteredContentWidget extends StatelessWidget {
               SizedBox(width: 12),
               
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: onViewAlternatives,
-                  icon: Icon(Icons.fitness_center, size: 18),
-                  label: Text('Motivation'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
+                child: OutlinedButton(
+                  onPressed: onShowAnyway,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue,
+                    side: BorderSide(color: Colors.blue),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
+                  ),
+                  child: Text(
+                    'Show Anyway',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),

@@ -200,16 +200,18 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
               size: isSelected ? 28 : 24,
             ),
             SizedBox(height: 4),
-            Text(
-              filter.name.split(' ').first, // Show first word only
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            Flexible(
+              child: Text(
+                filter.name.split(' ').first, // Show first word only
+                style: TextStyle(
+                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
+                  fontSize: 10,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
             if (isSelected)
               Container(

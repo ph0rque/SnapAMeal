@@ -714,6 +714,8 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                 style: SnapUI.bodyStyle.copyWith(
                   fontStyle: FontStyle.italic,
                 ),
+                maxLines: 4,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
         ],
@@ -745,12 +747,14 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(5, (index) {
                     final rating = index + 1;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedMoodRating = rating),
-                      child: Icon(
-                        rating <= _selectedMoodRating ? Icons.sentiment_very_satisfied : Icons.sentiment_neutral,
-                        color: rating <= _selectedMoodRating ? SnapUI.primaryColor : Colors.grey,
-                        size: 28,
+                    return Flexible(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedMoodRating = rating),
+                        child: Icon(
+                          rating <= _selectedMoodRating ? Icons.sentiment_very_satisfied : Icons.sentiment_neutral,
+                          color: rating <= _selectedMoodRating ? SnapUI.primaryColor : Colors.grey,
+                          size: 28,
+                        ),
                       ),
                     );
                   }),
@@ -771,19 +775,21 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(5, (index) {
                     final level = index + 1;
-                    return GestureDetector(
-                      onTap: () => setState(() => _selectedHungerLevel = level),
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: level <= _selectedHungerLevel ? SnapUI.primaryColor : Colors.transparent,
-                          border: Border.all(color: SnapUI.primaryColor),
-                          borderRadius: BorderRadius.circular(12),
+                    return Flexible(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedHungerLevel = level),
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: level <= _selectedHungerLevel ? SnapUI.primaryColor : Colors.transparent,
+                            border: Border.all(color: SnapUI.primaryColor),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: level <= _selectedHungerLevel
+                              ? Icon(Icons.check, color: Colors.white, size: 16)
+                              : null,
                         ),
-                        child: level <= _selectedHungerLevel
-                            ? Icon(Icons.check, color: Colors.white, size: 16)
-                            : null,
                       ),
                     );
                   }),

@@ -632,21 +632,29 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        FastingStatusIndicators.getMotivationalText(
-                          widget.fastingState.progressPercentage,
-                        ),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                      Flexible(
+                        child: Text(
+                          FastingStatusIndicators.getMotivationalText(
+                            widget.fastingState.progressPercentage,
+                          ),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      Text(
-                        '${widget.fastingState.elapsedTime.inHours}h ${widget.fastingState.elapsedTime.inMinutes.remainder(60)}m elapsed',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.9),
-                          fontSize: 14,
+                      Flexible(
+                        child: Text(
+                          '${widget.fastingState.elapsedTime.inHours}h ${widget.fastingState.elapsedTime.inMinutes.remainder(60)}m elapsed',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 14,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

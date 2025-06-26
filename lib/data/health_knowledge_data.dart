@@ -108,11 +108,11 @@ class HealthKnowledgeData {
     return [
       KnowledgeDocument(
         id: 'weightloss_001',
-        title: 'Sustainable Weight Loss Rate',
+        title: 'Healthy Weight Loss Rate',
         content: 'A sustainable weight loss rate is 1-2 pounds per week, achieved through a calorie deficit of 500-1000 calories daily. This preserves muscle mass and prevents metabolic slowdown.',
         category: 'weight_loss',
         source: 'curated',
-        tags: ['sustainable_rate', 'calorie_deficit', 'muscle_preservation', 'metabolism'],
+        tags: ['weight loss', 'nutrition', 'metabolism'],
         confidenceScore: 0.95,
         createdAt: _now,
         metadata: {
