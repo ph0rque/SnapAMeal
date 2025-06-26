@@ -61,13 +61,68 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
     if (_currentUserId == null) return;
     
     try {
-      final integrations = await _integrationService.getUserIntegrations().first;
+      // Get user's existing integrations
+      final userIntegrations = await _integrationService.getUserIntegrations().first;
+      
+      // Get all available integrations (including ones not yet connected)
+      final allAvailableIntegrations = _getAllAvailableIntegrations();
+      
+      // Merge existing with available ones
+      final integrationsMap = <String, HealthIntegration>{};
+      
+      // Add existing integrations
+      for (final integration in userIntegrations) {
+        integrationsMap[integration.id] = integration;
+      }
+      
+      // Add available integrations that user hasn't connected yet
+      for (final availableIntegration in allAvailableIntegrations) {
+        if (!integrationsMap.containsKey(availableIntegration.id)) {
+          integrationsMap[availableIntegration.id] = availableIntegration;
+        }
+      }
+      
       setState(() {
-        _integrations = integrations;
+        _integrations = integrationsMap.values.toList();
       });
     } catch (e) {
       debugPrint('Error loading integrations: $e');
     }
+  }
+
+  /// Get all available integrations including ones not yet connected
+  List<HealthIntegration> _getAllAvailableIntegrations() {
+    if (_currentUserId == null) return [];
+    
+    return [
+      // MyFitnessPal - Coming Soon
+      HealthIntegration(
+        id: '${_currentUserId}_myfitnesspal',
+        userId: _currentUserId!,
+        type: IntegrationType.myFitnessPal,
+        status: IntegrationStatus.disconnected,
+        connectedAt: DateTime.now(),
+        settings: {'coming_soon': true},
+      ),
+      // Apple Health - Coming Soon  
+      HealthIntegration(
+        id: '${_currentUserId}_applehealth',
+        userId: _currentUserId!,
+        type: IntegrationType.appleHealth,
+        status: IntegrationStatus.disconnected,
+        connectedAt: DateTime.now(),
+        settings: {'coming_soon': true},
+      ),
+      // Google Fit - Available for connection
+      HealthIntegration(
+        id: '${_currentUserId}_googlefit',
+        userId: _currentUserId!,
+        type: IntegrationType.googleFit,
+        status: IntegrationStatus.disconnected,
+        connectedAt: DateTime.now(),
+        settings: {},
+      ),
+    ];
   }
 
   Future<void> _checkConnectionStatuses() async {
@@ -94,6 +149,28 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
   }
 
   Future<void> _connectIntegration(String integrationId) async {
+    // Check if this is a "coming soon" integration
+    final integration = _integrations.firstWhere(
+      (i) => i.id == integrationId,
+      orElse: () => HealthIntegration(
+        id: integrationId,
+        userId: _currentUserId ?? '',
+        type: IntegrationType.googleFit,
+        status: IntegrationStatus.disconnected,
+        connectedAt: DateTime.now(),
+        settings: {},
+      ),
+    );
+    
+    if (integration.settings['coming_soon'] == true) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnapSnackBar.error('${integration.typeName} integration is coming soon! We\'re working on getting the necessary permissions.'),
+        );
+      }
+      return;
+    }
+    
     setState(() => _isLoading = true);
     
     try {
@@ -579,6 +656,8 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
   }
 
   Widget _buildAvailableIntegrationCard(HealthIntegration integration) {
+    final isComingSoon = integration.settings['coming_soon'] == true;
+    
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -591,13 +670,37 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    integration.typeName,
-                    style: SnapTypography.heading.copyWith(fontSize: 16),
+                  Row(
+                    children: [
+                      Text(
+                        integration.typeName,
+                        style: SnapTypography.heading.copyWith(fontSize: 16),
+                      ),
+                      if (isComingSoon) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: SnapColors.warning.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Coming Soon',
+                            style: SnapTypography.caption.copyWith(
+                              color: SnapColors.warning,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    _getIntegrationDescription(integration.type),
+                    isComingSoon 
+                        ? _getComingSoonDescription(integration.type)
+                        : _getIntegrationDescription(integration.type),
                     style: SnapTypography.body.copyWith(
                       color: SnapColors.textSecondary,
                       fontSize: 12,
@@ -606,10 +709,26 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
                 ],
               ),
             ),
-            SnapButton(
-              text: 'Connect',
-              onTap: () => _connectIntegration(integration.id),
-            ),
+            if (isComingSoon)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: SnapColors.textSecondary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Coming Soon',
+                  style: SnapTypography.body.copyWith(
+                    color: SnapColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              )
+            else
+              SnapButton(
+                text: 'Connect',
+                onTap: () => _connectIntegration(integration.id),
+              ),
           ],
         ),
       ),
@@ -730,6 +849,17 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         return 'Log meals, calories, and nutrition information';
       case IntegrationType.appleHealth:
         return 'Sync health data from Apple Health app';
+      case IntegrationType.googleFit:
+        return 'Track workouts, steps, and activity data';
+    }
+  }
+
+  String _getComingSoonDescription(IntegrationType type) {
+    switch (type) {
+      case IntegrationType.myFitnessPal:
+        return 'MyFitnessPal integration requires special API permissions. We\'re working on getting access!';
+      case IntegrationType.appleHealth:
+        return 'Apple Health integration requires special permissions and review. Coming soon!';
       case IntegrationType.googleFit:
         return 'Track workouts, steps, and activity data';
     }
