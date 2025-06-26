@@ -282,13 +282,29 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
             const SizedBox(height: 8),
             TextField(
               onChanged: (value) => setState(() => _name = value),
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textPrimary,
+              ),
               decoration: InputDecoration(
                 hintText: 'Enter your name',
+                hintStyle: SnapTypography.body.copyWith(
+                  color: SnapColors.textSecondary,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: SnapColors.greyLight),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: SnapColors.greyLight),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: SnapColors.primaryYellow, width: 2),
                 ),
                 filled: true,
                 fillColor: SnapColors.white,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               ),
             ),
             const SizedBox(height: 24),
