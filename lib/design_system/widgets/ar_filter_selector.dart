@@ -435,7 +435,7 @@ class _FastingProgressOverlayState extends State<FastingProgressOverlay>
                     ],
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   widget.fastingSession.typeDescription,
                   style: TextStyle(

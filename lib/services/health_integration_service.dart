@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/meal_log.dart';
 import '../models/health_integration.dart';
 import '../services/data_conflict_resolution_service.dart';
+import '../config/ai_config.dart';
 
 enum IntegrationType {
   myFitnessPal,
@@ -25,7 +26,7 @@ enum IntegrationStatus {
 class HealthIntegrationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final DataConflictResolutionService _conflictService = DataConflictResolutionService();
-  final String _myFitnessPalApiKey = 'your_myfitnesspal_api_key'; // TODO: Move to config
+  String get _myFitnessPalApiKey => AIConfig.myFitnessPalApiKey;
   final String _myFitnessPalBaseUrl = 'https://api.myfitnesspal.com/v2';
   
   // Cache for API responses to minimize requests

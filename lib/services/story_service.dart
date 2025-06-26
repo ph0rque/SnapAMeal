@@ -215,7 +215,7 @@ class StoryService {
             if (filteredStories.isNotEmpty) {
               // Get user info
               final userDoc = await _firestore.collection('users').doc(friendId).get();
-              final userData = userDoc.data() as Map<String, dynamic>?;
+              final userData = userDoc.data();
 
               allStories.add({
                 'userId': friendId,

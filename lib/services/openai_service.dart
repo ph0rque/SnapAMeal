@@ -293,7 +293,7 @@ class OpenAIService {
   
   // Usage tracking
   APIUsageStats _currentStats = APIUsageStats.empty();
-  DateTime _lastStatsReset = DateTime.now();
+
   
   // Rate limiting
   final List<DateTime> _chatRequestTimes = [];

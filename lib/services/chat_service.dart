@@ -247,7 +247,7 @@ class ChatService {
     try {
       // Get group info
       final groupDoc = await _firestore.collection('chat_rooms').doc(chatRoomId).get();
-      final groupData = groupDoc.data() as Map<String, dynamic>?;
+      final groupData = groupDoc.data();
       
       if (groupData?['isHealthGroup'] != true) {
         return {};

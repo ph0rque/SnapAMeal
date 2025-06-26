@@ -385,10 +385,8 @@ class DataExportService {
           'name': data['name'],
           'type': data['type'],
           'isEnabled': data['is_enabled'],
-          'connectedAt': (data['connected_at'] as Timestamp).toDate().toIso8601String(),
-          'lastSyncAt': data['last_sync_at'] != null 
-              ? (data['last_sync_at'] as Timestamp).toDate().toIso8601String()
-              : null,
+          'connectedAt': (data['connected_at'] as Timestamp?)?.toDate().toIso8601String(),
+          'lastSyncAt': (data['last_sync_at'] as Timestamp?)?.toDate().toIso8601String(),
           'permissions': data['permissions'],
         };
 

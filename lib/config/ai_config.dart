@@ -16,6 +16,9 @@ class AIConfig {
   static String get openaiApiKey => dotenv.env['OPENAI_API_KEY'] ?? '';
   
   static String get openaiModel => dotenv.env['OPENAI_MODEL'] ?? 'gpt-4-turbo-preview';
+
+  // MyFitnessPal Configuration
+  static String get myFitnessPalApiKey => dotenv.env['MYFITNESSPAL_API_KEY'] ?? '';
   
   static String get openaiEmbeddingModel => dotenv.env['OPENAI_EMBEDDING_MODEL'] ?? 'text-embedding-3-small';
   

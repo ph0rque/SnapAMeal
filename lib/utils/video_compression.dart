@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:video_compress/video_compress.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 import 'video_config.dart';
 
 /// Video compression utility for SnapAMeal
@@ -84,9 +83,6 @@ class VideoCompressionUtil {
       if (!await thumbnailDir.exists()) {
         await thumbnailDir.create(recursive: true);
       }
-
-      final videoName = path.basenameWithoutExtension(videoPath);
-      final thumbnailPath = '${thumbnailDir.path}/${videoName}_thumb.jpg';
 
       final thumbnail = await VideoCompress.getFileThumbnail(
         videoPath,
