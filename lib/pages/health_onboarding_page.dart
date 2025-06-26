@@ -383,7 +383,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
   Widget _buildPhysicalStatsPage() {
     // Convert metric to imperial for display
     final heightFeet = (_height / 30.48).floor();
-    final heightInches = ((_height % 30.48) / 2.54);
+    final heightInches = ((_height % 30.48) / 2.54).round(); // Round to nearest inch
     final currentWeightLbs = _currentWeight * 2.20462;
     final targetWeightLbs = _targetWeight * 2.20462;
     
@@ -410,7 +410,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
             
             // Height
             Text(
-              'Height: $heightFeet\'${heightInches.toStringAsFixed(1)}"',
+              'Height: $heightFeet\'$heightInches"',
               style: SnapTypography.body.copyWith(
                 fontWeight: FontWeight.w600,
                 color: SnapColors.textPrimary,
@@ -849,8 +849,6 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
         return 'Very Active';
       case ActivityLevel.extremelyActive:
         return 'Extremely Active';
-      case ActivityLevel.extraActive:
-        return 'Extra Active';
     }
   }
 
@@ -865,8 +863,6 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
       case ActivityLevel.veryActive:
         return 'Hard exercise 6-7 days/week';
       case ActivityLevel.extremelyActive:
-        return 'Very hard exercise, physical job';
-      case ActivityLevel.extraActive:
         return 'Very hard exercise, physical job';
     }
   }

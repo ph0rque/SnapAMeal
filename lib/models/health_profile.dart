@@ -35,7 +35,6 @@ enum ActivityLevel {
   moderatelyActive, // Moderate exercise 3-5 days/week
   veryActive,    // Hard exercise 6-7 days/week
   extremelyActive, // Very hard exercise, physical job, or training twice a day
-  extraActive    // Referenced in onboarding
 }
 
 enum DietaryPreference {
@@ -303,8 +302,6 @@ class HealthProfile {
         return bmrValue * 1.725;
       case ActivityLevel.extremelyActive:
         return bmrValue * 1.9;
-      case ActivityLevel.extraActive:
-        return bmrValue * 1.9; // Same as extremely active
     }
   }
 
@@ -398,8 +395,6 @@ class HealthProfile {
         return 'Very Active';
       case ActivityLevel.extremelyActive:
         return 'Extremely Active';
-      case ActivityLevel.extraActive:
-        return 'Extra Active';
     }
   }
 
