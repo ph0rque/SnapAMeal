@@ -351,7 +351,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       backgroundColor: SnapUI.backgroundColor,
       appBar: SnapUI.appBar(
         title: 'AI Meal Logger',
-        context: context,
       ),
       body: SingleChildScrollView(
         padding: SnapUI.pagePadding,

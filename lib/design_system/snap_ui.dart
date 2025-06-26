@@ -79,10 +79,11 @@ class SnapUI {
   }
   
   // Button methods
-  static Widget primaryButton({
-    required String text,
-    required VoidCallback onPressed,
+  static Widget primaryButton(
+    String text,
+    VoidCallback onPressed, {
     bool isLoading = false,
+    IconData? icon,
   }) {
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
@@ -103,14 +104,24 @@ class SnapUI {
             height: 20,
             child: CircularProgressIndicator(strokeWidth: 2),
           )
-        : Text(text),
+        : icon != null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 18),
+                const SizedBox(width: 8),
+                Text(text),
+              ],
+            )
+          : Text(text),
     );
   }
   
-  static Widget secondaryButton({
-    required String text,
-    required VoidCallback onPressed,
+  static Widget secondaryButton(
+    String text,
+    VoidCallback onPressed, {
     bool isLoading = false,
+    IconData? icon,
   }) {
     return OutlinedButton(
       onPressed: isLoading ? null : onPressed,
@@ -131,7 +142,16 @@ class SnapUI {
             height: 20,
             child: CircularProgressIndicator(strokeWidth: 2),
           )
-        : Text(text),
+        : icon != null
+          ? Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 18),
+                const SizedBox(width: 8),
+                Text(text),
+              ],
+            )
+          : Text(text),
     );
   }
   

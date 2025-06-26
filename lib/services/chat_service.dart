@@ -269,7 +269,8 @@ class ChatService {
             
             if (sessions.docs.isNotEmpty) {
               final sessionData = sessions.docs.first.data();
-              final session = FastingSession.fromMap(sessionData, sessions.docs.first.id);
+              sessionData['id'] = sessions.docs.first.id;
+              final session = FastingSession.fromMap(sessionData);
               
               memberStats.add({
                 'userId': memberId,
