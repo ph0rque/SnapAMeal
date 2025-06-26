@@ -47,7 +47,7 @@ class _NewChatPageState extends State<NewChatPage> {
       }
 
       final friendData = await _friendService.getUserData(otherUserId);
-      (friendData.data() as Map<String, dynamic>)['username'] ?? 'User';
+      (friendData.data() as Map<String, dynamic>)['username'] ?? 'Friend';
 
     } else {
       // Group chat

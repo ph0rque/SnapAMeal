@@ -113,14 +113,14 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         connectedAt: DateTime.now(),
         settings: {'coming_soon': true},
       ),
-      // Google Fit - Available for connection
+      // Google Fit - Coming Soon
       HealthIntegration(
         id: '${_currentUserId}_googlefit',
         userId: _currentUserId!,
         type: IntegrationType.googleFit,
         status: IntegrationStatus.disconnected,
         connectedAt: DateTime.now(),
-        settings: {},
+        settings: {'coming_soon': true},
       ),
     ];
   }
@@ -308,21 +308,24 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
     
     return Scaffold(
       appBar: AppBar(
-        title: Text(isSettingsRoute ? 'Settings' : 'Health Integrations'),
+        title: Text(
+          isSettingsRoute ? 'Settings' : 'Health Integrations',
+          style: TextStyle(color: SnapColors.textPrimary),
+        ),
         backgroundColor: SnapColors.surface,
-        foregroundColor: SnapColors.textPrimary,
+        iconTheme: IconThemeData(color: SnapColors.textPrimary),
         elevation: 0,
         automaticallyImplyLeading: true, // Ensure back button is shown
         leading: Navigator.canPop(context) 
             ? IconButton(
-                icon: const Icon(Icons.arrow_back),
+                icon: Icon(Icons.arrow_back, color: SnapColors.textPrimary),
                 onPressed: () => Navigator.pop(context),
                 tooltip: 'Back',
               )
             : null,
         actions: [
           IconButton(
-            icon: const Icon(Icons.warning_amber),
+            icon: Icon(Icons.warning_amber, color: SnapColors.warning),
             onPressed: () {
               Navigator.push(
                 context,
@@ -672,23 +675,26 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
                 children: [
                   Row(
                     children: [
-                      Text(
-                        integration.typeName,
-                        style: SnapTypography.heading.copyWith(fontSize: 16),
+                      Flexible(
+                        child: Text(
+                          integration.typeName,
+                          style: SnapTypography.heading.copyWith(fontSize: 16),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       if (isComingSoon) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: SnapColors.warning.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
-                            'Coming Soon',
+                            'Soon',
                             style: SnapTypography.caption.copyWith(
                               color: SnapColors.warning,
-                              fontSize: 10,
+                              fontSize: 9,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -861,7 +867,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
       case IntegrationType.appleHealth:
         return 'Apple Health integration requires special permissions and review. Coming soon!';
       case IntegrationType.googleFit:
-        return 'Track workouts, steps, and activity data';
+        return 'Google Fit integration requires special API permissions. We\'re working on getting access!';
     }
   }
 
