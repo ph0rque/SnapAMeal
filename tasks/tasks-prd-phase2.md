@@ -87,14 +87,14 @@ Based on the Phase II PRD for transforming SnapAMeal from a Snapchat clone to a 
   - [x] 1.5 Build vector retrieval and context injection system for LLM queries
   - [x] 1.6 Implement API usage monitoring and cost optimization strategies
 
-- [ ] 2.0 Snap-Based Fasting Timer with Content Filtering
+- [x] 2.0 Snap-Based Fasting Timer with Content Filtering
   - [x] 2.1 Create fasting service with timer logic and state persistence
   - [x] 2.2 Design and implement circular timer UI with progress visualization
   - [x] 2.3 Integrate snap-to-start/end functionality with camera triggers
   - [x] 2.4 Build motivational AR filters/lenses for fasting mode
   - [x] 2.5 Implement aggressive food content filtering system
-  - [ ] 2.6 Create fasting mode state management across app navigation
-  - [ ] 2.7 Add visual cues (badges, color shifts) for fasting status
+  - [x] 2.6 Create fasting mode state management across app navigation
+  - [x] 2.7 Add visual cues (badges, color shifts) for fasting status
 
 - [ ] 3.0 AI-Powered Meal Recognition and Logging System
   - [ ] 3.1 Research and integrate open-source meal recognition library (TensorFlow Lite)
