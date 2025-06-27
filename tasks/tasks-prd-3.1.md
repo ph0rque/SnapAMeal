@@ -258,8 +258,8 @@
 - Implement user reporting mechanism
 
 **Acceptance Criteria**:
-- [ ] All RAG-generated content includes disclaimers about not being medical advice
-- [ ] System prompts explicitly instruct AI to avoid medical recommendations
+- [x] All RAG-generated content includes disclaimers about not being medical advice
+- [x] System prompts explicitly instruct AI to avoid medical recommendations
 - [ ] Content is filtered for potentially harmful advice
 - [ ] Users can report inappropriate AI-generated content
 - [ ] Fallback content is safe and appropriate

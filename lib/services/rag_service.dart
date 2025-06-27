@@ -541,7 +541,8 @@ class RAGService {
         temperature: 0.7,
       );
 
-      return response;
+      // Add safety disclaimer to the response
+      return response != null ? _addSafetyDisclaimer(response) : null;
     } catch (e) {
       Logger.d('Error generating contextualized response: $e');
       return null;
@@ -612,11 +613,13 @@ class RAGService {
     try {
       final prompt =
           '''
-Generate 3-5 related health and nutrition concepts for this query: "$query"
+Generate 3-5 related general wellness and nutrition concepts for this query: "$query"
 
 ${healthContext != null ? 'User context: ${healthContext.queryType}, Goals: ${healthContext.currentGoals.join(", ")}' : ''}
 
-Return only the concepts, one per line, no explanations:
+SAFETY GUIDELINES: Focus on general wellness concepts only. Avoid medical terms, conditions, or treatment-related concepts.
+
+Return only the general wellness concepts, one per line, no explanations:
 ''';
 
       final response = await _openAIService.getChatCompletionWithMessages(
@@ -925,7 +928,7 @@ Relevance: ${(result.relevanceScore * 100).toInt()}%
     return contextParts.join('\n---\n\n');
   }
 
-  /// Build system prompt for personalized responses
+  /// Build system prompt for personalized responses with safety guidelines
   String _buildSystemPrompt(HealthQueryContext healthContext) {
     return '''
 You are a knowledgeable health and nutrition AI assistant for SnapAMeal, a health tracking app.
@@ -935,13 +938,25 @@ User Profile:
 - Dietary Restrictions: ${healthContext.dietaryRestrictions.isEmpty ? 'None' : healthContext.dietaryRestrictions.join(", ")}
 - Query Type: ${healthContext.queryType}
 
+CRITICAL SAFETY GUIDELINES:
+- NEVER provide medical advice, diagnoses, or treatment recommendations
+- NEVER suggest specific medications, supplements, or medical procedures
+- NEVER claim to replace healthcare professionals or medical consultations
+- AVOID making definitive health claims or promises about outcomes
+- DO NOT provide advice for serious medical conditions, eating disorders, or mental health issues
+- ALWAYS include disclaimers when appropriate
+
 Guidelines:
-1. Provide evidence-based advice using the provided knowledge base
-2. Be encouraging and motivational
+1. Provide evidence-based general wellness information using the provided knowledge base
+2. Be encouraging and motivational while staying within safe boundaries
 3. Personalize responses based on user goals and restrictions
 4. Keep responses concise but comprehensive
 5. Always prioritize safety and recommend consulting healthcare professionals for medical concerns
 6. Use a friendly, supportive tone similar to a knowledgeable friend
+7. Focus on general nutrition education, lifestyle tips, and wellness information
+8. Include appropriate disclaimers about not replacing professional medical advice
+
+REQUIRED DISCLAIMER: All responses must include or acknowledge that the information provided is for general wellness purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.
 
 If the knowledge base doesn't contain relevant information, acknowledge this and provide general guidance while recommending professional consultation.
 ''';
@@ -974,22 +989,27 @@ The user asked: "$query"
 
 User context: ${healthContext.queryType}, Goals: ${healthContext.currentGoals.join(", ")}
 
+SAFETY GUIDELINES: Never provide medical advice, diagnoses, or treatment recommendations. Focus on general wellness information only.
+
 I don't have specific information in my knowledge base to answer this question comprehensively. Please provide a helpful general response that:
 1. Acknowledges the limitation
-2. Provides general guidance if possible
-3. Recommends consulting healthcare professionals
+2. Provides general wellness guidance if possible (NOT medical advice)
+3. Recommends consulting healthcare professionals for medical concerns
 4. Stays encouraging and supportive
+5. Includes a disclaimer that this is not medical advice
 
-Keep the response under 200 words.
+Keep the response under 200 words and include an appropriate disclaimer.
 ''';
 
-    return await _openAIService.getChatCompletionWithMessages(
+    final response = await _openAIService.getChatCompletionWithMessages(
       messages: [
         {'role': 'user', 'content': prompt},
       ],
       maxTokens: 250,
       temperature: 0.7,
     );
+    
+    return response != null ? _addSafetyDisclaimer(response) : null;
   }
 
   /// Get performance statistics
@@ -1073,7 +1093,7 @@ Keep the response under 200 words.
       // Build context from recipe search results
       final recipeContext = _buildLLMContext(recipeResults, 1500);
 
-      // Create personalized prompt
+      // Create personalized prompt with safety guidelines
       final prompt =
           '''
 Based on the detected foods: ${detectedFoods.join(", ")}
@@ -1085,17 +1105,20 @@ User Profile:
 Recipe Knowledge Base:
 $recipeContext
 
+SAFETY GUIDELINES: Provide general recipe suggestions only. Do not give medical advice or make health claims. Focus on general nutrition education.
+
 Please provide 2-3 personalized recipe suggestions that:
 1. Use the detected ingredients
-2. Align with the user's health goals
+2. Align with the user's health goals (general wellness, not medical)
 3. Respect dietary restrictions
 4. Include brief preparation tips
-5. Mention nutritional benefits
+5. Mention general nutritional benefits (not medical claims)
 
-Keep each suggestion concise (2-3 sentences) and motivational.
+Keep each suggestion concise (2-3 sentences) and motivational. Include a brief disclaimer that this is general nutrition information, not medical advice.
 ''';
 
-      return await _openAIService.getChatCompletion(prompt);
+      final response = await _openAIService.getChatCompletion(prompt);
+      return response != null ? _addSafetyDisclaimer(response) : null;
     } catch (e) {
       Logger.d('Error generating recipe recommendations: $e');
       return null;
@@ -1134,18 +1157,37 @@ User Goals: ${healthContext.currentGoals.join(", ")}
 Nutrition Knowledge:
 $nutritionContext
 
+SAFETY GUIDELINES: Provide general nutrition education only. Do not give medical advice or make health claims. Focus on general wellness information.
+
 Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods that:
-1. Highlights key nutritional benefits
-2. Connects to the user's health goals
-3. Offers practical advice
+1. Highlights general nutritional benefits (not medical claims)
+2. Connects to the user's wellness goals (not medical outcomes)
+3. Offers practical lifestyle advice (not medical advice)
 4. Maintains a positive, motivational tone
+5. Includes a note that this is general nutrition information, not medical advice
 ''';
 
-      return await _openAIService.getChatCompletion(prompt);
+      final response = await _openAIService.getChatCompletion(prompt);
+      return response != null ? _addSafetyDisclaimer(response) : null;
     } catch (e) {
       Logger.d('Error generating nutrition insights: $e');
       return null;
     }
+  }
+
+  /// Add safety disclaimer to generated content
+  String _addSafetyDisclaimer(String content) {
+    if (content.trim().isEmpty) return content;
+    
+    const disclaimer = "\n\n*This information is for general wellness purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with a healthcare professional for medical concerns.*";
+    
+    // Check if disclaimer already exists to avoid duplication
+    if (content.toLowerCase().contains('not a substitute for professional medical advice') ||
+        content.toLowerCase().contains('consult with a healthcare professional')) {
+      return content;
+    }
+    
+    return content + disclaimer;
   }
 
   /// Clear performance statistics
@@ -1190,7 +1232,7 @@ Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods
           .take(5)
           .join('\n\n');
 
-      // Generate comprehensive summary
+      // Generate comprehensive summary with safety guidelines
       final prompt =
           '''
 Based on the following health knowledge and user's story activity from ${_formatDate(startDate)} to ${_formatDate(endDate)}:
@@ -1208,14 +1250,17 @@ STORY ANALYSIS:
 
 USER PROFILE: ${jsonEncode(userProfile ?? {})}
 
+SAFETY GUIDELINES: Provide general wellness insights only. Do not give medical advice, diagnoses, or treatment recommendations. Focus on general lifestyle and wellness observations.
+
 Generate a comprehensive story summary with:
-1. Overall narrative of the time period
-2. Key highlights and achievements
-3. Health and wellness insights
-4. Mood and engagement analysis
-5. Recommendations for improvement
+1. Overall narrative of the time period (focusing on wellness journey, not medical outcomes)
+2. Key highlights and achievements (lifestyle and wellness focused)
+3. General wellness insights (not medical advice)
+4. Mood and engagement analysis (general observations only)
+5. General lifestyle recommendations for improvement (not medical advice)
 
 Format as JSON with keys: summary, highlights, insights, mood_analysis, engagement_summary, recommendations.
+All content should focus on general wellness and lifestyle, not medical advice.
 ''';
 
       final response = await _openAIService.getChatCompletion(prompt);
