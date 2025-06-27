@@ -62,9 +62,9 @@ dart run scripts/seed_demo_accounts.dart
 ```
 
 **Demo Accounts:**
-- `alice@snapameal.demo` - Fitness Enthusiast (4-hour sessions)
-- `bob@snapameal.demo` - Health Coach (6-hour sessions)  
-- `charlie@snapameal.demo` - Nutrition Student (2-hour sessions)
+- `alice.demo@snapameal.com` - Fitness Enthusiast (4-hour sessions)
+- `bob.demo@snapameal.com` - Health Coach (6-hour sessions)
+- `charlie.demo@snapameal.com` - Nutrition Student (2-hour sessions)
 
 ### 2. Firestore Security Rules
 
@@ -219,7 +219,7 @@ final restoreResult = await backupService.restoreFromBackup(backup);
    final demoService = DemoDataService();
    
    // Seed data for specific persona
-   await demoService.seedPersonaData(userId, 'alice@snapameal.demo');
+   await demoService.seedPersonaData(userId, 'alice.demo@snapameal.com');
    
    // Check if user has demo data
    final hasData = await demoService.hasDemoData(userId);
@@ -301,7 +301,7 @@ final restoreResult = await backupService.restoreFromBackup(backup);
    print('Current user: ${user?.email}');
    
    // Verify demo account exists
-   final isDemoEmail = ['alice@snapameal.demo', 'bob@snapameal.demo', 'charlie@snapameal.demo']
+   final isDemoEmail = ['alice.demo@snapameal.com', 'bob.demo@snapameal.com', 'charlie.demo@snapameal.com']
        .contains(user?.email);
    ```
 

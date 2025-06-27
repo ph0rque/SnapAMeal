@@ -13,25 +13,25 @@ class DemoAccountManagementService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   
-  // Demo account configurations
+  // Demo account configurations - must match DemoPersonas emails
   static const Map<String, Map<String, dynamic>> demoAccounts = {
-    'alice@snapameal.demo': {
+    'alice.demo@snapameal.com': {
       'uid': 'demo_alice_uid',
-      'displayName': 'Alice Chen',
+      'displayName': 'Alice',
       'role': 'fitness_enthusiast',
       'maxSessionDuration': Duration(hours: 4),
       'autoResetInterval': Duration(days: 7),
     },
-    'bob@snapameal.demo': {
+    'bob.demo@snapameal.com': {
       'uid': 'demo_bob_uid', 
-      'displayName': 'Bob Martinez',
+      'displayName': 'Bob',
       'role': 'health_coach',
       'maxSessionDuration': Duration(hours: 6),
       'autoResetInterval': Duration(days: 7),
     },
-    'charlie@snapameal.demo': {
+    'charlie.demo@snapameal.com': {
       'uid': 'demo_charlie_uid',
-      'displayName': 'Charlie Kim',
+      'displayName': 'Charlie',
       'role': 'nutrition_student',
       'maxSessionDuration': Duration(hours: 2),
       'autoResetInterval': Duration(days: 7),
