@@ -4,6 +4,10 @@ library;
 
 /// Fallback content organized by user goals and content types
 class FallbackContent {
+  // Content version for updates and cache invalidation
+  static const String contentVersion = '1.0.0';
+  static final DateTime lastUpdated = DateTime(2024, 12, 19);
+
   // Daily insights organized by goals
   static const Map<String, List<String>> _dailyInsights = {
     'weight_loss': [
@@ -12,6 +16,11 @@ class FallbackContent {
       'Walking for just 10 extra minutes today can boost your energy and mood. *This is general wellness information, not medical advice.*',
       'Focus on adding more vegetables to your meals rather than restricting foods. *This is general wellness information, not medical advice.*',
       'Getting adequate sleep (7-9 hours) supports healthy metabolism and energy levels. *This is general wellness information, not medical advice.*',
+      'Staying hydrated throughout the day can help manage hunger and boost energy. *This is general wellness information, not medical advice.*',
+      'Eating protein with each meal can help you feel satisfied longer. *This is general wellness information, not medical advice.*',
+      'Taking the stairs instead of the elevator is a simple way to add movement. *This is general wellness information, not medical advice.*',
+      'Planning your meals ahead can help you make healthier choices. *This is general wellness information, not medical advice.*',
+      'Celebrating small victories keeps you motivated on your journey. *This is general wellness information, not medical advice.*',
     ],
     'muscle_gain': [
       'Consistency with your workout routine is more important than intensity. *This is general wellness information, not medical advice.*',
@@ -19,6 +28,11 @@ class FallbackContent {
       'Stay hydrated during workouts - aim for water before, during, and after exercise. *This is general wellness information, not medical advice.*',
       'Rest days are just as important as workout days for muscle development. *This is general wellness information, not medical advice.*',
       'Focus on compound movements that work multiple muscle groups for efficient training. *This is general wellness information, not medical advice.*',
+      'Progressive overload means gradually increasing challenge over time. *This is general wellness information, not medical advice.*',
+      'Proper form prevents injury and maximizes workout effectiveness. *This is general wellness information, not medical advice.*',
+      'Eating enough calories supports your muscle-building goals. *This is general wellness information, not medical advice.*',
+      'Quality sleep is when your muscles recover and grow. *This is general wellness information, not medical advice.*',
+      'Tracking your workouts helps you see progress over time. *This is general wellness information, not medical advice.*',
     ],
     'energy': [
       'Eating balanced meals with protein, healthy fats, and complex carbs helps maintain steady energy. *This is general wellness information, not medical advice.*',
@@ -26,6 +40,11 @@ class FallbackContent {
       'Natural sunlight exposure in the morning can help regulate your energy cycles. *This is general wellness information, not medical advice.*',
       'Stay hydrated throughout the day - even mild dehydration can affect energy levels. *This is general wellness information, not medical advice.*',
       'Consider a 10-15 minute walk after meals to help with digestion and energy. *This is general wellness information, not medical advice.*',
+      'Limiting caffeine after 2 PM may help improve your sleep quality. *This is general wellness information, not medical advice.*',
+      'Deep breathing exercises can help reduce stress and boost energy. *This is general wellness information, not medical advice.*',
+      'Eating iron-rich foods like spinach and lean meats supports energy levels. *This is general wellness information, not medical advice.*',
+      'Regular exercise, even light activity, can increase overall energy. *This is general wellness information, not medical advice.*',
+      'Managing stress through relaxation techniques supports sustained energy. *This is general wellness information, not medical advice.*',
     ],
     'health': [
       'A colorful plate with various fruits and vegetables provides diverse nutrients. *This is general wellness information, not medical advice.*',
@@ -33,6 +52,11 @@ class FallbackContent {
       'Stress management through deep breathing or meditation can benefit overall health. *This is general wellness information, not medical advice.*',
       'Building healthy habits gradually is more sustainable than making drastic changes. *This is general wellness information, not medical advice.*',
       'Social connections and community support are important for overall wellness. *This is general wellness information, not medical advice.*',
+      'Drinking plenty of water supports nearly every function in your body. *This is general wellness information, not medical advice.*',
+      'Regular health check-ups help you stay on top of your wellness. *This is general wellness information, not medical advice.*',
+      'Limiting processed foods and choosing whole foods supports overall health. *This is general wellness information, not medical advice.*',
+      'Finding activities you enjoy makes staying active more sustainable. *This is general wellness information, not medical advice.*',
+      'Practicing gratitude can improve both mental and physical well-being. *This is general wellness information, not medical advice.*',
     ],
     'strength': [
       'Progressive overload - gradually increasing challenge - helps build strength over time. *This is general wellness information, not medical advice.*',
@@ -40,6 +64,11 @@ class FallbackContent {
       'Include both upper and lower body exercises for balanced strength development. *This is general wellness information, not medical advice.*',
       'Functional movements that mimic daily activities can improve practical strength. *This is general wellness information, not medical advice.*',
       'Allow adequate recovery time between strength training sessions. *This is general wellness information, not medical advice.*',
+      'Warming up before strength training prepares your muscles and joints. *This is general wellness information, not medical advice.*',
+      'Core strength supports all other movements and daily activities. *This is general wellness information, not medical advice.*',
+      'Bodyweight exercises can be just as effective as weights for building strength. *This is general wellness information, not medical advice.*',
+      'Consistency beats intensity when building long-term strength. *This is general wellness information, not medical advice.*',
+      'Listen to your body and adjust intensity based on how you feel. *This is general wellness information, not medical advice.*',
     ],
   };
 
@@ -54,6 +83,12 @@ class FallbackContent {
     'fish': 'Fish provides lean protein and healthy omega-3 fatty acids that support overall wellness. *This is general wellness information, not medical advice.*',
     'chicken': 'Chicken is a versatile lean protein that can be prepared in many healthy ways. *This is general wellness information, not medical advice.*',
     'eggs': 'Eggs are a complete protein source and can be part of a balanced breakfast. *This is general wellness information, not medical advice.*',
+    'legumes': 'Beans and lentils provide plant-based protein and fiber for sustained energy. *This is general wellness information, not medical advice.*',
+    'avocado': 'Avocados contain healthy monounsaturated fats and fiber. *This is general wellness information, not medical advice.*',
+    'berries': 'Berries are rich in antioxidants and add natural sweetness to meals. *This is general wellness information, not medical advice.*',
+    'leafy_greens': 'Leafy greens like spinach and kale are nutrient-dense and versatile. *This is general wellness information, not medical advice.*',
+    'sweet_potato': 'Sweet potatoes provide complex carbohydrates and beta-carotene. *This is general wellness information, not medical advice.*',
+    'quinoa': 'Quinoa is a complete protein grain that provides all essential amino acids. *This is general wellness information, not medical advice.*',
   };
 
   // Recipe suggestions organized by dietary restrictions
@@ -62,16 +97,37 @@ class FallbackContent {
       'Try a colorful vegetable stir-fry with tofu and brown rice for a balanced meal. *This is general wellness information, not medical advice.*',
       'Bean and vegetable soup with whole grain bread makes a hearty, protein-rich meal. *This is general wellness information, not medical advice.*',
       'Greek yogurt parfait with berries and nuts provides protein and healthy fats. *This is general wellness information, not medical advice.*',
+      'Caprese salad with fresh mozzarella, tomatoes, and basil is light and satisfying. *This is general wellness information, not medical advice.*',
+      'Vegetable curry with chickpeas and brown rice offers plant-based protein. *This is general wellness information, not medical advice.*',
+      'Quinoa stuffed bell peppers make a colorful, nutrient-dense meal. *This is general wellness information, not medical advice.*',
     ],
     'vegan': [
       'Quinoa bowl with roasted vegetables and tahini dressing offers complete protein. *This is general wellness information, not medical advice.*',
       'Lentil curry with vegetables provides plant-based protein and fiber. *This is general wellness information, not medical advice.*',
       'Smoothie bowl with plant-based protein powder, fruits, and nuts for breakfast. *This is general wellness information, not medical advice.*',
+      'Buddha bowl with hummus, vegetables, and seeds for a nutrient-packed meal. *This is general wellness information, not medical advice.*',
+      'Black bean and sweet potato tacos with avocado are filling and flavorful. *This is general wellness information, not medical advice.*',
+      'Overnight oats with almond milk, chia seeds, and fruit for easy breakfast. *This is general wellness information, not medical advice.*',
     ],
     'general': [
       'Grilled chicken with roasted vegetables and sweet potato for a balanced meal. *This is general wellness information, not medical advice.*',
       'Salmon with quinoa and steamed broccoli provides protein and omega-3s. *This is general wellness information, not medical advice.*',
       'Turkey and vegetable lettuce wraps for a light, protein-rich lunch. *This is general wellness information, not medical advice.*',
+      'Lean beef stir-fry with mixed vegetables and brown rice. *This is general wellness information, not medical advice.*',
+      'Baked cod with herbs and roasted root vegetables. *This is general wellness information, not medical advice.*',
+      'Chicken and vegetable soup with whole grain crackers. *This is general wellness information, not medical advice.*',
+    ],
+    'low_carb': [
+      'Zucchini noodles with grilled chicken and pesto sauce. *This is general wellness information, not medical advice.*',
+      'Cauliflower rice stir-fry with shrimp and vegetables. *This is general wellness information, not medical advice.*',
+      'Lettuce wrap tacos with ground turkey and avocado. *This is general wellness information, not medical advice.*',
+      'Egg salad with mixed greens and cucumber. *This is general wellness information, not medical advice.*',
+    ],
+    'high_protein': [
+      'Greek yogurt bowl with protein powder, berries, and nuts. *This is general wellness information, not medical advice.*',
+      'Protein smoothie with spinach, banana, and almond butter. *This is general wellness information, not medical advice.*',
+      'Cottage cheese with sliced tomatoes and herbs. *This is general wellness information, not medical advice.*',
+      'Hard-boiled eggs with hummus and vegetables. *This is general wellness information, not medical advice.*',
     ],
   };
 
@@ -116,6 +172,109 @@ class FallbackContent {
         'Day 7: Notice which habits boosted your energy',
       ],
     },
+    'strength': {
+      'title': 'Your First 7 Days: Building Foundation',
+      'description': 'Create a strong foundation for your strength journey.',
+      'steps': [
+        'Day 1: Learn proper squat form with bodyweight',
+        'Day 2: Practice push-ups (modified if needed)',
+        'Day 3: Hold a plank for 30 seconds',
+        'Day 4: Try lunges with proper form',
+        'Day 5: Do a full-body stretching routine',
+        'Day 6: Active recovery with a gentle walk',
+        'Day 7: Set strength goals for next week',
+      ],
+    },
+    'health': {
+      'title': 'Your First 7 Days: Wellness Foundation',
+      'description': 'Build a foundation of healthy habits for overall wellness.',
+      'steps': [
+        'Day 1: Eat 5 servings of fruits and vegetables',
+        'Day 2: Drink 8 glasses of water',
+        'Day 3: Get 30 minutes of movement',
+        'Day 4: Practice 5 minutes of deep breathing',
+        'Day 5: Connect with a friend or family member',
+        'Day 6: Spend time in nature',
+        'Day 7: Reflect on your wellness priorities',
+      ],
+    },
+  };
+
+  // AI content for feed integration
+  static const Map<String, List<Map<String, dynamic>>> _aiContentArticles = {
+    'weight_loss': [
+      {
+        'title': 'The Power of Small Changes',
+        'content': 'Small, consistent changes often lead to lasting results. Focus on one habit at a time for sustainable progress.',
+        'type': 'article',
+        'category': 'motivation',
+      },
+      {
+        'title': 'Mindful Eating Tips',
+        'content': 'Eating slowly and paying attention to hunger cues can help you enjoy food more and feel satisfied with appropriate portions.',
+        'type': 'tip',
+        'category': 'nutrition',
+      },
+    ],
+    'muscle_gain': [
+      {
+        'title': 'Recovery is Growth',
+        'content': 'Your muscles grow during rest periods, not just during workouts. Prioritize sleep and rest days for optimal results.',
+        'type': 'article',
+        'category': 'fitness',
+      },
+      {
+        'title': 'Protein Timing',
+        'content': 'Including protein with each meal helps support muscle recovery and keeps you feeling satisfied throughout the day.',
+        'type': 'tip',
+        'category': 'nutrition',
+      },
+    ],
+    'energy': [
+      {
+        'title': 'Natural Energy Boosters',
+        'content': 'Regular movement, adequate hydration, and balanced meals are natural ways to maintain steady energy levels.',
+        'type': 'article',
+        'category': 'wellness',
+      },
+      {
+        'title': 'Morning Sunlight',
+        'content': 'Getting natural light in the morning helps regulate your circadian rhythm and can improve energy throughout the day.',
+        'type': 'tip',
+        'category': 'wellness',
+      },
+    ],
+  };
+
+  // Friend matching explanations
+  static const List<String> _friendMatchingExplanations = [
+    'You both have similar health goals and could motivate each other!',
+    'Your activity levels and interests seem well-matched for mutual support.',
+    'You share common dietary preferences and could exchange recipe ideas.',
+    'Your wellness journeys are at similar stages - perfect for encouragement!',
+    'You both value consistency in your health routines.',
+    'Your complementary strengths could help you both grow.',
+    'You share similar challenges and could support each other through them.',
+    'Your positive attitudes toward health would be mutually inspiring.',
+  ];
+
+  // Weekly review fallback content
+  static const Map<String, List<String>> _weeklyReviewHighlights = {
+    'active': [
+      'You stayed active this week - every bit of movement counts!',
+      'Your consistency with activities is building healthy habits.',
+      'You made time for your health despite a busy schedule.',
+    ],
+    'nutrition': [
+      'You logged meals consistently, which helps with awareness.',
+      'You tried new foods this week - variety is important for nutrition.',
+      'Your focus on balanced meals is supporting your goals.',
+    ],
+    'social': [
+      'You engaged with the community and shared your journey.',
+      'Your stories inspired others on their wellness paths.',
+      'You built connections that support your health goals.',
+    ],
   };
 
   /// Get random daily insight for user's primary goal
@@ -138,7 +297,8 @@ class FallbackContent {
     for (final food in detectedFoods) {
       final lowerFood = food.toLowerCase();
       for (final category in _nutritionInsights.keys) {
-        if (lowerFood.contains(category)) {
+        if (lowerFood.contains(category) || 
+            _isRelatedFood(lowerFood, category)) {
           return _nutritionInsights[category]!;
         }
       }
@@ -148,21 +308,87 @@ class FallbackContent {
     return 'The foods you logged contain various nutrients that can support your wellness goals. *This is general wellness information, not medical advice.*';
   }
 
+  /// Check if a food is related to a category
+  static bool _isRelatedFood(String food, String category) {
+    const foodMappings = {
+      'vegetables': ['broccoli', 'carrot', 'spinach', 'kale', 'tomato', 'pepper', 'onion', 'celery', 'cucumber'],
+      'fruits': ['apple', 'banana', 'orange', 'grape', 'strawberry', 'blueberry', 'mango', 'pineapple'],
+      'proteins': ['beef', 'pork', 'turkey', 'tuna', 'salmon', 'shrimp', 'tofu', 'tempeh'],
+      'grains': ['rice', 'bread', 'pasta', 'oats', 'barley', 'wheat', 'quinoa'],
+      'legumes': ['bean', 'lentil', 'pea', 'chickpea', 'soy'],
+    };
+
+    final relatedFoods = foodMappings[category] ?? [];
+    return relatedFoods.any((relatedFood) => food.contains(relatedFood));
+  }
+
   /// Get recipe suggestions based on dietary restrictions
-  static List<String> getRecipeSuggestions(List<String> dietaryRestrictions) {
-    if (dietaryRestrictions.contains('vegetarian')) {
-      return _recipeIdeas['vegetarian']!;
-    } else if (dietaryRestrictions.contains('vegan')) {
+  static List<String> getRecipeSuggestions(List<String> dietaryRestrictions, {List<String>? userGoals}) {
+    // Check for specific dietary restrictions first
+    if (dietaryRestrictions.contains('vegan')) {
       return _recipeIdeas['vegan']!;
-    } else {
-      return _recipeIdeas['general']!;
+    } else if (dietaryRestrictions.contains('vegetarian')) {
+      return _recipeIdeas['vegetarian']!;
+    } else if (dietaryRestrictions.contains('low_carb') || dietaryRestrictions.contains('keto')) {
+      return _recipeIdeas['low_carb']!;
     }
+
+    // Check user goals for recipe suggestions
+    if (userGoals != null) {
+      if (userGoals.contains('muscle_gain') || userGoals.contains('strength')) {
+        return _recipeIdeas['high_protein']!;
+      }
+    }
+
+    return _recipeIdeas['general']!;
   }
 
   /// Get mission for user's primary goal
   static Map<String, dynamic> getMission(List<String> userGoals) {
     final primaryGoal = userGoals.isNotEmpty ? userGoals.first.toLowerCase() : 'health';
-    return _missions[primaryGoal] ?? _missions['weight_loss']!;
+    return Map<String, dynamic>.from(_missions[primaryGoal] ?? _missions['health']!);
+  }
+
+  /// Get AI content for feed based on user goals
+  static List<Map<String, dynamic>> getAIContentForFeed(List<String> userGoals, {int count = 3}) {
+    final primaryGoal = userGoals.isNotEmpty ? userGoals.first.toLowerCase() : 'health';
+    final content = _aiContentArticles[primaryGoal] ?? _aiContentArticles['weight_loss']!;
+    
+    return content.take(count).map((item) => Map<String, dynamic>.from(item)).toList();
+  }
+
+  /// Get friend matching explanation
+  static String getFriendMatchingExplanation() {
+    final random = DateTime.now().millisecond % _friendMatchingExplanations.length;
+    return _friendMatchingExplanations[random];
+  }
+
+  /// Get weekly review highlights
+  static List<String> getWeeklyReviewHighlights(Map<String, dynamic> activityData) {
+    final highlights = <String>[];
+    final metrics = activityData['metrics'] as Map<String, dynamic>? ?? {};
+    
+    // Add highlights based on activity
+    final storyMetrics = metrics['stories'] as Map<String, dynamic>? ?? {};
+    final storyCount = storyMetrics['total_count'] as int? ?? 0;
+    if (storyCount > 0) {
+      highlights.addAll(_weeklyReviewHighlights['social']!);
+    }
+    
+    final mealMetrics = metrics['meals'] as Map<String, dynamic>? ?? {};
+    final mealCount = mealMetrics['total_count'] as int? ?? 0;
+    if (mealCount > 0) {
+      highlights.addAll(_weeklyReviewHighlights['nutrition']!);
+    }
+    
+    final overallMetrics = metrics['overall'] as Map<String, dynamic>? ?? {};
+    final totalActivities = overallMetrics['total_activities'] as int? ?? 0;
+    if (totalActivities > 0) {
+      highlights.addAll(_weeklyReviewHighlights['active']!);
+    }
+    
+    // Return up to 3 highlights
+    return highlights.take(3).toList();
   }
 
   /// Get generic safe response when all else fails
@@ -359,8 +585,52 @@ For personalized advice or specific health concerns, I recommend consulting with
         return userGoals != null && userGoals.isNotEmpty;
       case 'conversation_starter':
         return groupType != null && _conversationStarters.containsKey(groupType);
+      case 'ai_content':
+        return true; // Always have AI content for feed
+      case 'friend_matching':
+        return true; // Always have friend matching explanations
+      case 'weekly_review':
+        return true; // Always have weekly review content
       default:
         return true; // Always have generic safe response
     }
+  }
+
+  /// Get content version for cache invalidation
+  static String getContentVersion() => contentVersion;
+
+  /// Get last updated date
+  static DateTime getLastUpdated() => lastUpdated;
+
+  /// Validate content integrity
+  static bool validateContent() {
+    // Check that all required content categories exist
+    final requiredCategories = [
+      'weight_loss', 'muscle_gain', 'energy', 'health', 'strength'
+    ];
+    
+    for (final category in requiredCategories) {
+      if (!_dailyInsights.containsKey(category) || 
+          _dailyInsights[category]!.isEmpty) {
+        return false;
+      }
+    }
+    
+    return true;
+  }
+
+  /// Get content statistics for monitoring
+  static Map<String, dynamic> getContentStats() {
+    return {
+      'version': contentVersion,
+      'last_updated': lastUpdated.toIso8601String(),
+      'daily_insights_count': _dailyInsights.values.fold<int>(0, (sum, list) => sum + list.length),
+      'nutrition_insights_count': _nutritionInsights.length,
+      'recipe_categories': _recipeIdeas.length,
+      'mission_types': _missions.length,
+      'conversation_starter_groups': _conversationStarters.length,
+      'total_conversation_starters': _conversationStarters.values.fold<int>(0, (sum, list) => sum + list.length),
+      'content_valid': validateContent(),
+    };
   }
 } 

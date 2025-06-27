@@ -3,6 +3,7 @@ import 'package:snapameal/pages/ar_camera_page.dart';
 import 'package:snapameal/pages/meal_logging_page.dart';
 import 'package:snapameal/pages/milestone_stories_page.dart';
 import 'package:snapameal/pages/weekly_review_page.dart';
+import 'package:snapameal/pages/ai_settings_page.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
@@ -161,6 +162,14 @@ class _HomePageState extends State<HomePage> {
                         ),
                       );
                       break;
+                    case 'ai_settings':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AISettingsPage(),
+                        ),
+                      );
+                      break;
                     case 'logout':
                       _showLogoutDialog();
                       break;
@@ -174,6 +183,16 @@ class _HomePageState extends State<HomePage> {
                         Icon(Icons.assessment),
                         SizedBox(width: 8),
                         Text('My Reviews'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'ai_settings',
+                    child: Row(
+                      children: [
+                        Icon(Icons.smart_toy),
+                        SizedBox(width: 8),
+                        Text('AI Settings'),
                       ],
                     ),
                   ),

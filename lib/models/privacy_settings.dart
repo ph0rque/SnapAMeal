@@ -44,8 +44,19 @@ class PrivacySettings {
   final Map<String, dynamic> consentHistory;
   final DateTime lastUpdated;
   final DateTime createdAt;
+  final bool shareActivityWithFriends;
+  final bool allowFriendRequests;
+  final bool showInDiscovery;
+  final bool enableNotifications;
+  final bool shareProgressPhotos;
+  final bool allowDataAnalytics;
+  final Map<String, bool> notificationPreferences;
+  final DateTime updatedAt;
+  
+  // AI Content Preferences
+  final AIContentPreferences aiPreferences;
 
-  const PrivacySettings({
+  PrivacySettings({
     required this.userId,
     required this.dataPrivacyLevels,
     required this.dataAccessWhitelist,
@@ -63,7 +74,17 @@ class PrivacySettings {
     required this.consentHistory,
     required this.lastUpdated,
     required this.createdAt,
-  });
+    this.shareActivityWithFriends = true,
+    this.allowFriendRequests = true,
+    this.showInDiscovery = true,
+    this.enableNotifications = true,
+    this.shareProgressPhotos = false,
+    this.allowDataAnalytics = true,
+    this.notificationPreferences = const {},
+    DateTime? updatedAt,
+    AIContentPreferences? aiPreferences,
+  }) : updatedAt = updatedAt ?? DateTime.now(),
+       aiPreferences = aiPreferences ?? AIContentPreferences._createDefault();
 
   // Default privacy settings for new users
   factory PrivacySettings.defaultSettings(String userId) {
@@ -96,6 +117,14 @@ class PrivacySettings {
       consentHistory: {},
       lastUpdated: DateTime.now(),
       createdAt: DateTime.now(),
+      shareActivityWithFriends: true,
+      allowFriendRequests: true,
+      showInDiscovery: true,
+      enableNotifications: true,
+      shareProgressPhotos: false,
+      allowDataAnalytics: true,
+      notificationPreferences: {},
+      aiPreferences: AIContentPreferences._createDefault(),
     );
   }
 
@@ -128,6 +157,15 @@ class PrivacySettings {
       'consentHistory': consentHistory,
       'lastUpdated': Timestamp.fromDate(lastUpdated),
       'createdAt': Timestamp.fromDate(createdAt),
+      'shareActivityWithFriends': shareActivityWithFriends,
+      'allowFriendRequests': allowFriendRequests,
+      'showInDiscovery': showInDiscovery,
+      'enableNotifications': enableNotifications,
+      'shareProgressPhotos': shareProgressPhotos,
+      'allowDataAnalytics': allowDataAnalytics,
+      'notificationPreferences': notificationPreferences,
+      'updatedAt': Timestamp.fromDate(updatedAt),
+      'aiPreferences': aiPreferences.toMap(),
     };
   }
 
@@ -199,6 +237,17 @@ class PrivacySettings {
       lastUpdated:
           (data['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      shareActivityWithFriends: data['shareActivityWithFriends'] ?? true,
+      allowFriendRequests: data['allowFriendRequests'] ?? true,
+      showInDiscovery: data['showInDiscovery'] ?? true,
+      enableNotifications: data['enableNotifications'] ?? true,
+      shareProgressPhotos: data['shareProgressPhotos'] ?? false,
+      allowDataAnalytics: data['allowDataAnalytics'] ?? true,
+      notificationPreferences: Map<String, bool>.from(data['notificationPreferences'] ?? {}),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      aiPreferences: data['aiPreferences'] != null 
+          ? AIContentPreferences.fromMap(data['aiPreferences'])
+          : AIContentPreferences._createDefault(),
     );
   }
 
@@ -220,6 +269,15 @@ class PrivacySettings {
     Map<String, dynamic>? consentHistory,
     DateTime? lastUpdated,
     DateTime? createdAt,
+    bool? shareActivityWithFriends,
+    bool? allowFriendRequests,
+    bool? showInDiscovery,
+    bool? enableNotifications,
+    bool? shareProgressPhotos,
+    bool? allowDataAnalytics,
+    Map<String, bool>? notificationPreferences,
+    DateTime? updatedAt,
+    AIContentPreferences? aiPreferences,
   }) {
     return PrivacySettings(
       userId: userId ?? this.userId,
@@ -242,6 +300,15 @@ class PrivacySettings {
       consentHistory: consentHistory ?? this.consentHistory,
       lastUpdated: lastUpdated ?? DateTime.now(),
       createdAt: createdAt ?? this.createdAt,
+      shareActivityWithFriends: shareActivityWithFriends ?? this.shareActivityWithFriends,
+      allowFriendRequests: allowFriendRequests ?? this.allowFriendRequests,
+      showInDiscovery: showInDiscovery ?? this.showInDiscovery,
+      enableNotifications: enableNotifications ?? this.enableNotifications,
+      shareProgressPhotos: shareProgressPhotos ?? this.shareProgressPhotos,
+      allowDataAnalytics: allowDataAnalytics ?? this.allowDataAnalytics,
+      notificationPreferences: notificationPreferences ?? this.notificationPreferences,
+      updatedAt: updatedAt ?? this.updatedAt,
+      aiPreferences: aiPreferences ?? this.aiPreferences,
     );
   }
 
@@ -454,5 +521,345 @@ class ConsentRecord {
       reason: data['reason'],
       metadata: data['metadata'],
     );
+  }
+}
+
+/// AI Content Preferences for customizing AI-generated content
+class AIContentPreferences {
+  // General AI Settings
+  final bool enableAIContent;
+  final AIContentFrequency dailyInsightFrequency;
+  final AIContentFrequency mealInsightFrequency;
+  final AIContentFrequency feedContentFrequency;
+  
+  // Content Type Preferences
+  final Map<String, bool> contentTypePreferences;
+  final Map<String, bool> dismissedContentTypes;
+  
+  // Personalization Settings
+  final bool usePersonalizedContent;
+  final bool allowGoalBasedContent;
+  final bool allowDietaryContent;
+  final bool allowFitnessContent;
+  
+  // Social AI Features
+  final bool enableConversationStarters;
+  final bool enableFriendMatchingAI;
+  final bool allowAIInGroups;
+  
+  // Review and Insights
+  final bool enableWeeklyReviews;
+  final bool enableMonthlyReviews;
+  final bool enableGoalTracking;
+  
+  // Content Safety
+  final bool reportInappropriateContent;
+  final List<String> blockedKeywords;
+  
+  final DateTime updatedAt;
+
+  AIContentPreferences({
+    this.enableAIContent = true,
+    this.dailyInsightFrequency = AIContentFrequency.daily,
+    this.mealInsightFrequency = AIContentFrequency.always,
+    this.feedContentFrequency = AIContentFrequency.moderate,
+    Map<String, bool>? contentTypePreferences,
+    Map<String, bool>? dismissedContentTypes,
+    this.usePersonalizedContent = true,
+    this.allowGoalBasedContent = true,
+    this.allowDietaryContent = true,
+    this.allowFitnessContent = true,
+    this.enableConversationStarters = true,
+    this.enableFriendMatchingAI = true,
+    this.allowAIInGroups = true,
+    this.enableWeeklyReviews = true,
+    this.enableMonthlyReviews = true,
+    this.enableGoalTracking = true,
+    this.reportInappropriateContent = true,
+    this.blockedKeywords = const [],
+    DateTime? updatedAt,
+  }) : contentTypePreferences = contentTypePreferences ?? const {
+        'motivation': true,
+        'nutrition': true,
+        'fitness': true,
+        'recipes': true,
+        'tips': true,
+        'articles': true,
+      },
+      dismissedContentTypes = dismissedContentTypes ?? const {},
+      updatedAt = updatedAt ?? DateTime.now();
+
+  static AIContentPreferences _createDefault() {
+    return AIContentPreferences(
+      enableAIContent: true,
+      dailyInsightFrequency: AIContentFrequency.daily,
+      mealInsightFrequency: AIContentFrequency.always,
+      feedContentFrequency: AIContentFrequency.moderate,
+      contentTypePreferences: const {
+        'motivation': true,
+        'nutrition': true,
+        'fitness': true,
+        'recipes': true,
+        'tips': true,
+        'articles': true,
+      },
+      dismissedContentTypes: const {},
+      usePersonalizedContent: true,
+      allowGoalBasedContent: true,
+      allowDietaryContent: true,
+      allowFitnessContent: true,
+      enableConversationStarters: true,
+      enableFriendMatchingAI: true,
+      allowAIInGroups: true,
+      enableWeeklyReviews: true,
+      enableMonthlyReviews: true,
+      enableGoalTracking: true,
+      reportInappropriateContent: true,
+      blockedKeywords: const [],
+      updatedAt: DateTime(2024, 12, 19),
+    );
+  }
+
+  factory AIContentPreferences.fromMap(Map<String, dynamic> data) {
+    return AIContentPreferences(
+      enableAIContent: data['enableAIContent'] ?? true,
+      dailyInsightFrequency: AIContentFrequency.values.firstWhere(
+        (f) => f.name == data['dailyInsightFrequency'],
+        orElse: () => AIContentFrequency.daily,
+      ),
+      mealInsightFrequency: AIContentFrequency.values.firstWhere(
+        (f) => f.name == data['mealInsightFrequency'],
+        orElse: () => AIContentFrequency.always,
+      ),
+      feedContentFrequency: AIContentFrequency.values.firstWhere(
+        (f) => f.name == data['feedContentFrequency'],
+        orElse: () => AIContentFrequency.moderate,
+      ),
+      contentTypePreferences: Map<String, bool>.from(data['contentTypePreferences'] ?? {
+        'motivation': true,
+        'nutrition': true,
+        'fitness': true,
+        'recipes': true,
+        'tips': true,
+        'articles': true,
+      }),
+      dismissedContentTypes: Map<String, bool>.from(data['dismissedContentTypes'] ?? {}),
+      usePersonalizedContent: data['usePersonalizedContent'] ?? true,
+      allowGoalBasedContent: data['allowGoalBasedContent'] ?? true,
+      allowDietaryContent: data['allowDietaryContent'] ?? true,
+      allowFitnessContent: data['allowFitnessContent'] ?? true,
+      enableConversationStarters: data['enableConversationStarters'] ?? true,
+      enableFriendMatchingAI: data['enableFriendMatchingAI'] ?? true,
+      allowAIInGroups: data['allowAIInGroups'] ?? true,
+      enableWeeklyReviews: data['enableWeeklyReviews'] ?? true,
+      enableMonthlyReviews: data['enableMonthlyReviews'] ?? true,
+      enableGoalTracking: data['enableGoalTracking'] ?? true,
+      reportInappropriateContent: data['reportInappropriateContent'] ?? true,
+      blockedKeywords: List<String>.from(data['blockedKeywords'] ?? []),
+      updatedAt: data['updatedAt'] != null 
+          ? (data['updatedAt'] as Timestamp).toDate()
+          : DateTime.now(),
+    );
+  }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'enableAIContent': enableAIContent,
+      'dailyInsightFrequency': dailyInsightFrequency.name,
+      'mealInsightFrequency': mealInsightFrequency.name,
+      'feedContentFrequency': feedContentFrequency.name,
+      'contentTypePreferences': contentTypePreferences,
+      'dismissedContentTypes': dismissedContentTypes,
+      'usePersonalizedContent': usePersonalizedContent,
+      'allowGoalBasedContent': allowGoalBasedContent,
+      'allowDietaryContent': allowDietaryContent,
+      'allowFitnessContent': allowFitnessContent,
+      'enableConversationStarters': enableConversationStarters,
+      'enableFriendMatchingAI': enableFriendMatchingAI,
+      'allowAIInGroups': allowAIInGroups,
+      'enableWeeklyReviews': enableWeeklyReviews,
+      'enableMonthlyReviews': enableMonthlyReviews,
+      'enableGoalTracking': enableGoalTracking,
+      'reportInappropriateContent': reportInappropriateContent,
+      'blockedKeywords': blockedKeywords,
+      'updatedAt': Timestamp.fromDate(updatedAt),
+    };
+  }
+
+  AIContentPreferences copyWith({
+    bool? enableAIContent,
+    AIContentFrequency? dailyInsightFrequency,
+    AIContentFrequency? mealInsightFrequency,
+    AIContentFrequency? feedContentFrequency,
+    Map<String, bool>? contentTypePreferences,
+    Map<String, bool>? dismissedContentTypes,
+    bool? usePersonalizedContent,
+    bool? allowGoalBasedContent,
+    bool? allowDietaryContent,
+    bool? allowFitnessContent,
+    bool? enableConversationStarters,
+    bool? enableFriendMatchingAI,
+    bool? allowAIInGroups,
+    bool? enableWeeklyReviews,
+    bool? enableMonthlyReviews,
+    bool? enableGoalTracking,
+    bool? reportInappropriateContent,
+    List<String>? blockedKeywords,
+    DateTime? updatedAt,
+  }) {
+    return AIContentPreferences(
+      enableAIContent: enableAIContent ?? this.enableAIContent,
+      dailyInsightFrequency: dailyInsightFrequency ?? this.dailyInsightFrequency,
+      mealInsightFrequency: mealInsightFrequency ?? this.mealInsightFrequency,
+      feedContentFrequency: feedContentFrequency ?? this.feedContentFrequency,
+      contentTypePreferences: contentTypePreferences ?? this.contentTypePreferences,
+      dismissedContentTypes: dismissedContentTypes ?? this.dismissedContentTypes,
+      usePersonalizedContent: usePersonalizedContent ?? this.usePersonalizedContent,
+      allowGoalBasedContent: allowGoalBasedContent ?? this.allowGoalBasedContent,
+      allowDietaryContent: allowDietaryContent ?? this.allowDietaryContent,
+      allowFitnessContent: allowFitnessContent ?? this.allowFitnessContent,
+      enableConversationStarters: enableConversationStarters ?? this.enableConversationStarters,
+      enableFriendMatchingAI: enableFriendMatchingAI ?? this.enableFriendMatchingAI,
+      allowAIInGroups: allowAIInGroups ?? this.allowAIInGroups,
+      enableWeeklyReviews: enableWeeklyReviews ?? this.enableWeeklyReviews,
+      enableMonthlyReviews: enableMonthlyReviews ?? this.enableMonthlyReviews,
+      enableGoalTracking: enableGoalTracking ?? this.enableGoalTracking,
+      reportInappropriateContent: reportInappropriateContent ?? this.reportInappropriateContent,
+      blockedKeywords: blockedKeywords ?? this.blockedKeywords,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  /// Check if a specific content type is enabled
+  bool isContentTypeEnabled(String contentType) {
+    return contentTypePreferences[contentType] ?? true;
+  }
+
+  /// Check if a content type has been dismissed
+  bool isContentTypeDismissed(String contentType) {
+    return dismissedContentTypes[contentType] ?? false;
+  }
+
+  /// Check if AI content should be shown based on frequency settings
+  bool shouldShowDailyInsight() {
+    if (!enableAIContent) return false;
+    
+    switch (dailyInsightFrequency) {
+      case AIContentFrequency.never:
+        return false;
+      case AIContentFrequency.weekly:
+        return DateTime.now().weekday == 1; // Monday only
+      case AIContentFrequency.moderate:
+        return DateTime.now().weekday % 2 == 1; // Every other day
+      case AIContentFrequency.daily:
+        return true;
+      case AIContentFrequency.always:
+        return true;
+    }
+  }
+
+  /// Check if meal insights should be shown
+  bool shouldShowMealInsight() {
+    if (!enableAIContent) return false;
+    
+    switch (mealInsightFrequency) {
+      case AIContentFrequency.never:
+        return false;
+      case AIContentFrequency.weekly:
+        return DateTime.now().weekday == 1; // Monday only
+      case AIContentFrequency.moderate:
+        return DateTime.now().hour % 2 == 0; // Every other meal time
+      case AIContentFrequency.daily:
+        return true;
+      case AIContentFrequency.always:
+        return true;
+    }
+  }
+
+  /// Check if feed content should be shown
+  bool shouldShowFeedContent() {
+    if (!enableAIContent) return false;
+    
+    switch (feedContentFrequency) {
+      case AIContentFrequency.never:
+        return false;
+      case AIContentFrequency.weekly:
+        return DateTime.now().weekday <= 2; // Monday-Tuesday only
+      case AIContentFrequency.moderate:
+        return DateTime.now().day % 2 == 1; // Every other day
+      case AIContentFrequency.daily:
+        return true;
+      case AIContentFrequency.always:
+        return true;
+    }
+  }
+
+  /// Reset preferences to defaults
+  AIContentPreferences resetToDefaults() {
+    return AIContentPreferences();
+  }
+
+  /// Get summary of current preferences
+  Map<String, dynamic> getPreferencesSummary() {
+    return {
+      'ai_enabled': enableAIContent,
+      'personalized': usePersonalizedContent,
+      'daily_insights': dailyInsightFrequency.name,
+      'meal_insights': mealInsightFrequency.name,
+      'feed_content': feedContentFrequency.name,
+      'enabled_content_types': contentTypePreferences.entries
+          .where((e) => e.value)
+          .map((e) => e.key)
+          .toList(),
+      'social_features': {
+        'conversation_starters': enableConversationStarters,
+        'friend_matching': enableFriendMatchingAI,
+        'group_ai': allowAIInGroups,
+      },
+      'reviews': {
+        'weekly': enableWeeklyReviews,
+        'monthly': enableMonthlyReviews,
+        'goal_tracking': enableGoalTracking,
+      },
+    };
+  }
+}
+
+/// Frequency options for AI content
+enum AIContentFrequency {
+  never,
+  weekly,
+  moderate,
+  daily,
+  always;
+
+  String get displayName {
+    switch (this) {
+      case AIContentFrequency.never:
+        return 'Never';
+      case AIContentFrequency.weekly:
+        return 'Weekly';
+      case AIContentFrequency.moderate:
+        return 'Moderate';
+      case AIContentFrequency.daily:
+        return 'Daily';
+      case AIContentFrequency.always:
+        return 'Always';
+    }
+  }
+
+  String get description {
+    switch (this) {
+      case AIContentFrequency.never:
+        return 'No AI content';
+      case AIContentFrequency.weekly:
+        return 'Once per week';
+      case AIContentFrequency.moderate:
+        return 'A few times per week';
+      case AIContentFrequency.daily:
+        return 'Once per day';
+      case AIContentFrequency.always:
+        return 'Multiple times per day';
+    }
   }
 }

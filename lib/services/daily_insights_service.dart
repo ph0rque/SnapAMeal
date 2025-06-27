@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:snapameal/utils/logger.dart';
 import 'package:snapameal/data/fallback_content.dart';
 import 'package:snapameal/services/rag_service.dart';
+import 'package:snapameal/services/ai_preference_service.dart';
 import 'package:snapameal/models/ai_advice.dart';
 import 'package:snapameal/models/meal_log.dart';
 
@@ -14,6 +15,7 @@ import 'package:snapameal/models/meal_log.dart';
 class DailyInsightsService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final RAGService? _ragService = null; // Will be injected when available
+  static final AIPreferenceService _preferenceService = AIPreferenceService();
 
   // Singleton instance
   static final DailyInsightsService _instance = DailyInsightsService._internal();
@@ -89,6 +91,13 @@ class DailyInsightsService {
     String date,
   ) async {
     try {
+      // Check if user has daily insights enabled
+      final shouldShow = await _preferenceService.shouldShowDailyInsight();
+      if (!shouldShow) {
+        Logger.d('Daily insights disabled for user $userId');
+        return true; // Return true to indicate "success" (user preference honored)
+      }
+
       // Check if insight already exists for today
       final existingInsight = await _firestore
           .collection('daily_insights')
@@ -350,6 +359,10 @@ class DailyInsightsService {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
     
+    // Check user preferences
+    final shouldShow = await _preferenceService.shouldShowDailyInsight();
+    if (!shouldShow) return null;
+    
     final insightData = await DailyInsightsService._getTodaysInsightStatic(user.uid);
     if (insightData == null) return null;
     
@@ -367,6 +380,14 @@ class DailyInsightsService {
 
   Future<AIAdvice?> getMealInsight(MealLog mealLog) async {
     try {
+      // Check user preferences
+      final shouldShow = await _preferenceService.shouldShowMealInsight();
+      if (!shouldShow) return null;
+      
+      // Check if content type is enabled
+      final nutritionEnabled = await _preferenceService.isContentTypeEnabled('nutrition');
+      if (!nutritionEnabled) return null;
+      
       // For now, generate a simple insight based on the meal
       // In the future, this could use RAG service with meal context
       final content = _generateSimpleMealInsight(mealLog);

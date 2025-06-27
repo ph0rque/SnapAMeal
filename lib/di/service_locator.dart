@@ -6,6 +6,7 @@ import '../services/rag_service.dart';
 import '../services/friend_service.dart';
 import '../services/health_community_service.dart';
 import '../services/weekly_review_service.dart';
+import '../services/ai_preference_service.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -20,6 +21,7 @@ void setupServiceLocator() {
   // AI services
   sl.registerLazySingleton<OpenAIService>(() => OpenAIService());
   sl.registerFactory<RAGService>(() => RAGService(sl<OpenAIService>()));
+  sl.registerLazySingleton<AIPreferenceService>(() => AIPreferenceService());
   
   // Social services
   sl.registerLazySingleton<FriendService>(() => FriendService(ragService: sl<RAGService>()));
