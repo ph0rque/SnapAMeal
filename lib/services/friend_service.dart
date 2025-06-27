@@ -53,14 +53,8 @@ class FriendService {
     ids.sort();
     String chatRoomId = ids.join("_");
 
-    // Check if friend request already exists
-    final existingRequest = await _firestore.collection('friend_requests').doc(chatRoomId).get();
-    if (existingRequest.exists) {
-      final data = existingRequest.data() as Map<String, dynamic>;
-      if (data['status'] == 'pending') {
-        throw Exception('Friend request already sent');
-      }
-    }
+    // Temporarily removed existing request check to debug permissions
+    // TODO: Re-add this check once permissions are working
 
     print('DEBUG: Creating friend request with data: {senderId: $currentUserId, receiverId: $receiverId}');
     await _firestore.collection('friend_requests').doc(chatRoomId).set({
