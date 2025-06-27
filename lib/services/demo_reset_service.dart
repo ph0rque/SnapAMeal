@@ -7,6 +7,18 @@ import 'demo_data_service.dart';
 class DemoResetService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static const String _demoPrefix = 'demo_';
+  static const List<String> _demoCollections = [
+    'demo_health_profiles',
+    'demo_fasting_sessions',
+    'demo_meal_logs',
+    'demo_progress_stories',
+    'demo_friendships',
+    'demo_health_groups',
+    'demo_group_chat_messages',
+    'demo_ai_advice_history',
+    'demo_health_challenges',
+    'demo_user_streaks',
+  ];
 
   /// Reset all demo data for the current demo user
   static Future<bool> resetCurrentUserDemoData() async {
@@ -33,11 +45,18 @@ class DemoResetService {
 
       debugPrint('🔄 Starting demo reset for user: ${currentUser.uid} (persona: $personaId)');
 
+      final baseline = await _captureBaselineHashes();
+
       // Reset user-specific demo data
       await _resetUserGeneratedData(currentUser.uid);
       
       // Re-seed the persona's base data
       await _reseedPersonaData(currentUser.uid, personaId);
+
+      final ok = await _compareHashes(baseline);
+      if (!ok) {
+        debugPrint('⚠️ Hash mismatch after reset – seeded data may be inconsistent');
+      }
 
       debugPrint('✅ Demo reset completed successfully');
       return true;
@@ -222,8 +241,6 @@ class DemoResetService {
     }
   }
 
-
-
   /// Validate demo data integrity after reset
   static Future<bool> validateDemoDataIntegrity() async {
     try {
@@ -260,5 +277,42 @@ class DemoResetService {
       debugPrint('❌ Demo data integrity validation failed: $e');
       return false;
     }
+  }
+
+  /// Generate a lightweight deterministic hash for a collection based on
+  /// document count and the most recent updatedAt/createdAt timestamp.
+  static Future<String> _getCollectionHash(String collection) async {
+    // Use aggregation queries when available; fallback to client-side.
+    final snapshot = await _firestore.collection(collection).get();
+    int count = snapshot.docs.length;
+    int latest = 0;
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      Timestamp? ts;
+      if (data.containsKey('updatedAt')) ts = data['updatedAt'] as Timestamp?;
+      ts ??= data['createdAt'] as Timestamp?;
+      if (ts != null && ts.millisecondsSinceEpoch > latest) {
+        latest = ts.millisecondsSinceEpoch;
+      }
+    }
+    return '$count:$latest';
+  }
+
+  /// Capture baseline hashes for all demo collections.
+  static Future<Map<String, String>> _captureBaselineHashes() async {
+    final map = <String, String>{};
+    for (final col in _demoCollections) {
+      map[col] = await _getCollectionHash(col);
+    }
+    return map;
+  }
+
+  /// Compare current hashes with baseline; return true if identical.
+  static Future<bool> _compareHashes(Map<String, String> baseline) async {
+    for (final col in _demoCollections) {
+      final current = await _getCollectionHash(col);
+      if (baseline[col] != current) return false;
+    }
+    return true;
   }
 } 
