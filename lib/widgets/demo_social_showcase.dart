@@ -45,7 +45,7 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       'type': 'question',
     },
     {
-      'user': 'Charlie',
+                    'user': 'Chuck',
       'avatar': '👨‍🍳',
       'message': 'Try green tea around 2pm @Bob! Works wonders for me 🍵',
       'time': '30s ago',

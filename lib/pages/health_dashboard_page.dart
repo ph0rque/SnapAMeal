@@ -423,24 +423,61 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
       greeting = 'Good Evening';
     }
 
-    final userName = _healthProfile?.name ?? 'there';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '$greeting, $userName! 👋',
-          style: SnapTypography.heading2.copyWith(
-            color: SnapColors.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          _getMotivationalMessage(),
-          style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
-        ),
-      ],
+    return FutureBuilder<String>(
+      future: _getUserDisplayName(),
+      builder: (context, snapshot) {
+        final userName = snapshot.data ?? 'there';
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$greeting, $userName! 👋',
+              style: SnapTypography.heading2.copyWith(
+                color: SnapColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _getMotivationalMessage(),
+              style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+            ),
+          ],
+        );
+      },
     );
+  }
+
+  Future<String> _getUserDisplayName() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 'there';
+
+    try {
+      // First try to get name from Firestore user document
+      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data() as Map<String, dynamic>;
+        final displayName = userData['displayName'] as String?;
+        if (displayName != null && displayName.isNotEmpty) {
+          return displayName.split(' ').first; // Use first name only
+        }
+      }
+
+      // Fallback to Firebase Auth display name
+      if (user.displayName != null && user.displayName!.isNotEmpty) {
+        return user.displayName!.split(' ').first;
+      }
+
+      // Last resort: extract from email
+      if (user.email != null) {
+        final emailName = user.email!.split('@').first.split('.').first;
+        return emailName[0].toUpperCase() + emailName.substring(1);
+      }
+    } catch (e) {
+      Logger.d('Error getting user display name: $e');
+    }
+
+    return 'there';
   }
 
   String _getMotivationalMessage() {

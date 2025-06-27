@@ -66,7 +66,7 @@ class DemoPersonas {
     email: 'charlie.demo@example.com',
     password: 'DemoCharlie2024!',
     username: 'charlie_teacher',
-    displayName: 'Charlie',
+    displayName: 'Chuck',
     age: 41,
     occupation: 'Teacher',
     healthProfile: const {

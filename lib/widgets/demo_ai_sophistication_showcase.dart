@@ -76,7 +76,7 @@ class _DemoAISophisticationShowcaseState
     },
     {
       'title': 'Social Health Optimization',
-      'scenario': 'Charlie\'s community engagement',
+                  'scenario': 'Chuck\'s community engagement',
       'description':
           'NLP analysis of group conversations identified declining motivation. AI matched with mentor Sarah (94% compatibility) and suggested participation in weekend hiking challenge.',
       'outcome': 'Increased engagement by 156% in following week',

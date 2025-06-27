@@ -192,8 +192,8 @@ class _LoginPageState extends State<LoginPage> {
                               child: SnapButton(
                                 onTap: _isLoading
                                     ? null
-                                    : () => _demoLogin(context, 'charlie'),
-                                text: "Charlie",
+                                                      : () => _demoLogin(context, 'charlie'),
+              text: "Chuck",
                                 type: SnapButtonType.secondary,
                               ),
                             ),

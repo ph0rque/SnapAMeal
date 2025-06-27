@@ -72,7 +72,7 @@ The application uses three demo personas with comprehensive health profiles:
 - **Activity**: Active
 - **Session Duration**: 6-hour sessions
 
-#### Charlie (charlie.demo@example.com)
+#### Chuck (charlie.demo@example.com)
 - **Password**: `DemoCharlie2024!`
 - **Profile**: 41-year-old teacher
 - **Health Goals**: Weight loss, health
@@ -92,7 +92,7 @@ The application uses three demo personas with comprehensive health profiles:
 4. Click "Add user" for each demo account:
    - Alice: `alice.demo@example.com` / `DemoAlice2024!`
    - Bob: `bob.demo@example.com` / `DemoBob2024!`  
-   - Charlie: `charlie.demo@example.com` / `DemoCharlie2024!`
+   - Chuck: `charlie.demo@example.com` / `DemoCharlie2024!`
 
 **Step 2: Firestore Data**
 1. Navigate to Firestore Database

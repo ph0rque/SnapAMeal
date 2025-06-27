@@ -109,7 +109,7 @@ Examples:
   dart scripts/seed_demo_data.dart --summary          # Show detailed summary
 
 Demo Data Generated:
-  • 3 Demo user accounts (Alice, Bob, Charlie)
+  • 3 Demo user accounts (Alice, Bob, Chuck)
   • Health profiles with fasting preferences
   • 35 days of historical fasting sessions
   • 30 days of meal logs with nutrition data
@@ -208,7 +208,7 @@ void _showSeedingSummary() {
   
   Logger.i('\n💡 Next Steps:');
   Logger.i('  1. Open the SnapAMeal app');
-  Logger.i('  2. Use the demo login buttons (Alice, Bob, Charlie)');
+      Logger.i('  2. Use the demo login buttons (Alice, Bob, Chuck)');
   Logger.i('  3. Explore the rich demo data and interactions');
   Logger.i('  4. Showcase AI sophistication and social features');
   Logger.i('  5. Demonstrate the complete health platform experience');

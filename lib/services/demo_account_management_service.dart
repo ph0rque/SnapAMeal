@@ -32,7 +32,7 @@ class DemoAccountManagementService {
     },
     'charlie.demo@example.com': {
       'uid': 'demo_charlie_uid',
-      'displayName': 'Charlie',
+      'displayName': 'Chuck',
       'role': 'nutrition_student',
       'maxSessionDuration': Duration(hours: 2),
       'autoResetInterval': Duration(days: 7),

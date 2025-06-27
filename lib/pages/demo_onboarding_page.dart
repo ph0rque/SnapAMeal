@@ -230,7 +230,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
       case 'charlie':
         return {
           'description':
-              'Charlie is a mindful teacher prioritizing overall health and stress reduction with a holistic approach.',
+              'Chuck is a mindful teacher prioritizing overall health and stress reduction with a holistic approach.',
           'highlights': [
             '5:2 Fasting',
             'Privacy-Focused',

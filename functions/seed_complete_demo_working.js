@@ -87,7 +87,7 @@ const demoUsers = [
   {
     uid: 'H5Ol6GcK8mbRjtAkZSZyVsJTLWR2',
     email: 'charlie.demo@example.com',
-    displayName: 'Charlie',
+    displayName: 'Chuck',
     persona: 'charlie',
     userData: {
       username: 'charlie_teacher',

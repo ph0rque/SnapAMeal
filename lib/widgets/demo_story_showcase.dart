@@ -59,7 +59,7 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
       'icon': Icons.wb_sunny,
     },
     {
-      'user': 'Charlie',
+                    'user': 'Chuck',
       'avatar': '👨‍🍳',
       'title': 'Recipe Discovery',
       'type': 'tip',
