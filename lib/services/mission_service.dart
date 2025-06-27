@@ -277,16 +277,15 @@ class MissionService {
 
   MissionDifficulty _getDifficultyForProfile(HealthProfile profile) {
     // Simple logic based on activity level
-    final activityLevel = profile.activityLevel?.name.toLowerCase();
+    final activityLevel = profile.activityLevel.name.toLowerCase();
     
-    if (activityLevel != null) {
-      if (activityLevel.contains('very_active') || activityLevel.contains('athlete')) {
-        return MissionDifficulty.advanced;
-      } else if (activityLevel.contains('moderately_active') || activityLevel.contains('active')) {
-        return MissionDifficulty.intermediate;
-      }
+    if (activityLevel.contains('very_active') || activityLevel.contains('athlete')) {
+      return MissionDifficulty.advanced;
+    } else if (activityLevel.contains('moderately_active') || activityLevel.contains('active')) {
+      return MissionDifficulty.intermediate;
+    } else {
+      return MissionDifficulty.beginner;
     }
-    return MissionDifficulty.beginner;
   }
 
   /// Get current active mission for user

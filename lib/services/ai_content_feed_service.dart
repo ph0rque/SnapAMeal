@@ -286,12 +286,22 @@ Keep going, you've got this! 💙''',
           .where('targetUserId', isEqualTo: userId)
           .where('expiresAt', isGreaterThan: Timestamp.fromDate(DateTime.now()))
           .orderBy('expiresAt')
-          .orderBy('priority', descending: true)
           .orderBy('createdAt', descending: true)
           .limit(limit)
           .get();
 
-      return snapshot.docs.map((doc) => AIContent.fromFirestore(doc)).toList();
+      // Sort by priority in memory to avoid complex composite index
+      final content = snapshot.docs.map((doc) => AIContent.fromFirestore(doc)).toList();
+      content.sort((a, b) {
+        // First sort by priority (high to low)
+        final priorityCompare = b.priority.index.compareTo(a.priority.index);
+        if (priorityCompare != 0) return priorityCompare;
+        
+        // Then by creation date (newest first)
+        return b.createdAt.compareTo(a.createdAt);
+      });
+      
+      return content;
     } catch (e) {
       Logger.d('Error getting content for user: $e');
       return [];
@@ -315,12 +325,22 @@ Keep going, you've got this! 💙''',
 
       final snapshot = await query
           .orderBy('expiresAt')
-          .orderBy('priority', descending: true)
           .orderBy('createdAt', descending: true)
           .limit(limit)
           .get();
 
-      return snapshot.docs.map((doc) => AIContent.fromFirestore(doc)).toList();
+      // Sort by priority in memory to avoid complex composite index
+      final content = snapshot.docs.map((doc) => AIContent.fromFirestore(doc)).toList();
+      content.sort((a, b) {
+        // First sort by priority (high to low)
+        final priorityCompare = b.priority.index.compareTo(a.priority.index);
+        if (priorityCompare != 0) return priorityCompare;
+        
+        // Then by creation date (newest first)
+        return b.createdAt.compareTo(a.createdAt);
+      });
+      
+      return content;
     } catch (e) {
       Logger.d('Error getting general content: $e');
       return [];

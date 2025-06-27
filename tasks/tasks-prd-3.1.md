@@ -88,7 +88,7 @@
 
 ## Phase 2: Goal-Driven User Journeys
 
-### Task 2.1: RAG-Generated "Missions" System
+### Task 2.1: RAG-Generated "Missions" System ✅
 **Priority**: Medium  
 **Estimated Time**: 4-5 days  
 
@@ -99,12 +99,12 @@
 - Implement mission completion logic
 
 **Acceptance Criteria**:
-- [ ] New users receive a personalized "First 7 Days" mission after goal selection
-- [ ] Missions are generated using RAGService based on user's goals and activity level
-- [ ] Mission steps are trackable and can be marked as complete
-- [ ] Mission progress is saved and persists across app sessions
-- [ ] Fallback missions exist for common goals if RAG generation fails
-- [ ] Users can view their current mission from the dashboard or dedicated page
+- [x] New users receive a personalized "First 7 Days" mission after goal selection
+- [x] Missions are generated using RAGService based on user's goals and activity level
+- [x] Mission steps are trackable and can be marked as complete
+- [x] Mission progress is saved and persists across app sessions
+- [x] Fallback missions exist for common goals if RAG generation fails
+- [x] Users can view their current mission from the dashboard or dedicated page
 
 **Technical Notes**:
 - Create new Firestore collection: `user_missions`
@@ -114,7 +114,7 @@
 
 ---
 
-### Task 2.2: Hyper-Personalized Content Feed Integration
+### Task 2.2: Hyper-Personalized Content Feed Integration ✅
 **Priority**: Medium  
 **Estimated Time**: 3-4 days  
 
@@ -125,12 +125,12 @@
 - Cache content to reduce API calls
 
 **Acceptance Criteria**:
-- [ ] Social feed includes relevant health articles/tips based on user goals
-- [ ] AI-generated content is clearly marked as such
-- [ ] Content is refreshed periodically (daily or when user pulls to refresh)
-- [ ] Users can dismiss AI content they don't want to see
-- [ ] Content respects user's dietary restrictions and preferences
-- [ ] Feed maintains good balance between social and AI content (e.g., 1 AI post per 5 user posts)
+- [x] Social feed includes relevant health articles/tips based on user goals
+- [x] AI-generated content is clearly marked as such
+- [x] Content is refreshed periodically (daily or when user pulls to refresh)
+- [x] Users can dismiss AI content they don't want to see
+- [x] Content respects user's dietary restrictions and preferences
+- [x] Feed maintains good balance between social and AI content (e.g., 1 AI post per 5 user posts)
 
 **Technical Notes**:
 - Modify existing feed logic in `home_page.dart` or relevant feed component
