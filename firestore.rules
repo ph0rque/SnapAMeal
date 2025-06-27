@@ -14,11 +14,17 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if request.auth != null; // Allow reading any user for search
       allow write: if request.auth != null && request.auth.uid == userId;
+      // Temporarily allow friend list updates for debugging
+      allow update: if request.auth != null && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends']);
 
       // A user can only manage their own friends list.
       // Also allow updating friend data for streak tracking when snaps are sent
       match /friends/{friendId} {
         allow read, write: if request.auth != null && request.auth.uid == userId;
+        // Allow creating friend documents when accepting friend requests
+        allow create: if request.auth != null && 
+          (request.auth.uid == userId || request.auth.uid == friendId);
       }
 
       // User snaps subcollection
