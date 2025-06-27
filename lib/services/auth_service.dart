@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:snapameal/config/demo_personas.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
   // auth & firestore instance
@@ -76,6 +77,9 @@ class AuthService {
         throw Exception('Demo persona not found: $personaId');
       }
 
+      // Persist the last-used demo persona for faster UI defaults
+      await _cacheLastDemoPersona(personaId);
+
       // Try instant authentication with optimized flow
       try {
         UserCredential userCredential = await _auth.signInWithEmailAndPassword(
@@ -109,7 +113,23 @@ class AuthService {
     }
   }
 
+  // Cache last-used demo persona locally
+  Future<void> _cacheLastDemoPersona(String personaId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('last_demo_persona', personaId);
+    } catch (_) {/* ignore cache errors */}
+  }
 
+  /// Retrieve the last-used demo persona ID (or null).
+  Future<String?> getLastDemoPersona() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('last_demo_persona');
+    } catch (_) {
+      return null;
+    }
+  }
 
   // create demo account with comprehensive validation
   Future<UserCredential> _createDemoAccount(DemoPersona persona) async {

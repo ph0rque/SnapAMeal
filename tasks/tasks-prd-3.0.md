@@ -26,12 +26,12 @@
   - [x] 1.4 Tighten `analysis_options.yaml` to fail the build on new warnings.
   - [x] 1.5 Update CI pipeline (GitHub Action) to run analyzer and unit tests on PRs.
 
-- [ ] 2.0 Credential Provisioning & Robust Demo Login
-  - [ ] 2.1 Design deterministic UID/email scheme for demo accounts (`demo_alice`, etc.).
-  - [ ] 2.2 Extend `AuthService` to check for missing demo accounts at login.
-  - [ ] 2.3 Implement auto-creation logic using Firebase Auth Admin SDK (Cloud Function) or client-side email/password creation guarded by rules.
-  - [ ] 2.4 Cache last successful login locally (SharedPreferences / secure storage).
-  - [ ] 2.5 Create `integration_test/demo_login_flow_test.dart` to verify login success for all personas.
+- [x] 2.0 Credential Provisioning & Robust Demo Login
+  - [x] 2.1 Design deterministic UID/email scheme for demo accounts (`demo_alice`, etc.).
+  - [x] 2.2 Extend `AuthService` to check for missing demo accounts at login.
+  - [x] 2.3 Implement auto-creation logic using Firebase Auth Admin SDK (Cloud Function) or client-side email/password creation guarded by rules.
+  - [x] 2.4 Cache last successful login locally (SharedPreferences / secure storage).
+  - [x] 2.5 Create `integration_test/demo_login_flow_test.dart` to verify login success for all personas.
 
 - [ ] 3.0 Demo Data Integrity Validator
   - [ ] 3.1 Define validation rules (friend reciprocity, group membership, doc counts).
