@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../design_system/snap_ui.dart';
+import '../design_system/widgets/snap_user_search.dart';
 import '../services/health_community_service.dart';
 import '../services/rag_service.dart';
 import '../services/friend_service.dart';
 import '../services/openai_service.dart';
 import '../models/health_group.dart';
+import '../pages/chat_page.dart';
 
 class HealthGroupsPage extends StatefulWidget {
   const HealthGroupsPage({super.key});
@@ -17,6 +20,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
     with TickerProviderStateMixin {
   late TabController _tabController;
   late HealthCommunityService _healthCommunityService;
+  late FriendService _friendService;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -27,12 +31,12 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this); // Added Friends tab
 
     // Initialize services
-    final friendService = FriendService();
+    _friendService = FriendService();
     final ragService = RAGService(OpenAIService());
-    _healthCommunityService = HealthCommunityService(ragService, friendService);
+    _healthCommunityService = HealthCommunityService(ragService, _friendService);
   }
 
   @override
@@ -51,7 +55,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
       appBar: AppBar(
         backgroundColor: SnapColors.backgroundDark,
         title: Text(
-          'Health Groups',
+          'Community',
           style: SnapTypography.heading2.copyWith(
             color: SnapColors.primaryYellow,
           ),
@@ -62,9 +66,11 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
           labelColor: SnapColors.primaryYellow,
           unselectedLabelColor: SnapColors.textSecondary,
           indicatorColor: SnapColors.primaryYellow,
+          isScrollable: true, // Make tabs scrollable since we have 4 now
           tabs: const [
-            Tab(text: 'My Groups'),
+            Tab(text: 'Groups'),
             Tab(text: 'Discover'),
+            Tab(text: 'Friends'),
             Tab(text: 'Challenges'),
           ],
         ),
@@ -80,6 +86,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
         children: [
           _buildMyGroupsTab(),
           _buildDiscoverTab(),
+          _buildFriendsTab(),
           _buildChallengesTab(),
         ],
       ),
@@ -173,6 +180,54 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildFriendsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "Search for Friends",
+            style: SnapTypography.heading3.copyWith(
+              color: SnapColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            height: 250, // Reduced height to prevent overflow
+            child: SnapUserSearch(),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "My Friends", 
+            style: SnapTypography.heading3.copyWith(
+              color: SnapColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            height: 150, // Constrained height for friends list
+            child: _buildFriendsList(),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "Friend Requests",
+            style: SnapTypography.heading3.copyWith(
+              color: SnapColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Container(
+            height: 150, // Constrained height for friend requests
+            child: _buildFriendRequestList(),
+          ),
+          const SizedBox(height: 20), // Bottom padding
+        ],
+      ),
     );
   }
 
@@ -780,5 +835,148 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
         _tabController.animateTo(0);
       }
     }
+  }
+
+  Widget _buildFriendsList() {
+    return StreamBuilder<List<String>>(
+      stream: _friendService.getFriendsStream(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('Error', style: TextStyle(color: SnapColors.textSecondary));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator(color: SnapColors.primaryYellow);
+        }
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Text('You have no friends yet.', style: TextStyle(color: SnapColors.textSecondary));
+        }
+
+        final friendIds = snapshot.data!;
+        return ListView.builder(
+          itemCount: friendIds.length,
+          itemBuilder: (context, index) {
+            final friendId = friendIds[index];
+            return FutureBuilder<DocumentSnapshot>(
+              future: _friendService.getUserData(friendId),
+              builder: (context, userSnapshot) {
+                if (!userSnapshot.hasData) {
+                  return const ListTile(title: Text("..."));
+                }
+                final friendData =
+                    userSnapshot.data!.data() as Map<String, dynamic>?;
+                if (friendData == null) {
+                  return const ListTile(title: Text("Friend data missing"));
+                }
+                return ListTile(
+                  title: Text(
+                    friendData['username'] ?? 'No name',
+                    style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
+                  ),
+                  leading: SnapAvatar(
+                    name: friendData['username'],
+                    imageUrl: friendData['profileImageUrl'],
+                  ),
+                  onTap: () {
+                    _navigateToChat(friendId);
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _navigateToChat(String friendId) async {
+    final chatRoomId = await _friendService.getOrCreateOneOnOneChatRoom(
+      friendId,
+    );
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            ChatPage(chatRoomId: chatRoomId, recipientId: friendId),
+      ),
+    );
+  }
+
+  Widget _buildFriendRequestList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: _friendService.getFriendRequests(),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return const Text('Error', style: TextStyle(color: SnapColors.textSecondary));
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const CircularProgressIndicator(color: SnapColors.primaryYellow);
+        }
+        if (snapshot.data!.docs.isEmpty) {
+          return const Text('No pending friend requests.', style: TextStyle(color: SnapColors.textSecondary));
+        }
+
+        return ListView(
+          children: snapshot.data!.docs.map((doc) {
+            final request = doc.data() as Map<String, dynamic>;
+            final senderId = request['senderId'];
+
+            return FutureBuilder<DocumentSnapshot>(
+              future: _friendService.getUserData(senderId),
+              builder: (context, userSnapshot) {
+                if (userSnapshot.connectionState == ConnectionState.waiting) {
+                  return const ListTile(title: Text("Loading..."));
+                }
+                if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
+                  return const ListTile(title: Text("Unknown user"));
+                }
+
+                final userData =
+                    userSnapshot.data!.data() as Map<String, dynamic>?;
+                if (userData == null) {
+                  return const ListTile(title: Text("User data missing"));
+                }
+
+                return ListTile(
+                  title: Text(
+                    userData['username'] ?? 'No name',
+                    style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
+                  ),
+                  leading: SnapAvatar(
+                    name: userData['username'],
+                    imageUrl: userData['profileImageUrl'],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.check,
+                          color: SnapColors.accentGreen,
+                        ),
+                        onPressed: () async {
+                          await _friendService.acceptFriendRequest(senderId);
+                          setState(() {});
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          color: SnapColors.accentRed,
+                        ),
+                        onPressed: () async {
+                          await _friendService.declineFriendRequest(senderId);
+                          setState(() {});
+                        },
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          }).toList(),
+        );
+      },
+    );
   }
 }
