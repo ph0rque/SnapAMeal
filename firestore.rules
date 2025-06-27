@@ -63,10 +63,6 @@ service cloud.firestore {
     // - A user can only create a story for themself.
     // - Only friends of the user can read the stories.
     // - No one can update or delete (handled by backend).
-    function isFriend(userId) {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(userId));
-    }
-
     match /stories/{storyId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == resource.data.userId;
@@ -409,27 +405,125 @@ service cloud.firestore {
       allow read, write: if false; // Only server-side admin operations
     }
 
-    // Helper function to validate meal log data structure
-    function isValidMealLog(data) {
-      return data.keys().hasAll(['timestamp', 'imageUrl', 'recognitionResult']) &&
-        data.timestamp is timestamp &&
-        data.imageUrl is string &&
-        data.recognitionResult is map &&
-        data.recognitionResult.keys().hasAll(['detectedFoods', 'totalNutrition', 'confidenceScore']) &&
-        data.recognitionResult.detectedFoods is list &&
-        data.recognitionResult.totalNutrition is map &&
-        data.recognitionResult.confidenceScore is number &&
-        data.recognitionResult.confidenceScore >= 0 &&
-        data.recognitionResult.confidenceScore <= 1;
+
+
+    // Privacy settings - users can only access their own privacy settings
+    match /privacy_settings/{userId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == userId);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == userId);
+      allow create: if request.auth != null && 
+        request.auth.uid == userId;
     }
 
-    // Helper function to validate nutrition data
-    function isValidNutritionData(data) {
-      return data.keys().hasAll(['calories', 'protein', 'carbs', 'fat']) &&
-        data.calories is number && data.calories >= 0 &&
-        data.protein is number && data.protein >= 0 &&
-        data.carbs is number && data.carbs >= 0 &&
-        data.fat is number && data.fat >= 0;
+    // Daily insights - users can only access their own daily insights
+    match /daily_insights/{insightId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      // Allow listing for authenticated users (needed for queries)
+      allow list: if request.auth != null;
+    }
+
+    // User missions - users can only access their own missions
+    match /user_missions/{missionId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      // Allow listing for authenticated users (needed for queries)
+      allow list: if request.auth != null;
+    }
+
+    // AI content feed - users can only access their own AI content
+    match /ai_content_feed/{contentId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      // Allow listing for authenticated users (needed for queries)
+      allow list: if request.auth != null;
+    }
+
+    // Weekly reviews - users can only access their own reviews
+    match /weekly_reviews/{reviewId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Monthly reviews - users can only access their own reviews
+    match /monthly_reviews/{reviewId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Conversation starters - users can read all but only write their own
+    match /conversation_starters/{starterId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.createdBy);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.createdBy;
+    }
+
+    // Friend suggestions - users can only access their own suggestions
+    match /friend_suggestions/{suggestionId} {
+      allow read: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if request.auth != null && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Demo-specific collections for daily insights, missions, and AI content
+    match /demo_daily_insights/{insightId} {
+      allow read: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_user_missions/{missionId} {
+      allow read: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_ai_content_feed/{contentId} {
+      allow read: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_privacy_settings/{userId} {
+      allow read: if isDemoUser() && request.auth.uid == userId;
+      allow write: if isDemoUser() && request.auth.uid == userId;
+      allow create: if isDemoUser() && request.auth.uid == userId;
     }
   }
 } 
