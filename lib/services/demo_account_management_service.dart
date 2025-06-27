@@ -16,21 +16,21 @@ class DemoAccountManagementService {
 
   // Demo account configurations - must match DemoPersonas emails
   static const Map<String, Map<String, dynamic>> demoAccounts = {
-    'alice.demo@snapameal.com': {
+    'alice.demo@example.com': {
       'uid': 'demo_alice_uid',
       'displayName': 'Alice',
       'role': 'fitness_enthusiast',
       'maxSessionDuration': Duration(hours: 4),
       'autoResetInterval': Duration(days: 7),
     },
-    'bob.demo@snapameal.com': {
+    'bob.demo@example.com': {
       'uid': 'demo_bob_uid',
       'displayName': 'Bob',
       'role': 'health_coach',
       'maxSessionDuration': Duration(hours: 6),
       'autoResetInterval': Duration(days: 7),
     },
-    'charlie.demo@snapameal.com': {
+    'charlie.demo@example.com': {
       'uid': 'demo_charlie_uid',
       'displayName': 'Charlie',
       'role': 'nutrition_student',

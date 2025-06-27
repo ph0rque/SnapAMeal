@@ -312,12 +312,12 @@ service cloud.firestore {
     }
 
     // Demo-specific collections with enhanced access for demo accounts
-    // Demo accounts: alice.demo@snapameal.com, bob.demo@snapameal.com, charlie.demo@snapameal.com
-    function isDemoUser() {
-      return request.auth != null && (
-        request.auth.token.email == 'alice.demo@snapameal.com' ||
-        request.auth.token.email == 'bob.demo@snapameal.com' ||
-        request.auth.token.email == 'charlie.demo@snapameal.com'
+          // Demo accounts: alice.demo@example.com, bob.demo@example.com, charlie.demo@example.com
+      function isDemoUser() {
+        return request.auth != null && (
+          request.auth.token.email == 'alice.demo@example.com' ||
+          request.auth.token.email == 'bob.demo@example.com' ||
+          request.auth.token.email == 'charlie.demo@example.com'
       );
     }
 

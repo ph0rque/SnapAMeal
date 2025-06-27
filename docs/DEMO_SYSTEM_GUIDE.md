@@ -52,21 +52,127 @@ graph TD
 
 ## Demo Account Setup
 
-### 1. Firebase Authentication Setup
+### Demo Accounts Overview
 
-Create demo accounts in Firebase Authentication:
+The application uses three demo personas with comprehensive health profiles:
 
+#### Alice (alice.demo@example.com)
+- **Password**: `DemoAlice2024!`
+- **Profile**: 34-year-old freelancer
+- **Health Goals**: Weight loss, energy
+- **Fasting**: 14:10 intermittent fasting
+- **Activity**: Moderate
+- **Session Duration**: 4-hour sessions
+
+#### Bob (bob.demo@example.com)
+- **Password**: `DemoBob2024!`
+- **Profile**: 25-year-old retail worker
+- **Health Goals**: Muscle gain, strength
+- **Fasting**: 16:8 intermittent fasting
+- **Activity**: Active
+- **Session Duration**: 6-hour sessions
+
+#### Charlie (charlie.demo@example.com)
+- **Password**: `DemoCharlie2024!`
+- **Profile**: 41-year-old teacher
+- **Health Goals**: Weight loss, health
+- **Fasting**: 5:2 fasting
+- **Activity**: Light
+- **Diet**: Vegetarian
+- **Session Duration**: 2-hour sessions
+
+### Setup Methods
+
+#### Method 1: Manual Setup (Recommended)
+
+**Step 1: Firebase Authentication**
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Select your SnapAMeal project
+3. Navigate to Authentication > Users
+4. Click "Add user" for each demo account:
+   - Alice: `alice.demo@example.com` / `DemoAlice2024!`
+   - Bob: `bob.demo@example.com` / `DemoBob2024!`  
+   - Charlie: `charlie.demo@example.com` / `DemoCharlie2024!`
+
+**Step 2: Firestore Data**
+1. Navigate to Firestore Database
+2. Go to the `users` collection
+3. For each user created above, add a document with their UID as the document ID
+
+**Firestore Document Structure:**
+
+```json
+// Document ID: [USER_UID_FROM_AUTH]
+{
+  "uid": "[USER_UID_FROM_AUTH]",
+  "email": "alice.demo@example.com",
+  "username": "alice_freelancer",
+  "displayName": "Alice",
+  "age": 34,
+  "occupation": "Freelancer",
+  "isDemo": true,
+  "demoPersonaId": "alice",
+  "healthProfile": {
+    "height": 168,
+    "weight": 63.5,
+    "gender": "female",
+    "fastingType": "14:10",
+    "calorieTarget": 1600,
+    "activityLevel": "moderate",
+    "goals": ["weight_loss", "energy"],
+    "dietaryRestrictions": []
+  },
+  "lastReplayTimestamp": null,
+  "createdAt": "[SERVER_TIMESTAMP]"
+}
+```
+
+Repeat for Bob and Charlie with their respective data.
+
+#### Method 2: Automated Setup Scripts
+
+**Option A: Firebase Admin SDK Script**
+
+1. Download Firebase service account key:
+   - Firebase Console > Project Settings > Service Accounts
+   - Click "Generate new private key"
+   - Save as `firebase-service-account.json` in project root
+
+2. Run the setup script:
+```bash
+cd functions
+GOOGLE_APPLICATION_CREDENTIALS=../firebase-service-account.json node seed_demo_accounts.js
+```
+
+**Option B: Flutter-based Script**
 ```bash
 # Run the demo account creation script
 dart run scripts/seed_demo_accounts.dart
 ```
 
-**Demo Accounts:**
-- `alice.demo@snapameal.com` - Fitness Enthusiast (4-hour sessions)
-- `bob.demo@snapameal.com` - Health Coach (6-hour sessions)
-- `charlie.demo@snapameal.com` - Nutrition Student (2-hour sessions)
+**Option C: Simple Instructions Script**
+```bash
+# Get copy-paste ready setup instructions
+dart scripts/seed_accounts_firebase_only.dart
+```
 
-### 2. Firestore Security Rules
+#### Method 3: Firebase CLI Import
+
+You can also use Firebase CLI with Firestore import/export:
+
+```bash
+# Export current data (backup)
+firebase firestore:export ./backup
+
+# Create demo data file and import
+firebase firestore:import ./demo-data
+```
+
+#### Method 4: App-Level Demo Data Loading
+
+The app's `AuthService` has built-in demo account creation. When users try to sign in with demo accounts that don't exist, the app will automatically create them. This requires the accounts to be present in Firebase Authentication first.
+
+### Firestore Security Rules
 
 Deploy the demo-specific security rules:
 
@@ -80,7 +186,7 @@ Key security features:
 - Automated cleanup permissions
 - Analytics collection restrictions
 
-### 3. Demo Data Seeding
+### Demo Data Seeding
 
 Initialize demo data for all personas:
 
@@ -94,6 +200,39 @@ This creates:
 - Group chat histories
 - AI advice interaction history
 - Progress stories with varied engagement
+
+### Verification
+
+After setting up the demo accounts:
+
+1. **Test Demo Login**: Use the app's demo login feature
+2. **Check Data**: Verify user profiles appear correctly in the health dashboard
+3. **Test Features**: Ensure demo-specific features work (replay limitations, etc.)
+
+### Troubleshooting Demo Account Setup
+
+#### Flutter SDK Issues
+If you encounter Flutter compilation errors when running the Dart scripts:
+- Use Method 1 (Manual Setup) instead
+- The issue is with Flutter SDK, not the demo account logic
+
+#### Firebase Connection Issues
+If Node.js scripts fail to connect:
+- Ensure you have the correct service account key
+- Set the GOOGLE_APPLICATION_CREDENTIALS environment variable
+- Check that your Firebase project is properly configured
+
+#### Authentication Errors
+If demo accounts can't sign in:
+- Verify the exact email addresses and passwords
+- Check that the accounts exist in Firebase Authentication
+- Ensure the Firestore documents have the correct structure
+
+### Security Notes
+
+- Demo accounts use strong passwords but should only be used in development/demo environments
+- The `isDemo: true` flag helps identify demo accounts for special handling
+- Demo accounts have limited replay functionality built into the app
 
 ## Firebase Configuration
 
@@ -219,7 +358,7 @@ final restoreResult = await backupService.restoreFromBackup(backup);
    final demoService = DemoDataService();
    
    // Seed data for specific persona
-   await demoService.seedPersonaData(userId, 'alice.demo@snapameal.com');
+   await demoService.seedPersonaData(userId, 'alice.demo@example.com');
    
    // Check if user has demo data
    final hasData = await demoService.hasDemoData(userId);
@@ -301,7 +440,7 @@ final restoreResult = await backupService.restoreFromBackup(backup);
    print('Current user: ${user?.email}');
    
    // Verify demo account exists
-   final isDemoEmail = ['alice.demo@snapameal.com', 'bob.demo@snapameal.com', 'charlie.demo@snapameal.com']
+   final isDemoEmail = ['alice.demo@example.com', 'bob.demo@example.com', 'charlie.demo@example.com']
        .contains(user?.email);
    ```
 

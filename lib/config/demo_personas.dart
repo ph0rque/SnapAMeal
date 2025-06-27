@@ -23,7 +23,7 @@ class DemoPersona {
 class DemoPersonas {
   static final alice = DemoPersona(
     id: 'alice',
-    email: 'alice.demo@snapameal.com',
+    email: 'alice.demo@example.com',
     password: 'DemoAlice2024!',
     username: 'alice_freelancer',
     displayName: 'Alice',
@@ -43,7 +43,7 @@ class DemoPersonas {
 
   static final bob = DemoPersona(
     id: 'bob',
-    email: 'bob.demo@snapameal.com',
+    email: 'bob.demo@example.com',
     password: 'DemoBob2024!',
     username: 'bob_retail',
     displayName: 'Bob',
@@ -63,7 +63,7 @@ class DemoPersonas {
 
   static final charlie = DemoPersona(
     id: 'charlie',
-    email: 'charlie.demo@snapameal.com',
+    email: 'charlie.demo@example.com',
     password: 'DemoCharlie2024!',
     username: 'charlie_teacher',
     displayName: 'Charlie',

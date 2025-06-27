@@ -12,9 +12,9 @@ void main() {
       expect(bob, isNotNull);
       expect(charlie, isNotNull);
 
-      expect(alice!.email, 'alice.demo@snapameal.com');
-      expect(bob!.email, 'bob.demo@snapameal.com');
-      expect(charlie!.email, 'charlie.demo@snapameal.com');
+          expect(alice!.email, 'alice.demo@example.com');
+    expect(bob!.email, 'bob.demo@example.com');
+    expect(charlie!.email, 'charlie.demo@example.com');
 
       // Test health profiles exist
       expect(alice.healthProfile['goals'], isNotNull);
