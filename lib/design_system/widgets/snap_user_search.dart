@@ -156,7 +156,7 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
                                 valueColor: AlwaysStoppedAnimation<Color>(
-                                  SnapUIColors.accentYellow,
+                                  SnapUIColors.primaryYellow,
                                 ),
                               ),
                             )
