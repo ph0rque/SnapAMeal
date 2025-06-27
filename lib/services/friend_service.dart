@@ -36,10 +36,31 @@ class FriendService {
   Future<void> sendFriendRequest(String receiverId) async {
     final String currentUserId = _auth.currentUser!.uid;
 
+    // Prevent sending request to self
+    if (currentUserId == receiverId) {
+      throw Exception('Cannot send friend request to yourself');
+    }
+
+    // Check if they are already friends
+    final userDoc = await _firestore.collection('users').doc(currentUserId).get();
+    final friends = List<String>.from(userDoc.data()?['friends'] ?? []);
+    if (friends.contains(receiverId)) {
+      throw Exception('You are already friends with this user');
+    }
+
     // create a unique doc id for the friend request
     List<String> ids = [currentUserId, receiverId];
     ids.sort();
     String chatRoomId = ids.join("_");
+
+    // Check if friend request already exists
+    final existingRequest = await _firestore.collection('friend_requests').doc(chatRoomId).get();
+    if (existingRequest.exists) {
+      final data = existingRequest.data() as Map<String, dynamic>;
+      if (data['status'] == 'pending') {
+        throw Exception('Friend request already sent');
+      }
+    }
 
     await _firestore.collection('friend_requests').doc(chatRoomId).set({
       'senderId': currentUserId,

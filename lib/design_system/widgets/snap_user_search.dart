@@ -15,6 +15,7 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
   final FriendService _friendService = FriendService();
   Stream<List<Map<String, dynamic>>>? _usersStream;
   final Set<String> _sentRequests = {};
+  final Set<String> _processingRequests = {}; // Track requests being processed
 
   @override
   void initState() {
@@ -38,11 +39,23 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
 
   void _sendFriendRequest(String receiverId) async {
     print('DEBUG: Sending friend request to $receiverId');
+    
+    // Prevent multiple simultaneous requests to the same user
+    if (_processingRequests.contains(receiverId)) {
+      print('DEBUG: Request already in progress for $receiverId');
+      return;
+    }
+    
+    setState(() {
+      _processingRequests.add(receiverId);
+    });
+    
     try {
       await _friendService.sendFriendRequest(receiverId);
       print('DEBUG: Friend request sent successfully to $receiverId');
       setState(() {
         _sentRequests.add(receiverId);
+        _processingRequests.remove(receiverId);
       });
       
       // Show success feedback
@@ -63,6 +76,10 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
       }
     } catch (e) {
       print('DEBUG: Error sending friend request to $receiverId: $e');
+      setState(() {
+        _processingRequests.remove(receiverId);
+      });
+      
       // Show error feedback
       if (mounted) {
         ScaffoldMessenger.of(context).clearSnackBars(); // Clear any existing snackbars
@@ -124,6 +141,7 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
                   itemBuilder: (context, index) {
                     var user = users[index];
                     final isRequestSent = _sentRequests.contains(user['uid']);
+                    final isProcessing = _processingRequests.contains(user['uid']);
                     return ListTile(
                       leading: SnapAvatar(
                         name: user['username'],
@@ -131,17 +149,28 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
                       ),
                       title: Text(user['username']),
                       subtitle: Text(user['email']),
-                      trailing: IconButton(
-                        icon: isRequestSent
-                            ? const Icon(
-                                EvaIcons.checkmark,
-                                color: SnapUIColors.accentGreen,
-                              )
-                            : const Icon(EvaIcons.personAddOutline),
-                        onPressed: isRequestSent
-                            ? null
-                            : () => _sendFriendRequest(user['uid']),
-                      ),
+                      trailing: isProcessing
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  SnapUIColors.accentYellow,
+                                ),
+                              ),
+                            )
+                          : IconButton(
+                              icon: isRequestSent
+                                  ? const Icon(
+                                      EvaIcons.checkmark,
+                                      color: SnapUIColors.accentGreen,
+                                    )
+                                  : const Icon(EvaIcons.personAddOutline),
+                              onPressed: isRequestSent
+                                  ? null
+                                  : () => _sendFriendRequest(user['uid']),
+                            ),
                     );
                   },
                 );
