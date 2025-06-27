@@ -37,36 +37,45 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
   }
 
   void _sendFriendRequest(String receiverId) async {
+    print('DEBUG: Sending friend request to $receiverId');
     try {
       await _friendService.sendFriendRequest(receiverId);
+      print('DEBUG: Friend request sent successfully to $receiverId');
       setState(() {
         _sentRequests.add(receiverId);
       });
       
       // Show success feedback
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars(); // Clear any existing snackbars
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Friend request sent!',
-              style: TextStyle(color: Colors.white),
+              '✅ Friend request sent successfully!',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
             backgroundColor: SnapUIColors.accentGreen,
-            duration: Duration(seconds: 2),
+            duration: Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.all(16),
           ),
         );
       }
     } catch (e) {
+      print('DEBUG: Error sending friend request to $receiverId: $e');
       // Show error feedback
       if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars(); // Clear any existing snackbars
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Failed to send friend request: $e',
-              style: const TextStyle(color: Colors.white),
+              '❌ Failed to send friend request: $e',
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
             backgroundColor: SnapUIColors.accentRed,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 4),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
