@@ -26,6 +26,9 @@ import '../widgets/demo_ai_advice_showcase.dart';
 import '../widgets/demo_social_showcase.dart';
 import '../widgets/demo_story_showcase.dart';
 import '../widgets/demo_friend_matching_showcase.dart';
+import '../widgets/demo_story_permanence_showcase.dart';
+import '../widgets/demo_performance_showcase.dart';
+import '../widgets/demo_ai_sophistication_showcase.dart';
 
 import '../design_system/widgets/fasting_status_indicators.dart';
 
@@ -347,6 +350,18 @@ class _HomePageState extends State<HomePage> {
                 
                 // Friend matching demo showcase
                 const DemoFriendMatchingShowcase(),
+                const SizedBox(height: 20),
+                
+                // Story permanence demo showcase
+                const DemoStoryPermanenceShowcase(),
+                const SizedBox(height: 20),
+                
+                // Performance demo showcase
+                const DemoPerformanceShowcase(),
+                const SizedBox(height: 20),
+                
+                // AI sophistication demo showcase
+                const DemoAISophisticationShowcase(),
                 const SizedBox(height: 20),
               ],
             );

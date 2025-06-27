@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/meal_log.dart';
-import '../services/meal_recognition_service.dart';
 import '../services/auth_service.dart';
 import '../design_system/snap_ui.dart';
 
@@ -19,7 +17,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
   late AnimationController _recognitionController;
   late AnimationController _nutritionController;
   late Animation<double> _recognitionAnimation;
-  late Animation<double> _nutritionAnimation;
+
   
   bool _showingRecognitionDemo = false;
   bool _showingNutritionDemo = false;
@@ -47,13 +45,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
       curve: Curves.easeOutCubic,
     ));
     
-    _nutritionAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _nutritionController,
-      curve: Curves.elasticOut,
-    ));
+
     
     _initializeDemoMeal();
   }
@@ -66,66 +58,103 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
   }
 
   void _initializeDemoMeal() {
+    // Create demo meal with proper MealLog structure
     _demoMeal = MealLog(
       id: 'demo_meal_001',
       userId: 'demo_user',
+      imagePath: '/demo/meal_images/healthy_lunch.jpg',
+      imageUrl: 'https://example.com/demo/healthy_lunch.jpg',
       timestamp: DateTime.now().subtract(const Duration(minutes: 15)),
-      mealType: MealType.lunch,
-      foods: [
-        Food(
-          name: 'Grilled Salmon Fillet',
-          quantity: 6.0,
-          unit: 'oz',
-          calories: 367,
-          protein: 51.0,
-          carbs: 0.0,
-          fat: 16.0,
-          fiber: 0.0,
-          sugar: 0.0,
-          sodium: 89.0,
+      recognitionResult: MealRecognitionResult(
+        detectedFoods: [
+          FoodItem(
+            name: 'Grilled Salmon Fillet',
+            category: 'Fish & Seafood',
+            confidence: 0.96,
+            nutrition: NutritionInfo(
+              calories: 367,
+              protein: 51.0,
+              carbs: 0.0,
+              fat: 16.0,
+              fiber: 0.0,
+              sugar: 0.0,
+              sodium: 89.0,
+              servingSize: 170.0,
+              vitamins: {'B12': 5.4, 'D': 11.0},
+              minerals: {'Selenium': 40.0, 'Phosphorus': 371.0},
+            ),
+            estimatedWeight: 170.0,
+            alternativeNames: ['Atlantic Salmon', 'Salmon Fillet'],
+          ),
+          FoodItem(
+            name: 'Quinoa Salad',
+            category: 'Grains & Cereals',
+            confidence: 0.89,
+            nutrition: NutritionInfo(
+              calories: 222,
+              protein: 8.0,
+              carbs: 39.0,
+              fat: 4.0,
+              fiber: 5.0,
+              sugar: 3.0,
+              sodium: 372.0,
+              servingSize: 185.0,
+              vitamins: {'Folate': 78.0, 'E': 2.4},
+              minerals: {'Magnesium': 118.0, 'Iron': 2.8},
+            ),
+            estimatedWeight: 185.0,
+            alternativeNames: ['Quinoa Bowl', 'Mixed Quinoa'],
+          ),
+          FoodItem(
+            name: 'Steamed Broccoli',
+            category: 'Vegetables',
+            confidence: 0.94,
+            nutrition: NutritionInfo(
+              calories: 27,
+              protein: 3.0,
+              carbs: 5.0,
+              fat: 0.3,
+              fiber: 2.0,
+              sugar: 1.5,
+              sodium: 32.0,
+              servingSize: 91.0,
+              vitamins: {'C': 81.2, 'K': 92.5},
+              minerals: {'Potassium': 288.0, 'Folate': 57.0},
+            ),
+            estimatedWeight: 91.0,
+            alternativeNames: ['Broccoli Florets', 'Green Broccoli'],
+          ),
+        ],
+        totalNutrition: NutritionInfo(
+          calories: 616,
+          protein: 62.0,
+          carbs: 44.0,
+          fat: 20.3,
+          fiber: 7.0,
+          sugar: 4.5,
+          sodium: 493.0,
+          servingSize: 446.0,
+          vitamins: {'C': 81.2, 'B12': 5.4, 'K': 92.5},
+          minerals: {'Selenium': 40.0, 'Magnesium': 118.0, 'Iron': 2.8},
         ),
-        Food(
-          name: 'Quinoa Salad',
-          quantity: 1.0,
-          unit: 'cup',
-          calories: 222,
-          protein: 8.0,
-          carbs: 39.0,
-          fat: 4.0,
-          fiber: 5.0,
-          sugar: 3.0,
-          sodium: 372.0,
-        ),
-        Food(
-          name: 'Steamed Broccoli',
-          quantity: 1.0,
-          unit: 'cup',
-          calories: 27,
-          protein: 3.0,
-          carbs: 5.0,
-          fat: 0.3,
-          fiber: 2.0,
-          sugar: 1.5,
-          sodium: 32.0,
-        ),
-      ],
+        confidenceScore: 0.94,
+        primaryFoodCategory: 'Balanced Meal',
+        allergenWarnings: ['Fish'],
+        analysisTimestamp: DateTime.now().subtract(const Duration(minutes: 15)),
+      ),
       aiCaption: 'Healthy balanced lunch with lean protein, complex carbs, and vegetables',
-      aiConfidence: 0.94,
-      nutritionAnalysis: NutritionAnalysis(
-        totalCalories: 616,
-        macroBreakdown: {
-          'protein': 62.0,
-          'carbs': 44.0,
-          'fat': 20.3,
-        },
-        healthScore: 0.92,
-        recommendations: [
+      tags: ['healthy', 'balanced', 'high-protein', 'omega-3'],
+      metadata: {
+        'meal_type': 'lunch',
+        'health_score': 0.92,
+        'macro_balance': 'excellent',
+        'recommendations': [
           'Excellent protein content for muscle maintenance',
           'Great balance of complex carbohydrates',
           'Rich in omega-3 fatty acids from salmon',
           'High fiber content supports digestive health',
         ],
-      ),
+      },
     );
   }
 
@@ -237,7 +266,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
                 'AI Food Recognition',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: SnapColors.text,
+                  color: SnapColors.textPrimary,
                 ),
               ),
               const Spacer(),
@@ -424,13 +453,13 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
                 'Recognition Complete',
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
-                  color: SnapColors.text,
+                  color: SnapColors.textPrimary,
                   fontSize: 13,
                 ),
               ),
               const Spacer(),
               Text(
-                '${(_demoMeal!.aiConfidence * 100).toInt()}% confidence',
+                '${(_demoMeal!.recognitionResult.confidenceScore * 100).toInt()}% confidence',
                 style: TextStyle(
                   color: SnapColors.success,
                   fontSize: 12,
@@ -441,7 +470,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
           ),
           const SizedBox(height: 8),
           Text(
-            _demoMeal!.aiCaption,
+                          _demoMeal!.aiCaption ?? 'AI analysis in progress...',
             style: TextStyle(
               color: SnapColors.textSecondary,
               fontSize: 12,
@@ -449,9 +478,9 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
           ),
           const SizedBox(height: 8),
           Text(
-            'Detected: ${_demoMeal!.foods.map((f) => f.name).join(', ')}',
+                          'Detected: ${_demoMeal!.recognitionResult.detectedFoods.map((f) => f.name).join(', ')}',
             style: TextStyle(
-              color: SnapColors.text,
+              color: SnapColors.textPrimary,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -462,9 +491,9 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
   }
 
   Widget _buildNutritionAnalysisShowcase() {
-    if (_demoMeal?.nutritionAnalysis == null) return const SizedBox.shrink();
+    if (_demoMeal == null) return const SizedBox.shrink();
     
-    final nutrition = _demoMeal!.nutritionAnalysis!;
+    final nutrition = _demoMeal!.recognitionResult.totalNutrition;
     
     return Container(
       padding: const EdgeInsets.all(16),
@@ -488,7 +517,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
                 'Nutrition Analysis',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: SnapColors.text,
+                  color: SnapColors.textPrimary,
                 ),
               ),
               const Spacer(),
@@ -499,7 +528,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Health Score: ${(nutrition.healthScore * 100).toInt()}%',
+                  'Health Score: ${((_demoMeal!.metadata['health_score'] as double? ?? 0.9) * 100).toInt()}%',
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
@@ -528,13 +557,13 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
     );
   }
 
-  Widget _buildNutritionStats(NutritionAnalysis nutrition) {
+  Widget _buildNutritionStats(NutritionInfo nutrition) {
     return Row(
       children: [
         Expanded(
           child: _buildNutritionStatCard(
             'Calories',
-            '${nutrition.totalCalories}',
+                            '${nutrition.calories.toInt()}',
             'kcal',
             Icons.local_fire_department,
             SnapColors.accent,
@@ -544,8 +573,8 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         Expanded(
           child: _buildNutritionStatCard(
             'Protein',
-            '${nutrition.macroBreakdown['protein']?.toInt()}g',
-            '${((nutrition.macroBreakdown['protein']! / nutrition.totalCalories) * 100).toInt()}%',
+                          '${nutrition.protein.toInt()}g',
+                            '${((nutrition.protein * 4 / nutrition.calories) * 100).toInt()}%',
             Icons.fitness_center,
             Colors.blue,
           ),
@@ -554,8 +583,8 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         Expanded(
           child: _buildNutritionStatCard(
             'Carbs',
-            '${nutrition.macroBreakdown['carbs']?.toInt()}g',
-            '${((nutrition.macroBreakdown['carbs']! / nutrition.totalCalories) * 100).toInt()}%',
+                          '${nutrition.carbs.toInt()}g',
+              '${((nutrition.carbs * 4 / nutrition.calories) * 100).toInt()}%',
             Icons.grain,
             Colors.orange,
           ),
@@ -564,8 +593,8 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         Expanded(
           child: _buildNutritionStatCard(
             'Fat',
-            '${nutrition.macroBreakdown['fat']?.toInt()}g',
-            '${((nutrition.macroBreakdown['fat']! / nutrition.totalCalories) * 100).toInt()}%',
+                          '${nutrition.fat.toInt()}g',
+              '${((nutrition.fat * 9 / nutrition.calories) * 100).toInt()}%',
             Icons.opacity,
             Colors.green,
           ),
@@ -590,7 +619,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
             value,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              color: SnapColors.text,
+              color: SnapColors.textPrimary,
               fontSize: 14,
             ),
           ),
@@ -614,7 +643,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
     );
   }
 
-  Widget _buildMacroChart(NutritionAnalysis nutrition) {
+  Widget _buildMacroChart(NutritionInfo nutrition) {
     return Container(
       height: 60,
       decoration: BoxDecoration(
@@ -624,7 +653,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
       child: Row(
         children: [
           Flexible(
-            flex: (nutrition.macroBreakdown['protein']! * 4).toInt(),
+                          flex: (nutrition.protein * 4).toInt(),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.blue.withValues(alpha: 0.8),
@@ -645,7 +674,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
             ),
           ),
           Flexible(
-            flex: (nutrition.macroBreakdown['carbs']! * 4).toInt(),
+                          flex: (nutrition.carbs * 4).toInt(),
             child: Container(
               color: Colors.orange.withValues(alpha: 0.8),
               child: Center(
@@ -660,7 +689,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
             ),
           ),
           Flexible(
-            flex: (nutrition.macroBreakdown['fat']! * 9).toInt(),
+                          flex: (nutrition.fat * 9).toInt(),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.green.withValues(alpha: 0.8),
@@ -685,7 +714,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
     );
   }
 
-  Widget _buildNutritionRecommendations(NutritionAnalysis nutrition) {
+  Widget _buildNutritionRecommendations(NutritionInfo nutrition) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -693,12 +722,12 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
           'AI Insights',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: SnapColors.text,
+            color: SnapColors.textPrimary,
             fontSize: 14,
           ),
         ),
         const SizedBox(height: 8),
-        ...nutrition.recommendations.take(2).map((recommendation) => Padding(
+                  ...(_demoMeal!.metadata['recommendations'] as List<String>? ?? []).take(2).map((recommendation) => Padding(
           padding: const EdgeInsets.only(bottom: 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -748,7 +777,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
                 'Smart Meal Insights',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: SnapColors.text,
+                  color: SnapColors.textPrimary,
                 ),
               ),
             ],
@@ -758,7 +787,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
             'Perfect Protein Timing',
             'This meal provides optimal protein for your 2pm workout. Consider eating 1-2 hours before training.',
             Icons.schedule,
-            SnapColors.info,
+                            SnapColors.accentBlue,
           ),
           const SizedBox(height: 8),
           _buildInsightCard(
@@ -792,7 +821,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
                   title,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: SnapColors.text,
+                    color: SnapColors.textPrimary,
                     fontSize: 13,
                   ),
                 ),
