@@ -14,6 +14,7 @@ import '../models/meal_log.dart';
 import '../services/meal_recognition_service.dart';
 import '../services/openai_service.dart';
 import '../services/rag_service.dart';
+import '../services/mission_service.dart';
 
 /// AI-Powered Meal Logging Page
 /// Allows users to snap meals for instant calorie estimates and AI captions
@@ -294,6 +295,21 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       await FirebaseFirestore.instance
           .collection('meal_logs')
           .add(mealLog.toJson());
+
+      // Check for mission auto-completions
+      try {
+        await MissionService().checkAutoCompletions(
+          user.uid,
+          'log_meal',
+          {
+            'meal_category': _analysisResult!.primaryFoodCategory,
+            'meal_time': DateTime.now().hour,
+          },
+        );
+      } catch (e) {
+        developer.log('Error checking mission auto-completions: $e');
+        // Don't fail the meal logging if mission check fails
+      }
 
       // Reset form
       setState(() {

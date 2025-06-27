@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import '../utils/video_compression.dart';
 import '../utils/logger.dart';
+
 import 'friend_service.dart';
 
 class SnapService {

@@ -13,6 +13,7 @@ import '../models/ai_advice.dart';
 import '../widgets/fasting_aware_navigation.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
 import '../widgets/insight_of_the_day_card.dart';
+import '../widgets/mission_card.dart';
 
 import 'ai_advice_page.dart';
 import 'meal_logging_page.dart';
@@ -360,6 +361,9 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
 
                         // Insight of the Day
                         const InsightOfTheDayCard(),
+
+                        // Current Mission
+                        const MissionCard(),
 
                         // Quick actions
                         _buildQuickActions(fastingState),
