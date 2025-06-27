@@ -5,8 +5,8 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:snapameal/utils/logger.dart';
-import '../lib/config/demo_personas.dart';
-import '../lib/services/auth_service.dart';
+import 'package:snapameal/config/demo_personas.dart';
+import 'package:snapameal/services/auth_service.dart';
 
 /// Script to seed demo accounts in Firebase Authentication
 /// Usage: dart scripts/seed_demo_accounts.dart
@@ -26,7 +26,7 @@ Future<void> main() async {
         Logger.i('Creating demo account for ${persona.displayName}...');
         
         // This will create the account if it doesn't exist
-        await authService.signInWithDemoPersona(persona.id);
+        await authService.signInWithDemoAccount(persona.id);
         
         Logger.i('✅ Demo account created/verified for ${persona.displayName} (${persona.email})');
         

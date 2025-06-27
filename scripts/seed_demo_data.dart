@@ -5,10 +5,10 @@
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:snapameal/utils/logger.dart';
-import '../lib/services/demo_data_service.dart';
-import '../lib/services/demo_data_validator.dart';
-import '../lib/config/demo_personas.dart';
-import 'package:snapameal/services/auth_service.dart';
+import 'package:snapameal/services/demo_data_service.dart';
+import 'package:snapameal/services/demo_data_validator.dart';
+import 'package:snapameal/config/demo_personas.dart';
+import 'package:snapameal/services/demo_reset_service.dart';
 
 /// Automated demo data seeding script for consistent environment setup
 /// 
@@ -43,7 +43,7 @@ Future<void> main(List<String> args) async {
 
     if (resetOnly) {
       Logger.i('🧹 Resetting existing demo data...');
-      await DemoDataService.resetAllDemoData();
+      await DemoResetService.resetAllDemoData();
       Logger.i('✅ Demo data reset complete');
       return;
     }
@@ -147,11 +147,10 @@ Future<void> _validateDemoData() async {
   try {
     Logger.i('  🔍 Validating data integrity...');
     
-    final validator = DemoDataValidator();
-    final results = await validator.validateAllData();
+    final results = await DemoDataValidator.validateAll();
     
     // Check for any validation failures
-    final failures = results.where((r) => !r.isValid).toList();
+    final failures = results.where((r) => !r.success).toList();
     
     if (failures.isNotEmpty) {
       for (final r in failures) {
