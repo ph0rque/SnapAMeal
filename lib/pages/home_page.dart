@@ -46,14 +46,26 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    if (index == 1) {
-      // Middle button for camera
-      _showCameraOptions();
-      return;
+    switch (index) {
+      case 0:
+        // Home - already on home page
+        setState(() {
+          _selectedIndex = index;
+        });
+        break;
+      case 1:
+        // Camera options
+        _showCameraOptions();
+        break;
+      case 2:
+        // Chats
+        Navigator.pushNamed(context, '/chats');
+        break;
+      case 3:
+        // Friends
+        Navigator.pushNamed(context, '/friends');
+        break;
     }
-    setState(() {
-      _selectedIndex = index;
-    });
   }
 
   void _showCameraOptions() {

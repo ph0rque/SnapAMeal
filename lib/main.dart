@@ -20,6 +20,8 @@ import 'package:snapameal/pages/ai_advice_page.dart';
 import 'package:snapameal/pages/meal_logging_page.dart';
 import 'package:snapameal/pages/health_groups_page.dart';
 import 'package:snapameal/pages/integrations_page.dart';
+import 'package:snapameal/pages/chats_page.dart';
+import 'package:snapameal/pages/friends_page.dart';
 import 'pages/debug_pinecone_page.dart';
 
 import 'di/service_locator.dart';
@@ -236,6 +238,10 @@ class MyApp extends StatelessWidget {
         return const IntegrationsPage(); // Using integrations page as settings for now
       case '/debug-pinecone':
         return const DebugPineconePage();
+      case '/chats':
+        return const ChatsPage();
+      case '/friends':
+        return const FriendsPage();
       default:
         return null;
     }
