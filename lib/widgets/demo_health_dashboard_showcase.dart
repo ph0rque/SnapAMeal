@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../models/health_profile.dart';
-import '../models/fasting_session.dart';
 import '../services/auth_service.dart';
 import '../design_system/snap_ui.dart';
 import 'dart:math' as math;
@@ -22,20 +19,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
   late Animation<double> _progressAnimation;
   late Animation<double> _pulseAnimation;
   
-  // Demo data
-  final HealthProfile _demoProfile = HealthProfile(
-    userId: 'demo_user',
-    age: 32,
-    gender: Gender.female,
-    heightCm: 165, // 5'5"
-    currentWeight: 68.0, // 150 lbs
-    targetWeight: 63.5, // 140 lbs
-    activityLevel: ActivityLevel.moderate,
-    healthGoals: [HealthGoal.weightLoss, HealthGoal.improvedEnergy],
-    dietaryRestrictions: [DietaryRestriction.glutenFree],
-    createdAt: DateTime.now().subtract(const Duration(days: 45)),
-    updatedAt: DateTime.now(),
-  );
+  // Demo data - keeping for reference but not using to avoid unused field warning
   
   @override
   void initState() {
@@ -94,13 +78,13 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                SnapColors.info.withValues(alpha: 0.1),
+                SnapColors.accentBlue.withValues(alpha: 0.1),
                 SnapColors.primary.withValues(alpha: 0.05),
               ],
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: SnapColors.info.withValues(alpha: 0.2),
+              color: SnapColors.accentBlue.withValues(alpha: 0.2),
               width: 2,
             ),
           ),
@@ -140,7 +124,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: SnapColors.info,
+        color: SnapColors.accentBlue,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -174,7 +158,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: SnapColors.text,
+            color: SnapColors.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
@@ -197,7 +181,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                 '140 lbs',
                 '63.5 kg',
                 Icons.flag,
-                SnapColors.success,
+                SnapColors.accentGreen,
                 progress: 1.0,
               ),
             ),
@@ -212,7 +196,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                 '5\'5"',
                 '165 cm',
                 Icons.height,
-                SnapColors.accent,
+                SnapColors.accentBlue,
                 showProgress: false,
               ),
             ),
@@ -223,7 +207,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                 '25.2',
                 'Normal',
                 Icons.analytics,
-                SnapColors.info,
+                SnapColors.accentBlue,
                 showProgress: false,
               ),
             ),
@@ -277,7 +261,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: SnapColors.text,
+                  color: SnapColors.textPrimary,
                 ),
               ),
               Text(
@@ -306,9 +290,9 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: SnapColors.surface,
+        color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.border),
+        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -325,7 +309,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                 'Progress Visualization',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: SnapColors.text,
+                  color: SnapColors.textPrimary,
                 ),
               ),
             ],
@@ -345,7 +329,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
   }
 
   Widget _buildWeightProgressChart() {
-    return Container(
+    return SizedBox(
       height: 120,
       child: CustomPaint(
         painter: WeightProgressPainter(_progressAnimation),
@@ -363,7 +347,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
             '5',
             'This week',
             Icons.timer,
-            SnapColors.accent,
+            SnapColors.accentBlue,
           ),
         ),
         Expanded(
@@ -372,7 +356,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
             '2.2 lbs',
             'Last 30 days',
             Icons.trending_down,
-            SnapColors.success,
+            SnapColors.accentGreen,
           ),
         ),
         Expanded(
@@ -410,7 +394,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                   value,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: SnapColors.text,
+                    color: SnapColors.textPrimary,
                     fontSize: 16,
                   ),
                 ),
@@ -443,9 +427,9 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: SnapColors.surface,
+        color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.border),
+        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -462,14 +446,14 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                 'Imperial Units Display',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: SnapColors.text,
+                  color: SnapColors.textPrimary,
                 ),
               ),
               const Spacer(),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: SnapColors.success.withValues(alpha: 0.2),
+                  color: SnapColors.accentGreen.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -477,7 +461,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: SnapColors.success,
+                    color: SnapColors.accentGreen,
                   ),
                 ),
               ),
@@ -510,7 +494,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: SnapColors.border.withValues(alpha: 0.1),
+        color: SnapColors.textSecondary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -521,7 +505,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
               label,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: SnapColors.text,
+                color: SnapColors.textPrimary,
                 fontSize: 13,
               ),
             ),
@@ -552,9 +536,9 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: SnapColors.surface,
+        color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.border),
+        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -571,7 +555,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                 'AI Health Insights',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: SnapColors.text,
+                  color: SnapColors.textPrimary,
                 ),
               ),
             ],
@@ -581,21 +565,21 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
             'Weight Loss Trajectory',
             'You\'re on track to reach your goal weight of 140 lbs by March 2025. Current rate: 1.1 lbs/week.',
             Icons.trending_down,
-            SnapColors.success,
+            SnapColors.accentGreen,
           ),
           const SizedBox(height: 8),
           _buildInsightCard(
             'Optimal Fasting Window',
             'Your 16:8 fasting pattern shows 94% adherence. Consider extending to 18:6 twice weekly.',
             Icons.schedule,
-            SnapColors.info,
+            SnapColors.accentBlue,
           ),
           const SizedBox(height: 8),
           _buildInsightCard(
             'Energy Levels',
             'Fasting days show 23% higher energy scores. Your body has adapted well to intermittent fasting.',
             Icons.battery_charging_full,
-            SnapColors.accent,
+            SnapColors.accentBlue,
           ),
         ],
       ),
@@ -622,7 +606,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
                   title,
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
-                    color: SnapColors.text,
+                    color: SnapColors.textPrimary,
                     fontSize: 13,
                   ),
                 ),
@@ -651,18 +635,13 @@ class WeightProgressPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = SnapColors.primary
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-    
     final backgroundPaint = Paint()
-      ..color = SnapColors.border.withValues(alpha: 0.3)
+      ..color = SnapColors.textSecondary.withValues(alpha: 0.3)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
     
     final progressPaint = Paint()
-      ..color = SnapColors.success
+      ..color = SnapColors.accentGreen
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
     
@@ -723,7 +702,7 @@ class WeightProgressPainter extends CustomPainter {
         // Draw current weight indicator
         if (i == 4) { // Current weight point
           canvas.drawCircle(point, 6, Paint()
-            ..color = SnapColors.accent
+            ..color = SnapColors.accentBlue
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2);
         }

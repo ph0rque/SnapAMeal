@@ -21,6 +21,11 @@ import '../providers/fasting_state_provider.dart';
 import '../widgets/fasting_aware_navigation.dart';
 import '../widgets/demo_fasting_showcase.dart';
 import '../widgets/demo_meal_showcase.dart';
+import '../widgets/demo_health_dashboard_showcase.dart';
+import '../widgets/demo_ai_advice_showcase.dart';
+import '../widgets/demo_social_showcase.dart';
+import '../widgets/demo_story_showcase.dart';
+import '../widgets/demo_friend_matching_showcase.dart';
 
 import '../design_system/widgets/fasting_status_indicators.dart';
 
@@ -322,6 +327,26 @@ class _HomePageState extends State<HomePage> {
                 
                 // Meal logging demo showcase
                 const DemoMealShowcase(),
+                const SizedBox(height: 20),
+                
+                // Health dashboard demo showcase
+                const DemoHealthDashboardShowcase(),
+                const SizedBox(height: 20),
+                
+                // AI advice demo showcase
+                const DemoAIAdviceShowcase(),
+                const SizedBox(height: 20),
+                
+                // Social features demo showcase
+                const DemoSocialShowcase(),
+                const SizedBox(height: 20),
+                
+                // Story sharing demo showcase
+                const DemoStoryShowcase(),
+                const SizedBox(height: 20),
+                
+                // Friend matching demo showcase
+                const DemoFriendMatchingShowcase(),
                 const SizedBox(height: 20),
               ],
             );
