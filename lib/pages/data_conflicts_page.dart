@@ -715,7 +715,14 @@ class _DataConflictsPageState extends State<DataConflictsPage>
                 onChanged: (value) {
                   // TODO: Update user settings
                 },
-                activeThumbColor: SnapColors.primaryYellow,
+                thumbColor: WidgetStateProperty.resolveWith<Color>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return SnapColors.primaryYellow;
+                    }
+                    return Colors.grey;
+                  },
+                ),
               ),
               const Divider(),
               SwitchListTile(
@@ -735,7 +742,14 @@ class _DataConflictsPageState extends State<DataConflictsPage>
                 onChanged: (value) {
                   // TODO: Update user settings
                 },
-                activeThumbColor: SnapColors.primaryYellow,
+                thumbColor: WidgetStateProperty.resolveWith<Color>(
+                  (Set<WidgetState> states) {
+                    if (states.contains(WidgetState.selected)) {
+                      return SnapColors.primaryYellow;
+                    }
+                    return Colors.grey;
+                  },
+                ),
               ),
             ],
           ),

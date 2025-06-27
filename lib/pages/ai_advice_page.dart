@@ -868,7 +868,14 @@ class _AIAdvicePageState extends State<AIAdvicePage>
             ),
             value: _healthProfile?.receiveAdvice ?? true,
             onChanged: _toggleAdvicePreference,
-            activeThumbColor: SnapColors.primaryYellow,
+            thumbColor: WidgetStateProperty.resolveWith<Color>(
+              (Set<WidgetState> states) {
+                if (states.contains(WidgetState.selected)) {
+                  return SnapColors.primaryYellow;
+                }
+                return Colors.grey;
+              },
+            ),
           ),
         ],
       ),

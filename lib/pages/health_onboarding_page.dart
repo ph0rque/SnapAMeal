@@ -325,6 +325,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               max: 80,
               divisions: 64,
               activeColor: SnapColors.primaryYellow,
+              thumbColor: SnapColors.primaryYellow,
               onChanged: (value) => setState(() => _age = value.round()),
             ),
             const SizedBox(height: 24),
@@ -430,6 +431,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               max: 220, // ~7'2"
               divisions: 80,
               activeColor: SnapColors.primaryYellow,
+              thumbColor: SnapColors.primaryYellow,
               onChanged: (value) => setState(() => _height = value),
             ),
             const SizedBox(height: 24),
@@ -449,6 +451,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               max: 150, // ~330 lbs
               divisions: 110,
               activeColor: SnapColors.primaryYellow,
+              thumbColor: SnapColors.primaryYellow,
               onChanged: (value) => setState(() => _currentWeight = value),
             ),
             const SizedBox(height: 24),
@@ -468,6 +471,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               max: 150, // ~330 lbs
               divisions: 110,
               activeColor: SnapColors.primaryYellow,
+              thumbColor: SnapColors.primaryYellow,
               onChanged: (value) => setState(() => _targetWeight = value),
             ),
             const SizedBox(height: 24),
@@ -714,7 +718,14 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                       _getDietaryPreferenceDisplayName(pref),
                       style: SnapTypography.body,
                     ),
-                    activeColor: SnapColors.primaryYellow,
+                    fillColor: WidgetStateProperty.resolveWith<Color>(
+                      (Set<WidgetState> states) {
+                        if (states.contains(WidgetState.selected)) {
+                          return SnapColors.primaryYellow;
+                        }
+                        return Colors.grey;
+                      },
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),

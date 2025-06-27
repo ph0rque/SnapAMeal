@@ -242,7 +242,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                           left: 0,
                           right: 0,
                           child: Container(
-                            color: SnapUIColors.black.withAlpha(128),
+                            color: SnapUIColors.black.withValues(alpha: 0.5),
                             padding: EdgeInsets.symmetric(vertical: 20),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,

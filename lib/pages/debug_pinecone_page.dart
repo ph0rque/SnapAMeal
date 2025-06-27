@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/rag_service.dart';
 import '../services/openai_service.dart';
+import '../services/knowledge_seeding_service.dart';
 
 class DebugPineconePage extends StatefulWidget {
   const DebugPineconePage({super.key});
@@ -11,20 +12,25 @@ class DebugPineconePage extends StatefulWidget {
 
 class _DebugPineconePageState extends State<DebugPineconePage> {
   late RAGService _ragService;
+  late KnowledgeSeedingService _seedingService;
   bool _isLoading = false;
+  bool _isSeeding = false;
   Map<String, dynamic>? _testResults;
+  Map<String, dynamic>? _seedingResults;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
     _ragService = RAGService(OpenAIService());
+    _seedingService = KnowledgeSeedingService(_ragService);
   }
 
   Future<void> _testConnection() async {
     setState(() {
       _isLoading = true;
       _testResults = null;
+      _seedingResults = null;
       _errorMessage = null;
     });
 
@@ -38,6 +44,49 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _seedKnowledgeBase() async {
+    setState(() {
+      _isSeeding = true;
+      _seedingResults = null;
+      _errorMessage = null;
+    });
+
+    try {
+      // First test connection
+      final connectionTest = await _ragService.testConnection();
+      if (!connectionTest) {
+        throw Exception('Pinecone connection failed. Please test connection first.');
+      }
+
+      // Perform the seeding
+      final success = await _seedingService.seedKnowledgeBase();
+      
+      if (success) {
+        // Get updated stats after seeding
+        final stats = await _ragService.getKnowledgeBaseStats();
+        
+        setState(() {
+          _seedingResults = {
+            'success': true,
+            'message': 'Knowledge base seeded successfully!',
+            'stats': stats,
+          };
+          _isSeeding = false;
+        });
+      } else {
+        setState(() {
+          _errorMessage = 'Failed to seed knowledge base';
+          _isSeeding = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error seeding knowledge base: $e';
+        _isSeeding = false;
       });
     }
   }
@@ -56,13 +105,14 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Pinecone Connection Test',
+              'Pinecone Connection & Knowledge Base',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
 
+            // Connection Test Button
             ElevatedButton(
-              onPressed: _isLoading ? null : _testConnection,
+              onPressed: (_isLoading || _isSeeding) ? null : _testConnection,
               child: _isLoading
                   ? const SizedBox(
                       width: 20,
@@ -70,6 +120,27 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Text('Test Connection'),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Seed Knowledge Base Button
+            ElevatedButton(
+              onPressed: (_isLoading || _isSeeding) ? null : _seedKnowledgeBase,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: _isSeeding
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Seed Knowledge Base'),
             ),
 
             const SizedBox(height: 24),
@@ -97,6 +168,44 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                       _errorMessage!,
                       style: const TextStyle(color: Colors.red),
                     ),
+                  ],
+                ),
+              ),
+
+            if (_seedingResults != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  border: Border.all(color: Colors.green.shade200),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Seeding Results:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _seedingResults!['message'],
+                      style: const TextStyle(color: Colors.green),
+                    ),
+                    if (_seedingResults!['stats'] != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Updated Stats - Total Vectors: ${_seedingResults!['stats']['total_vector_count']}',
+                        style: TextStyle(
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

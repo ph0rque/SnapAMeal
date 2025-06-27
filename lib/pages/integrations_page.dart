@@ -534,6 +534,17 @@ class _IntegrationsPageState extends State<IntegrationsPage>
             onTap: _showLogoutDialog,
           ),
         ]),
+        const SizedBox(height: 24),
+        _buildSettingsSection('Debug & Development', [
+          _buildSettingsTile(
+            'Debug Pinecone',
+            'Test vector database connection and seed knowledge',
+            Icons.bug_report,
+            onTap: () {
+              Navigator.pushNamed(context, '/debug-pinecone');
+            },
+          ),
+        ]),
       ],
     );
   }
