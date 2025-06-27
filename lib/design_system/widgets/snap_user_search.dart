@@ -37,10 +37,40 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
   }
 
   void _sendFriendRequest(String receiverId) async {
-    await _friendService.sendFriendRequest(receiverId);
-    setState(() {
-      _sentRequests.add(receiverId);
-    });
+    try {
+      await _friendService.sendFriendRequest(receiverId);
+      setState(() {
+        _sentRequests.add(receiverId);
+      });
+      
+      // Show success feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Friend request sent!',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: SnapUIColors.accentGreen,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Failed to send friend request: $e',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: SnapUIColors.accentRed,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   @override
