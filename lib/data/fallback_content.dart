@@ -176,11 +176,177 @@ For personalized advice or specific health concerns, I recommend consulting with
 ''';
   }
 
+  // Conversation starters organized by group type
+  static const Map<String, List<Map<String, dynamic>>> _conversationStarters = {
+    'fasting': [
+      {
+        'title': 'Fasting Motivation Monday',
+        'content': 'What keeps you motivated during your fasting windows? Share your tips and strategies!',
+        'type': 'question',
+        'tags': ['motivation', 'tips'],
+      },
+      {
+        'title': 'Hydration Check',
+        'content': 'How do you stay hydrated during fasting? What are your favorite non-caloric beverages?',
+        'type': 'discussion',
+        'tags': ['hydration', 'beverages'],
+      },
+      {
+        'title': 'Breaking Fast Favorites',
+        'content': 'What\'s your go-to meal for breaking your fast? Share your favorite recipes!',
+        'type': 'discussion',
+        'tags': ['meals', 'recipes'],
+      },
+    ],
+    'calorieGoals': [
+      {
+        'title': 'Calorie Tracking Tips',
+        'content': 'What tools or methods help you track calories effectively? Share your favorites!',
+        'type': 'question',
+        'tags': ['tracking', 'tools'],
+      },
+      {
+        'title': 'Satisfying Low-Calorie Meals',
+        'content': 'What are your favorite filling meals that fit your calorie goals?',
+        'type': 'discussion',
+        'tags': ['meals', 'satisfaction'],
+      },
+      {
+        'title': 'Portion Size Wisdom',
+        'content': 'What tricks help you manage portion sizes without feeling deprived?',
+        'type': 'question',
+        'tags': ['portions', 'tips'],
+      },
+    ],
+    'workoutBuddies': [
+      {
+        'title': 'Workout Wednesday',
+        'content': 'What\'s your favorite type of exercise and why? Let\'s inspire each other!',
+        'type': 'discussion',
+        'tags': ['exercise', 'motivation'],
+      },
+      {
+        'title': 'Form Check Friday',
+        'content': 'Share a tip about proper form for your favorite exercise!',
+        'type': 'tip',
+        'tags': ['form', 'technique'],
+      },
+      {
+        'title': 'Accountability Partners',
+        'content': 'Who wants to be workout buddies this week? Let\'s motivate each other!',
+        'type': 'challenge',
+        'tags': ['accountability', 'partners'],
+      },
+    ],
+    'nutrition': [
+      {
+        'title': 'Meal Prep Sunday',
+        'content': 'What are you prepping for the week? Share your meal prep ideas and photos!',
+        'type': 'discussion',
+        'tags': ['meal-prep', 'planning'],
+      },
+      {
+        'title': 'Veggie Victory',
+        'content': 'How do you sneak more vegetables into your meals? Share your creative ideas!',
+        'type': 'question',
+        'tags': ['vegetables', 'creativity'],
+      },
+      {
+        'title': 'Healthy Swaps',
+        'content': 'What\'s your favorite healthy ingredient swap that doesn\'t sacrifice taste?',
+        'type': 'tip',
+        'tags': ['swaps', 'healthy'],
+      },
+    ],
+    'wellness': [
+      {
+        'title': 'Mindful Monday',
+        'content': 'How do you practice mindfulness in your daily routine? Share your techniques!',
+        'type': 'discussion',
+        'tags': ['mindfulness', 'routine'],
+      },
+      {
+        'title': 'Stress-Busting Strategies',
+        'content': 'What healthy ways do you manage stress? Let\'s build a toolkit together!',
+        'type': 'question',
+        'tags': ['stress', 'management'],
+      },
+      {
+        'title': 'Gratitude Practice',
+        'content': 'Share three things you\'re grateful for today. Let\'s spread positivity!',
+        'type': 'challenge',
+        'tags': ['gratitude', 'positivity'],
+      },
+    ],
+    'support': [
+      {
+        'title': 'Check-In Circle',
+        'content': 'How are you feeling about your health journey this week? Share your wins and challenges!',
+        'type': 'discussion',
+        'tags': ['check-in', 'support'],
+      },
+      {
+        'title': 'Motivation Monday',
+        'content': 'What quote, song, or thought motivates you when things get tough?',
+        'type': 'question',
+        'tags': ['motivation', 'inspiration'],
+      },
+      {
+        'title': 'Small Wins Celebration',
+        'content': 'Share a small victory from your health journey - no win is too small to celebrate!',
+        'type': 'challenge',
+        'tags': ['wins', 'celebration'],
+      },
+    ],
+    'recipes': [
+      {
+        'title': 'Recipe Remix',
+        'content': 'Take a classic recipe and make it healthier! Share your creative modifications.',
+        'type': 'challenge',
+        'tags': ['recipes', 'healthy'],
+      },
+      {
+        'title': 'Quick & Easy Favorites',
+        'content': 'What\'s your go-to healthy recipe when you\'re short on time?',
+        'type': 'question',
+        'tags': ['quick', 'easy'],
+      },
+      {
+        'title': 'Ingredient Spotlight',
+        'content': 'Pick one healthy ingredient and share your favorite way to use it!',
+        'type': 'discussion',
+        'tags': ['ingredients', 'cooking'],
+      },
+    ],
+  };
+
+  /// Get conversation starter for group type
+  static Map<String, dynamic> getConversationStarter(String groupType) {
+    final starters = _conversationStarters[groupType] ?? _conversationStarters['support']!;
+    
+    // Use current day to ensure variety but consistency
+    final dayIndex = DateTime.now().day % starters.length;
+    return Map<String, dynamic>.from(starters[dayIndex]);
+  }
+
+  /// Get multiple conversation starters for scheduling
+  static List<Map<String, dynamic>> getConversationStarters(String groupType, int count) {
+    final starters = _conversationStarters[groupType] ?? _conversationStarters['support']!;
+    final result = <Map<String, dynamic>>[];
+    
+    for (int i = 0; i < count && i < starters.length; i++) {
+      result.add(Map<String, dynamic>.from(starters[i]));
+    }
+    
+    return result;
+  }
+
   /// Check if content exists for given parameters
   static bool hasContentFor({
     String? contentType,
     List<String>? userGoals,
     List<String>? dietaryRestrictions,
+    String? groupType,
   }) {
     switch (contentType) {
       case 'daily_insight':
@@ -191,6 +357,8 @@ For personalized advice or specific health concerns, I recommend consulting with
         return true; // Always have recipe suggestions
       case 'mission':
         return userGoals != null && userGoals.isNotEmpty;
+      case 'conversation_starter':
+        return groupType != null && _conversationStarters.containsKey(groupType);
       default:
         return true; // Always have generic safe response
     }

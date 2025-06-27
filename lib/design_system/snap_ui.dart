@@ -224,6 +224,7 @@ class SnapColors {
   static const surface = white;
   static const shadow = black;
   static const warning = primaryYellow;
+  static const info = accentBlue;
   static const cardBackground = greyBackground;
 
   // Missing properties referenced in data_conflicts_page.dart
@@ -250,6 +251,8 @@ class SnapTypography {
 
   // Missing properties referenced in data_conflicts_page.dart
   static final heading4 = titleLarge;
+  static final headingSmall = titleLarge;
+  static final bodySmall = bodyMedium;
 }
 
 class SnapDimensions {
@@ -277,6 +280,9 @@ class SnapDimensions {
   static const paddingSmall = spacingS;
   static const paddingMedium = spacingM;
   static const paddingLarge = spacingL;
+  static const paddingXSmall = spacingXXS;
   static const borderRadius = radiusM;
   static const radiusMedium = radiusM;
+  static const borderRadiusSmall = radiusS;
+  static const borderRadiusMedium = radiusM;
 }

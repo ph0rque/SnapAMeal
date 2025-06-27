@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/health_group.dart';
 import '../models/health_challenge.dart';
+import '../models/conversation_starter.dart';
+import '../data/fallback_content.dart';
 import '../utils/logger.dart';
 import 'rag_service.dart';
 import 'friend_service.dart';
@@ -17,6 +19,7 @@ class HealthCommunityService {
   late final CollectionReference _groupsCollection;
   late final CollectionReference _challengesCollection;
   late final CollectionReference _userHealthProfilesCollection;
+  late final CollectionReference _conversationStartersCollection;
 
   HealthCommunityService(this._ragService, this._friendService) {
     _groupsCollection = _firestore.collection('health_groups');
@@ -24,6 +27,7 @@ class HealthCommunityService {
     _userHealthProfilesCollection = _firestore.collection(
       'user_health_profiles',
     );
+    _conversationStartersCollection = _firestore.collection('conversation_starters');
   }
 
   /// Get current user ID
@@ -286,7 +290,7 @@ class HealthCommunityService {
       }
 
       // Get user data for participant
-      final userData = await _friendService.getUserData(userId);
+      final userData = await _friendService.getEnhancedUserData(userId);
       final participant = ChallengeParticipant(
         userId: userId,
         displayName: userData['display_name'] ?? 'Anonymous',
@@ -600,5 +604,329 @@ class HealthCommunityService {
       Logger.d('Error generating suggestion reason: $e');
       return 'You share similar health goals and could motivate each other!';
     }
+  }
+
+  // ===== CONVERSATION STARTERS =====
+
+  /// Generate AI-powered conversation starter for a group
+  Future<ConversationStarter?> generateConversationStarter({
+    required String groupId,
+    ConversationStarterType? preferredType,
+    DateTime? scheduledFor,
+  }) async {
+    try {
+      // Get group information
+      final groupDoc = await _groupsCollection.doc(groupId).get();
+      if (!groupDoc.exists) {
+        Logger.d('Group not found: $groupId');
+        return null;
+      }
+
+      final group = HealthGroup.fromFirestore(groupDoc);
+      
+      // Try to generate using RAG service first
+      ConversationStarter? starter;
+      try {
+        starter = await _generateConversationStarterWithRAG(group, preferredType);
+      } catch (e) {
+        Logger.d('RAG generation failed, using fallback: $e');
+      }
+
+      // Use fallback if RAG fails
+      starter ??= _generateFallbackConversationStarter(group, preferredType);
+
+      // Set scheduling information
+      if (scheduledFor != null) {
+        starter = starter.copyWith(scheduledFor: scheduledFor);
+      }
+
+      // Save to Firestore
+      final docRef = await _conversationStartersCollection.add(starter.toFirestore());
+      
+      Logger.d('Generated conversation starter for group $groupId: ${docRef.id}');
+      return starter.copyWith(title: docRef.id); // Update with actual ID
+    } catch (e) {
+      Logger.d('Error generating conversation starter: $e');
+      return null;
+    }
+  }
+
+  /// Generate conversation starter using RAG service
+  Future<ConversationStarter> _generateConversationStarterWithRAG(
+    HealthGroup group,
+    ConversationStarterType? preferredType,
+  ) async {
+    final context = '''
+    Health Group Context:
+    - Type: ${group.typeDisplayName}
+    - Members: ${group.memberCount}
+    - Tags: ${group.tags.join(', ')}
+    - Goals: ${group.groupGoals.keys.join(', ')}
+    - Activity Level: ${group.activityLevel.name}
+    
+    Generate an engaging conversation starter that:
+    - Is relevant to ${group.typeDisplayName} health goals
+    - Encourages community participation
+    - Is appropriate for ${group.memberCount} members
+    - Promotes healthy discussion
+    ''';
+
+    final results = await _ragService.performSemanticSearch(
+      query: 'health community discussion topics for ${group.type.name} groups: $context',
+      maxResults: 3,
+    );
+
+    if (results.isEmpty) {
+      throw Exception('No RAG results found');
+    }
+
+    // Use the first result to create conversation starter
+    final content = results.first.document.content;
+    final title = 'Weekly ${group.typeDisplayName} Discussion';
+    
+    return ConversationStarter(
+      id: '', // Will be set when saved
+      groupId: group.id,
+      title: title,
+      content: '$content\n\n*This discussion prompt was generated to help our community connect and share experiences.*',
+      type: preferredType ?? ConversationStarterType.discussion,
+      createdAt: DateTime.now(),
+      tags: [...group.tags, 'ai-generated'],
+      metadata: {
+        'generated_by': 'rag_service',
+        'group_type': group.type.name,
+        'member_count': group.memberCount,
+      },
+    );
+  }
+
+  /// Generate fallback conversation starter
+  ConversationStarter _generateFallbackConversationStarter(
+    HealthGroup group,
+    ConversationStarterType? preferredType,
+  ) {
+    final fallbackData = FallbackContent.getConversationStarter(group.type.name);
+    
+    return ConversationStarter(
+      id: '', // Will be set when saved
+      groupId: group.id,
+      title: fallbackData['title'] as String,
+      content: '${fallbackData['content'] as String}\n\n*This discussion prompt was generated to help our community connect and share experiences.*',
+      type: ConversationStarterType.values.firstWhere(
+        (e) => e.name == fallbackData['type'],
+        orElse: () => preferredType ?? ConversationStarterType.discussion,
+      ),
+      createdAt: DateTime.now(),
+      tags: [...(fallbackData['tags'] as List<String>), 'ai-generated'],
+      metadata: {
+        'generated_by': 'fallback_content',
+        'group_type': group.type.name,
+        'member_count': group.memberCount,
+      },
+    );
+  }
+
+  /// Post a scheduled conversation starter
+  Future<bool> postScheduledConversationStarter(String conversationStarterId) async {
+    try {
+      await _conversationStartersCollection.doc(conversationStarterId).update({
+        'posted_at': Timestamp.now(),
+        'status': ConversationStarterStatus.active.name,
+      });
+
+      Logger.d('Posted conversation starter: $conversationStarterId');
+      return true;
+    } catch (e) {
+      Logger.d('Error posting conversation starter: $e');
+      return false;
+    }
+  }
+
+  /// Get active conversation starters for a group
+  Stream<List<ConversationStarter>> getGroupConversationStarters(String groupId) {
+    return _conversationStartersCollection
+        .where('group_id', isEqualTo: groupId)
+        .where('status', isEqualTo: ConversationStarterStatus.active.name)
+        .orderBy('posted_at', descending: true)
+        .limit(10)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => ConversationStarter.fromFirestore(doc))
+              .toList(),
+        );
+  }
+
+  /// Archive old conversation starters
+  Future<void> archiveOldConversationStarters({int daysOld = 7}) async {
+    try {
+      final cutoffDate = DateTime.now().subtract(Duration(days: daysOld));
+      
+      final snapshot = await _conversationStartersCollection
+          .where('status', isEqualTo: ConversationStarterStatus.active.name)
+          .where('posted_at', isLessThan: Timestamp.fromDate(cutoffDate))
+          .get();
+
+      final batch = _firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.update(doc.reference, {
+          'status': ConversationStarterStatus.archived.name,
+        });
+      }
+
+      await batch.commit();
+      Logger.d('Archived ${snapshot.docs.length} old conversation starters');
+    } catch (e) {
+      Logger.d('Error archiving conversation starters: $e');
+    }
+  }
+
+  /// Schedule conversation starters for a group
+  Future<List<String>> scheduleConversationStarters({
+    required String groupId,
+    required int count,
+    required Duration interval,
+  }) async {
+    try {
+      final scheduledIds = <String>[];
+      final now = DateTime.now();
+
+      for (int i = 0; i < count; i++) {
+        final scheduledTime = now.add(interval * i);
+        
+        final starter = await generateConversationStarter(
+          groupId: groupId,
+          scheduledFor: scheduledTime,
+        );
+
+        if (starter != null) {
+          scheduledIds.add(starter.id);
+        }
+      }
+
+      Logger.d('Scheduled ${scheduledIds.length} conversation starters for group $groupId');
+      return scheduledIds;
+    } catch (e) {
+      Logger.d('Error scheduling conversation starters: $e');
+      return [];
+    }
+  }
+
+  /// Update group conversation starter preferences
+  Future<bool> updateGroupConversationPreferences({
+    required String groupId,
+    bool? enableAutoStarters,
+    Duration? starterInterval,
+    List<ConversationStarterType>? preferredTypes,
+  }) async {
+    try {
+      final updates = <String, dynamic>{};
+      
+      if (enableAutoStarters != null) {
+        updates['auto_conversation_starters'] = enableAutoStarters;
+      }
+      
+      if (starterInterval != null) {
+        updates['starter_interval_hours'] = starterInterval.inHours;
+      }
+      
+      if (preferredTypes != null) {
+        updates['preferred_starter_types'] = preferredTypes.map((e) => e.name).toList();
+      }
+
+      if (updates.isNotEmpty) {
+        updates['conversation_preferences_updated_at'] = Timestamp.now();
+        
+        await _groupsCollection.doc(groupId).update({
+          'metadata.conversation_preferences': updates,
+        });
+      }
+
+      Logger.d('Updated conversation preferences for group $groupId');
+      return true;
+    } catch (e) {
+      Logger.d('Error updating conversation preferences: $e');
+      return false;
+    }
+  }
+
+  /// Report inappropriate conversation starter
+  Future<bool> reportConversationStarter({
+    required String conversationStarterId,
+    required String reason,
+  }) async {
+    try {
+      final userId = currentUserId;
+      if (userId == null) throw Exception('User not authenticated');
+
+      await _conversationStartersCollection.doc(conversationStarterId).update({
+        'status': ConversationStarterStatus.reported.name,
+        'reports': FieldValue.arrayUnion([{
+          'user_id': userId,
+          'reason': reason,
+          'reported_at': Timestamp.now(),
+        }]),
+      });
+
+      Logger.d('Reported conversation starter: $conversationStarterId');
+      return true;
+    } catch (e) {
+      Logger.d('Error reporting conversation starter: $e');
+      return false;
+    }
+  }
+
+  /// Get conversation starter statistics for a group
+  Future<Map<String, dynamic>> getConversationStarterStats(String groupId) async {
+    try {
+      final snapshot = await _conversationStartersCollection
+          .where('group_id', isEqualTo: groupId)
+          .get();
+
+      final starters = snapshot.docs
+          .map((doc) => ConversationStarter.fromFirestore(doc))
+          .toList();
+
+      final stats = {
+        'total_starters': starters.length,
+        'active_starters': starters.where((s) => s.isActive).length,
+        'average_engagement': starters.isEmpty 
+            ? 0.0 
+            : starters.map((s) => s.engagementScore).reduce((a, b) => a + b) / starters.length,
+        'most_engaging_type': _getMostEngagingType(starters),
+        'last_posted': starters.where((s) => s.isPosted).isNotEmpty 
+            ? starters.where((s) => s.isPosted).map((s) => s.postedAt!).reduce((a, b) => a.isAfter(b) ? a : b)
+            : null,
+      };
+
+      return stats;
+    } catch (e) {
+      Logger.d('Error getting conversation starter stats: $e');
+      return {};
+    }
+  }
+
+  /// Get most engaging conversation starter type
+  String _getMostEngagingType(List<ConversationStarter> starters) {
+    if (starters.isEmpty) return 'discussion';
+
+    final typeEngagement = <ConversationStarterType, List<int>>{};
+    
+    for (final starter in starters) {
+      typeEngagement.putIfAbsent(starter.type, () => []).add(starter.engagementScore);
+    }
+
+    ConversationStarterType? bestType;
+    double bestAverage = 0.0;
+
+    for (final entry in typeEngagement.entries) {
+      final average = entry.value.reduce((a, b) => a + b) / entry.value.length;
+      if (average > bestAverage) {
+        bestAverage = average;
+        bestType = entry.key;
+      }
+    }
+
+    return bestType?.name ?? 'discussion';
   }
 }
