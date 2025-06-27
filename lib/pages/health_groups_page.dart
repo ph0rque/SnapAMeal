@@ -642,6 +642,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
     );
   }
 
+  // ignore: unused_element
   String _getTypeDisplayName(HealthGroupType type) {
     switch (type) {
       case HealthGroupType.fasting:

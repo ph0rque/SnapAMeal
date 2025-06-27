@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:screenshot_callback/screenshot_callback.dart';
+import 'package:snapameal/utils/screenshot_callback.dart';
 import 'package:snapameal/services/snap_service.dart';
 import 'package:video_player/video_player.dart';
 

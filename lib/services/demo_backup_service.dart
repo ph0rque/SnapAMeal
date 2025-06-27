@@ -47,6 +47,7 @@ class DemoBackupService {
         final documents = <String, Map<String, dynamic>>{};
         
         for (final doc in snapshot.docs) {
+          // ignore: unnecessary_cast
           documents[doc.id] = _sanitizeDocumentData(doc.data() as Map<String, dynamic>);
         }
         
@@ -119,6 +120,7 @@ class DemoBackupService {
         final documents = <String, Map<String, dynamic>>{};
         
         for (final doc in snapshot.docs) {
+          // ignore: unnecessary_cast
           documents[doc.id] = _sanitizeDocumentData(doc.data() as Map<String, dynamic>);
         }
         

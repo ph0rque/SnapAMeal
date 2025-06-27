@@ -137,12 +137,14 @@ class AnonymityService {
     'Courageous Bear', 'Flexible Cat', 'Enduring Camel', 'Joyful Otter',
   ];
 
+  // ignore: unused_field
   static const List<String> _encouragingAdjectives = [
     'Hopeful', 'Brave', 'Strong', 'Peaceful', 'Resilient', 'Gentle',
     'Wise', 'Calm', 'Determined', 'Balanced', 'Mindful', 'Courageous',
     'Flexible', 'Enduring', 'Joyful', 'Radiant', 'Serene', 'Vibrant',
   ];
 
+  // ignore: unused_field
   static const List<String> _neutralNouns = [
     'Journey', 'Path', 'Star', 'Light', 'Wave', 'Breeze', 'Stone',
     'River', 'Mountain', 'Garden', 'Sunrise', 'Compass', 'Bridge',
@@ -273,7 +275,7 @@ class AnonymityService {
       if (identity.docs.isEmpty) return false;
 
       final anonymousId = identity.docs.first.id;
-      final reactionKey = '\$reactionType:\$anonymousId';
+      final reactionKey = '$reactionType:$anonymousId';
 
       await _anonymousMessagesCollection.doc(messageId).update({
         'support_reactions': FieldValue.arrayUnion([reactionKey]),
