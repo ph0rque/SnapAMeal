@@ -5,13 +5,19 @@ library;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/logger.dart';
 import 'content_validation_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 /// Service for handling user reports of inappropriate AI content
 class ContentReportingService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+  // Singleton instance
+  static final ContentReportingService _instance = ContentReportingService._internal();
+  factory ContentReportingService() => _instance;
+  ContentReportingService._internal();
+
   /// Report inappropriate AI-generated content
-  static Future<bool> reportContent({
+  static Future<bool> _reportContentStatic({
     required String userId,
     required String content,
     required String contentType, // 'insight', 'recipe', 'nutrition', 'story_summary'
@@ -157,5 +163,25 @@ class ContentReportingService {
         'helpfulPercentage': 0,
       };
     }
+  }
+
+  // Instance method that wraps static method
+  Future<bool> reportContent({
+    required String contentId,
+    required String contentType,
+    required String reason,
+    String? additionalInfo,
+  }) async {
+    // Get current user
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+
+    return await ContentReportingService._reportContentStatic(
+      userId: user.uid,
+      content: contentId, // Using contentId as content for now
+      contentType: contentType,
+      reason: reason,
+      additionalDetails: additionalInfo,
+    );
   }
 } 

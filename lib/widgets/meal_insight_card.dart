@@ -3,23 +3,20 @@
 library;
 
 import 'package:flutter/material.dart';
-import '../design_system/snap_ui.dart';
-import '../services/content_reporting_service.dart';
-import '../utils/logger.dart';
+import 'package:snapameal/design_system/snap_ui.dart';
+import 'package:snapameal/services/daily_insights_service.dart';
+import 'package:snapameal/services/content_reporting_service.dart';
+import 'package:snapameal/models/ai_advice.dart';
+import 'package:snapameal/models/meal_log.dart';
+import 'package:snapameal/utils/logger.dart';
 
 /// Card widget that displays nutrition insights for logged meals
 class MealInsightCard extends StatefulWidget {
-  final String userId;
-  final String content;
-  final String mealId;
-  final VoidCallback? onDismissed;
-
+  final MealLog mealLog;
+  
   const MealInsightCard({
     super.key,
-    required this.userId,
-    required this.content,
-    required this.mealId,
-    this.onDismissed,
+    required this.mealLog,
   });
 
   @override
@@ -28,69 +25,85 @@ class MealInsightCard extends StatefulWidget {
 
 class _MealInsightCardState extends State<MealInsightCard> {
   bool _isDismissed = false;
-  bool _isReporting = false;
+  bool _isLoading = true;
+  AIAdvice? _insight;
 
-  Future<void> _dismissInsight() async {
-    setState(() {
-      _isDismissed = true;
-    });
-    widget.onDismissed?.call();
-    
-    // Show confirmation
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Insight dismissed'),
-          backgroundColor: SnapUI.primaryColor,
-          duration: const Duration(seconds: 2),
-        ),
-      );
+  @override
+  void initState() {
+    super.initState();
+    _loadMealInsight();
+  }
+
+  Future<void> _loadMealInsight() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final insight = await DailyInsightsService().getMealInsight(widget.mealLog);
+      
+      if (mounted) {
+        setState(() {
+          _insight = insight;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      Logger.d('Failed to load meal insight: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-  Future<void> _reportContent(String reason, {String? additionalDetails}) async {
-    setState(() {
-      _isReporting = true;
-    });
+  Future<void> _dismissInsight() async {
+    try {
+      if (_insight != null) {
+        await DailyInsightsService().dismissInsight(_insight!.id);
+      }
+      
+      if (mounted) {
+        setState(() {
+          _isDismissed = true;
+        });
+      }
+    } catch (e) {
+      Logger.d('Failed to dismiss meal insight: $e');
+      // Show error but don't prevent dismissal in UI
+      if (mounted) {
+        setState(() {
+          _isDismissed = true;
+        });
+      }
+    }
+  }
+
+  Future<void> _reportContent() async {
+    if (_insight == null) return;
 
     try {
-      final success = await ContentReportingService.reportContent(
-        userId: widget.userId,
-        content: widget.content,
-        contentType: 'nutrition',
-        reason: reason,
-        additionalDetails: additionalDetails,
+      await ContentReportingService().reportContent(
+        contentId: _insight!.id,
+        contentType: 'meal_insight',
+        reason: 'inappropriate_content',
+        additionalInfo: 'Reported from meal insight card for meal: ${widget.mealLog.id}',
       );
 
       if (mounted) {
-        setState(() {
-          _isReporting = false;
-        });
-
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Thank you for your feedback. Content reported.'),
-              backgroundColor: SnapUI.primaryColor,
-            ),
-          );
-          // Auto-dismiss after reporting
-          await _dismissInsight();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to submit report'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnapUI.successSnackBar('Content reported successfully'),
+        );
+        // Also dismiss the card after reporting
+        _dismissInsight();
       }
     } catch (e) {
-      Logger.d('Error reporting content: $e');
+      Logger.d('Failed to report content: $e');
       if (mounted) {
-        setState(() {
-          _isReporting = false;
-        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnapUI.errorSnackBar('Failed to report content'),
+        );
       }
     }
   }
@@ -98,9 +111,22 @@ class _MealInsightCardState extends State<MealInsightCard> {
   void _showReportDialog() {
     showDialog(
       context: context,
-      builder: (context) => _ReportDialog(
-        onReport: _reportContent,
-        isLoading: _isReporting,
+      builder: (context) => AlertDialog(
+        title: const Text('Report Content'),
+        content: const Text('Are you sure you want to report this content as inappropriate?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _reportContent();
+            },
+            child: const Text('Report'),
+          ),
+        ],
       ),
     );
   }
@@ -113,196 +139,124 @@ class _MealInsightCardState extends State<MealInsightCard> {
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: SnapUI.paddingMedium,
-        vertical: SnapUI.paddingSmall,
+      margin: EdgeInsets.symmetric(
+        horizontal: SnapDimensions.paddingMedium,
+        vertical: SnapDimensions.paddingSmall,
       ),
       decoration: BoxDecoration(
-        color: SnapUI.primaryColor.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(SnapUI.borderRadiusMedium),
+        color: SnapColors.primaryYellow.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(SnapDimensions.radiusMedium),
         border: Border.all(
-          color: SnapUI.primaryColor.withOpacity(0.2),
-          width: 1,
+          color: SnapColors.primaryYellow.withValues(alpha: 0.2),
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(SnapUI.paddingMedium),
+        padding: EdgeInsets.all(SnapDimensions.paddingMedium),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(
-                  Icons.insights,
-                  color: SnapUI.primaryColor,
-                  size: 18,
-                ),
-                const SizedBox(width: SnapUI.paddingSmall),
-                Text(
-                  'Nutrition Insight',
-                  style: SnapUI.textTheme.titleSmall?.copyWith(
-                    color: SnapUI.primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                // More options menu
-                PopupMenuButton<String>(
-                  icon: Icon(
-                    Icons.more_vert,
-                    color: SnapUI.textSecondary,
-                    size: 16,
-                  ),
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'dismiss':
-                        _dismissInsight();
-                        break;
-                      case 'report':
-                        _showReportDialog();
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'dismiss',
-                      child: Row(
-                        children: [
-                          Icon(Icons.close, size: 14),
-                          SizedBox(width: 6),
-                          Text('Dismiss'),
-                        ],
+                Row(
+                  children: [
+                    Icon(
+                      Icons.insights,
+                      color: SnapColors.primaryYellow,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Meal Insight',
+                      style: SnapTypography.bodyMedium.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: SnapColors.textSecondary,
                       ),
                     ),
-                    const PopupMenuItem(
-                      value: 'report',
-                      child: Row(
-                        children: [
-                          Icon(Icons.flag_outlined, size: 14),
-                          SizedBox(width: 6),
-                          Text('Report'),
-                        ],
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Report button
+                    IconButton(
+                      onPressed: _insight != null ? _showReportDialog : null,
+                      icon: Icon(
+                        Icons.flag_outlined,
+                        size: 14,
+                        color: SnapColors.textSecondary,
                       ),
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.all(SnapDimensions.paddingSmall),
+                    ),
+                    // Dismiss button
+                    IconButton(
+                      onPressed: _dismissInsight,
+                      icon: Icon(
+                        Icons.close,
+                        size: 14,
+                        color: SnapColors.textSecondary,
+                      ),
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.all(SnapDimensions.paddingSmall),
                     ),
                   ],
                 ),
               ],
             ),
-            const SizedBox(height: SnapUI.paddingSmall),
+            
+            const SizedBox(height: 8),
             
             // Content
-            Text(
-              widget.content,
-              style: SnapUI.textTheme.bodySmall?.copyWith(
-                height: 1.3,
-                color: SnapUI.textPrimary,
-              ),
-            ),
+            if (_isLoading)
+              _buildLoadingState()
+            else if (_insight != null)
+              _buildInsightContent()
+            else
+              _buildEmptyState(),
           ],
         ),
       ),
     );
   }
-}
 
-/// Dialog for reporting inappropriate content
-class _ReportDialog extends StatefulWidget {
-  final Function(String reason, {String? additionalDetails}) onReport;
-  final bool isLoading;
-
-  const _ReportDialog({
-    required this.onReport,
-    required this.isLoading,
-  });
-
-  @override
-  State<_ReportDialog> createState() => _ReportDialogState();
-}
-
-class _ReportDialogState extends State<_ReportDialog> {
-  String? _selectedReason;
-  final _detailsController = TextEditingController();
-
-  @override
-  void dispose() {
-    _detailsController.dispose();
-    super.dispose();
+  Widget _buildLoadingState() {
+    return Container(
+      padding: EdgeInsets.all(SnapDimensions.paddingSmall),
+      child: const Row(
+        children: [
+          SizedBox(
+            width: 12,
+            height: 12,
+            child: CircularProgressIndicator(strokeWidth: 1.5),
+          ),
+          SizedBox(width: 8),
+          Text('Analyzing your meal...', style: TextStyle(fontSize: 12)),
+        ],
+      ),
+    );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Report Content'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Why are you reporting this content?',
-              style: TextStyle(fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 12),
-            
-            // Report reasons
-            ...ContentReportingService.getReportReasons().map((reason) => 
-              RadioListTile<String>(
-                title: Text(reason),
-                value: reason,
-                groupValue: _selectedReason,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedReason = value;
-                  });
-                },
-                dense: true,
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Additional details
-            TextField(
-              controller: _detailsController,
-              decoration: const InputDecoration(
-                labelText: 'Additional details (optional)',
-                hintText: 'Please provide more context...',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-              maxLength: 300,
-            ),
-          ],
-        ),
+
+
+  Widget _buildInsightContent() {
+    return Text(
+      _insight!.content,
+      style: SnapTypography.bodyMedium.copyWith(
+        color: SnapColors.textPrimary,
+        fontSize: 13,
       ),
-      actions: [
-        TextButton(
-          onPressed: widget.isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: widget.isLoading || _selectedReason == null
-              ? null
-              : () {
-                  widget.onReport(
-                    _selectedReason!,
-                    additionalDetails: _detailsController.text.trim().isEmpty
-                        ? null
-                        : _detailsController.text.trim(),
-                  );
-                  Navigator.of(context).pop();
-                },
-          child: widget.isLoading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Report'),
-        ),
-      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Text(
+      'No insights available for this meal',
+      style: SnapTypography.bodyMedium.copyWith(
+        color: SnapColors.textSecondary,
+        fontSize: 12,
+      ),
     );
   }
 } 

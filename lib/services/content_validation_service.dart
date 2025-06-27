@@ -2,18 +2,23 @@
 /// Filters potentially harmful advice and validates content before display
 library;
 
-import '../utils/logger.dart';
+import 'package:snapameal/utils/logger.dart';
 
 /// Service for validating AI-generated content for safety
 class ContentValidationService {
-  // Keywords that indicate medical advice (should be filtered)
-  static const _medicalKeywords = [
-    'diagnose', 'diagnosis', 'treat', 'treatment', 'cure', 'medicine',
-    'medication', 'drug', 'prescription', 'doctor', 'physician',
-    'hospital', 'clinic', 'surgery', 'operation', 'therapy',
-    'supplement', 'dosage', 'mg', 'ml', 'pills', 'tablets',
-    'disease', 'condition', 'disorder', 'syndrome', 'infection',
-    'cancer', 'diabetes', 'hypertension', 'depression', 'anxiety'
+  static final ContentValidationService _instance = ContentValidationService._internal();
+  factory ContentValidationService() => _instance;
+  ContentValidationService._internal();
+
+  // Keywords that indicate potential medical advice that should be blocked
+  static const List<String> _medicalKeywords = [
+    'diagnose', 'diagnosis', 'disease', 'medication', 'prescription',
+    'treatment', 'cure', 'symptoms', 'medical condition', 'disorder',
+    'therapy', 'drug', 'medicine', 'illness', 'infection', 'cancer',
+    'diabetes', 'hypertension', 'depression', 'anxiety', 'bipolar',
+    'schizophrenia', 'adhd', 'autism', 'allergy', 'allergic reaction',
+    'emergency', 'urgent care', 'hospital', 'doctor', 'physician',
+    'specialist', 'psychiatrist', 'psychologist', 'therapist'
   ];
 
   // Keywords that indicate harmful advice
@@ -23,12 +28,7 @@ class ContentValidationService {
     'dangerous', 'risky', 'unsafe', 'harmful'
   ];
 
-  // Keywords that are safe and encouraged
-  static const _safeKeywords = [
-    'balanced diet', 'healthy eating', 'exercise', 'wellness',
-    'nutrition', 'lifestyle', 'mindful eating', 'portion control',
-    'hydration', 'sleep', 'stress management', 'general health'
-  ];
+
 
   /// Validate content for safety before displaying to users
   static ContentValidationResult validateContent(String content) {

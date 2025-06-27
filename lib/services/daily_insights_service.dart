@@ -3,15 +3,22 @@
 library;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../utils/logger.dart';
-import '../data/fallback_content.dart';
-import 'rag_service.dart';
-import '../models/health_profile.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:snapameal/utils/logger.dart';
+import 'package:snapameal/data/fallback_content.dart';
+import 'package:snapameal/services/rag_service.dart';
+import 'package:snapameal/models/ai_advice.dart';
+import 'package:snapameal/models/meal_log.dart';
 
 /// Service for managing daily insight generation and retrieval
 class DailyInsightsService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final RAGService? _ragService = null; // Will be injected when available
+
+  // Singleton instance
+  static final DailyInsightsService _instance = DailyInsightsService._internal();
+  factory DailyInsightsService() => _instance;
+  DailyInsightsService._internal();
 
   /// Generate daily insights for all users (called by scheduled task)
   static Future<Map<String, dynamic>> generateDailyInsightsForAllUsers() async {
@@ -154,7 +161,7 @@ class DailyInsightsService {
   }
 
   /// Get today's insight for a specific user
-  static Future<Map<String, dynamic>?> getTodaysInsight(String userId) async {
+  static Future<Map<String, dynamic>?> _getTodaysInsightStatic(String userId) async {
     try {
       final today = _getTodayString();
       
@@ -182,7 +189,7 @@ class DailyInsightsService {
   static Future<Map<String, dynamic>?> getOrGenerateInsight(String userId) async {
     try {
       // Try to get existing insight first
-      final existingInsight = await getTodaysInsight(userId);
+      final existingInsight = await _getTodaysInsightStatic(userId);
       if (existingInsight != null) {
         return existingInsight;
       }
@@ -200,7 +207,7 @@ class DailyInsightsService {
       // Generate new insight
       final success = await _generateInsightForUser(userId, userData, today);
       if (success) {
-        return await getTodaysInsight(userId);
+        return await _getTodaysInsightStatic(userId);
       }
 
       return null;
@@ -211,7 +218,7 @@ class DailyInsightsService {
   }
 
   /// Mark insight as dismissed by user
-  static Future<bool> dismissInsight(String userId, String insightId) async {
+  static Future<bool> _dismissInsightStatic(String userId, String insightId) async {
     try {
       await _firestore
           .collection('daily_insights')
@@ -336,5 +343,82 @@ class DailyInsightsService {
         'dismissalRate': 0,
       };
     }
+  }
+
+  // Instance methods that wrap static methods
+  Future<AIAdvice?> getTodaysInsight() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    
+    final insightData = await DailyInsightsService._getTodaysInsightStatic(user.uid);
+    if (insightData == null) return null;
+    
+    return AIAdvice(
+      id: insightData['id'],
+      userId: user.uid,
+      title: 'Daily Insight',
+      content: insightData['content'],
+      type: AdviceType.nutrition,
+      category: AdviceCategory.insight,
+      trigger: AdviceTrigger.scheduled,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  Future<AIAdvice?> getMealInsight(MealLog mealLog) async {
+    try {
+      // For now, generate a simple insight based on the meal
+      // In the future, this could use RAG service with meal context
+      final content = _generateSimpleMealInsight(mealLog);
+      
+      return AIAdvice(
+        id: 'meal_insight_${mealLog.id}_${DateTime.now().millisecondsSinceEpoch}',
+        userId: mealLog.userId,
+        title: 'Meal Insight',
+        content: content,
+        type: AdviceType.nutrition,
+        category: AdviceCategory.insight,
+        trigger: AdviceTrigger.contextual,
+        createdAt: DateTime.now(),
+      );
+    } catch (e) {
+      Logger.d('Failed to generate meal insight: $e');
+      return null;
+    }
+  }
+
+  Future<void> dismissInsight(String insightId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    
+    await DailyInsightsService._dismissInsightStatic(user.uid, insightId);
+  }
+
+  String _generateSimpleMealInsight(MealLog mealLog) {
+    // Simple meal insights based on primary food category and time
+    final primaryCategory = mealLog.recognitionResult.primaryFoodCategory.toLowerCase();
+    final hour = mealLog.timestamp.hour;
+    
+    // Time-based insights
+    if (hour >= 6 && hour <= 10) {
+      return 'Great start to your day! A nutritious breakfast helps maintain steady energy levels throughout the morning.';
+    } else if (hour >= 11 && hour <= 14) {
+      return 'Mid-day fuel! Remember to include a balance of protein, healthy fats, and complex carbs for sustained afternoon energy.';
+    } else if (hour >= 17 && hour <= 21) {
+      return 'Perfect dinner timing! This gives your body time to digest before rest.';
+    } else if (hour > 21) {
+      return 'Late meal noted. Try to eat your last meal 2-3 hours before bedtime for better sleep quality.';
+    }
+    
+    // Category-based insights
+    if (primaryCategory.contains('fruit')) {
+      return 'Excellent choice! Fruits provide natural sugars, fiber, and essential vitamins for sustained energy.';
+    } else if (primaryCategory.contains('vegetable')) {
+      return 'Great nutrition! Vegetables are packed with vitamins, minerals, and fiber that support overall health.';
+    } else if (primaryCategory.contains('protein')) {
+      return 'Smart protein choice! This will help maintain muscle mass and keep you feeling satisfied.';
+    }
+    
+    return 'Every meal is an opportunity to nourish your body. Keep making mindful food choices!';
   }
 } 

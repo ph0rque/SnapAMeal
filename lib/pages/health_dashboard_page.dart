@@ -359,12 +359,7 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
                         const SizedBox(height: 24),
 
                         // Insight of the Day
-                        InsightOfTheDayCard(
-                          userId: FirebaseAuth.instance.currentUser?.uid ?? '',
-                          onDismissed: () {
-                            // Optionally refresh dashboard or show feedback
-                          },
-                        ),
+                        const InsightOfTheDayCard(),
 
                         // Quick actions
                         _buildQuickActions(fastingState),
