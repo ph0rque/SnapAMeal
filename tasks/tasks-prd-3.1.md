@@ -6,7 +6,7 @@
 
 ## Phase 1: Proactive, Contextual Health Coach
 
-### Task 1.1: Dynamic "Insight of the Day" Infrastructure
+### Task 1.1: Dynamic "Insight of the Day" Infrastructure ✅
 **Priority**: High  
 **Estimated Time**: 3-4 days  
 
@@ -17,11 +17,11 @@
 - Handle RAG service failures with fallback content
 
 **Acceptance Criteria**:
-- [ ] Daily scheduled job runs successfully and generates insights for all users
-- [ ] Insights are cached in Firestore with proper expiration (24 hours)
-- [ ] If RAG service fails, system uses predefined fallback content
-- [ ] No duplicate insights generated for the same user on the same day
-- [ ] System handles edge cases (new users, users without complete profiles)
+- [x] Daily scheduled job runs successfully and generates insights for all users
+- [x] Insights are cached in Firestore with proper expiration (24 hours)
+- [x] If RAG service fails, system uses predefined fallback content
+- [x] No duplicate insights generated for the same user on the same day
+- [x] System handles edge cases (new users, users without complete profiles)
 
 **Technical Notes**:
 - Use Firebase Cloud Functions for the scheduled job
@@ -31,7 +31,7 @@
 
 ---
 
-### Task 1.2: Dashboard "Insight of the Day" UI Component
+### Task 1.2: Dashboard "Insight of the Day" UI Component ✅
 **Priority**: High  
 **Estimated Time**: 2-3 days  
 
@@ -42,12 +42,12 @@
 - Integrate with existing dashboard layout
 
 **Acceptance Criteria**:
-- [ ] New card appears prominently on the health dashboard
-- [ ] Card displays personalized insight text with proper formatting
-- [ ] Users can dismiss the card with an "X" or swipe gesture
-- [ ] Dismissed insights are stored in user preferences
-- [ ] Card gracefully handles loading states and errors
-- [ ] Card respects user's dismissal preferences for similar content types
+- [x] New card appears prominently on the health dashboard
+- [x] Card displays personalized insight text with proper formatting
+- [x] Users can dismiss the card with an "X" or swipe gesture
+- [x] Dismissed insights are stored in user preferences
+- [x] Card gracefully handles loading states and errors
+- [x] Card respects user's dismissal preferences for similar content types
 
 **Technical Notes**:
 - Create `InsightOfTheDayCard` widget in `lib/widgets/`
@@ -57,7 +57,7 @@
 
 ---
 
-### Task 1.3: Post-Meal Log Insights
+### Task 1.3: Post-Meal Log Insights ✅
 **Priority**: High  
 **Estimated Time**: 3-4 days  
 
@@ -69,13 +69,13 @@
 - Allow users to dismiss meal insights
 
 **Acceptance Criteria**:
-- [ ] Insight generation triggers automatically after successful meal log
-- [ ] Insights appear as inline cards in the meal log history view
-- [ ] Cards show relevant, goal-oriented feedback about the logged meal
-- [ ] Users can dismiss individual meal insights
-- [ ] System handles cases where RAG service is unavailable
-- [ ] Insights are cached to avoid regenerating for the same meal
-- [ ] Loading states are shown while insights are being generated
+- [x] Insight generation triggers automatically after successful meal log
+- [x] Insights appear as inline cards in the meal log history view
+- [x] Cards show relevant, goal-oriented feedback about the logged meal
+- [x] Users can dismiss individual meal insights
+- [x] System handles cases where RAG service is unavailable
+- [x] Insights are cached to avoid regenerating for the same meal
+- [x] Loading states are shown while insights are being generated
 
 **Technical Notes**:
 - Modify `meal_logging_page.dart` to trigger insight generation
@@ -247,7 +247,7 @@
 
 ## Infrastructure and Support Tasks
 
-### Task I.1: Content Safety and Medical Advice Filtering
+### Task I.1: Content Safety and Medical Advice Filtering ✅
 **Priority**: High (should be completed early)  
 **Estimated Time**: 2-3 days  
 
@@ -260,9 +260,9 @@
 **Acceptance Criteria**:
 - [x] All RAG-generated content includes disclaimers about not being medical advice
 - [x] System prompts explicitly instruct AI to avoid medical recommendations
-- [ ] Content is filtered for potentially harmful advice
-- [ ] Users can report inappropriate AI-generated content
-- [ ] Fallback content is safe and appropriate
+- [x] Content is filtered for potentially harmful advice
+- [x] Users can report inappropriate AI-generated content
+- [x] Fallback content is safe and appropriate
 
 **Technical Notes**:
 - Modify RAGService system prompts to include safety guidelines

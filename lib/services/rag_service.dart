@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import '../config/ai_config.dart';
 import '../utils/logger.dart';
 import 'openai_service.dart';
+import 'content_validation_service.dart';
+import '../data/fallback_content.dart';
 
 /// Represents a knowledge document stored in the vector database
 class KnowledgeDocument {
@@ -1009,7 +1011,12 @@ Keep the response under 200 words and include an appropriate disclaimer.
       temperature: 0.7,
     );
     
-    return response != null ? _addSafetyDisclaimer(response) : null;
+    if (response != null) {
+      return _addSafetyDisclaimer(response);
+    } else {
+      // Use fallback content if OpenAI fails
+      return FallbackContent.getSafeGenericResponse();
+    }
   }
 
   /// Get performance statistics
@@ -1118,10 +1125,18 @@ Keep each suggestion concise (2-3 sentences) and motivational. Include a brief d
 ''';
 
       final response = await _openAIService.getChatCompletion(prompt);
-      return response != null ? _addSafetyDisclaimer(response) : null;
+      if (response != null) {
+        return _addSafetyDisclaimer(response);
+      } else {
+        // Use fallback content if OpenAI fails
+        final suggestions = FallbackContent.getRecipeSuggestions(healthContext.dietaryRestrictions);
+        return suggestions.join('\n\n');
+      }
     } catch (e) {
       Logger.d('Error generating recipe recommendations: $e');
-      return null;
+      // Use fallback content on error
+      final suggestions = FallbackContent.getRecipeSuggestions(healthContext.dietaryRestrictions);
+      return suggestions.join('\n\n');
     }
   }
 
@@ -1168,16 +1183,30 @@ Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods
 ''';
 
       final response = await _openAIService.getChatCompletion(prompt);
-      return response != null ? _addSafetyDisclaimer(response) : null;
+      if (response != null) {
+        return _addSafetyDisclaimer(response);
+      } else {
+        // Use fallback content if OpenAI fails
+        return FallbackContent.getNutritionInsight(detectedFoods);
+      }
     } catch (e) {
       Logger.d('Error generating nutrition insights: $e');
-      return null;
+      // Use fallback content on error
+      return FallbackContent.getNutritionInsight(detectedFoods);
     }
   }
 
-  /// Add safety disclaimer to generated content
+  /// Add safety disclaimer to generated content with validation
   String _addSafetyDisclaimer(String content) {
     if (content.trim().isEmpty) return content;
+    
+    // First validate and sanitize the content
+    final validatedContent = ContentValidationService.validateAndSanitize(content);
+    
+    // If content was replaced with safe alternative, return it as-is
+    if (validatedContent != content) {
+      return validatedContent;
+    }
     
     const disclaimer = "\n\n*This information is for general wellness purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with a healthcare professional for medical concerns.*";
     

@@ -12,6 +12,7 @@ import '../models/health_profile.dart';
 import '../models/ai_advice.dart';
 import '../widgets/fasting_aware_navigation.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
+import '../widgets/insight_of_the_day_card.dart';
 
 import 'ai_advice_page.dart';
 import 'meal_logging_page.dart';
@@ -356,6 +357,14 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
                         // Welcome header with personalization
                         _buildWelcomeHeader(),
                         const SizedBox(height: 24),
+
+                        // Insight of the Day
+                        InsightOfTheDayCard(
+                          userId: FirebaseAuth.instance.currentUser?.uid ?? '',
+                          onDismissed: () {
+                            // Optionally refresh dashboard or show feedback
+                          },
+                        ),
 
                         // Quick actions
                         _buildQuickActions(fastingState),
