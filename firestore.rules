@@ -311,6 +311,99 @@ service cloud.firestore {
         request.auth.uid == request.resource.data.resolvedBy;
     }
 
+    // Demo-specific collections with enhanced access for demo accounts
+    // Demo accounts: alice@snapameal.demo, bob@snapameal.demo, charlie@snapameal.demo
+    function isDemoUser() {
+      return request.auth != null && (
+        request.auth.token.email == 'alice@snapameal.demo' ||
+        request.auth.token.email == 'bob@snapameal.demo' ||
+        request.auth.token.email == 'charlie@snapameal.demo'
+      );
+    }
+
+    // Demo data collections - isolated from production data
+    match /demo_users/{userId} {
+      allow read, write: if isDemoUser() && request.auth.uid == userId;
+      // Allow demo users to read other demo users for social features
+      allow read: if isDemoUser();
+    }
+
+    match /demo_meal_logs/{logId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.user_id;
+      // Allow demo users to read other demo meal logs for social features
+      allow read: if isDemoUser();
+    }
+
+    match /demo_fasting_sessions/{sessionId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.user_id;
+      // Allow demo users to read other demo sessions for social features
+      allow read: if isDemoUser();
+    }
+
+    match /demo_health_groups/{groupId} {
+      allow read: if isDemoUser();
+      allow write: if isDemoUser() && 
+        (resource == null || 
+         request.auth.uid in resource.data.member_ids || 
+         request.auth.uid == resource.data.creator_id);
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.creator_id;
+    }
+
+    match /demo_ai_advice/{adviceId} {
+      allow read: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_stories/{storyId} {
+      allow read: if isDemoUser();
+      allow write: if isDemoUser() && 
+        request.auth.uid == resource.data.userId;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_chat_rooms/{chatRoomId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid in resource.data.members;
+      allow create: if isDemoUser() && 
+        request.auth.uid in request.resource.data.members;
+
+      match /messages/{messageId} {
+        allow read, write: if isDemoUser() && 
+          request.auth.uid in get(/databases/$(database)/documents/demo_chat_rooms/$(chatRoomId)).data.members;
+      }
+    }
+
+    match /demo_analytics/{documentId} {
+      allow create: if isDemoUser();
+      allow read: if false; // Only admin access for analytics
+    }
+
+    match /demo_session_data/{sessionId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid == resource.data.userId;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    // Demo reset metadata - track reset operations
+    match /demo_reset_history/{resetId} {
+      allow create: if isDemoUser();
+      allow read: if isDemoUser() && 
+        request.auth.uid == resource.data.userId;
+    }
+
     // Admin-only collections
     match /admin/{document=**} {
       allow read, write: if false; // Only server-side admin operations

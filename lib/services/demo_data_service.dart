@@ -29,6 +29,22 @@ class DemoDataService {
     }
   }
 
+  /// Check if user has demo data
+  static Future<bool> hasDemoData(String userId) async {
+    try {
+      // Check if user has health profile data
+      final healthDoc = await _firestore
+          .collection('${_demoPrefix}health_profiles')
+          .doc(userId)
+          .get();
+      
+      return healthDoc.exists;
+    } catch (e) {
+      debugPrint('Error checking demo data for user $userId: $e');
+      return false;
+    }
+  }
+
   /// Seed data for a specific persona by ID and user ID (public method for reset service)
   static Future<void> seedPersonaData(String personaId, String userId) async {
     final persona = DemoPersonas.getById(personaId);
