@@ -38,11 +38,8 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
   }
 
   void _sendFriendRequest(String receiverId) async {
-    print('DEBUG: Sending friend request to $receiverId');
-    
     // Prevent multiple simultaneous requests to the same user
     if (_processingRequests.contains(receiverId)) {
-      print('DEBUG: Request already in progress for $receiverId');
       return;
     }
     
@@ -52,7 +49,6 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
     
     try {
       await _friendService.sendFriendRequest(receiverId);
-      print('DEBUG: Friend request sent successfully to $receiverId');
       setState(() {
         _sentRequests.add(receiverId);
         _processingRequests.remove(receiverId);
@@ -75,7 +71,6 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
         );
       }
     } catch (e) {
-      print('DEBUG: Error sending friend request to $receiverId: $e');
       setState(() {
         _processingRequests.remove(receiverId);
       });

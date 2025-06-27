@@ -184,7 +184,6 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
   }
 
   Widget _buildFriendsTab() {
-    print('DEBUG: Building Friends tab');
     return Container(
       color: SnapColors.backgroundLight,
       child: SingleChildScrollView(
