@@ -7,6 +7,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:snapameal/services/demo_data_service.dart';
 import 'package:snapameal/config/demo_personas.dart';
 import 'package:snapameal/services/auth_service.dart';
+import 'package:snapameal/services/demo_data_validator.dart';
 
 /// Automated demo data seeding script for consistent environment setup
 /// 
@@ -150,157 +151,17 @@ Future<void> _validateSeedData() async {
   
   final validationResults = <String, bool>{};
   
-  // Validate demo accounts exist
-  validationResults['Demo Accounts'] = await _validateDemoAccounts();
-  
-  // Validate health profiles
-  validationResults['Health Profiles'] = await _validateHealthProfiles();
-  
-  // Validate fasting history
-  validationResults['Fasting History'] = await _validateFastingHistory();
-  
-  // Validate meal logs
-  validationResults['Meal Logs'] = await _validateMealLogs();
-  
-  // Validate progress stories
-  validationResults['Progress Stories'] = await _validateProgressStories();
-  
-  // Validate social connections
-  validationResults['Social Connections'] = await _validateSocialConnections();
-  
-  // Validate AI advice history
-  validationResults['AI Advice History'] = await _validateAIAdviceHistory();
-  
-  // Validate health challenges
-  validationResults['Health Challenges'] = await _validateHealthChallenges();
-  
-  // Print validation results
-  print('\n  📊 Validation Results:');
-  validationResults.forEach((category, isValid) {
-    final status = isValid ? '✅' : '❌';
-    print('    $status $category');
-  });
+  final results = await DemoDataValidator.validateAll();
+  for (final r in results) {
+    validationResults[r.name] = r.success;
+    if (!r.success) {
+      print('    ❌ ${r.name} failed: ${r.message ?? 'unknown'}');
+    }
+  }
   
   final allValid = validationResults.values.every((result) => result);
   if (!allValid) {
     print('\n  ⚠️  Some validations failed. Check the data seeding process.');
-  }
-}
-
-/// Validate demo accounts exist and are properly configured
-Future<bool> _validateDemoAccounts() async {
-  try {
-    // This would check that all demo personas have corresponding user accounts
-    // with proper demo flags and configurations
-    return true; // Placeholder - would implement actual validation
-  } catch (e) {
-    print('    ❌ Demo account validation failed: $e');
-    return false;
-  }
-}
-
-/// Validate health profiles are complete and realistic
-Future<bool> _validateHealthProfiles() async {
-  try {
-    // This would verify:
-    // - All personas have health profiles
-    // - Profiles contain required fields
-    // - Data is within realistic ranges
-    // - Persona-specific customizations are applied
-    return true; // Placeholder
-  } catch (e) {
-    print('    ❌ Health profile validation failed: $e');
-    return false;
-  }
-}
-
-/// Validate fasting history data
-Future<bool> _validateFastingHistory() async {
-  try {
-    // This would check:
-    // - 30+ days of fasting sessions per persona
-    // - Realistic timing and duration data
-    // - Persona-specific fasting patterns
-    // - Proper completion rates and variations
-    return true; // Placeholder
-  } catch (e) {
-    print('    ❌ Fasting history validation failed: $e');
-    return false;
-  }
-}
-
-/// Validate meal logs diversity and AI captions
-Future<bool> _validateMealLogs() async {
-  try {
-    // This would verify:
-    // - Diverse meal types and cuisines
-    // - Realistic nutrition data
-    // - AI captions and confidence scores
-    // - Persona dietary preferences respected
-    return true; // Placeholder
-  } catch (e) {
-    print('    ❌ Meal logs validation failed: $e');
-    return false;
-  }
-}
-
-/// Validate progress stories engagement data
-Future<bool> _validateProgressStories() async {
-  try {
-    // This would check:
-    // - Varied story types and content
-    // - Realistic engagement metrics
-    // - Persona-specific achievements
-    // - Proper timestamp distribution
-    return true; // Placeholder
-  } catch (e) {
-    print('    ❌ Progress stories validation failed: $e');
-    return false;
-  }
-}
-
-/// Validate social connections and group chats
-Future<bool> _validateSocialConnections() async {
-  try {
-    // This would verify:
-    // - Friendships between all personas
-    // - Health groups with proper membership
-    // - Group chat messages with authentic content
-    // - Realistic interaction patterns
-    return true; // Placeholder
-  } catch (e) {
-    print('    ❌ Social connections validation failed: $e');
-    return false;
-  }
-}
-
-/// Validate AI advice history and personalization
-Future<bool> _validateAIAdviceHistory() async {
-  try {
-    // This would check:
-    // - AI advice interactions over time
-    // - Personalization level evolution
-    // - Persona-specific questions and responses
-    // - Realistic confidence and helpfulness scores
-    return true; // Placeholder
-  } catch (e) {
-    print('    ❌ AI advice history validation failed: $e');
-    return false;
-  }
-}
-
-/// Validate health challenges and streak data
-Future<bool> _validateHealthChallenges() async {
-  try {
-    // This would verify:
-    // - Diverse challenge types and difficulties
-    // - Realistic progress and completion data
-    // - Persona-specific challenge preferences
-    // - Proper streak calculations and milestones
-    return true; // Placeholder
-  } catch (e) {
-    print('    ❌ Health challenges validation failed: $e');
-    return false;
   }
 }
 

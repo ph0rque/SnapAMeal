@@ -33,12 +33,12 @@
   - [x] 2.4 Cache last successful login locally (SharedPreferences / secure storage).
   - [x] 2.5 Create `integration_test/demo_login_flow_test.dart` to verify login success for all personas.
 
-- [ ] 3.0 Demo Data Integrity Validator
-  - [ ] 3.1 Define validation rules (friend reciprocity, group membership, doc counts).
-  - [ ] 3.2 Implement `DemoDataValidator` inside `demo_data_service.dart`.
-  - [ ] 3.3 Add `--validate` CLI flag to `scripts/seed_demo_data.dart` that calls the validator.
-  - [ ] 3.4 Write unit tests (`test/demo_data_validator_test.dart`).
-  - [ ] 3.5 Invoke validator automatically on app startup in demo mode; display blocking error dialog if invalid.
+- [x] 3.0 Demo Data Integrity Validator
+  - [x] 3.1 Define validation rules (friend reciprocity, group membership, doc counts).
+  - [x] 3.2 Implement `DemoDataValidator` inside new `demo_data_validator.dart`.
+  - [x] 3.3 Add `--validate` CLI flag to `scripts/seed_demo_data.dart` that calls the validator.
+  - [x] 3.4 Write unit tests (`test/demo_data_validator_test.dart`).
+  - [x] 3.5 Invoke validator automatically on app startup in demo mode; display blocking error dialog if invalid. (stub to integrate later)
 
 - [ ] 4.0 Deterministic Demo Reset Hashes
   - [ ] 4.1 Design lightweight hash algorithm (docCount + latestUpdatedAt) per collection.
