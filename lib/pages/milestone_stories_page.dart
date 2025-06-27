@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import '../services/story_service.dart';
+import '../utils/logger.dart';
 import '../design_system/snap_ui.dart';
 import 'story_view_page.dart';
 
@@ -30,26 +31,29 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
 
   Future<void> _loadMilestoneStories() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final userId = widget.userId ?? _auth.currentUser?.uid;
       if (userId == null) return;
 
-      final stories = await _storyService.getMilestoneStories(userId, limit: 50);
-      
+      final stories = await _storyService.getMilestoneStories(
+        userId,
+        limit: 50,
+      );
+
       setState(() {
         _milestoneStories = stories;
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error loading milestone stories: $e');
+      Logger.d('Error loading milestone stories: $e');
       setState(() => _isLoading = false);
     }
   }
 
   List<DocumentSnapshot> get _filteredStories {
     if (_selectedTier == 'all') return _milestoneStories;
-    
+
     return _milestoneStories.where((story) {
       final data = story.data() as Map<String, dynamic>;
       final permanence = data['permanence'] as Map<String, dynamic>?;
@@ -86,14 +90,16 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: SnapColors.primary))
+          ? const Center(
+              child: CircularProgressIndicator(color: SnapColors.primary),
+            )
           : _buildMilestoneTimeline(),
     );
   }
 
   Widget _buildMilestoneTimeline() {
     final filteredStories = _filteredStories;
-    
+
     if (filteredStories.isEmpty) {
       return Center(
         child: Column(
@@ -130,21 +136,25 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
       itemBuilder: (context, index) {
         final story = filteredStories[index];
         final data = story.data() as Map<String, dynamic>;
-        
+
         return _buildMilestoneStoryCard(story, data, index);
       },
     );
   }
 
-  Widget _buildMilestoneStoryCard(DocumentSnapshot story, Map<String, dynamic> data, int index) {
+  Widget _buildMilestoneStoryCard(
+    DocumentSnapshot story,
+    Map<String, dynamic> data,
+    int index,
+  ) {
     final permanence = data['permanence'] as Map<String, dynamic>?;
     final engagement = data['engagement'] as Map<String, dynamic>?;
     final timestamp = data['timestamp'] as Timestamp?;
     final mediaUrl = data['mediaUrl'] as String?;
     final isVideo = data['isVideo'] as bool? ?? false;
     final tier = permanence?['tier'] as String? ?? 'standard';
-    
-    final timeAgo = timestamp != null 
+
+    final timeAgo = timestamp != null
         ? _formatTimeAgo(timestamp.toDate())
         : 'Unknown time';
 
@@ -174,15 +184,11 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
                 ),
               ),
               if (index < _filteredStories.length - 1)
-                Container(
-                  width: 2,
-                  height: 100,
-                  color: SnapColors.divider,
-                ),
+                Container(width: 2, height: 100, color: SnapColors.divider),
             ],
           ),
           const SizedBox(width: SnapDimensions.paddingMedium),
-          
+
           // Story card
           Expanded(
             child: GestureDetector(
@@ -190,7 +196,9 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
               child: Container(
                 decoration: BoxDecoration(
                   color: SnapColors.cardBackground,
-                  borderRadius: BorderRadius.circular(SnapDimensions.radiusMedium),
+                  borderRadius: BorderRadius.circular(
+                    SnapDimensions.radiusMedium,
+                  ),
                   border: Border.all(
                     color: _getTierColor(tier).withValues(alpha: 0.3),
                     width: 1,
@@ -242,10 +250,12 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
                           ),
                         ),
                       ),
-                    
+
                     // Story details
                     Padding(
-                      padding: const EdgeInsets.all(SnapDimensions.paddingMedium),
+                      padding: const EdgeInsets.all(
+                        SnapDimensions.paddingMedium,
+                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -278,9 +288,9 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
                               ),
                             ],
                           ),
-                          
+
                           const SizedBox(height: SnapDimensions.paddingSmall),
-                          
+
                           // Engagement stats
                           Row(
                             children: [
@@ -288,24 +298,30 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
                                 Icons.visibility,
                                 engagement?['views'] ?? 0,
                               ),
-                              const SizedBox(width: SnapDimensions.paddingMedium),
+                              const SizedBox(
+                                width: SnapDimensions.paddingMedium,
+                              ),
                               _buildEngagementStat(
                                 Icons.favorite,
                                 engagement?['likes'] ?? 0,
                               ),
-                              const SizedBox(width: SnapDimensions.paddingMedium),
+                              const SizedBox(
+                                width: SnapDimensions.paddingMedium,
+                              ),
                               _buildEngagementStat(
                                 Icons.comment,
                                 engagement?['comments'] ?? 0,
                               ),
-                              const SizedBox(width: SnapDimensions.paddingMedium),
+                              const SizedBox(
+                                width: SnapDimensions.paddingMedium,
+                              ),
                               _buildEngagementStat(
                                 Icons.share,
                                 engagement?['shares'] ?? 0,
                               ),
                             ],
                           ),
-                          
+
                           // Permanence info
                           if (permanence != null) ...[
                             const SizedBox(height: SnapDimensions.paddingSmall),
@@ -327,11 +343,7 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
   Widget _buildEngagementStat(IconData icon, int count) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: SnapColors.textSecondary,
-        ),
+        Icon(icon, size: 16, color: SnapColors.textSecondary),
         const SizedBox(width: 4),
         Text(
           count.toString(),
@@ -346,13 +358,13 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
   Widget _buildPermanenceInfo(Map<String, dynamic> permanence) {
     final expiresAt = permanence['expiresAt'] as Timestamp?;
     final duration = permanence['duration'] as int?;
-    
+
     if (expiresAt == null || duration == null) return const SizedBox.shrink();
-    
+
     final now = DateTime.now();
     final expiry = expiresAt.toDate();
     final timeLeft = expiry.difference(now);
-    
+
     String timeLeftText;
     if (timeLeft.isNegative) {
       timeLeftText = 'Expired';
@@ -363,7 +375,7 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
     } else {
       timeLeftText = '${timeLeft.inMinutes}m left';
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -373,8 +385,8 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
       child: Text(
         timeLeftText,
         style: SnapTypography.caption.copyWith(
-          color: timeLeft.isNegative 
-              ? SnapColors.error 
+          color: timeLeft.isNegative
+              ? SnapColors.error
               : SnapColors.textSecondary,
         ),
       ),
@@ -427,9 +439,9 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
   void _viewStory(DocumentSnapshot story) {
     final data = story.data() as Map<String, dynamic>;
     final mediaUrl = data['mediaUrl'] as String?;
-    
+
     if (mediaUrl == null) return;
-    
+
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => StoryViewPage(
@@ -438,4 +450,4 @@ class _MilestoneStoriesPageState extends State<MilestoneStoriesPage> {
       ),
     );
   }
-} 
+}

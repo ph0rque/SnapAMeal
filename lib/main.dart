@@ -22,13 +22,15 @@ import 'package:snapameal/pages/health_groups_page.dart';
 import 'package:snapameal/pages/integrations_page.dart';
 import 'pages/debug_pinecone_page.dart';
 
+import 'di/service_locator.dart';
+
 late List<CameraDescription> cameras;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Only initialize cameras on mobile platforms
-  if (defaultTargetPlatform == TargetPlatform.android || 
+  if (defaultTargetPlatform == TargetPlatform.android ||
       defaultTargetPlatform == TargetPlatform.iOS) {
     cameras = await availableCameras();
   } else {
@@ -72,9 +74,7 @@ Future<void> main() async {
 
   // Check if Firebase is already initialized
   try {
-    await Firebase.initializeApp(
-      options: firebaseOptions,
-    );
+    await Firebase.initializeApp(options: firebaseOptions);
   } catch (e) {
     // Firebase is already initialized, which is fine
     if (e.toString().contains('duplicate-app')) {
@@ -83,6 +83,8 @@ Future<void> main() async {
       rethrow;
     }
   }
+
+  setupServiceLocator();
   runApp(const MyApp());
 }
 
@@ -95,13 +97,9 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         // Core services
-        Provider<AuthService>(
-          create: (_) => AuthService(),
-        ),
-        Provider<NotificationService>(
-          create: (_) => NotificationService(),
-        ),
-        
+        Provider<AuthService>(create: (_) => AuthService()),
+        Provider<NotificationService>(create: (_) => NotificationService()),
+
         // Fasting-related services with dependencies
         Provider<FastingService>(
           create: (context) => FastingService(
@@ -115,7 +113,7 @@ class MyApp extends StatelessWidget {
             ragService: RAGService(OpenAIService()),
           ),
         ),
-        
+
         // Fasting state provider that manages app-wide fasting state
         ChangeNotifierProvider<FastingStateProvider>(
           create: (context) => FastingStateProvider(
@@ -129,24 +127,25 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             title: 'SnapAMeal - Health & Wellness',
-            
+
             // Dynamic theme based on fasting state
-            theme: fastingState.fastingModeEnabled 
+            theme: fastingState.fastingModeEnabled
                 ? _buildFastingTheme(lightMode, fastingState.appThemeColor)
                 : lightMode,
             // Force light mode for consistency
             themeMode: ThemeMode.light,
-            
+
             // Wrap the entire app with fasting-aware navigation
             home: FastingAwareNavigation(
               adaptiveTheme: true,
               showFloatingTimer: true,
               child: const AuthGate(),
             ),
-            
+
             // Route generation with fasting protection
-            onGenerateRoute: (settings) => _generateRoute(settings, fastingState),
-            
+            onGenerateRoute: (settings) =>
+                _generateRoute(settings, fastingState),
+
             // Handle initial route with fasting context
             initialRoute: '/',
           );
@@ -189,15 +188,18 @@ class MyApp extends StatelessWidget {
   }
 
   /// Generate routes with fasting protection
-  Route<dynamic>? _generateRoute(RouteSettings settings, FastingStateProvider fastingState) {
+  Route<dynamic>? _generateRoute(
+    RouteSettings settings,
+    FastingStateProvider fastingState,
+  ) {
     // Import the route guard utility
     // Note: You'll need to import the utils/fasting_route_guard.dart file
-    
+
     final routeName = settings.name ?? '/';
-    
+
     // Get the base route without fasting protection first
     Widget? page = _getBasePage(routeName, settings.arguments);
-    
+
     if (page == null) {
       return _createRoute(_buildNotFoundPage(), settings);
     }
@@ -206,7 +208,7 @@ class MyApp extends StatelessWidget {
     // This would use the FastingRouteGuard.wrapPage method
     // For now, we'll return the page as-is since the full implementation
     // would require importing all page widgets
-    
+
     return _createRoute(page, settings);
   }
 
@@ -250,14 +252,12 @@ class MyApp extends StatelessWidget {
         const end = Offset.zero;
         const curve = Curves.ease;
 
-        final tween = Tween(begin: begin, end: end).chain(
-          CurveTween(curve: curve),
-        );
+        final tween = Tween(
+          begin: begin,
+          end: end,
+        ).chain(CurveTween(curve: curve));
 
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
+        return SlideTransition(position: animation.drive(tween), child: child);
       },
     );
   }
@@ -265,33 +265,21 @@ class MyApp extends StatelessWidget {
   /// Build not found page
   Widget _buildNotFoundPage() {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Page Not Found'),
-      ),
+      appBar: AppBar(title: const Text('Page Not Found')),
       body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.grey,
-            ),
+            Icon(Icons.error_outline, size: 64, color: Colors.grey),
             SizedBox(height: 16),
             Text(
               'Page Not Found',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
             Text(
               'The page you\'re looking for doesn\'t exist.',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey),
             ),
           ],
         ),
@@ -306,9 +294,7 @@ class HelloWorldPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SnapConnect'),
-      ),
+      appBar: AppBar(title: const Text('SnapConnect')),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

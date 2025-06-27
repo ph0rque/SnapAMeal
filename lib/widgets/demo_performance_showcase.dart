@@ -11,7 +11,8 @@ class DemoPerformanceShowcase extends StatefulWidget {
   const DemoPerformanceShowcase({super.key});
 
   @override
-  State<DemoPerformanceShowcase> createState() => _DemoPerformanceShowcaseState();
+  State<DemoPerformanceShowcase> createState() =>
+      _DemoPerformanceShowcaseState();
 }
 
 class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
@@ -19,16 +20,18 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
   late AnimationController _performanceController;
   late AnimationController _syncController;
 
-  
   Timer? _performanceTimer;
   Timer? _syncTimer;
-  
 
   int _selectedPlatform = 0; // 0: iOS, 1: Android, 2: Web
-  
+
   final List<String> _platforms = ['iOS', 'Android', 'Web'];
-  final List<IconData> _platformIcons = [Icons.phone_iphone, Icons.android, Icons.web];
-  
+  final List<IconData> _platformIcons = [
+    Icons.phone_iphone,
+    Icons.android,
+    Icons.web,
+  ];
+
   // Simulated real-time performance metrics
   double _cpuUsage = 12.5;
   double _memoryUsage = 156.8;
@@ -36,7 +39,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
   double _frameRate = 59.8;
   int _syncEvents = 0;
   DateTime _lastSync = DateTime.now();
-  
+
   final List<Map<String, dynamic>> _performanceMetrics = [
     {
       'platform': 'iOS',
@@ -72,7 +75,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       'icon': Icons.web,
     },
   ];
-  
+
   final List<Map<String, dynamic>> _syncFeatures = [
     {
       'feature': 'Real-time Chat',
@@ -111,23 +114,21 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       'isActive': true,
     },
   ];
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _performanceController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _syncController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    
 
-    
     _startPerformanceSimulation();
     _startSyncSimulation();
   }
@@ -161,7 +162,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
         setState(() {
           _syncEvents++;
           _lastSync = DateTime.now();
-          
+
           // Randomly activate/deactivate sync features for demo
           final random = math.Random();
           for (var feature in _syncFeatures) {
@@ -181,7 +182,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       builder: (context, snapshot) {
         final isDemo = snapshot.data ?? false;
         if (!isDemo) return const SizedBox.shrink();
-        
+
         return Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(20),
@@ -205,29 +206,29 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
             children: [
               // Demo indicator
               _buildDemoIndicator(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Performance overview
               _buildPerformanceOverview(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Platform metrics
               _buildPlatformMetricsSection(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Real-time performance monitoring
               _buildRealTimeMonitoring(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Synchronization showcase
               _buildSynchronizationSection(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Technical architecture
               _buildTechnicalArchitecture(),
             ],
@@ -247,11 +248,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.speed,
-            size: 16,
-            color: Colors.white,
-          ),
+          const Icon(Icons.speed, size: 16, color: Colors.white),
           const SizedBox(width: 6),
           const Text(
             'Performance & Sync Demo',
@@ -325,7 +322,13 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
     );
   }
 
-  Widget _buildOverviewCard(String title, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildOverviewCard(
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -374,18 +377,16 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.devices,
-                color: SnapColors.accentBlue,
-                size: 20,
-              ),
+              Icon(Icons.devices, color: SnapColors.accentBlue, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Platform-Specific Metrics',
@@ -408,7 +409,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
                     final index = entry.key;
                     final platform = entry.value;
                     final isSelected = _selectedPlatform == index;
-                    
+
                     return GestureDetector(
                       onTap: () {
                         setState(() {
@@ -416,10 +417,13 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
                         });
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: isSelected 
-                              ? SnapColors.accentBlue 
+                          color: isSelected
+                              ? SnapColors.accentBlue
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(6),
                         ),
@@ -429,8 +433,8 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
                             Icon(
                               _platformIcons[index],
                               size: 12,
-                              color: isSelected 
-                                  ? Colors.white 
+                              color: isSelected
+                                  ? Colors.white
                                   : SnapColors.textSecondary,
                             ),
                             const SizedBox(width: 4),
@@ -439,8 +443,8 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected 
-                                    ? Colors.white 
+                                color: isSelected
+                                    ? Colors.white
                                     : SnapColors.textSecondary,
                               ),
                             ),
@@ -453,9 +457,9 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Selected platform metrics
           _buildPlatformMetricsCard(_performanceMetrics[_selectedPlatform]),
         ],
@@ -469,7 +473,9 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       decoration: BoxDecoration(
         color: (metrics['color'] as Color).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: (metrics['color'] as Color).withValues(alpha: 0.3)),
+        border: Border.all(
+          color: (metrics['color'] as Color).withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         children: [
@@ -492,9 +498,9 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Metrics grid
           GridView.count(
             shrinkWrap: true,
@@ -506,10 +512,26 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
             children: [
               _buildMetricTile('App Size', metrics['appSize'], Icons.storage),
               _buildMetricTile('Startup', metrics['startupTime'], Icons.timer),
-              _buildMetricTile('Frame Rate', metrics['avgFrameRate'], Icons.videocam),
-              _buildMetricTile('Memory', metrics['memoryEfficiency'], Icons.memory),
-              _buildMetricTile('Battery', metrics['batteryOptimization'], Icons.battery_full),
-              _buildMetricTile('Stability', '${100 - double.parse(metrics['crashRate'].toString().replaceAll('%', ''))}%', Icons.check_circle),
+              _buildMetricTile(
+                'Frame Rate',
+                metrics['avgFrameRate'],
+                Icons.videocam,
+              ),
+              _buildMetricTile(
+                'Memory',
+                metrics['memoryEfficiency'],
+                Icons.memory,
+              ),
+              _buildMetricTile(
+                'Battery',
+                metrics['batteryOptimization'],
+                Icons.battery_full,
+              ),
+              _buildMetricTile(
+                'Stability',
+                '${100 - double.parse(metrics['crashRate'].toString().replaceAll('%', ''))}%',
+                Icons.check_circle,
+              ),
             ],
           ),
         ],
@@ -523,7 +545,9 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -541,10 +565,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
           ),
           Text(
             label,
-            style: TextStyle(
-              color: SnapColors.textSecondary,
-              fontSize: 9,
-            ),
+            style: TextStyle(color: SnapColors.textSecondary, fontSize: 9),
             textAlign: TextAlign.center,
           ),
         ],
@@ -558,18 +579,16 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.monitor_heart,
-                color: SnapColors.accentRed,
-                size: 20,
-              ),
+              Icon(Icons.monitor_heart, color: SnapColors.accentRed, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Real-Time Performance Monitoring',
@@ -596,9 +615,9 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Live metrics
           Row(
             children: [
@@ -623,9 +642,9 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Row(
             children: [
               Expanded(
@@ -654,7 +673,13 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
     );
   }
 
-  Widget _buildLiveMetric(String label, String value, double progress, IconData icon, Color color) {
+  Widget _buildLiveMetric(
+    String label,
+    String value,
+    double progress,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -706,18 +731,16 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.sync,
-                color: SnapColors.accentGreen,
-                size: 20,
-              ),
+              Icon(Icons.sync, color: SnapColors.accentGreen, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Real-Time Synchronization',
@@ -729,16 +752,13 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
               const Spacer(),
               Text(
                 'Last sync: ${_formatTimeAgo(_lastSync)}',
-                style: TextStyle(
-                  color: SnapColors.textSecondary,
-                  fontSize: 10,
-                ),
+                style: TextStyle(color: SnapColors.textSecondary, fontSize: 10),
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Text(
             'Cross-device synchronization with conflict resolution and offline support.',
             style: TextStyle(
@@ -747,18 +767,18 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
               height: 1.3,
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Sync features
           Column(
-            children: _syncFeatures.map((feature) => 
-              _buildSyncFeature(feature)
-            ).toList(),
+            children: _syncFeatures
+                .map((feature) => _buildSyncFeature(feature))
+                .toList(),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Sync stats
           Row(
             children: [
@@ -800,17 +820,17 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
 
   Widget _buildSyncFeature(Map<String, dynamic> feature) {
     final isActive = feature['isActive'] as bool;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isActive 
+        color: isActive
             ? (feature['color'] as Color).withValues(alpha: 0.1)
             : SnapColors.textSecondary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isActive 
+          color: isActive
               ? (feature['color'] as Color).withValues(alpha: 0.3)
               : SnapColors.textSecondary.withValues(alpha: 0.2),
         ),
@@ -821,7 +841,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
             children: [
               Icon(
                 feature['icon'] as IconData,
-                color: isActive 
+                color: isActive
                     ? feature['color'] as Color
                     : SnapColors.textSecondary,
                 size: 20,
@@ -862,7 +882,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: isActive 
+                        color: isActive
                             ? feature['color'] as Color
                             : SnapColors.textSecondary,
                       ),
@@ -885,7 +905,13 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
     );
   }
 
-  Widget _buildSyncStat(String label, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildSyncStat(
+    String label,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -941,20 +967,14 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
           ],
         ),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: SnapColors.accentBlue.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: SnapColors.accentBlue.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.architecture,
-                color: SnapColors.accentBlue,
-                size: 20,
-              ),
+              Icon(Icons.architecture, color: SnapColors.accentBlue, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Technical Excellence',
@@ -965,9 +985,9 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Text(
             'Built with Flutter for native performance and Firebase for scalable real-time infrastructure.',
             style: TextStyle(
@@ -976,9 +996,9 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
               height: 1.3,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Row(
             children: [
               Expanded(
@@ -1014,7 +1034,12 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
     );
   }
 
-  Widget _buildTechPoint(String title, String description, IconData icon, Color color) {
+  Widget _buildTechPoint(
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -1052,7 +1077,7 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
   String _formatTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inSeconds < 60) {
       return '${difference.inSeconds}s ago';
     } else if (difference.inMinutes < 60) {
@@ -1061,4 +1086,4 @@ class _DemoPerformanceShowcaseState extends State<DemoPerformanceShowcase>
       return '${difference.inHours}h ago';
     }
   }
-} 
+}

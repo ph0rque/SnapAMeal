@@ -18,16 +18,17 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
   late AnimationController _engagementController;
   late Animation<double> _chatAnimation;
   late Animation<double> _engagementAnimation;
-  
+
   bool _showGroupChat = false;
   bool _showEngagementMetrics = false;
   int _currentMessageIndex = 0;
-  
+
   final List<Map<String, dynamic>> _demoMessages = [
     {
       'user': 'Alice',
       'avatar': '👩‍⚕️',
-      'message': 'Day 15 of my 16:8 fast! Energy levels are through the roof 🚀',
+      'message':
+          'Day 15 of my 16:8 fast! Energy levels are through the roof 🚀',
       'time': '2m ago',
       'reactions': ['💪', '🔥', '👏'],
       'reactionCount': 12,
@@ -36,7 +37,8 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
     {
       'user': 'Bob',
       'avatar': '🧑‍💼',
-      'message': 'Alice that\'s amazing! I\'m on day 8. Any tips for the afternoon energy dip?',
+      'message':
+          'Alice that\'s amazing! I\'m on day 8. Any tips for the afternoon energy dip?',
       'time': '1m ago',
       'reactions': ['❤️'],
       'reactionCount': 3,
@@ -52,7 +54,7 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       'type': 'advice',
     },
   ];
-  
+
   final List<Map<String, dynamic>> _socialFeatures = [
     {
       'title': 'Health Groups',
@@ -82,37 +84,29 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       'growth': '+45%',
     },
   ];
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _chatController = AnimationController(
       duration: const Duration(seconds: 4),
       vsync: this,
     );
-    
+
     _engagementController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
-    _chatAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _chatController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _engagementAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _engagementController,
-      curve: Curves.elasticOut,
-    ));
-    
+
+    _chatAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _chatController, curve: Curves.easeInOut),
+    );
+
+    _engagementAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _engagementController, curve: Curves.elasticOut),
+    );
+
     // Auto-cycle through messages
     _startMessageCycle();
   }
@@ -121,7 +115,8 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted && _showGroupChat) {
         setState(() {
-          _currentMessageIndex = (_currentMessageIndex + 1) % _demoMessages.length;
+          _currentMessageIndex =
+              (_currentMessageIndex + 1) % _demoMessages.length;
         });
         _startMessageCycle();
       }
@@ -142,7 +137,7 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       builder: (context, snapshot) {
         final isDemo = snapshot.data ?? false;
         if (!isDemo) return const SizedBox.shrink();
-        
+
         return Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(20),
@@ -166,24 +161,24 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
             children: [
               // Demo indicator
               _buildDemoIndicator(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Social features overview
               _buildSocialFeaturesOverview(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Group chat showcase
               _buildGroupChatSection(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Engagement metrics
               _buildEngagementMetrics(),
-              
+
               const SizedBox(height: 20),
-              
+
               // AI-powered matching showcase
               _buildAIMatchingSection(),
             ],
@@ -203,11 +198,7 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.groups,
-            size: 16,
-            color: Colors.white,
-          ),
+          const Icon(Icons.groups, size: 16, color: Colors.white),
           const SizedBox(width: 6),
           const Text(
             'Social Features Demo',
@@ -236,62 +227,73 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
         ),
         const SizedBox(height: 12),
         Row(
-          children: _socialFeatures.map((feature) => Expanded(
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: (feature['color'] as Color).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: (feature['color'] as Color).withValues(alpha: 0.3),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    feature['icon'] as IconData,
-                    color: feature['color'] as Color,
-                    size: 24,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    feature['metric'] as String,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: SnapColors.textPrimary,
-                    ),
-                  ),
-                  Text(
-                    feature['unit'] as String,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: SnapColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          children: _socialFeatures
+              .map(
+                (feature) => Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: SnapColors.accentGreen.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      feature['growth'] as String,
-                      style: TextStyle(
-                        fontSize: 8,
-                        fontWeight: FontWeight.bold,
-                        color: SnapColors.accentGreen,
+                      color: (feature['color'] as Color).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: (feature['color'] as Color).withValues(
+                          alpha: 0.3,
+                        ),
                       ),
                     ),
+                    child: Column(
+                      children: [
+                        Icon(
+                          feature['icon'] as IconData,
+                          color: feature['color'] as Color,
+                          size: 24,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          feature['metric'] as String,
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: SnapColors.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          feature['unit'] as String,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: SnapColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: SnapColors.accentGreen.withValues(
+                              alpha: 0.2,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            feature['growth'] as String,
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: SnapColors.accentGreen,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-          )).toList(),
+                ),
+              )
+              .toList(),
         ),
       ],
     );
@@ -303,7 +305,9 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -359,7 +363,7 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
               ),
             ],
           ),
-          
+
           if (_showGroupChat) ...[
             const SizedBox(height: 16),
             AnimatedBuilder(
@@ -372,13 +376,19 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
                     itemBuilder: (context, index) {
                       final message = _demoMessages[index];
                       final delay = index * 0.3;
-                      final progress = math.max(0.0, math.min(1.0, (_chatAnimation.value - delay) / 0.3));
-                      
+                      final progress = math.max(
+                        0.0,
+                        math.min(1.0, (_chatAnimation.value - delay) / 0.3),
+                      );
+
                       return Transform.translate(
                         offset: Offset((1 - progress) * 100, 0),
                         child: Opacity(
                           opacity: progress,
-                          child: _buildChatMessage(message, index == _currentMessageIndex),
+                          child: _buildChatMessage(
+                            message,
+                            index == _currentMessageIndex,
+                          ),
                         ),
                       );
                     },
@@ -386,9 +396,9 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
                 );
               },
             ),
-            
+
             const SizedBox(height: 12),
-            
+
             // Chat input simulation
             Container(
               padding: const EdgeInsets.all(12),
@@ -413,11 +423,7 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
                       ),
                     ),
                   ),
-                  Icon(
-                    Icons.send,
-                    color: SnapColors.accentBlue,
-                    size: 20,
-                  ),
+                  Icon(Icons.send, color: SnapColors.accentBlue, size: 20),
                 ],
               ),
             ),
@@ -432,11 +438,11 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isHighlighted 
+        color: isHighlighted
             ? SnapColors.accentBlue.withValues(alpha: 0.1)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
-        border: isHighlighted 
+        border: isHighlighted
             ? Border.all(color: SnapColors.accentBlue.withValues(alpha: 0.3))
             : null,
       ),
@@ -462,16 +468,13 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
               const Spacer(),
               Text(
                 message['time'] as String,
-                style: TextStyle(
-                  color: SnapColors.textSecondary,
-                  fontSize: 10,
-                ),
+                style: TextStyle(color: SnapColors.textSecondary, fontSize: 10),
               ),
             ],
           ),
-          
+
           const SizedBox(height: 6),
-          
+
           // Message content
           Text(
             message['message'] as String,
@@ -481,33 +484,30 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
               height: 1.3,
             ),
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Reactions
           Row(
             children: [
-              ...(message['reactions'] as List<String>).map((reaction) => 
-                Container(
+              ...(message['reactions'] as List<String>).map(
+                (reaction) => Container(
                   margin: const EdgeInsets.only(right: 4),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: SnapColors.textSecondary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    reaction,
-                    style: const TextStyle(fontSize: 12),
-                  ),
+                  child: Text(reaction, style: const TextStyle(fontSize: 12)),
                 ),
               ),
               const SizedBox(width: 8),
               Text(
                 '${message['reactionCount']} reactions',
-                style: TextStyle(
-                  color: SnapColors.textSecondary,
-                  fontSize: 10,
-                ),
+                style: TextStyle(color: SnapColors.textSecondary, fontSize: 10),
               ),
             ],
           ),
@@ -522,18 +522,16 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.trending_up,
-                color: SnapColors.accentGreen,
-                size: 20,
-              ),
+              Icon(Icons.trending_up, color: SnapColors.accentGreen, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Community Engagement Metrics',
@@ -545,7 +543,9 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
               const Spacer(),
               IconButton(
                 icon: Icon(
-                  _showEngagementMetrics ? Icons.expand_less : Icons.expand_more,
+                  _showEngagementMetrics
+                      ? Icons.expand_less
+                      : Icons.expand_more,
                   size: 20,
                 ),
                 onPressed: () {
@@ -561,7 +561,7 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
               ),
             ],
           ),
-          
+
           if (_showEngagementMetrics) ...[
             const SizedBox(height: 16),
             AnimatedBuilder(
@@ -611,7 +611,14 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
     );
   }
 
-  Widget _buildEngagementCard(String title, String value, String subtitle, IconData icon, Color color, double progress) {
+  Widget _buildEngagementCard(
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+    double progress,
+  ) {
     return Transform.scale(
       scale: 0.8 + (0.2 * progress),
       child: Opacity(
@@ -667,18 +674,16 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.psychology,
-                color: SnapColors.accentPurple,
-                size: 20,
-              ),
+              Icon(Icons.psychology, color: SnapColors.accentPurple, size: 20),
               const SizedBox(width: 8),
               Text(
                 'AI-Powered Community Matching',
@@ -689,9 +694,9 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Text(
             'Smart algorithms match users based on health goals, experience levels, and personality compatibility for optimal peer support.',
             style: TextStyle(
@@ -700,9 +705,9 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
               height: 1.3,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Row(
             children: [
               Expanded(
@@ -738,7 +743,12 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
     );
   }
 
-  Widget _buildMatchingFeature(String title, String value, IconData icon, Color color) {
+  Widget _buildMatchingFeature(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -771,4 +781,4 @@ class _DemoSocialShowcaseState extends State<DemoSocialShowcase>
       ),
     );
   }
-} 
+}

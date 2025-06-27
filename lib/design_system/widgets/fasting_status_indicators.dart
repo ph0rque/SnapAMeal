@@ -7,7 +7,7 @@ class FastingStatusIndicators {
   /// Get status color based on fasting progress
   static Color getStatusColor(double progress, {bool isActive = true}) {
     if (!isActive) return Colors.grey;
-    
+
     if (progress < 0.25) {
       return Colors.red.shade400; // Early stage - challenging
     } else if (progress < 0.5) {
@@ -24,7 +24,7 @@ class FastingStatusIndicators {
     if (!fastingState.isActiveFasting) {
       return Icons.restaurant_menu_outlined;
     }
-    
+
     final progress = fastingState.progressPercentage;
     if (progress < 0.25) {
       return Icons.psychology; // Mental strength
@@ -80,32 +80,24 @@ class _FastingBadgeState extends State<FastingBadge>
   @override
   void initState() {
     super.initState();
-    
+
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _rotationController = AnimationController(
       duration: const Duration(seconds: 10),
       vsync: this,
     );
 
-    _pulseAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
 
-    _rotationAnimation = Tween<double>(
-      begin: 0,
-      end: 2 * math.pi,
-    ).animate(CurvedAnimation(
-      parent: _rotationController,
-      curve: Curves.linear,
-    ));
+    _rotationAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(
+      CurvedAnimation(parent: _rotationController, curve: Curves.linear),
+    );
 
     if (widget.animate && widget.fastingState.isActiveFasting) {
       _pulseController.repeat(reverse: true);
@@ -116,7 +108,7 @@ class _FastingBadgeState extends State<FastingBadge>
   @override
   void didUpdateWidget(FastingBadge oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     if (widget.animate && widget.fastingState.isActiveFasting) {
       if (!_pulseController.isAnimating) {
         _pulseController.repeat(reverse: true);
@@ -149,8 +141,8 @@ class _FastingBadgeState extends State<FastingBadge>
         return Transform.scale(
           scale: widget.animate ? _pulseAnimation.value : 1.0,
           child: Transform.rotate(
-            angle: widget.animate && widget.showProgress 
-                ? _rotationAnimation.value 
+            angle: widget.animate && widget.showProgress
+                ? _rotationAnimation.value
                 : 0,
             child: _buildBadgeContent(),
           ),
@@ -170,12 +162,7 @@ class _FastingBadgeState extends State<FastingBadge>
       height: widget.size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: RadialGradient(
-          colors: [
-            color,
-            color.withValues(alpha: 0.7),
-          ],
-        ),
+        gradient: RadialGradient(colors: [color, color.withValues(alpha: 0.7)]),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.3),
@@ -196,7 +183,7 @@ class _FastingBadgeState extends State<FastingBadge>
                 valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               ),
             ),
-          
+
           // Center icon
           Center(
             child: Icon(
@@ -205,7 +192,7 @@ class _FastingBadgeState extends State<FastingBadge>
               size: widget.size * 0.5,
             ),
           ),
-          
+
           // Progress percentage text (for larger badges)
           if (widget.size > 40 && widget.fastingState.isActiveFasting)
             Positioned(
@@ -265,7 +252,7 @@ class _FastingColorShiftState extends State<FastingColorShift>
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: widget.animationDuration,
       vsync: this,
@@ -277,11 +264,11 @@ class _FastingColorShiftState extends State<FastingColorShift>
   @override
   void didUpdateWidget(FastingColorShift oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
-    if (oldWidget.fastingState.progressPercentage != 
-        widget.fastingState.progressPercentage ||
-        oldWidget.fastingState.fastingModeEnabled != 
-        widget.fastingState.fastingModeEnabled) {
+
+    if (oldWidget.fastingState.progressPercentage !=
+            widget.fastingState.progressPercentage ||
+        oldWidget.fastingState.fastingModeEnabled !=
+            widget.fastingState.fastingModeEnabled) {
       _updateColor();
     }
   }
@@ -298,10 +285,7 @@ class _FastingColorShiftState extends State<FastingColorShift>
       _colorAnimation = ColorTween(
         begin: _currentColor,
         end: newColor,
-      ).animate(CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOut,
-      ));
+      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
 
       _controller.forward(from: 0);
       _currentColor = newColor;
@@ -320,10 +304,10 @@ class _FastingColorShiftState extends State<FastingColorShift>
       animation: _colorAnimation,
       builder: (context, _) {
         final animatedColor = _colorAnimation.value ?? _currentColor;
-        
+
         return Container(
           decoration: BoxDecoration(
-            color: widget.applyToBackground 
+            color: widget.applyToBackground
                 ? animatedColor.withValues(alpha: 0.1)
                 : null,
             border: widget.applyToBorder && animatedColor != Colors.transparent
@@ -368,12 +352,12 @@ class _FastingProgressRingState extends State<FastingProgressRing>
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _progressAnimation = AlwaysStoppedAnimation<double>(0.0);
     _updateProgress();
   }
@@ -381,8 +365,8 @@ class _FastingProgressRingState extends State<FastingProgressRing>
   @override
   void didUpdateWidget(FastingProgressRing oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
-    if (oldWidget.fastingState.progressPercentage != 
+
+    if (oldWidget.fastingState.progressPercentage !=
         widget.fastingState.progressPercentage) {
       _updateProgress();
     }
@@ -392,10 +376,7 @@ class _FastingProgressRingState extends State<FastingProgressRing>
     _progressAnimation = Tween<double>(
       begin: _progressAnimation.value,
       end: widget.fastingState.progressPercentage,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
 
     _controller.forward(from: 0);
   }
@@ -418,7 +399,7 @@ class _FastingProgressRingState extends State<FastingProgressRing>
         return Stack(
           children: [
             widget.child,
-            
+
             // Progress ring overlay
             Positioned.fill(
               child: CustomPaint(
@@ -431,7 +412,7 @@ class _FastingProgressRingState extends State<FastingProgressRing>
                 ),
               ),
             ),
-            
+
             // Percentage text overlay
             if (widget.showPercentage)
               Positioned.fill(
@@ -508,8 +489,8 @@ class ProgressRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(ProgressRingPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-           oldDelegate.color != color ||
-           oldDelegate.strokeWidth != strokeWidth;
+        oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }
 
@@ -539,7 +520,7 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 300),
       vsync: this,
@@ -548,10 +529,7 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
     _slideAnimation = Tween<double>(
       begin: -1.0,
       end: 0.0,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOut,
-    ));
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
 
     if (widget.fastingState.isActiveFasting) {
       _controller.forward();
@@ -561,11 +539,13 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
   @override
   void didUpdateWidget(FastingStatusBanner oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
-    if (widget.fastingState.isActiveFasting && !oldWidget.fastingState.isActiveFasting) {
+
+    if (widget.fastingState.isActiveFasting &&
+        !oldWidget.fastingState.isActiveFasting) {
       _isVisible = true;
       _controller.forward();
-    } else if (!widget.fastingState.isActiveFasting && oldWidget.fastingState.isActiveFasting) {
+    } else if (!widget.fastingState.isActiveFasting &&
+        oldWidget.fastingState.isActiveFasting) {
       _dismiss();
     }
   }
@@ -611,7 +591,9 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: widget.fastingState.appThemeColor.withValues(alpha: 0.3),
+                  color: widget.fastingState.appThemeColor.withValues(
+                    alpha: 0.3,
+                  ),
                   blurRadius: 8,
                   offset: Offset(0, 4),
                 ),
@@ -624,9 +606,9 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
                   size: 40,
                   animate: true,
                 ),
-                
+
                 SizedBox(width: 12),
-                
+
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -660,7 +642,7 @@ class _FastingStatusBannerState extends State<FastingStatusBanner>
                     ],
                   ),
                 ),
-                
+
                 if (widget.showDismiss)
                   IconButton(
                     onPressed: _dismiss,

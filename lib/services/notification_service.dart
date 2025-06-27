@@ -3,6 +3,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/logger.dart';
 
 class NotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
@@ -22,7 +23,7 @@ class NotificationService {
     final fcmToken = await _firebaseMessaging.getToken();
 
     if (fcmToken != null) {
-      debugPrint("FCM Token: $fcmToken");
+      Logger.d("FCM Token: $fcmToken");
       _saveTokenToDatabase(fcmToken);
     }
 
@@ -42,7 +43,7 @@ class NotificationService {
   /// Cancel all notifications
   Future<void> cancelAllNotifications() async {
     // Placeholder implementation - in a real app you'd use flutter_local_notifications
-    debugPrint("Cancelling all notifications");
+    Logger.d("Cancelling all notifications");
   }
 
   /// Schedule a notification
@@ -55,7 +56,7 @@ class NotificationService {
   }) async {
     // Placeholder implementation - in a real app you'd use flutter_local_notifications
     final time = scheduledDate ?? scheduledTime;
-    debugPrint("Scheduling notification ($id): $title at $time");
+    Logger.d("Scheduling notification ($id): $title at $time");
   }
 
   // Health-focused notification methods
@@ -66,28 +67,32 @@ class NotificationService {
     required DateTime startTime,
   }) async {
     final endTime = startTime.add(fastingDuration);
-    
+
     // Schedule milestone notifications
     final milestones = [0.25, 0.5, 0.75, 0.9]; // 25%, 50%, 75%, 90%
-    
+
     for (final milestone in milestones) {
-      final notificationTime = startTime.add(Duration(
-        milliseconds: (fastingDuration.inMilliseconds * milestone).round(),
-      ));
-      
+      final notificationTime = startTime.add(
+        Duration(
+          milliseconds: (fastingDuration.inMilliseconds * milestone).round(),
+        ),
+      );
+
       await scheduleNotification(
         id: 'fasting_milestone_${(milestone * 100).round()}',
         title: 'Fasting Progress 🔥',
-        body: 'You\'re ${(milestone * 100).round()}% through your fast! Keep going!',
+        body:
+            'You\'re ${(milestone * 100).round()}% through your fast! Keep going!',
         scheduledTime: notificationTime,
       );
     }
-    
+
     // Schedule completion notification
     await scheduleNotification(
       id: 'fasting_complete',
       title: 'Fasting Complete! 🎉',
-      body: 'Congratulations! You\'ve completed your ${_formatDuration(fastingDuration)} fast.',
+      body:
+          'Congratulations! You\'ve completed your ${_formatDuration(fastingDuration)} fast.',
       scheduledTime: endTime,
     );
   }
@@ -96,22 +101,23 @@ class NotificationService {
   Future<void> scheduleMealReminders() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     // Schedule reminders for typical meal times
     final mealTimes = [
       {'time': const Duration(hours: 8), 'meal': 'breakfast'},
       {'time': const Duration(hours: 12, minutes: 30), 'meal': 'lunch'},
       {'time': const Duration(hours: 18), 'meal': 'dinner'},
     ];
-    
+
     for (final meal in mealTimes) {
       final mealTime = today.add(meal['time'] as Duration);
-      
+
       if (mealTime.isAfter(now)) {
         await scheduleNotification(
           id: 'meal_reminder_${meal['meal']}',
           title: 'Meal Logging Reminder 🍽️',
-          body: 'Don\'t forget to log your ${meal['meal']}! Tap to use AI recognition.',
+          body:
+              'Don\'t forget to log your ${meal['meal']}! Tap to use AI recognition.',
           scheduledTime: mealTime,
         );
       }
@@ -122,11 +128,11 @@ class NotificationService {
   Future<void> scheduleWaterReminders() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     // Schedule water reminders every 2 hours during waking hours (8 AM - 10 PM)
     for (int hour = 8; hour <= 22; hour += 2) {
       final reminderTime = today.add(Duration(hours: hour));
-      
+
       if (reminderTime.isAfter(now)) {
         await scheduleNotification(
           id: 'water_reminder_$hour',
@@ -142,10 +148,10 @@ class NotificationService {
   Future<void> scheduleAIAdviceNotifications() async {
     final now = DateTime.now();
     final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    
+
     // Schedule daily AI insights
     final insightTime = tomorrow.add(const Duration(hours: 9)); // 9 AM next day
-    
+
     await scheduleNotification(
       id: 'daily_ai_insights',
       title: 'Your Daily Health Insights 🧠',
@@ -158,10 +164,10 @@ class NotificationService {
   Future<void> scheduleCommunityReminders() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     // Schedule evening community check-in
     final communityTime = today.add(const Duration(hours: 19)); // 7 PM
-    
+
     if (communityTime.isAfter(now)) {
       await scheduleNotification(
         id: 'community_reminder',
@@ -176,10 +182,10 @@ class NotificationService {
   Future<void> scheduleStreakReminders() async {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     // Schedule evening streak reminder
     final streakTime = today.add(const Duration(hours: 21)); // 9 PM
-    
+
     if (streakTime.isAfter(now)) {
       await scheduleNotification(
         id: 'streak_reminder',
@@ -195,8 +201,10 @@ class NotificationService {
     final now = DateTime.now();
     final daysUntilSunday = (7 - now.weekday) % 7;
     final nextSunday = DateTime(now.year, now.month, now.day + daysUntilSunday);
-    final summaryTime = nextSunday.add(const Duration(hours: 18)); // 6 PM Sunday
-    
+    final summaryTime = nextSunday.add(
+      const Duration(hours: 18),
+    ); // 6 PM Sunday
+
     await scheduleNotification(
       id: 'weekly_health_summary',
       title: 'Weekly Health Summary 📊',
@@ -221,15 +229,15 @@ class NotificationService {
       'streak_reminder',
       'weekly_health_summary',
     ];
-    
+
     for (final id in notificationIds) {
       // In a real implementation, cancel specific notification by ID
-      debugPrint("Cancelling notification: $id");
+      Logger.d("Cancelling notification: $id");
     }
-    
+
     // Cancel water reminders
     for (int hour = 8; hour <= 22; hour += 2) {
-      debugPrint("Cancelling notification: water_reminder_$hour");
+      Logger.d("Cancelling notification: water_reminder_$hour");
     }
   }
 
@@ -246,7 +254,7 @@ class NotificationService {
   String _formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes % 60;
-    
+
     if (hours > 0 && minutes > 0) {
       return '${hours}h ${minutes}m';
     } else if (hours > 0) {
@@ -255,4 +263,4 @@ class NotificationService {
       return '${minutes}m';
     }
   }
-} 
+}

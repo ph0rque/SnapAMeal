@@ -2,12 +2,13 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter/foundation.dart';
+
+import 'package:snapameal/utils/logger.dart';
 
 /// Standalone test for Pinecone connectivity
 /// Run with: dart test_pinecone.dart
 void main() async {
-  debugPrint('🔍 Testing Pinecone connection...\n');
+  Logger.i('🔍 Testing Pinecone connection...\n');
   
   try {
     // Load environment variables
@@ -17,15 +18,15 @@ void main() async {
     final indexName = dotenv.env['PINECONE_INDEX_NAME'] ?? 'snapameal-health-knowledge';
     
     if (apiKey.isEmpty) {
-      debugPrint('❌ PINECONE_API_KEY not found in .env file');
+      Logger.i('❌ PINECONE_API_KEY not found in .env file');
       exit(1);
     }
     
-    debugPrint('✅ API Key found: ${apiKey.substring(0, 10)}...');
-    debugPrint('✅ Index Name: $indexName\n');
+    Logger.i('✅ API Key found: ${apiKey.substring(0, 10)}...');
+    Logger.i('✅ Index Name: $indexName\n');
     
     // Step 1: List all indexes to see what exists
-    debugPrint('📋 Listing all indexes...');
+    Logger.i('📋 Listing all indexes...');
     final listResponse = await http.get(
       Uri.parse('https://api.pinecone.io/indexes'),
       headers: {
@@ -37,18 +38,18 @@ void main() async {
     
     if (listResponse.statusCode == 200) {
       final indexes = jsonDecode(listResponse.body);
-      debugPrint('✅ Successfully listed indexes:');
+      Logger.i('✅ Successfully listed indexes:');
       for (var index in indexes['indexes'] ?? []) {
-        debugPrint('   - ${index['name']} (${index['status']['state']})');
+        Logger.i('   - ${index['name']} (${index['status']['state']})');
       }
-      debugPrint('');
+      Logger.i('');
     } else {
-      debugPrint('❌ Failed to list indexes: ${listResponse.statusCode}');
-      debugPrint('Response: ${listResponse.body}\n');
+      Logger.i('❌ Failed to list indexes: ${listResponse.statusCode}');
+      Logger.i('Response: ${listResponse.body}\n');
     }
     
     // Step 2: Try to get specific index info
-    debugPrint('🎯 Getting info for index: $indexName');
+    Logger.i('🎯 Getting info for index: $indexName');
     final indexResponse = await http.get(
       Uri.parse('https://api.pinecone.io/indexes/$indexName'),
       headers: {
@@ -60,17 +61,17 @@ void main() async {
     
     if (indexResponse.statusCode == 200) {
       final indexData = jsonDecode(indexResponse.body);
-      debugPrint('✅ Index found successfully!');
-      debugPrint('   Name: ${indexData['name']}');
-      debugPrint('   Status: ${indexData['status']['state']}');
-      debugPrint('   Host: ${indexData['host']}');
-      debugPrint('   Dimension: ${indexData['dimension']}');
-      debugPrint('   Metric: ${indexData['metric']}\n');
+      Logger.i('✅ Index found successfully!');
+      Logger.i('   Name: ${indexData['name']}');
+      Logger.i('   Status: ${indexData['status']['state']}');
+      Logger.i('   Host: ${indexData['host']}');
+      Logger.i('   Dimension: ${indexData['dimension']}');
+      Logger.i('   Metric: ${indexData['metric']}\n');
       
       // Step 3: Test connection to the index host
       final host = indexData['host'];
       if (host != null) {
-        debugPrint('📊 Testing connection to index host...');
+        Logger.i('📊 Testing connection to index host...');
         final statsResponse = await http.post(
           Uri.parse('https://$host/describe_index_stats'),
           headers: {
@@ -82,29 +83,29 @@ void main() async {
         
         if (statsResponse.statusCode == 200) {
           final stats = jsonDecode(statsResponse.body);
-          debugPrint('✅ Index host connection successful!');
-          debugPrint('   Total vectors: ${stats['total_vector_count'] ?? 0}');
-          debugPrint('   Dimension: ${stats['dimension'] ?? 'N/A'}');
-          debugPrint('   Namespaces: ${stats['namespaces']?.keys?.join(', ') ?? 'default'}');
+          Logger.i('✅ Index host connection successful!');
+          Logger.i('   Total vectors: ${stats['total_vector_count'] ?? 0}');
+          Logger.i('   Dimension: ${stats['dimension'] ?? 'N/A'}');
+          Logger.i('   Namespaces: ${stats['namespaces']?.keys?.join(', ') ?? 'default'}');
         } else {
-          debugPrint('❌ Index host connection failed: ${statsResponse.statusCode}');
-          debugPrint('Response: ${statsResponse.body}');
+          Logger.i('❌ Index host connection failed: ${statsResponse.statusCode}');
+          Logger.i('Response: ${statsResponse.body}');
         }
       }
     } else {
-      debugPrint('❌ Index not found: ${indexResponse.statusCode}');
-      debugPrint('Response: ${indexResponse.body}');
+      Logger.i('❌ Index not found: ${indexResponse.statusCode}');
+      Logger.i('Response: ${indexResponse.body}');
       
       if (indexResponse.statusCode == 404) {
-        debugPrint('\n💡 Suggestion: Your index "$indexName" doesn\'t exist.');
-        debugPrint('   Either create it in the Pinecone console or check the name.');
+        Logger.i('\n💡 Suggestion: Your index "$indexName" doesn\'t exist.');
+        Logger.i('   Either create it in the Pinecone console or check the name.');
       }
     }
     
   } catch (e) {
-    debugPrint('❌ Error during test: $e');
+    Logger.i('❌ Error during test: $e');
     exit(1);
   }
   
-  debugPrint('\n🎉 Test completed!');
+  Logger.i('\n🎉 Test completed!');
 } 

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/fasting_session.dart';
 import '../services/rag_service.dart';
 import '../services/notification_service.dart';
+import '../utils/logger.dart';
 
 /// Service for managing fasting sessions with timer logic and state persistence
 class FastingService {
@@ -16,12 +17,13 @@ class FastingService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final RAGService _ragService;
   final NotificationService _notificationService;
-  
+
   // Current session state
   FastingSession? _currentSession;
   Timer? _timer;
-  final StreamController<FastingSession?> _sessionController = StreamController<FastingSession?>.broadcast();
-  
+  final StreamController<FastingSession?> _sessionController =
+      StreamController<FastingSession?>.broadcast();
+
   // Motivational content
   final List<String> _motivationalQuotes = [
     "Every moment of resistance makes you stronger.",
@@ -45,7 +47,8 @@ class FastingService {
   FastingSession? get currentSession => _currentSession;
 
   /// Check if there's an active fasting session
-  bool get hasActiveSession => _currentSession?.isActive == true || _currentSession?.isPaused == true;
+  bool get hasActiveSession =>
+      _currentSession?.isActive == true || _currentSession?.isPaused == true;
 
   /// Initialize the service and restore any active session
   Future<void> initialize() async {
@@ -68,12 +71,16 @@ class FastingService {
 
       // End any existing session first
       if (_currentSession != null && _currentSession!.isActive) {
-        await endFastingSession(FastingEndReason.userBreak, 'Started new session');
+        await endFastingSession(
+          FastingEndReason.userBreak,
+          'Started new session',
+        );
       }
 
       final now = DateTime.now();
       final startTime = plannedStartTime ?? now;
-      final duration = customDuration ?? FastingSession.getStandardDuration(type);
+      final duration =
+          customDuration ?? FastingSession.getStandardDuration(type);
       final endTime = startTime.add(duration);
 
       // Create new session
@@ -103,20 +110,20 @@ class FastingService {
       // Update local state
       _currentSession = session;
       _startTimer();
-      
+
       // Schedule notifications
       await _scheduleSessionNotifications(session);
-      
+
       // Save to local storage for persistence
       await _saveActiveSession(session);
-      
+
       // Emit update
       _sessionController.add(_currentSession);
 
-      debugPrint('Started fasting session: ${session.typeDescription}');
+      Logger.d('Started fasting session: ${session.typeDescription}');
       return session;
     } catch (e) {
-      debugPrint('Error starting fasting session: $e');
+      Logger.d('Error starting fasting session: $e');
       return null;
     }
   }
@@ -137,11 +144,11 @@ class FastingService {
 
       await _updateSession(updatedSession);
       _stopTimer();
-      
-      debugPrint('Paused fasting session');
+
+      Logger.d('Paused fasting session');
       return true;
     } catch (e) {
-      debugPrint('Error pausing fasting session: $e');
+      Logger.d('Error pausing fasting session: $e');
       return false;
     }
   }
@@ -154,11 +161,12 @@ class FastingService {
 
     try {
       final now = DateTime.now();
-      
+
       // Calculate additional paused time
       final lastPauseTime = _currentSession!.pausedTimes.last;
       final additionalPausedDuration = now.difference(lastPauseTime);
-      final totalPausedDuration = _currentSession!.totalPausedDuration + additionalPausedDuration;
+      final totalPausedDuration =
+          _currentSession!.totalPausedDuration + additionalPausedDuration;
 
       final updatedSession = _currentSession!.copyWith(
         state: FastingState.active,
@@ -169,31 +177,38 @@ class FastingService {
 
       await _updateSession(updatedSession);
       _startTimer();
-      
-      debugPrint('Resumed fasting session');
+
+      Logger.d('Resumed fasting session');
       return true;
     } catch (e) {
-      debugPrint('Error resuming fasting session: $e');
+      Logger.d('Error resuming fasting session: $e');
       return false;
     }
   }
 
   /// End the current fasting session
-  Future<bool> endFastingSession(FastingEndReason reason, [String? notes]) async {
+  Future<bool> endFastingSession(
+    FastingEndReason reason, [
+    String? notes,
+  ]) async {
     if (_currentSession == null) return false;
 
     try {
       final now = DateTime.now();
       final actualDuration = _currentSession!.elapsedTime;
-      final completionPercentage = actualDuration.inMilliseconds / _currentSession!.plannedDuration.inMilliseconds;
-      
+      final completionPercentage =
+          actualDuration.inMilliseconds /
+          _currentSession!.plannedDuration.inMilliseconds;
+
       // Determine final state
-      final finalState = reason == FastingEndReason.completed 
-          ? FastingState.completed 
+      final finalState = reason == FastingEndReason.completed
+          ? FastingState.completed
           : FastingState.broken;
 
       // Update streak information
-      final streakData = await _updateStreakData(reason == FastingEndReason.completed);
+      final streakData = await _updateStreakData(
+        reason == FastingEndReason.completed,
+      );
 
       final updatedSession = _currentSession!.copyWith(
         state: finalState,
@@ -210,20 +225,20 @@ class FastingService {
 
       await _updateSession(updatedSession);
       _stopTimer();
-      
+
       // Clear local storage
       await _clearActiveSession();
-      
+
       // Cancel notifications
       await _notificationService.cancelAllNotifications();
-      
+
       // Generate post-session insights using RAG
       await _generateSessionInsights(updatedSession);
-      
-      debugPrint('Ended fasting session: $reason');
+
+      Logger.d('Ended fasting session: $reason');
       return true;
     } catch (e) {
-      debugPrint('Error ending fasting session: $e');
+      Logger.d('Error ending fasting session: $e');
       return false;
     }
   }
@@ -242,17 +257,26 @@ class FastingService {
     try {
       final currentEngagement = _currentSession!.engagement;
       final updatedEngagement = currentEngagement.copyWith(
-        snapsTaken: snapTaken == true ? currentEngagement.snapsTaken + 1 : currentEngagement.snapsTaken,
-        motivationViews: motivationViewed == true ? currentEngagement.motivationViews + 1 : currentEngagement.motivationViews,
-        appOpens: appOpened == true ? currentEngagement.appOpens + 1 : currentEngagement.appOpens,
-        timerChecks: timerChecked == true ? currentEngagement.timerChecks + 1 : currentEngagement.timerChecks,
-        challengesMet: challengeMet != null 
+        snapsTaken: snapTaken == true
+            ? currentEngagement.snapsTaken + 1
+            : currentEngagement.snapsTaken,
+        motivationViews: motivationViewed == true
+            ? currentEngagement.motivationViews + 1
+            : currentEngagement.motivationViews,
+        appOpens: appOpened == true
+            ? currentEngagement.appOpens + 1
+            : currentEngagement.appOpens,
+        timerChecks: timerChecked == true
+            ? currentEngagement.timerChecks + 1
+            : currentEngagement.timerChecks,
+        challengesMet: challengeMet != null
             ? [...currentEngagement.challengesMet, challengeMet]
             : currentEngagement.challengesMet,
-        featureUsage: featureUsed != null 
+        featureUsage: featureUsed != null
             ? {
                 ...currentEngagement.featureUsage,
-                featureUsed: (currentEngagement.featureUsage[featureUsed] ?? 0) + 1,
+                featureUsed:
+                    (currentEngagement.featureUsage[featureUsed] ?? 0) + 1,
               }
             : currentEngagement.featureUsage,
       );
@@ -264,7 +288,7 @@ class FastingService {
 
       await _updateSession(updatedSession);
     } catch (e) {
-      debugPrint('Error recording engagement: $e');
+      Logger.d('Error recording engagement: $e');
     }
   }
 
@@ -282,7 +306,11 @@ class FastingService {
           'session_progress': _currentSession!.progressPercentage,
           'personal_goal': _currentSession!.personalGoal,
         },
-        currentGoals: ['fasting', 'discipline', ..._currentSession!.motivationalTags],
+        currentGoals: [
+          'fasting',
+          'discipline',
+          ..._currentSession!.motivationalTags,
+        ],
         dietaryRestrictions: [],
         recentActivity: {
           'session_duration': _currentSession!.elapsedTime.inHours,
@@ -292,7 +320,8 @@ class FastingService {
       );
 
       final motivationalContent = await _ragService.generateContextualizedResponse(
-        userQuery: 'Give me encouragement for my ${_currentSession!.typeDescription} session. I\'m ${(_currentSession!.progressPercentage * 100).toInt()}% complete.',
+        userQuery:
+            'Give me encouragement for my ${_currentSession!.typeDescription} session. I\'m ${(_currentSession!.progressPercentage * 100).toInt()}% complete.',
         healthContext: healthContext,
         maxContextLength: 1000,
       );
@@ -318,10 +347,11 @@ class FastingService {
       }
 
       // Fallback to predefined quotes
-      final randomQuote = _motivationalQuotes[Random().nextInt(_motivationalQuotes.length)];
+      final randomQuote =
+          _motivationalQuotes[Random().nextInt(_motivationalQuotes.length)];
       return randomQuote;
     } catch (e) {
-      debugPrint('Error getting motivational content: $e');
+      Logger.d('Error getting motivational content: $e');
       // Fallback to predefined quotes
       return _motivationalQuotes[Random().nextInt(_motivationalQuotes.length)];
     }
@@ -344,7 +374,7 @@ class FastingService {
           .map((doc) => FastingSession.fromFirestore(doc))
           .toList();
     } catch (e) {
-      debugPrint('Error getting fasting history: $e');
+      Logger.d('Error getting fasting history: $e');
       return [];
     }
   }
@@ -356,26 +386,30 @@ class FastingService {
       if (user == null) return {};
 
       final sessions = await getFastingHistory(limit: 100);
-      
+
       final completedSessions = sessions.where((s) => s.isCompleted).toList();
       final totalSessions = sessions.length;
-      final successRate = totalSessions > 0 ? completedSessions.length / totalSessions : 0.0;
-      
+      final successRate = totalSessions > 0
+          ? completedSessions.length / totalSessions
+          : 0.0;
+
       final totalFastingTime = sessions.fold<Duration>(
         Duration.zero,
         (total, session) => total + (session.actualDuration ?? Duration.zero),
       );
-      
+
       final averageSessionLength = completedSessions.isNotEmpty
           ? totalFastingTime.inHours / completedSessions.length
           : 0.0;
-      
+
       final longestSession = sessions.isNotEmpty
           ? sessions.map((s) => s.actualDuration?.inHours ?? 0).reduce(max)
           : 0;
-      
-      final currentStreak = sessions.isNotEmpty ? sessions.first.currentStreak : 0;
-      final longestStreak = sessions.isNotEmpty 
+
+      final currentStreak = sessions.isNotEmpty
+          ? sessions.first.currentStreak
+          : 0;
+      final longestStreak = sessions.isNotEmpty
           ? sessions.map((s) => s.longestStreak).reduce(max)
           : 0;
 
@@ -388,10 +422,12 @@ class FastingService {
         'longest_session_hours': longestSession,
         'current_streak': currentStreak,
         'longest_streak': longestStreak,
-        'last_session_date': sessions.isNotEmpty ? sessions.first.createdAt : null,
+        'last_session_date': sessions.isNotEmpty
+            ? sessions.first.createdAt
+            : null,
       };
     } catch (e) {
-      debugPrint('Error getting fasting stats: $e');
+      Logger.d('Error getting fasting stats: $e');
       return {};
     }
   }
@@ -401,7 +437,10 @@ class FastingService {
     if (_currentSession == null || !_currentSession!.isActive) return;
 
     if (_currentSession!.remainingTime <= Duration.zero) {
-      await endFastingSession(FastingEndReason.completed, 'Session completed automatically');
+      await endFastingSession(
+        FastingEndReason.completed,
+        'Session completed automatically',
+      );
     }
   }
 
@@ -412,29 +451,29 @@ class FastingService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final sessionJson = prefs.getString('active_fasting_session');
-      
+
       if (sessionJson != null) {
         final sessionData = jsonDecode(sessionJson);
         final session = FastingSession.fromJson(sessionData);
-        
+
         // Verify session is still valid and not completed
         if (session.isActive || session.isPaused) {
           _currentSession = session;
-          
+
           // Sync with Firestore to get latest state
           await _syncSessionWithFirestore();
-          
+
           if (_currentSession != null && _currentSession!.isActive) {
             _startTimer();
           }
-          
+
           _sessionController.add(_currentSession);
         } else {
           await _clearActiveSession();
         }
       }
     } catch (e) {
-      debugPrint('Error loading active session: $e');
+      Logger.d('Error loading active session: $e');
       await _clearActiveSession();
     }
   }
@@ -443,9 +482,12 @@ class FastingService {
   Future<void> _saveActiveSession(FastingSession session) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('active_fasting_session', jsonEncode(session.toJson()));
+      await prefs.setString(
+        'active_fasting_session',
+        jsonEncode(session.toJson()),
+      );
     } catch (e) {
-      debugPrint('Error saving active session: $e');
+      Logger.d('Error saving active session: $e');
     }
   }
 
@@ -457,7 +499,7 @@ class FastingService {
       _currentSession = null;
       _sessionController.add(null);
     } catch (e) {
-      debugPrint('Error clearing active session: $e');
+      Logger.d('Error clearing active session: $e');
     }
   }
 
@@ -475,7 +517,7 @@ class FastingService {
         _currentSession = FastingSession.fromFirestore(doc);
       }
     } catch (e) {
-      debugPrint('Error syncing session with Firestore: $e');
+      Logger.d('Error syncing session with Firestore: $e');
     }
   }
 
@@ -491,19 +533,19 @@ class FastingService {
       await _saveActiveSession(session);
       _sessionController.add(_currentSession);
     } catch (e) {
-      debugPrint('Error updating session: $e');
+      Logger.d('Error updating session: $e');
     }
   }
 
   /// Start the session timer
   void _startTimer() {
     _stopTimer(); // Ensure no duplicate timers
-    
+
     _timer = Timer.periodic(Duration(seconds: 30), (timer) async {
       if (_currentSession != null && _currentSession!.isActive) {
         await recordEngagement(timerChecked: true);
         await checkSessionCompletion();
-        
+
         // Show motivational content at milestones
         if (_shouldShowMotivation()) {
           await getMotivationalContent();
@@ -531,25 +573,30 @@ class FastingService {
   Future<void> _scheduleSessionNotifications(FastingSession session) async {
     // Schedule milestone notifications
     final milestones = [0.25, 0.5, 0.75, 0.9]; // 25%, 50%, 75%, 90%
-    
+
     for (final milestone in milestones) {
       final notificationTime = session.actualStartTime!.add(
-        Duration(milliseconds: (session.plannedDuration.inMilliseconds * milestone).round()),
+        Duration(
+          milliseconds: (session.plannedDuration.inMilliseconds * milestone)
+              .round(),
+        ),
       );
-      
+
       await _notificationService.scheduleNotification(
         id: '${session.id}_milestone_${(milestone * 100).toInt()}',
         title: 'Fasting Progress',
-        body: 'You\'re ${(milestone * 100).toInt()}% through your ${session.typeDescription}!',
+        body:
+            'You\'re ${(milestone * 100).toInt()}% through your ${session.typeDescription}!',
         scheduledDate: notificationTime,
       );
     }
-    
+
     // Schedule completion notification
     await _notificationService.scheduleNotification(
       id: '${session.id}_completion',
       title: 'Fasting Complete! 🎉',
-      body: 'Congratulations! You\'ve completed your ${session.typeDescription}.',
+      body:
+          'Congratulations! You\'ve completed your ${session.typeDescription}.',
       scheduledDate: session.plannedEndTime!,
     );
   }
@@ -557,28 +604,35 @@ class FastingService {
   /// Check if motivational content should be shown
   bool _shouldShowMotivation() {
     if (_currentSession == null) return false;
-    
+
     // Show motivation at regular intervals based on session progress
     final progress = _currentSession!.progressPercentage;
     final motivationCount = _currentSession!.motivationShown.length;
-    
+
     // Show motivation every 10% progress, but not more than once per hour
     final expectedMotivations = (progress * 10).floor();
     final lastMotivationTime = _currentSession!.motivationShown.isNotEmpty
         ? _currentSession!.motivationShown.last.shownAt
         : _currentSession!.actualStartTime!;
-    
-    final timeSinceLastMotivation = DateTime.now().difference(lastMotivationTime);
-    
-    return motivationCount < expectedMotivations && 
-           timeSinceLastMotivation.inMinutes >= 60;
+
+    final timeSinceLastMotivation = DateTime.now().difference(
+      lastMotivationTime,
+    );
+
+    return motivationCount < expectedMotivations &&
+        timeSinceLastMotivation.inMinutes >= 60;
   }
 
   /// Update streak data based on session completion
   Future<Map<String, dynamic>> _updateStreakData(bool sessionCompleted) async {
     try {
       final user = _auth.currentUser;
-      if (user == null) return {'currentStreak': 0, 'longestStreak': 0, 'isPersonalBest': false};
+      if (user == null)
+        return {
+          'currentStreak': 0,
+          'longestStreak': 0,
+          'isPersonalBest': false,
+        };
 
       // Get recent sessions to calculate streak
       final recentSessions = await _firestore
@@ -599,7 +653,8 @@ class FastingService {
       // Calculate current streak (from most recent backwards)
       if (sessionCompleted) {
         currentStreak = 1; // This session counts
-        for (final session in sessions.skip(1)) { // Skip current session
+        for (final session in sessions.skip(1)) {
+          // Skip current session
           if (session.isCompleted) {
             currentStreak++;
           } else {
@@ -631,7 +686,7 @@ class FastingService {
         'isPersonalBest': isPersonalBest,
       };
     } catch (e) {
-      debugPrint('Error updating streak data: $e');
+      Logger.d('Error updating streak data: $e');
       return {'currentStreak': 0, 'longestStreak': 0, 'isPersonalBest': false};
     }
   }
@@ -658,7 +713,8 @@ class FastingService {
       );
 
       final insights = await _ragService.generateContextualizedResponse(
-        userQuery: 'Provide insights and advice based on my fasting session. I ${session.isCompleted ? 'completed' : 'ended'} a ${session.typeDescription} with ${(session.completionPercentage * 100).toInt()}% completion.',
+        userQuery:
+            'Provide insights and advice based on my fasting session. I ${session.isCompleted ? 'completed' : 'ended'} a ${session.typeDescription} with ${(session.completionPercentage * 100).toInt()}% completion.',
         healthContext: healthContext,
         maxContextLength: 2000,
       );
@@ -679,7 +735,7 @@ class FastingService {
             .update(updatedSession.toFirestore());
       }
     } catch (e) {
-      debugPrint('Error generating session insights: $e');
+      Logger.d('Error generating session insights: $e');
     }
   }
 
@@ -707,7 +763,7 @@ class FastingService {
         'enableProgressSharing': false,
       };
     } catch (e) {
-      debugPrint('Error getting fasting settings: $e');
+      Logger.d('Error getting fasting settings: $e');
       return {
         'filterSeverity': 'moderate',
         'showMotivationalContent': true,
@@ -723,15 +779,12 @@ class FastingService {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      await _firestore
-          .collection('user_settings')
-          .doc(user.uid)
-          .set({
+      await _firestore.collection('user_settings').doc(user.uid).set({
         'fasting_settings': settings,
         'updated_at': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error updating fasting settings: $e');
+      Logger.d('Error updating fasting settings: $e');
     }
   }
 
@@ -742,20 +795,20 @@ class FastingService {
       if (user == null) return {};
 
       final sessions = await getFastingHistory(limit: 100);
-      
+
       final completedSessions = sessions.where((s) => s.isCompleted).toList();
       final totalSessions = sessions.length;
-      
+
       final totalFastingTime = sessions.fold<Duration>(
         Duration.zero,
         (total, session) => total + (session.actualDuration ?? Duration.zero),
       );
-      
+
       // Calculate current and longest streaks
       int currentStreak = 0;
       int longestStreak = 0;
       int tempStreak = 0;
-      
+
       // Calculate current streak from most recent sessions
       for (final session in sessions) {
         if (session.isCompleted) {
@@ -763,11 +816,12 @@ class FastingService {
           tempStreak++;
           longestStreak = max(longestStreak, tempStreak);
         } else {
-          if (currentStreak == 0) break; // Only count from most recent completed
+          if (currentStreak == 0)
+            break; // Only count from most recent completed
           tempStreak = 0;
         }
       }
-      
+
       // Find longest streak start date
       DateTime? longestStreakStart;
       if (longestStreak > 0 && sessions.isNotEmpty) {
@@ -782,14 +836,18 @@ class FastingService {
         'currentStreak': currentStreak,
         'longestStreak': longestStreak,
         'longestStreakStart': longestStreakStart?.toIso8601String(),
-        'lastSessionDate': sessions.isNotEmpty ? sessions.first.createdAt.toIso8601String() : null,
-        'averageDuration': completedSessions.isNotEmpty 
-            ? totalFastingTime.inSeconds / completedSessions.length 
+        'lastSessionDate': sessions.isNotEmpty
+            ? sessions.first.createdAt.toIso8601String()
+            : null,
+        'averageDuration': completedSessions.isNotEmpty
+            ? totalFastingTime.inSeconds / completedSessions.length
             : 0,
-        'successRate': totalSessions > 0 ? completedSessions.length / totalSessions : 0.0,
+        'successRate': totalSessions > 0
+            ? completedSessions.length / totalSessions
+            : 0.0,
       };
     } catch (e) {
-      debugPrint('Error getting fasting statistics: $e');
+      Logger.d('Error getting fasting statistics: $e');
       return {};
     }
   }
@@ -817,7 +875,7 @@ class FastingService {
 
       return true;
     } catch (e) {
-      debugPrint('Error pausing fasting session: $e');
+      Logger.d('Error pausing fasting session: $e');
       return false;
     }
   }
@@ -840,7 +898,7 @@ class FastingService {
 
       return true;
     } catch (e) {
-      debugPrint('Error resuming fasting session: $e');
+      Logger.d('Error resuming fasting session: $e');
       return false;
     }
   }
@@ -855,14 +913,17 @@ class FastingService {
     if (_currentSession == null) return false;
 
     try {
-      final endReason = completed 
-          ? FastingEndReason.completed 
+      final endReason = completed
+          ? FastingEndReason.completed
           : FastingEndReason.userBreak;
 
-      await endFastingSession(endReason, completed ? 'Session completed' : 'User ended session');
+      await endFastingSession(
+        endReason,
+        completed ? 'Session completed' : 'User ended session',
+      );
       return true;
     } catch (e) {
-      debugPrint('Error ending fasting session: $e');
+      Logger.d('Error ending fasting session: $e');
       return false;
     }
   }
@@ -875,7 +936,7 @@ class FastingService {
   }) async {
     try {
       final duration = customDuration ?? type.duration;
-      
+
       await startFastingSession(
         type: type,
         personalGoal: personalGoal ?? 'Stay focused and healthy',
@@ -884,7 +945,7 @@ class FastingService {
 
       return _currentSession != null && _currentSession!.isActive;
     } catch (e) {
-      debugPrint('Error starting fasting session: $e');
+      Logger.d('Error starting fasting session: $e');
       return false;
     }
   }
@@ -894,4 +955,4 @@ class FastingService {
     _stopTimer();
     _sessionController.close();
   }
-} 
+}

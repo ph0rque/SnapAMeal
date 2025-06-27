@@ -38,7 +38,7 @@ class _SelectFriendsPageState extends State<SelectFriendsPage> {
       _selectedFriendIds,
       widget.isVideo,
     );
-    
+
     // Pop until we get back to the home page
     Navigator.of(context).popUntil((route) => route.isFirst);
   }
@@ -46,9 +46,7 @@ class _SelectFriendsPageState extends State<SelectFriendsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Select Friends'),
-      ),
+      appBar: AppBar(title: const Text('Select Friends')),
       body: StreamBuilder<List<String>>(
         stream: _friendService.getFriendsStream(),
         builder: (context, snapshot) {
@@ -76,7 +74,8 @@ class _SelectFriendsPageState extends State<SelectFriendsPage> {
                   if (!userSnapshot.hasData) {
                     return const ListTile(title: Text("Loading..."));
                   }
-                  final friendData = userSnapshot.data!.data() as Map<String, dynamic>;
+                  final friendData =
+                      userSnapshot.data!.data() as Map<String, dynamic>;
 
                   return CheckboxListTile(
                     title: Text(friendData['username'] ?? 'No username'),
@@ -103,4 +102,4 @@ class _SelectFriendsPageState extends State<SelectFriendsPage> {
       ),
     );
   }
-} 
+}

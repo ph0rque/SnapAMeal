@@ -7,6 +7,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/ai_config.dart';
+import '../utils/logger.dart';
 import 'openai_service.dart';
 
 /// Represents a knowledge document stored in the vector database
@@ -102,7 +103,8 @@ class SearchResult {
 /// Health-specific query context for better RAG results
 class HealthQueryContext {
   final String userId;
-  final String queryType; // 'advice', 'meal_analysis', 'fasting', 'workout', 'general'
+  final String
+  queryType; // 'advice', 'meal_analysis', 'fasting', 'workout', 'general'
   final Map<String, dynamic> userProfile;
   final List<String> currentGoals;
   final List<String> dietaryRestrictions;
@@ -173,7 +175,9 @@ class RAGService {
 
       // Get index information from Pinecone
       final response = await http.get(
-        Uri.parse('${AIConfig.pineconeBaseUrl}/indexes/${AIConfig.pineconeIndexName}'),
+        Uri.parse(
+          '${AIConfig.pineconeBaseUrl}/indexes/${AIConfig.pineconeIndexName}',
+        ),
         headers: {
           'Api-Key': AIConfig.pineconeApiKey,
           'Content-Type': 'application/json',
@@ -190,9 +194,11 @@ class RAGService {
           return true;
         }
       } else {
-        developer.log('Failed to get index info: ${response.statusCode} - ${response.body}');
+        developer.log(
+          'Failed to get index info: ${response.statusCode} - ${response.body}',
+        );
       }
-      
+
       return false;
     } catch (e) {
       developer.log('Error initializing RAG service: $e');
@@ -210,10 +216,10 @@ class RAGService {
       'connection_test': false,
       'error': null,
     };
-    
+
     try {
       developer.log('🔍 Testing Pinecone connection...');
-      
+
       // Step 1: Test API key by listing indexes
       final listResponse = await http.get(
         Uri.parse('${AIConfig.pineconeBaseUrl}/indexes'),
@@ -223,11 +229,11 @@ class RAGService {
           'X-Pinecone-API-Version': AIConfig.pineconeApiVersion,
         },
       );
-      
+
       if (listResponse.statusCode == 200) {
         result['api_key_valid'] = true;
         developer.log('✅ API key is valid');
-        
+
         // Step 2: Check if our specific index exists
         final indexes = jsonDecode(listResponse.body);
         final indexList = indexes['indexes'] as List;
@@ -235,14 +241,14 @@ class RAGService {
           (index) => index['name'] == AIConfig.pineconeIndexName,
           orElse: () => null,
         );
-        
+
         if (ourIndex != null) {
           result['index_exists'] = true;
           result['index_host'] = ourIndex['host'];
           AIConfig.setIndexHost(ourIndex['host']);
           developer.log('✅ Index "${AIConfig.pineconeIndexName}" found');
           developer.log('Host: ${ourIndex['host']}');
-          
+
           // Step 3: Test direct connection to index
           final statsResponse = await http.post(
             Uri.parse('https://${ourIndex['host']}/describe_index_stats'),
@@ -252,7 +258,7 @@ class RAGService {
             },
             body: jsonEncode({}),
           );
-          
+
           if (statsResponse.statusCode == 200) {
             result['connection_test'] = true;
             result['success'] = true;
@@ -261,8 +267,11 @@ class RAGService {
             developer.log('✅ Index connection successful!');
             developer.log('Vector count: ${stats['totalVectorCount']}');
           } else {
-            result['error'] = 'Failed to connect to index: ${statsResponse.statusCode}';
-            developer.log('❌ Index connection failed: ${statsResponse.statusCode}');
+            result['error'] =
+                'Failed to connect to index: ${statsResponse.statusCode}';
+            developer.log(
+              '❌ Index connection failed: ${statsResponse.statusCode}',
+            );
           }
         } else {
           result['error'] = 'Index "${AIConfig.pineconeIndexName}" not found';
@@ -276,7 +285,7 @@ class RAGService {
       result['error'] = e.toString();
       developer.log('❌ Connection test error: $e');
     }
-    
+
     return result;
   }
 
@@ -324,11 +333,7 @@ class RAGService {
         },
         body: jsonEncode({
           'vectors': [
-            {
-              'id': document.id,
-              'values': embedding,
-              'metadata': metadata,
-            }
+            {'id': document.id, 'values': embedding, 'metadata': metadata},
           ],
           'namespace': AIConfig.pineconeNamespace,
         }),
@@ -336,7 +341,7 @@ class RAGService {
 
       return response.statusCode == 200;
     } catch (e) {
-      debugPrint('Error storing document: $e');
+      Logger.d('Error storing document: $e');
       return false;
     }
   }
@@ -344,20 +349,20 @@ class RAGService {
   /// Store multiple documents in batch with rate limiting
   Future<List<bool>> storeDocuments(List<KnowledgeDocument> documents) async {
     final results = <bool>[];
-    
+
     for (int i = 0; i < documents.length; i++) {
       final result = await storeDocument(documents[i]);
       results.add(result);
-      
+
       // Rate limiting - wait between requests
       if (i < documents.length - 1) {
         await Future.delayed(Duration(milliseconds: AIConfig.rateLimitDelayMs));
       }
     }
-    
+
     return results;
   }
-  
+
   /// Alias for storeDocuments - for backward compatibility
   Future<bool> storeBatchDocuments(List<KnowledgeDocument> documents) async {
     final results = await storeDocuments(documents);
@@ -372,13 +377,13 @@ class RAGService {
     try {
       // Extract key terms using simple NLP
       final keyTerms = _extractKeyTerms(originalQuery);
-      
+
       // Generate related concepts using GPT
       final relatedConcepts = await _generateRelatedConcepts(
         originalQuery,
         healthContext,
       );
-      
+
       // Create expanded query
       final expandedQuery = _buildExpandedQuery(
         originalQuery,
@@ -386,10 +391,10 @@ class RAGService {
         relatedConcepts,
         healthContext,
       );
-      
+
       // Calculate term weights
       final termWeights = _calculateTermWeights(keyTerms, relatedConcepts);
-      
+
       return ContextualizedQuery(
         originalQuery: originalQuery,
         expandedQuery: expandedQuery,
@@ -399,7 +404,7 @@ class RAGService {
         healthContext: healthContext,
       );
     } catch (e) {
-      debugPrint('Error expanding query: $e');
+      Logger.d('Error expanding query: $e');
       // Fallback to original query
       return ContextualizedQuery(
         originalQuery: originalQuery,
@@ -423,11 +428,11 @@ class RAGService {
   }) async {
     final startTime = DateTime.now();
     _totalQueries++;
-    
+
     try {
       // Expand query for better retrieval
       final contextualizedQuery = await expandQuery(query, healthContext);
-      
+
       // Generate embedding for the expanded query
       final queryEmbedding = await _openAIService.generateEmbedding(
         contextualizedQuery.expandedQuery,
@@ -482,19 +487,21 @@ class RAGService {
 
       // Limit results
       final limitedResults = searchResults.take(maxResults).toList();
-      
+
       // Update performance stats
       _successfulQueries++;
       final responseTime = DateTime.now().difference(startTime).inMilliseconds;
-      _averageResponseTime = (_averageResponseTime * (_successfulQueries - 1) + responseTime) / _successfulQueries;
-      
+      _averageResponseTime =
+          (_averageResponseTime * (_successfulQueries - 1) + responseTime) /
+          _successfulQueries;
+
       // Update query type stats
       final queryType = healthContext?.queryType ?? 'general';
       _queryTypeStats[queryType] = (_queryTypeStats[queryType] ?? 0) + 1;
 
       return limitedResults;
     } catch (e) {
-      debugPrint('Error performing semantic search: $e');
+      Logger.d('Error performing semantic search: $e');
       return [];
     }
   }
@@ -520,7 +527,7 @@ class RAGService {
 
       // Build context from search results
       final context = _buildLLMContext(searchResults, maxContextLength);
-      
+
       // Create personalized prompt
       final systemPrompt = _buildSystemPrompt(healthContext);
       final userPrompt = _buildUserPrompt(userQuery, context, healthContext);
@@ -537,7 +544,7 @@ class RAGService {
 
       return response;
     } catch (e) {
-      debugPrint('Error generating contextualized response: $e');
+      Logger.d('Error generating contextualized response: $e');
       return null;
     }
   }
@@ -545,7 +552,8 @@ class RAGService {
   /// Extract key terms from query using simple NLP
   List<String> _extractKeyTerms(String query) {
     // Simple keyword extraction - could be enhanced with proper NLP
-    final words = query.toLowerCase()
+    final words = query
+        .toLowerCase()
         .replaceAll(RegExp(r'[^\w\s]'), '')
         .split(' ')
         .where((word) => word.length > 2)
@@ -553,10 +561,45 @@ class RAGService {
 
     // Remove common stop words
     final stopWords = {
-      'the', 'and', 'for', 'are', 'but', 'not', 'you', 'all', 'can', 'had',
-      'her', 'was', 'one', 'our', 'out', 'day', 'get', 'has', 'him', 'his',
-      'how', 'its', 'may', 'new', 'now', 'old', 'see', 'two', 'who', 'boy',
-      'did', 'she', 'use', 'way', 'will', 'what', 'with', 'have', 'from',
+      'the',
+      'and',
+      'for',
+      'are',
+      'but',
+      'not',
+      'you',
+      'all',
+      'can',
+      'had',
+      'her',
+      'was',
+      'one',
+      'our',
+      'out',
+      'day',
+      'get',
+      'has',
+      'him',
+      'his',
+      'how',
+      'its',
+      'may',
+      'new',
+      'now',
+      'old',
+      'see',
+      'two',
+      'who',
+      'boy',
+      'did',
+      'she',
+      'use',
+      'way',
+      'will',
+      'what',
+      'with',
+      'have',
+      'from',
     };
 
     return words.where((word) => !stopWords.contains(word)).toList();
@@ -568,7 +611,8 @@ class RAGService {
     HealthQueryContext? healthContext,
   ) async {
     try {
-      final prompt = '''
+      final prompt =
+          '''
 Generate 3-5 related health and nutrition concepts for this query: "$query"
 
 ${healthContext != null ? 'User context: ${healthContext.queryType}, Goals: ${healthContext.currentGoals.join(", ")}' : ''}
@@ -577,7 +621,9 @@ Return only the concepts, one per line, no explanations:
 ''';
 
       final response = await _openAIService.getChatCompletionWithMessages(
-        messages: [{'role': 'user', 'content': prompt}],
+        messages: [
+          {'role': 'user', 'content': prompt},
+        ],
         maxTokens: 100,
         temperature: 0.3,
       );
@@ -591,9 +637,9 @@ Return only the concepts, one per line, no explanations:
             .toList();
       }
     } catch (e) {
-      debugPrint('Error generating related concepts: $e');
+      Logger.d('Error generating related concepts: $e');
     }
-    
+
     return [];
   }
 
@@ -605,17 +651,17 @@ Return only the concepts, one per line, no explanations:
     HealthQueryContext? healthContext,
   ) {
     final parts = [originalQuery];
-    
+
     // Add key terms
     if (keyTerms.isNotEmpty) {
       parts.add(keyTerms.take(3).join(' '));
     }
-    
+
     // Add related concepts
     if (relatedConcepts.isNotEmpty) {
       parts.add(relatedConcepts.take(2).join(' '));
     }
-    
+
     // Add health context
     if (healthContext != null) {
       parts.add(healthContext.queryType);
@@ -623,7 +669,7 @@ Return only the concepts, one per line, no explanations:
         parts.add(healthContext.currentGoals.first);
       }
     }
-    
+
     return parts.join(' ');
   }
 
@@ -633,17 +679,17 @@ Return only the concepts, one per line, no explanations:
     List<String> relatedConcepts,
   ) {
     final weights = <String, double>{};
-    
+
     // Higher weight for key terms
     for (final term in keyTerms) {
       weights[term] = 1.0;
     }
-    
+
     // Lower weight for related concepts
     for (final concept in relatedConcepts) {
       weights[concept] = 0.7;
     }
-    
+
     return weights;
   }
 
@@ -654,29 +700,31 @@ Return only the concepts, one per line, no explanations:
     HealthQueryContext? healthContext,
   ) {
     final filter = <String, dynamic>{};
-    
+
     if (categoryFilter != null && categoryFilter.isNotEmpty) {
       filter['category'] = {'\$in': categoryFilter};
     }
-    
+
     if (tagFilter != null && tagFilter.isNotEmpty) {
       filter['tags'] = {'\$in': tagFilter};
     }
-    
+
     // Add health context filters
     if (healthContext != null) {
       // Filter by confidence score
       filter['confidence_score'] = {'\$gte': 0.8};
-      
+
       // Add dietary restriction filters if applicable
       if (healthContext.dietaryRestrictions.isNotEmpty) {
         final restrictionFilters = <String, dynamic>{};
         for (final restriction in healthContext.dietaryRestrictions) {
-          restrictionFilters['tags'] = {'\$nin': [restriction.toLowerCase()]};
+          restrictionFilters['tags'] = {
+            '\$nin': [restriction.toLowerCase()],
+          };
         }
       }
     }
-    
+
     return filter;
   }
 
@@ -687,13 +735,13 @@ Return only the concepts, one per line, no explanations:
     double minSimilarityScore,
   ) async {
     final results = <SearchResult>[];
-    
+
     for (final match in matches) {
       final score = match['score']?.toDouble() ?? 0.0;
       if (score < minSimilarityScore) continue;
-      
+
       final metadata = match['metadata'] ?? {};
-      
+
       // Create KnowledgeDocument from metadata
       final document = KnowledgeDocument(
         id: match['id'] ?? '',
@@ -703,35 +751,41 @@ Return only the concepts, one per line, no explanations:
         source: metadata['source'] ?? '',
         confidenceScore: metadata['confidence_score']?.toDouble() ?? 0.0,
         tags: List<String>.from(metadata['tags'] ?? []),
-        createdAt: DateTime.tryParse(metadata['created_at'] ?? '') ?? DateTime.now(),
+        createdAt:
+            DateTime.tryParse(metadata['created_at'] ?? '') ?? DateTime.now(),
         metadata: metadata,
       );
-      
+
       // Calculate relevance score
       final relevanceScore = _calculateRelevanceScore(
         document,
         contextualizedQuery,
         score,
       );
-      
+
       // Determine match reason
       final matchReason = _determineMatchReason(document, contextualizedQuery);
-      
+
       // Find matched keywords
-      final matchedKeywords = _findMatchedKeywords(document, contextualizedQuery);
-      
-      results.add(SearchResult(
-        document: document,
-        similarityScore: score,
-        relevanceScore: relevanceScore,
-        matchReason: matchReason,
-        matchedKeywords: matchedKeywords,
-      ));
+      final matchedKeywords = _findMatchedKeywords(
+        document,
+        contextualizedQuery,
+      );
+
+      results.add(
+        SearchResult(
+          document: document,
+          similarityScore: score,
+          relevanceScore: relevanceScore,
+          matchReason: matchReason,
+          matchedKeywords: matchedKeywords,
+        ),
+      );
     }
-    
+
     // Sort by relevance score (highest first)
     results.sort((a, b) => b.relevanceScore.compareTo(a.relevanceScore));
-    
+
     return results;
   }
 
@@ -742,30 +796,32 @@ Return only the concepts, one per line, no explanations:
     double similarityScore,
   ) {
     double relevanceScore = similarityScore;
-    
+
     // Boost score based on confidence
     relevanceScore *= (0.5 + document.confidenceScore * 0.5);
-    
+
     // Boost score for query type match
     if (query.healthContext != null) {
       final queryType = query.healthContext!.queryType;
       if (document.category.toLowerCase().contains(queryType.toLowerCase()) ||
-          document.tags.any((tag) => tag.toLowerCase().contains(queryType.toLowerCase()))) {
+          document.tags.any(
+            (tag) => tag.toLowerCase().contains(queryType.toLowerCase()),
+          )) {
         relevanceScore *= 1.2;
       }
     }
-    
+
     // Boost score for recent content
     final age = DateTime.now().difference(document.createdAt).inDays;
     if (age < 30) {
       relevanceScore *= 1.1;
     }
-    
+
     // Boost score for comprehensive content
     if (document.content.length > 500) {
       relevanceScore *= 1.05;
     }
-    
+
     return relevanceScore;
   }
 
@@ -775,7 +831,7 @@ Return only the concepts, one per line, no explanations:
     ContextualizedQuery query,
   ) {
     final reasons = <String>[];
-    
+
     // Check for key term matches
     for (final term in query.keyTerms) {
       if (document.content.toLowerCase().contains(term.toLowerCase()) ||
@@ -783,7 +839,7 @@ Return only the concepts, one per line, no explanations:
         reasons.add('Contains "$term"');
       }
     }
-    
+
     // Check for category match
     if (query.healthContext != null) {
       final queryType = query.healthContext!.queryType;
@@ -791,14 +847,16 @@ Return only the concepts, one per line, no explanations:
         reasons.add('Category match: ${document.category}');
       }
     }
-    
+
     // Check for tag matches
     for (final concept in query.relatedConcepts) {
-      if (document.tags.any((tag) => tag.toLowerCase().contains(concept.toLowerCase()))) {
+      if (document.tags.any(
+        (tag) => tag.toLowerCase().contains(concept.toLowerCase()),
+      )) {
         reasons.add('Related concept: $concept');
       }
     }
-    
+
     return reasons.isEmpty ? 'Semantic similarity' : reasons.first;
   }
 
@@ -809,19 +867,19 @@ Return only the concepts, one per line, no explanations:
   ) {
     final matched = <String>[];
     final docText = '${document.title} ${document.content}'.toLowerCase();
-    
+
     for (final term in query.keyTerms) {
       if (docText.contains(term.toLowerCase())) {
         matched.add(term);
       }
     }
-    
+
     for (final concept in query.relatedConcepts) {
       if (docText.contains(concept.toLowerCase())) {
         matched.add(concept);
       }
     }
-    
+
     return matched.take(5).toList();
   }
 
@@ -845,9 +903,10 @@ Return only the concepts, one per line, no explanations:
   String _buildLLMContext(List<SearchResult> results, int maxLength) {
     final contextParts = <String>[];
     int currentLength = 0;
-    
+
     for (final result in results) {
-      final snippet = '''
+      final snippet =
+          '''
 Title: ${result.document.title}
 Category: ${result.document.category}
 Content: ${result.document.content}
@@ -855,15 +914,15 @@ Confidence: ${(result.document.confidenceScore * 100).toInt()}%
 Relevance: ${(result.relevanceScore * 100).toInt()}%
 
 ''';
-      
+
       if (currentLength + snippet.length > maxLength) {
         break;
       }
-      
+
       contextParts.add(snippet);
       currentLength += snippet.length;
     }
-    
+
     return contextParts.join('\n---\n\n');
   }
 
@@ -910,7 +969,8 @@ Please provide a personalized response based on the user's question and the rele
     String query,
     HealthQueryContext healthContext,
   ) async {
-    final prompt = '''
+    final prompt =
+        '''
 The user asked: "$query"
 
 User context: ${healthContext.queryType}, Goals: ${healthContext.currentGoals.join(", ")}
@@ -925,7 +985,9 @@ Keep the response under 200 words.
 ''';
 
     return await _openAIService.getChatCompletionWithMessages(
-      messages: [{'role': 'user', 'content': prompt}],
+      messages: [
+        {'role': 'user', 'content': prompt},
+      ],
       maxTokens: 250,
       temperature: 0.7,
     );
@@ -936,7 +998,9 @@ Keep the response under 200 words.
     return {
       'total_queries': _totalQueries,
       'successful_queries': _successfulQueries,
-      'success_rate': _totalQueries > 0 ? _successfulQueries / _totalQueries : 0.0,
+      'success_rate': _totalQueries > 0
+          ? _successfulQueries / _totalQueries
+          : 0.0,
       'average_response_time_ms': _averageResponseTime,
       'query_type_distribution': _queryTypeStats,
     };
@@ -951,9 +1015,7 @@ Keep the response under 200 words.
           'Api-Key': AIConfig.pineconeApiKey,
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({
-          'filter': {},
-        }),
+        body: jsonEncode({'filter': {}}),
       );
 
       if (response.statusCode == 200) {
@@ -966,9 +1028,9 @@ Keep the response under 200 words.
         };
       }
     } catch (e) {
-      debugPrint('Error getting knowledge base stats: $e');
+      Logger.d('Error getting knowledge base stats: $e');
     }
-    
+
     return {
       'total_vector_count': 0,
       'dimension': 0,
@@ -985,8 +1047,9 @@ Keep the response under 200 words.
   }) async {
     try {
       // Build recipe-focused query
-      final query = 'healthy recipes using ${detectedFoods.join(", ")} ingredients';
-      
+      final query =
+          'healthy recipes using ${detectedFoods.join(", ")} ingredients';
+
       // Search with recipe-specific filters
       return await performSemanticSearch(
         query: query,
@@ -996,7 +1059,7 @@ Keep the response under 200 words.
         tagFilter: detectedFoods,
       );
     } catch (e) {
-      debugPrint('Error searching recipe suggestions: $e');
+      Logger.d('Error searching recipe suggestions: $e');
       return [];
     }
   }
@@ -1010,9 +1073,10 @@ Keep the response under 200 words.
     try {
       // Build context from recipe search results
       final recipeContext = _buildLLMContext(recipeResults, 1500);
-      
+
       // Create personalized prompt
-      final prompt = '''
+      final prompt =
+          '''
 Based on the detected foods: ${detectedFoods.join(", ")}
 
 User Profile:
@@ -1034,7 +1098,7 @@ Keep each suggestion concise (2-3 sentences) and motivational.
 
       return await _openAIService.getChatCompletion(prompt);
     } catch (e) {
-      debugPrint('Error generating recipe recommendations: $e');
+      Logger.d('Error generating recipe recommendations: $e');
       return null;
     }
   }
@@ -1046,22 +1110,24 @@ Keep each suggestion concise (2-3 sentences) and motivational.
   }) async {
     try {
       // Search for nutrition information
-      final nutritionQuery = 'nutrition facts health benefits ${detectedFoods.join(" ")}';
-      
+      final nutritionQuery =
+          'nutrition facts health benefits ${detectedFoods.join(" ")}';
+
       final nutritionResults = await performSemanticSearch(
         query: nutritionQuery,
         healthContext: healthContext,
         maxResults: 3,
         categoryFilter: ['nutrition', 'wellness'],
       );
-      
+
       if (nutritionResults.isEmpty) {
         return null;
       }
-      
+
       final nutritionContext = _buildLLMContext(nutritionResults, 1000);
-      
-      final prompt = '''
+
+      final prompt =
+          '''
 Based on these detected foods: ${detectedFoods.join(", ")}
 
 User Goals: ${healthContext.currentGoals.join(", ")}
@@ -1078,7 +1144,7 @@ Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods
 
       return await _openAIService.getChatCompletion(prompt);
     } catch (e) {
-      debugPrint('Error generating nutrition insights: $e');
+      Logger.d('Error generating nutrition insights: $e');
       return null;
     }
   }
@@ -1112,7 +1178,7 @@ Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods
 
       // Analyze story content and engagement
       final storyAnalysis = _analyzeStoryContent(stories);
-      
+
       // Search for relevant health insights based on story content
       final searchResults = await performSemanticSearch(
         query: storyAnalysis['themes'].join(' '),
@@ -1126,7 +1192,8 @@ Provide a brief, encouraging nutrition insight (2-3 sentences) about these foods
           .join('\n\n');
 
       // Generate comprehensive summary
-      final prompt = '''
+      final prompt =
+          '''
 Based on the following health knowledge and user's story activity from ${_formatDate(startDate)} to ${_formatDate(endDate)}:
 
 HEALTH KNOWLEDGE:
@@ -1153,7 +1220,7 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
 ''';
 
       final response = await _openAIService.getChatCompletion(prompt);
-      
+
       try {
         final summary = jsonDecode(response ?? '{}') as Map<String, dynamic>;
         return {
@@ -1162,14 +1229,21 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
           'insights': List<String>.from(summary['insights'] ?? []),
           'mood_analysis': summary['mood_analysis'] ?? 'neutral',
           'engagement_summary': summary['engagement_summary'] ?? {},
-          'recommendations': List<String>.from(summary['recommendations'] ?? []),
+          'recommendations': List<String>.from(
+            summary['recommendations'] ?? [],
+          ),
           'period': '${_formatDate(startDate)} - ${_formatDate(endDate)}',
           'story_count': stories.length,
           'generated_at': DateTime.now().toIso8601String(),
         };
       } catch (e) {
         // Fallback to structured summary
-        return _createFallbackStorySummary(stories, startDate, endDate, storyAnalysis);
+        return _createFallbackStorySummary(
+          stories,
+          startDate,
+          endDate,
+          storyAnalysis,
+        );
       }
     } catch (e) {
       developer.log('Error generating story summary: $e');
@@ -1185,7 +1259,7 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
     Map<String, dynamic>? userProfile,
   }) async {
     final weekEnd = weekStart.add(const Duration(days: 7));
-    
+
     final summary = await generateStorySummary(
       userId: userId,
       startDate: weekStart,
@@ -1196,7 +1270,7 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
 
     // Add weekly-specific insights
     final weeklyInsights = await _generateWeeklyInsights(stories, userProfile);
-    
+
     return {
       ...summary,
       'digest_type': 'weekly',
@@ -1214,7 +1288,7 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
     Map<String, dynamic>? userProfile,
   }) async {
     final monthEnd = DateTime(monthStart.year, monthStart.month + 1, 0);
-    
+
     final summary = await generateStorySummary(
       userId: userId,
       startDate: monthStart,
@@ -1225,7 +1299,7 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
 
     // Add monthly-specific insights
     final monthlyTrends = await _generateMonthlyTrends(stories, userProfile);
-    
+
     return {
       ...summary,
       'digest_type': 'monthly',
@@ -1237,7 +1311,9 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
   }
 
   /// Analyze story content and extract themes
-  Map<String, dynamic> _analyzeStoryContent(List<Map<String, dynamic>> stories) {
+  Map<String, dynamic> _analyzeStoryContent(
+    List<Map<String, dynamic>> stories,
+  ) {
     final themes = <String>[];
     final contentTypes = <String, int>{};
     var totalEngagement = 0;
@@ -1257,10 +1333,11 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
 
       // Calculate engagement
       final engagement = story['engagement'] as Map<String, dynamic>? ?? {};
-      final storyEngagement = (engagement['views'] as int? ?? 0) +
-                              (engagement['likes'] as int? ?? 0) +
-                              (engagement['comments'] as int? ?? 0) +
-                              (engagement['shares'] as int? ?? 0);
+      final storyEngagement =
+          (engagement['views'] as int? ?? 0) +
+          (engagement['likes'] as int? ?? 0) +
+          (engagement['comments'] as int? ?? 0) +
+          (engagement['shares'] as int? ?? 0);
       totalEngagement += storyEngagement;
 
       // Check for milestone stories
@@ -1273,21 +1350,30 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
       // Track daily activity
       final timestamp = story['timestamp'];
       if (timestamp != null) {
-        final date = timestamp is DateTime ? timestamp : DateTime.parse(timestamp.toString());
+        final date = timestamp is DateTime
+            ? timestamp
+            : DateTime.parse(timestamp.toString());
         final dateKey = _formatDate(date);
         dailyActivity[dateKey] = (dailyActivity[dateKey] ?? 0) + 1;
       }
     }
 
-    final mostActiveDay = dailyActivity.entries
-        .fold<MapEntry<String, int>?>(null, (prev, curr) => 
-            prev == null || curr.value > prev.value ? curr : prev)
-        ?.key ?? 'N/A';
+    final mostActiveDay =
+        dailyActivity.entries
+            .fold<MapEntry<String, int>?>(
+              null,
+              (prev, curr) =>
+                  prev == null || curr.value > prev.value ? curr : prev,
+            )
+            ?.key ??
+        'N/A';
 
     return {
       'themes': themes.toSet().toList(),
       'contentTypes': contentTypes,
-      'avgEngagement': stories.isNotEmpty ? totalEngagement / stories.length : 0,
+      'avgEngagement': stories.isNotEmpty
+          ? totalEngagement / stories.length
+          : 0,
       'milestoneCount': milestoneCount,
       'mostActiveDay': mostActiveDay,
       'dailyActivity': dailyActivity,
@@ -1300,7 +1386,9 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
     final lowerText = text.toLowerCase();
 
     // Health and wellness themes
-    if (lowerText.contains(RegExp(r'\b(workout|exercise|gym|fitness|training)\b'))) {
+    if (lowerText.contains(
+      RegExp(r'\b(workout|exercise|gym|fitness|training)\b'),
+    )) {
       themes.add('fitness');
     }
     if (lowerText.contains(RegExp(r'\b(meal|food|eating|nutrition|diet)\b'))) {
@@ -1315,7 +1403,9 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
     if (lowerText.contains(RegExp(r'\b(sleep|rest|recovery)\b'))) {
       themes.add('recovery');
     }
-    if (lowerText.contains(RegExp(r'\b(goal|achievement|progress|milestone)\b'))) {
+    if (lowerText.contains(
+      RegExp(r'\b(goal|achievement|progress|milestone)\b'),
+    )) {
       themes.add('achievement');
     }
 
@@ -1328,21 +1418,24 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
     Map<String, dynamic>? userProfile,
   ) async {
     final insights = <String>[];
-    
+
     // Analyze weekly patterns
     final weekdayActivity = <int, int>{};
     for (final story in stories) {
       final timestamp = story['timestamp'];
       if (timestamp != null) {
-        final date = timestamp is DateTime ? timestamp : DateTime.parse(timestamp.toString());
+        final date = timestamp is DateTime
+            ? timestamp
+            : DateTime.parse(timestamp.toString());
         final weekday = date.weekday;
         weekdayActivity[weekday] = (weekdayActivity[weekday] ?? 0) + 1;
       }
     }
 
     if (weekdayActivity.isNotEmpty) {
-      final mostActiveWeekday = weekdayActivity.entries
-          .reduce((a, b) => a.value > b.value ? a : b);
+      final mostActiveWeekday = weekdayActivity.entries.reduce(
+        (a, b) => a.value > b.value ? a : b,
+      );
       insights.add('Most active on ${_getWeekdayName(mostActiveWeekday.key)}');
     }
 
@@ -1386,23 +1479,33 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
   }
 
   /// Calculate achievement badges
-  List<Map<String, dynamic>> _calculateAchievementBadges(List<Map<String, dynamic>> stories) {
+  List<Map<String, dynamic>> _calculateAchievementBadges(
+    List<Map<String, dynamic>> stories,
+  ) {
     final badges = <Map<String, dynamic>>[];
-    
+
     if (stories.length >= 30) {
-      badges.add({'name': 'Consistent Creator', 'icon': 'star', 'description': '30+ stories this month'});
+      badges.add({
+        'name': 'Consistent Creator',
+        'icon': 'star',
+        'description': '30+ stories this month',
+      });
     }
-    
+
     final milestoneCount = stories.where((story) {
       final permanence = story['permanence'] as Map<String, dynamic>?;
       final tier = permanence?['tier'] as String?;
       return tier == 'milestone' || tier == 'monthly';
     }).length;
-    
+
     if (milestoneCount >= 3) {
-      badges.add({'name': 'Milestone Master', 'icon': 'trophy', 'description': '3+ milestone stories'});
+      badges.add({
+        'name': 'Milestone Master',
+        'icon': 'trophy',
+        'description': '3+ milestone stories',
+      });
     }
-    
+
     return badges;
   }
 
@@ -1414,11 +1517,13 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
     Map<String, dynamic> analysis,
   ) {
     return {
-      'summary': 'You shared ${stories.length} stories during this period, '
-                'capturing various moments of your health and wellness journey.',
+      'summary':
+          'You shared ${stories.length} stories during this period, '
+          'capturing various moments of your health and wellness journey.',
       'highlights': [
         '${stories.length} stories shared',
-        if (analysis['milestoneCount'] != null && analysis['milestoneCount'] > 0)
+        if (analysis['milestoneCount'] != null &&
+            analysis['milestoneCount'] > 0)
           '${analysis['milestoneCount']} milestone stories created',
         'Consistent engagement with your community',
       ],
@@ -1450,7 +1555,15 @@ Format as JSON with keys: summary, highlights, insights, mood_analysis, engageme
 
   /// Get weekday name
   String _getWeekdayName(int weekday) {
-    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
     return weekdays[weekday - 1];
   }
-} 
+}

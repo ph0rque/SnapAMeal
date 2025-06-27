@@ -18,4 +18,4 @@ class ScreenshotCallback {
   void dispose() {
     // No-op.
   }
-} 
+}

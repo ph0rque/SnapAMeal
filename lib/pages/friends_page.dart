@@ -29,12 +29,12 @@ class _FriendsPageState extends State<FriendsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Search for Friends", style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 300,
-              child: SnapUserSearch(),
+            Text(
+              "Search for Friends",
+              style: Theme.of(context).textTheme.titleLarge,
             ),
+            const SizedBox(height: 10),
+            SizedBox(height: 300, child: SnapUserSearch()),
             const SizedBox(height: 20),
             Text("My Friends", style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 10),
@@ -42,17 +42,14 @@ class _FriendsPageState extends State<FriendsPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    SizedBox(
-                      height: 200,
-                      child: _buildFriendsList(),
-                    ),
+                    SizedBox(height: 200, child: _buildFriendsList()),
                     const SizedBox(height: 20),
-                    Text("Friend Requests", style: Theme.of(context).textTheme.titleLarge),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      height: 200,
-                      child: _buildFriendRequestList(),
+                    Text(
+                      "Friend Requests",
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
+                    const SizedBox(height: 10),
+                    SizedBox(height: 200, child: _buildFriendRequestList()),
                   ],
                 ),
               ),
@@ -90,7 +87,8 @@ class _FriendsPageState extends State<FriendsPage> {
                 if (!userSnapshot.hasData) {
                   return const ListTile(title: Text("..."));
                 }
-                final friendData = userSnapshot.data!.data() as Map<String, dynamic>?;
+                final friendData =
+                    userSnapshot.data!.data() as Map<String, dynamic>?;
                 if (friendData == null) {
                   return const ListTile(title: Text("Friend data missing"));
                 }
@@ -113,16 +111,15 @@ class _FriendsPageState extends State<FriendsPage> {
   }
 
   void _navigateToChat(String friendId) async {
-    final chatRoomId =
-        await _friendService.getOrCreateOneOnOneChatRoom(friendId);
+    final chatRoomId = await _friendService.getOrCreateOneOnOneChatRoom(
+      friendId,
+    );
     if (!mounted) return;
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ChatPage(
-          chatRoomId: chatRoomId,
-          recipientId: friendId,
-        ),
+        builder: (context) =>
+            ChatPage(chatRoomId: chatRoomId, recipientId: friendId),
       ),
     );
   }
@@ -158,7 +155,8 @@ class _FriendsPageState extends State<FriendsPage> {
                   return const ListTile(title: Text("Unknown user"));
                 }
 
-                final userData = userSnapshot.data!.data() as Map<String, dynamic>?;
+                final userData =
+                    userSnapshot.data!.data() as Map<String, dynamic>?;
                 if (userData == null) {
                   return const ListTile(title: Text("User data missing"));
                 }
@@ -173,14 +171,20 @@ class _FriendsPageState extends State<FriendsPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(EvaIcons.checkmark, color: SnapUIColors.accentGreen),
+                        icon: const Icon(
+                          EvaIcons.checkmark,
+                          color: SnapUIColors.accentGreen,
+                        ),
                         onPressed: () async {
                           await _friendService.acceptFriendRequest(senderId);
                           setState(() {});
                         },
                       ),
                       IconButton(
-                        icon: const Icon(EvaIcons.close, color: SnapUIColors.accentRed),
+                        icon: const Icon(
+                          EvaIcons.close,
+                          color: SnapUIColors.accentRed,
+                        ),
                         onPressed: () async {
                           await _friendService.declineFriendRequest(senderId);
                           setState(() {});
@@ -196,4 +200,4 @@ class _FriendsPageState extends State<FriendsPage> {
       },
     );
   }
-} 
+}

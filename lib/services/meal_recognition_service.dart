@@ -37,7 +37,7 @@ class MealRecognitionService {
 
       // Load TensorFlow Lite model
       await _loadModel();
-      
+
       // Load food labels
       await _loadLabels();
 
@@ -57,10 +57,15 @@ class MealRecognitionService {
       // For now, we'll use a pre-trained MobileNet model
       // In production, this would be a custom-trained food classification model
       final options = InterpreterOptions();
-      _interpreter = await Interpreter.fromAsset('models/mobilenet_v1_1.0_224.tflite', options: options);
+      _interpreter = await Interpreter.fromAsset(
+        'models/mobilenet_v1_1.0_224.tflite',
+        options: options,
+      );
       developer.log('TensorFlow Lite model loaded successfully');
     } catch (e) {
-      developer.log('Failed to load TensorFlow model, using fallback nutrition estimation: $e');
+      developer.log(
+        'Failed to load TensorFlow model, using fallback nutrition estimation: $e',
+      );
       // Fallback: We'll use OpenAI Vision API instead of local model
       _interpreter = null;
     }
@@ -69,11 +74,18 @@ class MealRecognitionService {
   /// Load food classification labels
   Future<void> _loadLabels() async {
     try {
-      final labelData = await rootBundle.loadString('assets/models/food_labels.txt');
-      _labels = labelData.split('\n').where((label) => label.isNotEmpty).toList();
+      final labelData = await rootBundle.loadString(
+        'assets/models/food_labels.txt',
+      );
+      _labels = labelData
+          .split('\n')
+          .where((label) => label.isNotEmpty)
+          .toList();
       developer.log('Loaded ${_labels?.length ?? 0} food labels');
     } catch (e) {
-      developer.log('Failed to load labels file, using default food categories: $e');
+      developer.log(
+        'Failed to load labels file, using default food categories: $e',
+      );
       _labels = _getDefaultFoodCategories();
     }
   }
@@ -81,9 +93,26 @@ class MealRecognitionService {
   /// Get default food categories if labels file is not available
   List<String> _getDefaultFoodCategories() {
     return [
-      'pizza', 'burger', 'salad', 'pasta', 'sandwich', 'soup', 'chicken',
-      'beef', 'fish', 'rice', 'bread', 'eggs', 'fruit', 'vegetables',
-      'cheese', 'yogurt', 'cereal', 'nuts', 'beans', 'pasta sauce',
+      'pizza',
+      'burger',
+      'salad',
+      'pasta',
+      'sandwich',
+      'soup',
+      'chicken',
+      'beef',
+      'fish',
+      'rice',
+      'bread',
+      'eggs',
+      'fruit',
+      'vegetables',
+      'cheese',
+      'yogurt',
+      'cereal',
+      'nuts',
+      'beans',
+      'pasta sauce',
     ];
   }
 
@@ -100,7 +129,7 @@ class MealRecognitionService {
       final imageFile = File(imagePath);
       final imageBytes = await imageFile.readAsBytes();
       final image = img.decodeImage(imageBytes);
-      
+
       if (image == null) {
         throw Exception('Failed to decode image');
       }
@@ -136,9 +165,10 @@ class MealRecognitionService {
         analysisTimestamp: DateTime.now(),
       );
 
-      developer.log('Meal analysis completed with ${detectedFoods.length} food items detected');
+      developer.log(
+        'Meal analysis completed with ${detectedFoods.length} food items detected',
+      );
       return result;
-
     } catch (e) {
       developer.log('Error analyzing meal image: $e');
       rethrow;
@@ -150,9 +180,12 @@ class MealRecognitionService {
     try {
       // Preprocess image for model input
       final input = _preprocessImage(image);
-      
+
       // Run inference
-      final output = List.filled(_labels!.length, 0.0).reshape([1, _labels!.length]);
+      final output = List.filled(
+        _labels!.length,
+        0.0,
+      ).reshape([1, _labels!.length]);
       _interpreter!.run(input, output);
 
       // Parse results
@@ -164,24 +197,30 @@ class MealRecognitionService {
       for (int i = 0; i < scores.length; i++) {
         predictions.add(MapEntry(i, scores[i]));
       }
-      
+
       predictions.sort((a, b) => b.value.compareTo(a.value));
 
       // Convert top predictions to FoodItem objects
       for (int i = 0; i < math.min(_maxDetections, predictions.length); i++) {
         final prediction = predictions[i];
-        if (prediction.value > 0.1) { // Confidence threshold
+        if (prediction.value > 0.1) {
+          // Confidence threshold
           final foodName = _labels![prediction.key];
-          final nutrition = await _estimateNutrition(foodName, 100.0); // Default 100g
-          
-          detectedFoods.add(FoodItem(
-            name: foodName,
-            category: _categorizeFoodItem(foodName),
-            confidence: prediction.value,
-            nutrition: nutrition,
-            estimatedWeight: 100.0,
-            alternativeNames: _getAlternativeNames(foodName),
-          ));
+          final nutrition = await _estimateNutrition(
+            foodName,
+            100.0,
+          ); // Default 100g
+
+          detectedFoods.add(
+            FoodItem(
+              name: foodName,
+              category: _categorizeFoodItem(foodName),
+              confidence: prediction.value,
+              nutrition: nutrition,
+              estimatedWeight: 100.0,
+              alternativeNames: _getAlternativeNames(foodName),
+            ),
+          );
         }
       }
 
@@ -242,14 +281,17 @@ Format the response as JSON with this structure:
             foodData['estimated_weight']?.toDouble() ?? 100.0,
           );
 
-          detectedFoods.add(FoodItem(
-            name: foodData['name'],
-            category: foodData['category'] ?? 'unknown',
-            confidence: foodData['confidence']?.toDouble() ?? 0.5,
-            nutrition: nutrition,
-            estimatedWeight: foodData['estimated_weight']?.toDouble() ?? 100.0,
-            alternativeNames: _getAlternativeNames(foodData['name']),
-          ));
+          detectedFoods.add(
+            FoodItem(
+              name: foodData['name'],
+              category: foodData['category'] ?? 'unknown',
+              confidence: foodData['confidence']?.toDouble() ?? 0.5,
+              nutrition: nutrition,
+              estimatedWeight:
+                  foodData['estimated_weight']?.toDouble() ?? 100.0,
+              alternativeNames: _getAlternativeNames(foodData['name']),
+            ),
+          );
         }
       }
 
@@ -264,12 +306,16 @@ Format the response as JSON with this structure:
   /// Preprocess image for TensorFlow Lite model input
   Float32List _preprocessImage(img.Image image) {
     // Resize image to model input size
-    final resized = img.copyResize(image, width: _inputSize, height: _inputSize);
-    
+    final resized = img.copyResize(
+      image,
+      width: _inputSize,
+      height: _inputSize,
+    );
+
     // Convert to Float32List and normalize
     final input = Float32List(_inputSize * _inputSize * 3);
     int pixelIndex = 0;
-    
+
     for (int y = 0; y < _inputSize; y++) {
       for (int x = 0; x < _inputSize; x++) {
         final pixel = resized.getPixel(x, y);
@@ -279,12 +325,15 @@ Format the response as JSON with this structure:
         input[pixelIndex++] = pixel.b / 255.0;
       }
     }
-    
+
     return Float32List.fromList(input);
   }
 
   /// Estimate nutrition information for a food item
-  Future<NutritionInfo> _estimateNutrition(String foodName, double weightGrams) async {
+  Future<NutritionInfo> _estimateNutrition(
+    String foodName,
+    double weightGrams,
+  ) async {
     try {
       // Try to get nutrition data from local database first
       final localNutrition = _getNutritionFromDatabase(foodName, weightGrams);
@@ -301,11 +350,19 @@ Format the response as JSON with this structure:
   }
 
   /// Get nutrition data from local food database
-  NutritionInfo? _getNutritionFromDatabase(String foodName, double weightGrams) {
+  NutritionInfo? _getNutritionFromDatabase(
+    String foodName,
+    double weightGrams,
+  ) {
     // This would integrate with a comprehensive food database like USDA FoodData Central
     // For now, return basic estimates for common foods
     final commonFoods = {
-      'chicken breast': {'calories': 165, 'protein': 31, 'carbs': 0, 'fat': 3.6},
+      'chicken breast': {
+        'calories': 165,
+        'protein': 31,
+        'carbs': 0,
+        'fat': 3.6,
+      },
       'banana': {'calories': 89, 'protein': 1.1, 'carbs': 23, 'fat': 0.3},
       'rice': {'calories': 130, 'protein': 2.7, 'carbs': 28, 'fat': 0.3},
       'broccoli': {'calories': 34, 'protein': 2.8, 'carbs': 7, 'fat': 0.4},
@@ -340,9 +397,13 @@ Format the response as JSON with this structure:
   }
 
   /// Estimate nutrition using AI
-  Future<NutritionInfo> _estimateNutritionWithAI(String foodName, double weightGrams) async {
+  Future<NutritionInfo> _estimateNutritionWithAI(
+    String foodName,
+    double weightGrams,
+  ) async {
     try {
-      final prompt = '''
+      final prompt =
+          '''
 Provide detailed nutrition information for ${weightGrams}g of $foodName.
 Return the response as JSON with this exact structure:
 {
@@ -388,8 +449,8 @@ All values should be numbers (not strings) and represent the total amount for th
     return NutritionInfo(
       calories: estimatedCalories,
       protein: estimatedCalories * 0.15 / 4, // 15% protein
-      carbs: estimatedCalories * 0.50 / 4,   // 50% carbs
-      fat: estimatedCalories * 0.35 / 9,     // 35% fat
+      carbs: estimatedCalories * 0.50 / 4, // 50% carbs
+      fat: estimatedCalories * 0.35 / 9, // 35% fat
       fiber: weightGrams * 0.02,
       sugar: weightGrams * 0.05,
       sodium: weightGrams * 0.5,
@@ -427,7 +488,10 @@ All values should be numbers (not strings) and represent the total amount for th
       fiber: totalFiber,
       sugar: totalSugar,
       sodium: totalSodium,
-      servingSize: foods.fold(0.0, (sum, food) => sum + food.nutrition.servingSize),
+      servingSize: foods.fold(
+        0.0,
+        (sum, food) => sum + food.nutrition.servingSize,
+      ),
       vitamins: {},
       minerals: {},
     );
@@ -439,7 +503,7 @@ All values should be numbers (not strings) and represent the total amount for th
 
     final categoryWeights = <String, double>{};
     for (final food in foods) {
-      categoryWeights[food.category] = 
+      categoryWeights[food.category] =
           (categoryWeights[food.category] ?? 0) + food.confidence;
     }
 
@@ -451,7 +515,7 @@ All values should be numbers (not strings) and represent the total amount for th
   /// Check for common allergens
   List<String> _checkAllergens(List<FoodItem> foods) {
     final Set<String> allergens = {};
-    
+
     final allergenMap = {
       'nuts': ['almond', 'peanut', 'walnut', 'cashew', 'pecan', 'hazelnut'],
       'dairy': ['milk', 'cheese', 'butter', 'cream', 'yogurt'],
@@ -479,37 +543,53 @@ All values should be numbers (not strings) and represent the total amount for th
   /// Calculate overall confidence score
   double _calculateOverallConfidence(List<FoodItem> foods) {
     if (foods.isEmpty) return 0.0;
-    
+
     double totalConfidence = 0;
     for (final food in foods) {
       totalConfidence += food.confidence;
     }
-    
+
     return totalConfidence / foods.length;
   }
 
   /// Categorize a food item
   String _categorizeFoodItem(String foodName) {
     final name = foodName.toLowerCase();
-    
-    if (name.contains('chicken') || name.contains('beef') || name.contains('fish') || 
-        name.contains('pork') || name.contains('egg')) {
+
+    if (name.contains('chicken') ||
+        name.contains('beef') ||
+        name.contains('fish') ||
+        name.contains('pork') ||
+        name.contains('egg')) {
       return 'protein';
-    } else if (name.contains('rice') || name.contains('bread') || name.contains('pasta') ||
-               name.contains('potato') || name.contains('cereal')) {
+    } else if (name.contains('rice') ||
+        name.contains('bread') ||
+        name.contains('pasta') ||
+        name.contains('potato') ||
+        name.contains('cereal')) {
       return 'carbohydrates';
-    } else if (name.contains('broccoli') || name.contains('spinach') || name.contains('carrot') ||
-               name.contains('lettuce') || name.contains('tomato')) {
+    } else if (name.contains('broccoli') ||
+        name.contains('spinach') ||
+        name.contains('carrot') ||
+        name.contains('lettuce') ||
+        name.contains('tomato')) {
       return 'vegetables';
-    } else if (name.contains('apple') || name.contains('banana') || name.contains('orange') ||
-               name.contains('berry') || name.contains('grape')) {
+    } else if (name.contains('apple') ||
+        name.contains('banana') ||
+        name.contains('orange') ||
+        name.contains('berry') ||
+        name.contains('grape')) {
       return 'fruits';
-    } else if (name.contains('cheese') || name.contains('milk') || name.contains('yogurt')) {
+    } else if (name.contains('cheese') ||
+        name.contains('milk') ||
+        name.contains('yogurt')) {
       return 'dairy';
-    } else if (name.contains('oil') || name.contains('butter') || name.contains('nut')) {
+    } else if (name.contains('oil') ||
+        name.contains('butter') ||
+        name.contains('nut')) {
       return 'fats';
     }
-    
+
     return 'other';
   }
 
@@ -550,36 +630,43 @@ All values should be numbers (not strings) and represent the total amount for th
   }
 
   /// Generate AI caption for a meal
-  Future<String> generateMealCaption(MealRecognitionResult result, String captionType) async {
+  Future<String> generateMealCaption(
+    MealRecognitionResult result,
+    String captionType,
+  ) async {
     try {
       final foods = result.detectedFoods.map((f) => f.name).join(', ');
       final totalCals = result.totalNutrition.calories.round();
-      
+
       String prompt;
       switch (captionType.toLowerCase()) {
         case 'witty':
-          prompt = '''
+          prompt =
+              '''
 Generate a witty, humorous caption for a meal containing: $foods
 Total calories: $totalCals
 Keep it under 100 characters and make it engaging and fun.
 ''';
           break;
         case 'motivational':
-          prompt = '''
+          prompt =
+              '''
 Generate an encouraging, motivational caption for a meal containing: $foods
 Total calories: $totalCals
 Focus on healthy eating and fitness goals. Keep it under 100 characters.
 ''';
           break;
         case 'health_tip':
-          prompt = '''
+          prompt =
+              '''
 Generate a helpful health tip based on this meal: $foods
 Total calories: $totalCals
 Provide useful nutritional or wellness advice. Keep it under 150 characters.
 ''';
           break;
         default:
-          prompt = '''
+          prompt =
+              '''
 Generate a simple, descriptive caption for this meal: $foods
 Total calories: $totalCals
 Keep it informative and under 100 characters.
@@ -595,55 +682,59 @@ Keep it informative and under 100 characters.
   }
 
   /// Generate recipe suggestions based on meal content
-  Future<List<RecipeSuggestion>> generateRecipeSuggestions(MealRecognitionResult result) async {
+  Future<List<RecipeSuggestion>> generateRecipeSuggestions(
+    MealRecognitionResult result,
+  ) async {
     try {
       final detectedFoods = result.detectedFoods.map((f) => f.name).toList();
-      
+
       // Create health context (simplified for now)
       final healthContext = HealthQueryContext(
         userId: 'current_user', // This should come from auth
         queryType: 'meal_analysis',
-        userProfile: {
-          'fitnessLevel': 'moderate',
-          'healthConditions': [],
-        },
+        userProfile: {'fitnessLevel': 'moderate', 'healthConditions': []},
         currentGoals: ['healthy_eating', 'nutrition'],
         dietaryRestrictions: [],
         recentActivity: {
-          'lastMeal': DateTime.now().subtract(Duration(hours: 3)).toIso8601String(),
+          'lastMeal': DateTime.now()
+              .subtract(Duration(hours: 3))
+              .toIso8601String(),
           'exerciseToday': false,
         },
         contextTimestamp: DateTime.now(),
       );
-      
+
       // Use enhanced RAG recipe search
       final recipeResults = await _ragService.searchRecipeSuggestions(
         detectedFoods: detectedFoods,
         healthContext: healthContext,
         maxResults: 5,
       );
-      
+
       // Generate personalized recommendations
       final recipeText = await _ragService.generateRecipeRecommendations(
         detectedFoods: detectedFoods,
         healthContext: healthContext,
         recipeResults: recipeResults,
       );
-      
+
       final suggestions = <RecipeSuggestion>[];
-      
+
       // Try to parse AI-generated suggestions first
       if (recipeText != null && recipeText.isNotEmpty) {
         final aiSuggestions = _parseAIRecipeSuggestions(recipeText, result);
         suggestions.addAll(aiSuggestions);
       }
-      
+
       // Fallback to knowledge base results if AI parsing fails
       if (suggestions.isEmpty && recipeResults.isNotEmpty) {
-        final fallbackSuggestions = _createFallbackRecipeSuggestions(recipeResults, result);
+        final fallbackSuggestions = _createFallbackRecipeSuggestions(
+          recipeResults,
+          result,
+        );
         suggestions.addAll(fallbackSuggestions);
       }
-      
+
       return suggestions.take(3).toList();
     } catch (e) {
       developer.log('Error generating recipe suggestions: $e');
@@ -652,71 +743,88 @@ Keep it informative and under 100 characters.
   }
 
   /// Parse AI-generated recipe text into structured suggestions
-  List<RecipeSuggestion> _parseAIRecipeSuggestions(String recipeText, MealRecognitionResult result) {
+  List<RecipeSuggestion> _parseAIRecipeSuggestions(
+    String recipeText,
+    MealRecognitionResult result,
+  ) {
     final suggestions = <RecipeSuggestion>[];
-    
+
     // Split by numbered items or clear breaks
     final sections = recipeText.split(RegExp(r'\d+\.|\n\n+'));
-    
+
     for (int i = 0; i < sections.length; i++) {
       final section = sections[i].trim();
-      if (section.length > 50) { // Minimum meaningful content
+      if (section.length > 50) {
+        // Minimum meaningful content
         final title = _extractRecipeTitle(section);
-        suggestions.add(RecipeSuggestion(
-          id: 'ai_recipe_${DateTime.now().millisecondsSinceEpoch}_$i',
-          title: title,
-          description: section.length > 200 ? '${section.substring(0, 200)}...' : section,
-          ingredients: result.detectedFoods.map((f) => f.name).toList(),
-          instructions: [section],
-          estimatedNutrition: result.totalNutrition,
-          prepTimeMinutes: 20,
-          cookTimeMinutes: 30,
-          servings: 4,
-          healthScore: 80.0,
-          tags: [result.primaryFoodCategory, 'healthy', 'ai_generated'],
-          source: 'AI Generated',
-        ));
+        suggestions.add(
+          RecipeSuggestion(
+            id: 'ai_recipe_${DateTime.now().millisecondsSinceEpoch}_$i',
+            title: title,
+            description: section.length > 200
+                ? '${section.substring(0, 200)}...'
+                : section,
+            ingredients: result.detectedFoods.map((f) => f.name).toList(),
+            instructions: [section],
+            estimatedNutrition: result.totalNutrition,
+            prepTimeMinutes: 20,
+            cookTimeMinutes: 30,
+            servings: 4,
+            healthScore: 80.0,
+            tags: [result.primaryFoodCategory, 'healthy', 'ai_generated'],
+            source: 'AI Generated',
+          ),
+        );
       }
     }
-    
+
     return suggestions;
   }
 
   /// Create fallback suggestions from search results
   List<RecipeSuggestion> _createFallbackRecipeSuggestions(
-    List<SearchResult> results, 
+    List<SearchResult> results,
     MealRecognitionResult mealResult,
   ) {
-    return results.map((result) => RecipeSuggestion(
-      id: 'kb_recipe_${result.document.id}',
-      title: result.document.title,
-      description: result.document.content.length > 200 
-          ? '${result.document.content.substring(0, 200)}...'
-          : result.document.content,
-      ingredients: mealResult.detectedFoods.map((f) => f.name).toList(),
-      instructions: [result.document.content],
-      estimatedNutrition: mealResult.totalNutrition,
-      prepTimeMinutes: 25,
-      cookTimeMinutes: 35,
-      servings: 4,
-      healthScore: result.document.confidenceScore * 100,
-      tags: [result.document.category, 'knowledge_base'],
-      source: result.document.source,
-    )).toList();
+    return results
+        .map(
+          (result) => RecipeSuggestion(
+            id: 'kb_recipe_${result.document.id}',
+            title: result.document.title,
+            description: result.document.content.length > 200
+                ? '${result.document.content.substring(0, 200)}...'
+                : result.document.content,
+            ingredients: mealResult.detectedFoods.map((f) => f.name).toList(),
+            instructions: [result.document.content],
+            estimatedNutrition: mealResult.totalNutrition,
+            prepTimeMinutes: 25,
+            cookTimeMinutes: 35,
+            servings: 4,
+            healthScore: result.document.confidenceScore * 100,
+            tags: [result.document.category, 'knowledge_base'],
+            source: result.document.source,
+          ),
+        )
+        .toList();
   }
 
   /// Extract recipe title from text
   String _extractRecipeTitle(String text) {
     final lines = text.split('\n');
     final firstLine = lines.first.trim();
-    
+
     // Clean up the title
     final cleaned = firstLine
         .replaceAll(RegExp(r'^\d+\.?\s*'), '') // Remove numbering
-        .replaceAll(RegExp(r'^Recipe:?\s*', caseSensitive: false), '') // Remove "Recipe:"
-        .split('.').first // Take first sentence
-        .split(':').first; // Take part before colon
-    
+        .replaceAll(
+          RegExp(r'^Recipe:?\s*', caseSensitive: false),
+          '',
+        ) // Remove "Recipe:"
+        .split('.')
+        .first // Take first sentence
+        .split(':')
+        .first; // Take part before colon
+
     return cleaned.length > 60 ? '${cleaned.substring(0, 60)}...' : cleaned;
   }
 
@@ -725,4 +833,4 @@ Keep it informative and under 100 characters.
     _interpreter?.close();
     _isInitialized = false;
   }
-} 
+}

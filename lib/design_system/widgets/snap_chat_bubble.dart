@@ -16,7 +16,7 @@ class SnapChatBubble extends StatelessWidget {
     final bubbleColor = isCurrentUser
         ? SnapUIColors.primaryYellow
         : SnapUIColors.greyLight;
-    
+
     final textColor = isCurrentUser
         ? SnapUIColors.black
         : SnapUIColors.textPrimaryLight;
@@ -45,8 +45,10 @@ class SnapChatBubble extends StatelessWidget {
       ),
       child: Text(
         message,
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: textColor),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyLarge?.copyWith(color: textColor),
       ),
     );
   }
-} 
+}

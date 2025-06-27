@@ -24,13 +24,18 @@ class FastingRouteGuard {
   };
 
   /// Check if route should be blocked during fasting
-  static bool shouldBlockRoute(String route, FastingStateProvider fastingState) {
+  static bool shouldBlockRoute(
+    String route,
+    FastingStateProvider fastingState,
+  ) {
     if (!fastingState.fastingModeEnabled || !fastingState.isActiveFasting) {
       return false;
     }
 
-    return _restrictedRoutes.any((restrictedRoute) => 
-        route.toLowerCase().contains(restrictedRoute.toLowerCase()));
+    return _restrictedRoutes.any(
+      (restrictedRoute) =>
+          route.toLowerCase().contains(restrictedRoute.toLowerCase()),
+    );
   }
 
   /// Get alternative route for blocked route
@@ -45,15 +50,16 @@ class FastingRouteGuard {
     FastingStateProvider fastingState,
   ) async {
     final alternative = getAlternativeRoute(blockedRoute);
-    
+
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => FastingRouteBlockedDialog(
-        blockedRoute: blockedRoute,
-        alternativeRoute: alternative,
-        fastingState: fastingState,
-      ),
-    ) ?? false;
+          context: context,
+          builder: (context) => FastingRouteBlockedDialog(
+            blockedRoute: blockedRoute,
+            alternativeRoute: alternative,
+            fastingState: fastingState,
+          ),
+        ) ??
+        false;
   }
 
   /// Create route-aware page wrapper
@@ -92,11 +98,7 @@ class FastingRouteBlockedDialog extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
         children: [
-          Icon(
-            Icons.shield,
-            color: fastingState.appThemeColor,
-            size: 28,
-          ),
+          Icon(Icons.shield, color: fastingState.appThemeColor, size: 28),
           SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -115,14 +117,11 @@ class FastingRouteBlockedDialog extends StatelessWidget {
         children: [
           Text(
             'This page contains content that might interfere with your fasting goals.',
-            style: TextStyle(
-              fontSize: 16,
-              height: 1.4,
-            ),
+            style: TextStyle(fontSize: 16, height: 1.4),
           ),
-          
+
           SizedBox(height: 16),
-          
+
           Container(
             padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -131,11 +130,7 @@ class FastingRouteBlockedDialog extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.timer,
-                  color: fastingState.appThemeColor,
-                  size: 20,
-                ),
+                Icon(Icons.timer, color: fastingState.appThemeColor, size: 20),
                 SizedBox(width: 8),
                 Text(
                   'Fasting: ${fastingState.elapsedTime.inHours}h ${fastingState.elapsedTime.inMinutes.remainder(60)}m',
@@ -147,15 +142,12 @@ class FastingRouteBlockedDialog extends StatelessWidget {
               ],
             ),
           ),
-          
+
           if (alternativeRoute != null) ...[
             SizedBox(height: 16),
             Text(
               'Would you like to visit a healthier alternative instead?',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[700],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
             ),
           ],
         ],
@@ -165,7 +157,7 @@ class FastingRouteBlockedDialog extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(false),
           child: Text('Stay Here'),
         ),
-        
+
         if (alternativeRoute != null)
           ElevatedButton(
             onPressed: () {
@@ -177,18 +169,15 @@ class FastingRouteBlockedDialog extends StatelessWidget {
             ),
             child: Text('Go to Alternative'),
           ),
-        
+
         ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop(false);
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              '/home',
-              (route) => false,
-            );
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/home', (route) => false);
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.grey[600],
-          ),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.grey[600]),
           child: Text('Back to Home'),
         ),
       ],
@@ -226,7 +215,8 @@ class FastingBlockedPage extends StatelessWidget {
                   confidence: 1.0,
                   category: FilterCategory.food,
                   reason: 'Page blocked to support your fasting goals',
-                  replacementContent: 'This page is temporarily unavailable during your fasting session to help you stay focused on your health goals.',
+                  replacementContent:
+                      'This page is temporarily unavailable during your fasting session to help you stay focused on your health goals.',
                 ),
                 fastingSession: fastingState.currentSession!,
                 onViewProgress: () {
@@ -237,9 +227,9 @@ class FastingBlockedPage extends StatelessWidget {
                 },
               ),
             ),
-            
+
             SizedBox(height: 20),
-            
+
             // Alternative navigation options
             _buildAlternativeOptions(context),
           ],
@@ -251,7 +241,7 @@ class FastingBlockedPage extends StatelessWidget {
   /// Build alternative navigation options
   Widget _buildAlternativeOptions(BuildContext context) {
     final alternatives = _getAlternativePages();
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -263,16 +253,18 @@ class FastingBlockedPage extends StatelessWidget {
             color: fastingState.appThemeColor,
           ),
         ),
-        
+
         SizedBox(height: 12),
-        
-        ...alternatives.map((alternative) => _buildAlternativeTile(
-          context,
-          alternative['title'],
-          alternative['subtitle'],
-          alternative['icon'],
-          alternative['route'],
-        )),
+
+        ...alternatives.map(
+          (alternative) => _buildAlternativeTile(
+            context,
+            alternative['title'],
+            alternative['subtitle'],
+            alternative['icon'],
+            alternative['route'],
+          ),
+        ),
       ],
     );
   }
@@ -295,7 +287,7 @@ class FastingBlockedPage extends StatelessWidget {
             'route': '/meditation-guide',
           },
         ];
-        
+
       case '/restaurant-finder':
         return [
           {
@@ -311,7 +303,7 @@ class FastingBlockedPage extends StatelessWidget {
             'route': '/health-communities',
           },
         ];
-        
+
       default:
         return [
           {
@@ -343,15 +335,9 @@ class FastingBlockedPage extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: fastingState.appThemeColor.withValues(alpha: 0.1),
-          child: Icon(
-            icon,
-            color: fastingState.appThemeColor,
-          ),
+          child: Icon(icon, color: fastingState.appThemeColor),
         ),
-        title: Text(
-          title,
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
+        title: Text(title, style: TextStyle(fontWeight: FontWeight.w500)),
         subtitle: Text(subtitle),
         trailing: Icon(
           Icons.arrow_forward_ios,
@@ -390,31 +376,30 @@ class FastingBlockedPage extends StatelessWidget {
                   color: fastingState.appThemeColor,
                 ),
               ),
-              
+
               SizedBox(height: 8),
-              
+
               Text(
                 'Stay focused on your fasting goals with these alternatives:',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
-              
+
               SizedBox(height: 20),
-              
+
               Expanded(
                 child: ListView(
                   controller: scrollController,
-                  children: _getAlternativePages().map((alternative) =>
-                    _buildAlternativeTile(
-                      context,
-                      alternative['title'],
-                      alternative['subtitle'],
-                      alternative['icon'],
-                      alternative['route'],
-                    ),
-                  ).toList(),
+                  children: _getAlternativePages()
+                      .map(
+                        (alternative) => _buildAlternativeTile(
+                          context,
+                          alternative['title'],
+                          alternative['subtitle'],
+                          alternative['icon'],
+                          alternative['route'],
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ],
@@ -423,4 +408,4 @@ class FastingBlockedPage extends StatelessWidget {
       ),
     );
   }
-} 
+}

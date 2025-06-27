@@ -1,11 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum PrivacyLevel {
-  public,
-  friends,
-  private,
-  anonymous,
-}
+enum PrivacyLevel { public, friends, private, anonymous }
 
 enum DataCategory {
   personalInfo,
@@ -20,12 +15,7 @@ enum DataCategory {
   analyticsData,
 }
 
-enum SharingPermission {
-  read,
-  write,
-  delete,
-  share,
-}
+enum SharingPermission { read, write, delete, share }
 
 enum IntegrationPermission {
   dataRead,
@@ -143,38 +133,60 @@ class PrivacySettings {
 
   factory PrivacySettings.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return PrivacySettings(
       userId: data['userId'] ?? '',
-      dataPrivacyLevels: (data['dataPrivacyLevels'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(
-                DataCategory.values.firstWhere((e) => e.name == key),
-                PrivacyLevel.values.firstWhere((e) => e.name == value),
-              )) ?? {},
-      dataAccessWhitelist: (data['dataAccessWhitelist'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(
-                DataCategory.values.firstWhere((e) => e.name == key),
-                List<String>.from(value),
-              )) ?? {},
-      dataAccessBlacklist: (data['dataAccessBlacklist'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(
-                DataCategory.values.firstWhere((e) => e.name == key),
-                List<String>.from(value),
-              )) ?? {},
-      friendPermissions: (data['friendPermissions'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(
-                key,
-                (value as List).map((p) => 
-                  SharingPermission.values.firstWhere((e) => e.name == p)
-                ).toList(),
-              )) ?? {},
-      integrationPermissions: (data['integrationPermissions'] as Map<String, dynamic>?)
-          ?.map((key, value) => MapEntry(
-                key,
-                (value as List).map((p) => 
-                  IntegrationPermission.values.firstWhere((e) => e.name == p)
-                ).toList(),
-              )) ?? {},
+      dataPrivacyLevels:
+          (data['dataPrivacyLevels'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(
+              DataCategory.values.firstWhere((e) => e.name == key),
+              PrivacyLevel.values.firstWhere((e) => e.name == value),
+            ),
+          ) ??
+          {},
+      dataAccessWhitelist:
+          (data['dataAccessWhitelist'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(
+              DataCategory.values.firstWhere((e) => e.name == key),
+              List<String>.from(value),
+            ),
+          ) ??
+          {},
+      dataAccessBlacklist:
+          (data['dataAccessBlacklist'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(
+              DataCategory.values.firstWhere((e) => e.name == key),
+              List<String>.from(value),
+            ),
+          ) ??
+          {},
+      friendPermissions:
+          (data['friendPermissions'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(
+              key,
+              (value as List)
+                  .map(
+                    (p) =>
+                        SharingPermission.values.firstWhere((e) => e.name == p),
+                  )
+                  .toList(),
+            ),
+          ) ??
+          {},
+      integrationPermissions:
+          (data['integrationPermissions'] as Map<String, dynamic>?)?.map(
+            (key, value) => MapEntry(
+              key,
+              (value as List)
+                  .map(
+                    (p) => IntegrationPermission.values.firstWhere(
+                      (e) => e.name == p,
+                    ),
+                  )
+                  .toList(),
+            ),
+          ) ??
+          {},
       allowDataCollection: data['allowDataCollection'] ?? true,
       allowAnalytics: data['allowAnalytics'] ?? false,
       allowPersonalization: data['allowPersonalization'] ?? true,
@@ -184,7 +196,8 @@ class PrivacySettings {
       allowDataDeletion: data['allowDataDeletion'] ?? true,
       requireExplicitConsent: data['requireExplicitConsent'] ?? true,
       consentHistory: data['consentHistory'] ?? {},
-      lastUpdated: (data['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      lastUpdated:
+          (data['lastUpdated'] as Timestamp?)?.toDate() ?? DateTime.now(),
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
     );
   }
@@ -214,15 +227,18 @@ class PrivacySettings {
       dataAccessWhitelist: dataAccessWhitelist ?? this.dataAccessWhitelist,
       dataAccessBlacklist: dataAccessBlacklist ?? this.dataAccessBlacklist,
       friendPermissions: friendPermissions ?? this.friendPermissions,
-      integrationPermissions: integrationPermissions ?? this.integrationPermissions,
+      integrationPermissions:
+          integrationPermissions ?? this.integrationPermissions,
       allowDataCollection: allowDataCollection ?? this.allowDataCollection,
       allowAnalytics: allowAnalytics ?? this.allowAnalytics,
       allowPersonalization: allowPersonalization ?? this.allowPersonalization,
       allowMarketing: allowMarketing ?? this.allowMarketing,
-      allowThirdPartySharing: allowThirdPartySharing ?? this.allowThirdPartySharing,
+      allowThirdPartySharing:
+          allowThirdPartySharing ?? this.allowThirdPartySharing,
       allowDataExport: allowDataExport ?? this.allowDataExport,
       allowDataDeletion: allowDataDeletion ?? this.allowDataDeletion,
-      requireExplicitConsent: requireExplicitConsent ?? this.requireExplicitConsent,
+      requireExplicitConsent:
+          requireExplicitConsent ?? this.requireExplicitConsent,
       consentHistory: consentHistory ?? this.consentHistory,
       lastUpdated: lastUpdated ?? DateTime.now(),
       createdAt: createdAt ?? this.createdAt,
@@ -232,7 +248,7 @@ class PrivacySettings {
   /// Check if a user has permission to access specific data
   bool hasAccessPermission(String requestingUserId, DataCategory category) {
     final privacyLevel = dataPrivacyLevels[category] ?? PrivacyLevel.private;
-    
+
     switch (privacyLevel) {
       case PrivacyLevel.public:
         return true;
@@ -252,7 +268,10 @@ class PrivacySettings {
   }
 
   /// Check if an integration has specific permission
-  bool hasIntegrationPermission(String integrationId, IntegrationPermission permission) {
+  bool hasIntegrationPermission(
+    String integrationId,
+    IntegrationPermission permission,
+  ) {
     final permissions = integrationPermissions[integrationId] ?? [];
     return permissions.contains(permission);
   }
@@ -275,22 +294,25 @@ class PrivacySettings {
   }
 
   /// Get effective privacy level considering whitelist/blacklist
-  PrivacyLevel getEffectivePrivacyLevel(String requestingUserId, DataCategory category) {
+  PrivacyLevel getEffectivePrivacyLevel(
+    String requestingUserId,
+    DataCategory category,
+  ) {
     if (isBlacklisted(requestingUserId, category)) {
       return PrivacyLevel.private;
     }
-    
+
     if (isWhitelisted(requestingUserId, category)) {
       return PrivacyLevel.public;
     }
-    
+
     return getPrivacyLevel(category);
   }
 
   /// Check if user requires explicit consent for data operations
   bool requiresExplicitConsent(DataCategory category) {
-    return requireExplicitConsent && 
-           (category == DataCategory.personalInfo || 
+    return requireExplicitConsent &&
+        (category == DataCategory.personalInfo ||
             category == DataCategory.healthMetrics ||
             category == DataCategory.locationData);
   }
@@ -334,24 +356,25 @@ class PrivacySettings {
 
   /// Check if privacy settings are compliant with regulations
   bool isGDPRCompliant() {
-    return allowDataDeletion && 
-           allowDataExport && 
-           requireExplicitConsent &&
-           !allowThirdPartySharing;
+    return allowDataDeletion &&
+        allowDataExport &&
+        requireExplicitConsent &&
+        !allowThirdPartySharing;
   }
 
   /// Check if privacy settings are compliant with HIPAA
   bool isHIPAACompliant() {
-    return dataPrivacyLevels[DataCategory.healthMetrics] == PrivacyLevel.private &&
-           dataPrivacyLevels[DataCategory.personalInfo] == PrivacyLevel.private &&
-           !allowThirdPartySharing &&
-           requireExplicitConsent;
+    return dataPrivacyLevels[DataCategory.healthMetrics] ==
+            PrivacyLevel.private &&
+        dataPrivacyLevels[DataCategory.personalInfo] == PrivacyLevel.private &&
+        !allowThirdPartySharing &&
+        requireExplicitConsent;
   }
 
   /// Get privacy score (0-100, higher is more private)
   int getPrivacyScore() {
     int score = 0;
-    
+
     // Base score for privacy levels
     for (final level in dataPrivacyLevels.values) {
       switch (level) {
@@ -369,14 +392,14 @@ class PrivacySettings {
           break;
       }
     }
-    
+
     // Bonus for restrictive settings
     if (!allowDataCollection) score += 10;
     if (!allowAnalytics) score += 10;
     if (!allowMarketing) score += 10;
     if (!allowThirdPartySharing) score += 15;
     if (requireExplicitConsent) score += 10;
-    
+
     return (score / (dataPrivacyLevels.length + 5) * 10).round().clamp(0, 100);
   }
 
@@ -419,11 +442,13 @@ class ConsentRecord {
 
   factory ConsentRecord.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return ConsentRecord(
       userId: data['userId'] ?? '',
       operation: data['operation'] ?? '',
-      category: DataCategory.values.firstWhere((e) => e.name == data['category']),
+      category: DataCategory.values.firstWhere(
+        (e) => e.name == data['category'],
+      ),
       granted: data['granted'] ?? false,
       timestamp: (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       reason: data['reason'],

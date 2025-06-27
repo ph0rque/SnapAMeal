@@ -35,7 +35,7 @@ class DemoTooltip extends StatelessWidget {
         },
       );
     }
-    
+
     return _buildTooltip(context);
   }
 
@@ -97,7 +97,7 @@ class RichDemoTooltip extends StatelessWidget {
         },
       );
     }
-    
+
     return _buildRichTooltip(context);
   }
 
@@ -140,7 +140,10 @@ class RichDemoTooltip extends StatelessWidget {
             Expanded(
               child: Text(
                 title,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -152,25 +155,24 @@ class RichDemoTooltip extends StatelessWidget {
             Text(description),
             if (bulletPoints != null && bulletPoints!.isNotEmpty) ...[
               const SizedBox(height: 16),
-              ...bulletPoints!.map((point) => Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('• '),
-                    Expanded(child: Text(point)),
-                  ],
+              ...bulletPoints!.map(
+                (point) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('• '),
+                      Expanded(child: Text(point)),
+                    ],
+                  ),
                 ),
-              )),
+              ),
             ],
           ],
         ),
         actions: [
           if (onLearnMore != null)
-            TextButton(
-              onPressed: onLearnMore,
-              child: const Text('Learn More'),
-            ),
+            TextButton(onPressed: onLearnMore, child: const Text('Learn More')),
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Got it'),
@@ -187,7 +189,8 @@ class SnapAMealTooltips {
   static Widget ragInsights({required Widget child}) {
     return RichDemoTooltip(
       title: 'RAG-Powered AI Insights',
-      description: 'Our AI uses Retrieval-Augmented Generation to provide personalized health advice based on your unique profile and the latest research.',
+      description:
+          'Our AI uses Retrieval-Augmented Generation to provide personalized health advice based on your unique profile and the latest research.',
       icon: Icons.psychology_outlined,
       bulletPoints: [
         'Combines your personal data with scientific research',
@@ -203,7 +206,8 @@ class SnapAMealTooltips {
   static Widget storyPermanence({required Widget child}) {
     return RichDemoTooltip(
       title: 'Logarithmic Story Permanence',
-      description: 'Stories become more permanent based on engagement. Popular content stays visible longer, creating a natural curation system.',
+      description:
+          'Stories become more permanent based on engagement. Popular content stays visible longer, creating a natural curation system.',
       icon: Icons.auto_stories_outlined,
       bulletPoints: [
         'High engagement = longer visibility',
@@ -219,7 +223,8 @@ class SnapAMealTooltips {
   static Widget arFiltering({required Widget child}) {
     return RichDemoTooltip(
       title: 'AR Content Filtering',
-      description: 'Advanced AR filters help you stay focused during fasting by filtering out food-related content in your camera view.',
+      description:
+          'Advanced AR filters help you stay focused during fasting by filtering out food-related content in your camera view.',
       icon: Icons.filter_alt_outlined,
       bulletPoints: [
         'Real-time food detection and blurring',
@@ -235,7 +240,8 @@ class SnapAMealTooltips {
   static Widget mealRecognition({required Widget child}) {
     return RichDemoTooltip(
       title: 'AI Meal Recognition',
-      description: 'Advanced computer vision instantly identifies your food, calculates nutrition, and logs your meals automatically.',
+      description:
+          'Advanced computer vision instantly identifies your food, calculates nutrition, and logs your meals automatically.',
       icon: Icons.camera_alt_outlined,
       bulletPoints: [
         'Identifies 1000+ food items instantly',
@@ -251,7 +257,8 @@ class SnapAMealTooltips {
   static Widget socialMatching({required Widget child}) {
     return RichDemoTooltip(
       title: 'AI-Powered Friend Matching',
-      description: 'Our AI suggests friends with complementary health goals and similar journeys to enhance your social experience.',
+      description:
+          'Our AI suggests friends with complementary health goals and similar journeys to enhance your social experience.',
       icon: Icons.people_outline,
       bulletPoints: [
         'Matches based on health goals and preferences',
@@ -267,7 +274,8 @@ class SnapAMealTooltips {
   static Widget fastingIntelligence({required Widget child}) {
     return RichDemoTooltip(
       title: 'Intelligent Fasting Timer',
-      description: 'Smart fasting timer that adapts to your schedule, predicts optimal windows, and provides personalized insights.',
+      description:
+          'Smart fasting timer that adapts to your schedule, predicts optimal windows, and provides personalized insights.',
       icon: Icons.timer_outlined,
       bulletPoints: [
         'Learns your optimal fasting patterns',
@@ -283,7 +291,8 @@ class SnapAMealTooltips {
   static Widget dashboardInsights({required Widget child}) {
     return RichDemoTooltip(
       title: 'Comprehensive Health Dashboard',
-      description: 'Your personalized health command center with AI-driven insights, trend analysis, and predictive recommendations.',
+      description:
+          'Your personalized health command center with AI-driven insights, trend analysis, and predictive recommendations.',
       icon: Icons.dashboard_outlined,
       bulletPoints: [
         'Real-time health metric tracking',
@@ -301,11 +310,7 @@ class SnapAMealTooltips {
     required String message,
     IconData? icon,
   }) {
-    return DemoTooltip(
-      message: message,
-      icon: icon,
-      child: child,
-    );
+    return DemoTooltip(message: message, icon: icon, child: child);
   }
 }
 
@@ -313,11 +318,7 @@ class SnapAMealTooltips {
 extension DemoTooltipExtension on Widget {
   /// Wraps widget with a simple demo tooltip
   Widget withDemoTooltip(String message, {IconData? icon}) {
-    return SnapAMealTooltips.simple(
-      message: message,
-      icon: icon,
-      child: this,
-    );
+    return SnapAMealTooltips.simple(message: message, icon: icon, child: this);
   }
 
   /// Wraps widget with RAG insights tooltip
@@ -354,4 +355,4 @@ extension DemoTooltipExtension on Widget {
   Widget withDashboardTooltip() {
     return SnapAMealTooltips.dashboardInsights(child: this);
   }
-} 
+}

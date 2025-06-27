@@ -27,7 +27,7 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
     with TickerProviderStateMixin {
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
-  
+
   @override
   void initState() {
     super.initState();
@@ -35,15 +35,12 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
       duration: Duration(milliseconds: 300),
       vsync: this,
     );
-    
-    _slideAnimation = Tween<Offset>(
-      begin: Offset(0, 1),
-      end: Offset(0, 0),
-    ).animate(CurvedAnimation(
-      parent: _slideController,
-      curve: Curves.easeOutCubic,
-    ));
-    
+
+    _slideAnimation = Tween<Offset>(begin: Offset(0, 1), end: Offset(0, 0))
+        .animate(
+          CurvedAnimation(parent: _slideController, curve: Curves.easeOutCubic),
+        );
+
     if (widget.isVisible) {
       _slideController.forward();
     }
@@ -73,8 +70,10 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
       return SizedBox.shrink();
     }
 
-    final availableFilters = widget.arFilterService.getAvailableFilters(widget.fastingSession);
-    
+    final availableFilters = widget.arFilterService.getAvailableFilters(
+      widget.fastingSession,
+    );
+
     if (availableFilters.isEmpty) {
       return SizedBox.shrink();
     }
@@ -99,11 +98,7 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.auto_awesome,
-                    color: Colors.white,
-                    size: 20,
-                  ),
+                  Icon(Icons.auto_awesome, color: Colors.white, size: 20),
                   SizedBox(width: 8),
                   Text(
                     'Motivational Filters',
@@ -116,9 +111,13 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
                   Spacer(),
                   if (widget.selectedFilter != null)
                     GestureDetector(
-                      onTap: () => widget.onFilterSelected(widget.selectedFilter!),
+                      onTap: () =>
+                          widget.onFilterSelected(widget.selectedFilter!),
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.red.withValues(alpha: 0.8),
                           borderRadius: BorderRadius.circular(12),
@@ -144,7 +143,7 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
                 itemBuilder: (context, index) {
                   final filter = availableFilters[index];
                   final isSelected = widget.selectedFilter == filter.type;
-                  
+
                   return _buildFilterItem(filter, isSelected);
                 },
               ),
@@ -165,7 +164,9 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-                          color: isSelected ? filter.primaryColor : Colors.white.withValues(alpha: 0.3),
+            color: isSelected
+                ? filter.primaryColor
+                : Colors.white.withValues(alpha: 0.3),
             width: isSelected ? 3 : 1,
           ),
           gradient: isSelected
@@ -176,10 +177,10 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
                   ],
                 )
               : LinearGradient(
-                              colors: [
-              Colors.grey.withValues(alpha: 0.3),
-              Colors.grey.withValues(alpha: 0.2),
-            ],
+                  colors: [
+                    Colors.grey.withValues(alpha: 0.3),
+                    Colors.grey.withValues(alpha: 0.2),
+                  ],
                 ),
           boxShadow: isSelected
               ? [
@@ -196,7 +197,9 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
           children: [
             Icon(
               _getFilterIcon(filter.type),
-              color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
+              color: isSelected
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.7),
               size: isSelected ? 28 : 24,
             ),
             SizedBox(height: 4),
@@ -204,7 +207,9 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
               child: Text(
                 filter.name.split(' ').first, // Show first word only
                 style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.7),
+                  color: isSelected
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.7),
                   fontSize: 10,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -287,29 +292,29 @@ class _ARFilterOverlayWidgetState extends State<ARFilterOverlayWidget> {
   /// Get position for different types of overlays
   Offset _getOverlayPosition(FastingARFilterType type) {
     final size = widget.screenSize;
-    
+
     switch (type) {
       case FastingARFilterType.motivationalText:
         return Offset(size.width * 0.1, size.height * 0.15);
-        
+
       case FastingARFilterType.progressRing:
         return Offset(size.width * 0.5 - 75, size.height * 0.3);
-        
+
       case FastingARFilterType.achievement:
         return Offset(size.width * 0.5 - 100, size.height * 0.4);
-        
+
       case FastingARFilterType.strengthAura:
         return Offset(size.width * 0.5 - 150, size.height * 0.35);
-        
+
       case FastingARFilterType.timeCounter:
         return Offset(size.width * 0.5 - 50, size.height * 0.1);
-        
+
       case FastingARFilterType.willpowerBoost:
         return Offset(size.width * 0.5 - 75, size.height * 0.45);
-        
+
       case FastingARFilterType.zenMode:
         return Offset(size.width * 0.5 - 125, size.height * 0.4);
-        
+
       case FastingARFilterType.challengeMode:
         return Offset(size.width * 0.5 - 150, size.height * 0.3);
     }
@@ -345,15 +350,11 @@ class _FastingProgressOverlayState extends State<FastingProgressOverlay>
       duration: Duration(seconds: 2),
       vsync: this,
     );
-    
-    _pulseAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.2,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-    
+
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
     _pulseController.repeat(reverse: true);
   }
 
@@ -469,7 +470,7 @@ class ProgressArcPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 5;
-    
+
     if (progress > 0) {
       final progressPaint = Paint()
         ..shader = SweepGradient(
@@ -479,7 +480,7 @@ class ProgressArcPainter extends CustomPainter {
         ..strokeWidth = 4.0
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round;
-      
+
       final sweepAngle = 2 * 3.14159 * progress;
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
@@ -494,7 +495,7 @@ class ProgressArcPainter extends CustomPainter {
   @override
   bool shouldRepaint(ProgressArcPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-           oldDelegate.primaryColor != primaryColor ||
-           oldDelegate.accentColor != accentColor;
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.accentColor != accentColor;
   }
 }

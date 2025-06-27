@@ -1,18 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/logger.dart';
 import 'demo_data_service.dart';
 import 'demo_reset_service.dart';
 
 /// Service for managing demo accounts with automated cleanup and maintenance
 class DemoAccountManagementService {
-  static final DemoAccountManagementService _instance = DemoAccountManagementService._internal();
+  static final DemoAccountManagementService _instance =
+      DemoAccountManagementService._internal();
   factory DemoAccountManagementService() => _instance;
   DemoAccountManagementService._internal();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
+
   // Demo account configurations - must match DemoPersonas emails
   static const Map<String, Map<String, dynamic>> demoAccounts = {
     'alice.demo@snapameal.com': {
@@ -23,7 +25,7 @@ class DemoAccountManagementService {
       'autoResetInterval': Duration(days: 7),
     },
     'bob.demo@snapameal.com': {
-      'uid': 'demo_bob_uid', 
+      'uid': 'demo_bob_uid',
       'displayName': 'Bob',
       'role': 'health_coach',
       'maxSessionDuration': Duration(hours: 6),
@@ -42,7 +44,7 @@ class DemoAccountManagementService {
   Future<bool> isCurrentUserDemo() async {
     final user = _auth.currentUser;
     if (user == null) return false;
-    
+
     return demoAccounts.containsKey(user.email);
   }
 
@@ -50,7 +52,7 @@ class DemoAccountManagementService {
   Future<Map<String, dynamic>?> getCurrentDemoAccountConfig() async {
     final user = _auth.currentUser;
     if (user == null || user.email == null) return null;
-    
+
     return demoAccounts[user.email!];
   }
 
@@ -84,9 +86,10 @@ class DemoAccountManagementService {
 
       if (sessionDoc.exists) {
         final sessionData = sessionDoc.data()!;
-        final sessionStart = (sessionData['sessionStart'] as Timestamp).toDate();
+        final sessionStart = (sessionData['sessionStart'] as Timestamp)
+            .toDate();
         final maxDuration = config['maxSessionDuration'] as Duration;
-        
+
         if (DateTime.now().difference(sessionStart) > maxDuration) {
           // Session expired, trigger cleanup
           await _performSessionCleanup(userId);
@@ -108,9 +111,10 @@ class DemoAccountManagementService {
           .get();
 
       if (lastResetDoc.docs.isNotEmpty) {
-        final lastReset = (lastResetDoc.docs.first.data()['resetTime'] as Timestamp).toDate();
+        final lastReset =
+            (lastResetDoc.docs.first.data()['resetTime'] as Timestamp).toDate();
         final autoResetInterval = config['autoResetInterval'] as Duration;
-        
+
         if (DateTime.now().difference(lastReset) > autoResetInterval) {
           return DemoAccountStatus(
             isValid: true,
@@ -126,7 +130,6 @@ class DemoAccountManagementService {
         status: 'active',
         message: 'Demo account active and valid',
       );
-
     } catch (e) {
       return DemoAccountStatus(
         isValid: false,
@@ -143,23 +146,17 @@ class DemoAccountManagementService {
       await DemoResetService.resetCurrentUserDemoData();
 
       // Clear session data
-      await _firestore
-          .collection('demo_session_data')
-          .doc(userId)
-          .delete();
+      await _firestore.collection('demo_session_data').doc(userId).delete();
 
       // Log cleanup operation
-      await _firestore
-          .collection('demo_reset_history')
-          .add({
+      await _firestore.collection('demo_reset_history').add({
         'userId': userId,
         'resetType': 'automated_cleanup',
         'resetTime': FieldValue.serverTimestamp(),
         'reason': 'session_expired',
       });
-
     } catch (e) {
-      debugPrint('Error performing session cleanup: $e');
+      Logger.d('Error performing session cleanup: $e');
     }
   }
 
@@ -173,10 +170,7 @@ class DemoAccountManagementService {
       if (config == null) return;
 
       // Create session data
-      await _firestore
-          .collection('demo_session_data')
-          .doc(userId)
-          .set({
+      await _firestore.collection('demo_session_data').doc(userId).set({
         'userId': userId,
         'email': user.email,
         'displayName': config['displayName'],
@@ -189,59 +183,55 @@ class DemoAccountManagementService {
 
       // Ensure demo data exists
       final hasData = await DemoDataService.hasDemoData(userId);
-      
+
       if (!hasData) {
         await DemoDataService.seedPersonaData(userId, user.email!);
       }
-
     } catch (e) {
-      debugPrint('Error initializing demo session: $e');
+      Logger.d('Error initializing demo session: $e');
     }
   }
 
   /// Update session activity timestamp
   Future<void> updateSessionActivity(String userId) async {
     try {
-      await _firestore
-          .collection('demo_session_data')
-          .doc(userId)
-          .update({
+      await _firestore.collection('demo_session_data').doc(userId).update({
         'lastActivity': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      debugPrint('Error updating session activity: $e');
+      Logger.d('Error updating session activity: $e');
     }
   }
 
   /// Get session statistics for all demo accounts
   Future<List<DemoSessionStats>> getAllSessionStats() async {
     try {
-      final sessions = await _firestore
-          .collection('demo_session_data')
-          .get();
+      final sessions = await _firestore.collection('demo_session_data').get();
 
       List<DemoSessionStats> stats = [];
-      
+
       for (final doc in sessions.docs) {
         final data = doc.data();
         final sessionStart = (data['sessionStart'] as Timestamp).toDate();
         final lastActivity = (data['lastActivity'] as Timestamp).toDate();
-        
-        stats.add(DemoSessionStats(
-          userId: data['userId'],
-          email: data['email'],
-          displayName: data['displayName'],
-          role: data['role'],
-          sessionStart: sessionStart,
-          lastActivity: lastActivity,
-          sessionDuration: DateTime.now().difference(sessionStart),
-          isActive: data['isActive'] ?? false,
-        ));
+
+        stats.add(
+          DemoSessionStats(
+            userId: data['userId'],
+            email: data['email'],
+            displayName: data['displayName'],
+            role: data['role'],
+            sessionStart: sessionStart,
+            lastActivity: lastActivity,
+            sessionDuration: DateTime.now().difference(sessionStart),
+            isActive: data['isActive'] ?? false,
+          ),
+        );
       }
 
       return stats;
     } catch (e) {
-      debugPrint('Error getting session stats: $e');
+      Logger.d('Error getting session stats: $e');
       return [];
     }
   }
@@ -249,20 +239,24 @@ class DemoAccountManagementService {
   /// Cleanup inactive demo sessions
   Future<void> cleanupInactiveSessions() async {
     try {
-      final inactiveThreshold = DateTime.now().subtract(const Duration(hours: 24));
-      
+      final inactiveThreshold = DateTime.now().subtract(
+        const Duration(hours: 24),
+      );
+
       final inactiveSessions = await _firestore
           .collection('demo_session_data')
-          .where('lastActivity', isLessThan: Timestamp.fromDate(inactiveThreshold))
+          .where(
+            'lastActivity',
+            isLessThan: Timestamp.fromDate(inactiveThreshold),
+          )
           .get();
 
       for (final doc in inactiveSessions.docs) {
         final userId = doc.data()['userId'];
         await _performSessionCleanup(userId);
       }
-
     } catch (e) {
-      debugPrint('Error cleaning up inactive sessions: $e');
+      Logger.d('Error cleaning up inactive sessions: $e');
     }
   }
 
@@ -271,29 +265,23 @@ class DemoAccountManagementService {
     try {
       for (final email in demoAccounts.keys) {
         final uid = demoAccounts[email]!['uid'];
-        
+
         // Reset demo data for each account
         await DemoResetService.resetAllDemoData();
-        
+
         // Clear session data
-        await _firestore
-            .collection('demo_session_data')
-            .doc(uid)
-            .delete();
-        
+        await _firestore.collection('demo_session_data').doc(uid).delete();
+
         // Log reset operation
-        await _firestore
-            .collection('demo_reset_history')
-            .add({
+        await _firestore.collection('demo_reset_history').add({
           'userId': uid,
           'resetType': 'admin_reset_all',
           'resetTime': FieldValue.serverTimestamp(),
           'reason': 'admin_initiated',
         });
       }
-
     } catch (e) {
-      debugPrint('Error resetting all demo accounts: $e');
+      Logger.d('Error resetting all demo accounts: $e');
     }
   }
 
@@ -302,7 +290,7 @@ class DemoAccountManagementService {
     try {
       // Get session stats
       final sessions = await getAllSessionStats();
-      
+
       // Get reset history
       final resetHistory = await _firestore
           .collection('demo_reset_history')
@@ -313,18 +301,21 @@ class DemoAccountManagementService {
       // Calculate metrics
       final totalSessions = sessions.length;
       final activeSessions = sessions.where((s) => s.isActive).length;
-      final avgSessionDuration = sessions.isEmpty ? Duration.zero :
-          Duration(milliseconds: sessions
-              .map((s) => s.sessionDuration.inMilliseconds)
-              .reduce((a, b) => a + b) ~/ sessions.length);
+      final avgSessionDuration = sessions.isEmpty
+          ? Duration.zero
+          : Duration(
+              milliseconds:
+                  sessions
+                      .map((s) => s.sessionDuration.inMilliseconds)
+                      .reduce((a, b) => a + b) ~/
+                  sessions.length,
+            );
 
       final totalResets = resetHistory.docs.length;
-      final recentResets = resetHistory.docs
-          .where((doc) {
-            final resetTime = (doc.data()['resetTime'] as Timestamp).toDate();
-            return DateTime.now().difference(resetTime).inDays <= 7;
-          })
-          .length;
+      final recentResets = resetHistory.docs.where((doc) {
+        final resetTime = (doc.data()['resetTime'] as Timestamp).toDate();
+        return DateTime.now().difference(resetTime).inDays <= 7;
+      }).length;
 
       return DemoUsageAnalytics(
         totalSessions: totalSessions,
@@ -334,9 +325,8 @@ class DemoAccountManagementService {
         recentResets: recentResets,
         lastUpdated: DateTime.now(),
       );
-
     } catch (e) {
-      debugPrint('Error getting usage analytics: $e');
+      Logger.d('Error getting usage analytics: $e');
       return DemoUsageAnalytics(
         totalSessions: 0,
         activeSessions: 0,
@@ -408,4 +398,4 @@ class DemoUsageAnalytics {
     required this.recentResets,
     required this.lastUpdated,
   });
-} 
+}

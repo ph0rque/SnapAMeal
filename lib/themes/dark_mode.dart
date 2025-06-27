@@ -30,7 +30,9 @@ ThemeData darkMode = ThemeData(
     fillColor: SnapUIColors.secondaryDark,
     enabledBorder: OutlineInputBorder(
       borderSide: const BorderSide(color: SnapUIColors.greyDark),
-      borderRadius: BorderRadius.circular(12), // More rounded for modern health app feel
+      borderRadius: BorderRadius.circular(
+        12,
+      ), // More rounded for modern health app feel
     ),
     focusedBorder: OutlineInputBorder(
       borderSide: const BorderSide(color: SnapUIColors.accentGreen, width: 2),
@@ -41,9 +43,7 @@ ThemeData darkMode = ThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: SnapUIColors.accentGreen,
       foregroundColor: SnapUIColors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
     ),
   ),
@@ -58,4 +58,4 @@ ThemeData darkMode = ThemeData(
     backgroundColor: SnapUIColors.accentGreen,
     foregroundColor: SnapUIColors.white,
   ),
-); 
+);

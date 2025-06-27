@@ -1,28 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Represents the current state of a fasting session
-enum FastingState {
-  notStarted,
-  active,
-  paused,
-  completed,
-  broken,
-}
+enum FastingState { notStarted, active, paused, completed, broken }
 
 /// Represents different types of fasting protocols
 enum FastingType {
-  intermittent16_8,    // 16:8 - 16 hours fasting, 8 hours eating
-  intermittent18_6,    // 18:6 - 18 hours fasting, 6 hours eating
-  intermittent20_4,    // 20:4 - 20 hours fasting, 4 hours eating
-  omad,                // One Meal A Day - 23:1
-  alternate,           // Alternate Day Fasting
-  extended24,          // 24-hour fast
-  extended36,          // 36-hour fast
-  extended48,          // 48-hour fast
+  intermittent16_8, // 16:8 - 16 hours fasting, 8 hours eating
+  intermittent18_6, // 18:6 - 18 hours fasting, 6 hours eating
+  intermittent20_4, // 20:4 - 20 hours fasting, 4 hours eating
+  omad, // One Meal A Day - 23:1
+  alternate, // Alternate Day Fasting
+  extended24, // 24-hour fast
+  extended36, // 36-hour fast
+  extended48, // 48-hour fast
   // Additional types referenced in dashboard
-  sixteenEight,        // Alias for 16:8
-  twentyFourHour,      // Alias for 24-hour
-  custom,              // User-defined duration
+  sixteenEight, // Alias for 16:8
+  twentyFourHour, // Alias for 24-hour
+  custom, // User-defined duration
 }
 
 /// Extension to add duration getter to FastingType
@@ -55,19 +49,19 @@ extension FastingTypeDuration on FastingType {
 
 /// Represents how a fasting session was ended
 enum FastingEndReason {
-  completed,           // Successfully completed the planned duration
-  userBreak,          // User intentionally broke the fast
-  emergencyBreak,     // Emergency situation required breaking
-  appError,           // Technical issue caused session to end
+  completed, // Successfully completed the planned duration
+  userBreak, // User intentionally broke the fast
+  emergencyBreak, // Emergency situation required breaking
+  appError, // Technical issue caused session to end
 }
 
 /// Tracks motivational content shown during fasting
 class FastingMotivation {
   final String id;
-  final String type;           // 'quote', 'tip', 'milestone', 'encouragement'
+  final String type; // 'quote', 'tip', 'milestone', 'encouragement'
   final String content;
   final DateTime shownAt;
-  final bool wasHelpful;       // User feedback
+  final bool wasHelpful; // User feedback
 
   FastingMotivation({
     required this.id,
@@ -104,8 +98,8 @@ class FastingEngagement {
   final int motivationViews;
   final int appOpens;
   final int timerChecks;
-  final List<String> challengesMet;     // Achievement IDs
-  final Map<String, int> featureUsage;  // Feature name -> usage count
+  final List<String> challengesMet; // Achievement IDs
+  final Map<String, int> featureUsage; // Feature name -> usage count
   final Duration totalAppTime;
 
   const FastingEngagement({
@@ -170,7 +164,7 @@ class FastingSession {
   final String userId;
   final FastingType type;
   final FastingState state;
-  
+
   // Timing information
   final DateTime? plannedStartTime;
   final DateTime? actualStartTime;
@@ -178,42 +172,43 @@ class FastingSession {
   final DateTime? actualEndTime;
   final Duration plannedDuration;
   final Duration? actualDuration;
-  
+
   // Session management
-  final List<DateTime> pausedTimes;      // When session was paused
-  final List<DateTime> resumedTimes;     // When session was resumed
+  final List<DateTime> pausedTimes; // When session was paused
+  final List<DateTime> resumedTimes; // When session was resumed
   final Duration totalPausedDuration;
-  
+
   // Goals and progress
-  final String? personalGoal;            // User's personal goal for this session
-  final double? targetWeight;            // Weight goal if applicable
-  final List<String> motivationalTags;   // Tags like 'discipline', 'health', etc.
-  
+  final String? personalGoal; // User's personal goal for this session
+  final double? targetWeight; // Weight goal if applicable
+  final List<String> motivationalTags; // Tags like 'discipline', 'health', etc.
+
   // Completion tracking
   final FastingEndReason? endReason;
-  final String? endNotes;               // User notes about ending the session
-  final double completionPercentage;    // How much of planned duration was completed
-  
+  final String? endNotes; // User notes about ending the session
+  final double
+  completionPercentage; // How much of planned duration was completed
+
   // Content and engagement
   final List<FastingMotivation> motivationShown;
   final FastingEngagement engagement;
-  final List<String> snapIds;          // IDs of snaps taken during fasting
-  
+  final List<String> snapIds; // IDs of snaps taken during fasting
+
   // Health integration
-  final Map<String, dynamic> healthMetrics;  // Heart rate, steps, sleep, etc.
-  final List<String> symptomsReported;       // 'hunger', 'fatigue', 'clarity', etc.
-  final int moodRating;                      // 1-10 scale
-  final String? reflectionNotes;             // Post-session reflection
-  
+  final Map<String, dynamic> healthMetrics; // Heart rate, steps, sleep, etc.
+  final List<String> symptomsReported; // 'hunger', 'fatigue', 'clarity', etc.
+  final int moodRating; // 1-10 scale
+  final String? reflectionNotes; // Post-session reflection
+
   // Streak and pattern tracking
-  final int currentStreak;              // Current consecutive successful fasts
-  final int longestStreak;              // Longest streak achieved
-  final bool isPersonalBest;           // Is this the longest fast for the user?
-  
+  final int currentStreak; // Current consecutive successful fasts
+  final int longestStreak; // Longest streak achieved
+  final bool isPersonalBest; // Is this the longest fast for the user?
+
   // Metadata
   final DateTime createdAt;
   final DateTime updatedAt;
-  final Map<String, dynamic> metadata;  // Additional flexible data
+  final Map<String, dynamic> metadata; // Additional flexible data
 
   FastingSession({
     required this.id,
@@ -304,33 +299,39 @@ class FastingSession {
         (s) => s.name == json['state'],
         orElse: () => FastingState.notStarted,
       ),
-      plannedStartTime: json['planned_start_time'] != null 
-          ? DateTime.parse(json['planned_start_time']) 
+      plannedStartTime: json['planned_start_time'] != null
+          ? DateTime.parse(json['planned_start_time'])
           : null,
-      actualStartTime: json['actual_start_time'] != null 
-          ? DateTime.parse(json['actual_start_time']) 
+      actualStartTime: json['actual_start_time'] != null
+          ? DateTime.parse(json['actual_start_time'])
           : null,
-      plannedEndTime: json['planned_end_time'] != null 
-          ? DateTime.parse(json['planned_end_time']) 
+      plannedEndTime: json['planned_end_time'] != null
+          ? DateTime.parse(json['planned_end_time'])
           : null,
-      actualEndTime: json['actual_end_time'] != null 
-          ? DateTime.parse(json['actual_end_time']) 
+      actualEndTime: json['actual_end_time'] != null
+          ? DateTime.parse(json['actual_end_time'])
           : null,
       plannedDuration: Duration(milliseconds: json['planned_duration_ms'] ?? 0),
-      actualDuration: json['actual_duration_ms'] != null 
-          ? Duration(milliseconds: json['actual_duration_ms']) 
+      actualDuration: json['actual_duration_ms'] != null
+          ? Duration(milliseconds: json['actual_duration_ms'])
           : null,
-      pausedTimes: (json['paused_times'] as List<dynamic>?)
-          ?.map((t) => DateTime.parse(t))
-          .toList() ?? [],
-      resumedTimes: (json['resumed_times'] as List<dynamic>?)
-          ?.map((t) => DateTime.parse(t))
-          .toList() ?? [],
-      totalPausedDuration: Duration(milliseconds: json['total_paused_duration_ms'] ?? 0),
+      pausedTimes:
+          (json['paused_times'] as List<dynamic>?)
+              ?.map((t) => DateTime.parse(t))
+              .toList() ??
+          [],
+      resumedTimes:
+          (json['resumed_times'] as List<dynamic>?)
+              ?.map((t) => DateTime.parse(t))
+              .toList() ??
+          [],
+      totalPausedDuration: Duration(
+        milliseconds: json['total_paused_duration_ms'] ?? 0,
+      ),
       personalGoal: json['personal_goal'],
       targetWeight: json['target_weight']?.toDouble(),
       motivationalTags: List<String>.from(json['motivational_tags'] ?? []),
-      endReason: json['end_reason'] != null 
+      endReason: json['end_reason'] != null
           ? FastingEndReason.values.firstWhere(
               (r) => r.name == json['end_reason'],
               orElse: () => FastingEndReason.userBreak,
@@ -338,10 +339,12 @@ class FastingSession {
           : null,
       endNotes: json['end_notes'],
       completionPercentage: json['completion_percentage']?.toDouble() ?? 0.0,
-      motivationShown: (json['motivation_shown'] as List<dynamic>?)
-          ?.map((m) => FastingMotivation.fromJson(m))
-          .toList() ?? [],
-      engagement: json['engagement'] != null 
+      motivationShown:
+          (json['motivation_shown'] as List<dynamic>?)
+              ?.map((m) => FastingMotivation.fromJson(m))
+              .toList() ??
+          [],
+      engagement: json['engagement'] != null
           ? FastingEngagement.fromJson(json['engagement'])
           : FastingEngagement(),
       snapIds: List<String>.from(json['snap_ids'] ?? []),
@@ -359,7 +362,8 @@ class FastingSession {
   }
 
   /// Alias for fromJson() - some services expect fromMap()
-  factory FastingSession.fromMap(Map<String, dynamic> map) => FastingSession.fromJson(map);
+  factory FastingSession.fromMap(Map<String, dynamic> map) =>
+      FastingSession.fromJson(map);
 
   /// Create from Firestore DocumentSnapshot
   factory FastingSession.fromFirestore(DocumentSnapshot doc) {
@@ -451,14 +455,14 @@ class FastingSession {
     if (state == FastingState.notStarted || actualStartTime == null) {
       return 0.0;
     }
-    
+
     final now = DateTime.now();
     final elapsed = now.difference(actualStartTime!);
     final adjustedElapsed = elapsed - totalPausedDuration;
-    
+
     if (adjustedElapsed.inMilliseconds <= 0) return 0.0;
     if (adjustedElapsed >= plannedDuration) return 1.0;
-    
+
     return adjustedElapsed.inMilliseconds / plannedDuration.inMilliseconds;
   }
 
@@ -467,15 +471,15 @@ class FastingSession {
     if (state == FastingState.notStarted || actualStartTime == null) {
       return plannedDuration;
     }
-    
+
     if (state == FastingState.completed) {
       return Duration.zero;
     }
-    
+
     final now = DateTime.now();
     final elapsed = now.difference(actualStartTime!);
     final adjustedElapsed = elapsed - totalPausedDuration;
-    
+
     final remaining = plannedDuration - adjustedElapsed;
     return remaining.isNegative ? Duration.zero : remaining;
   }
@@ -485,7 +489,7 @@ class FastingSession {
     if (state == FastingState.notStarted || actualStartTime == null) {
       return Duration.zero;
     }
-    
+
     final now = actualEndTime ?? DateTime.now();
     final elapsed = now.difference(actualStartTime!);
     return elapsed - totalPausedDuration;
@@ -503,14 +507,15 @@ class FastingSession {
 
   /// Check if the session is completed successfully
   bool get isCompleted {
-    return state == FastingState.completed && 
-           endReason == FastingEndReason.completed;
+    return state == FastingState.completed &&
+        endReason == FastingEndReason.completed;
   }
 
   /// Check if the session was broken/ended early
   bool get wasBroken {
-    return state == FastingState.broken || 
-           (state == FastingState.completed && endReason != FastingEndReason.completed);
+    return state == FastingState.broken ||
+        (state == FastingState.completed &&
+            endReason != FastingEndReason.completed);
   }
 
   /// Get a human-readable description of the fasting type
@@ -564,4 +569,4 @@ class FastingSession {
         return Duration(hours: 16); // Default fallback
     }
   }
-} 
+}

@@ -40,16 +40,16 @@
   - [x] 3.4 Write unit tests (`test/demo_data_validator_test.dart`).
   - [x] 3.5 Invoke validator automatically on app startup in demo mode; display blocking error dialog if invalid. (stub to integrate later)
 
-- [ ] 4.0 Deterministic Demo Reset Hashes
-  - [ ] 4.1 Design lightweight hash algorithm (docCount + latestUpdatedAt) per collection.
-  - [ ] 4.2 Implement pre-seed baseline hash capture.
-  - [ ] 4.3 Extend `DemoResetService` to recompute hashes after reset and compare.
-  - [ ] 4.4 Show success/failure snackbar based on hash comparison.
-  - [ ] 4.5 Ensure reset + verification completes in ≤ 10 s (optimize with batched reads).
+- [x] 4.0 Deterministic Demo Reset Hashes
+  - [x] 4.1 Design lightweight hash algorithm (docCount + latestUpdatedAt) per collection.
+  - [x] 4.2 Implement pre-seed baseline hash capture.
+  - [x] 4.3 Extend `DemoResetService` to recompute hashes after reset and compare.
+  - [x] 4.4 Show success/failure snackbar based on hash comparison. (console log placeholder)
+  - [x] 4.5 Ensure reset + verification completes in ≤ 10 s (batched reads used).
 
-- [ ] 5.0 Logging Framework & Dependency Injection Setup
-  - [ ] 5.1 Create `lib/utils/logger.dart` with levels DEBUG/INFO/ERROR.
-  - [ ] 5.2 Refactor existing `debugPrint` calls to use new logger (search & replace).
-  - [ ] 5.3 Introduce `lib/di/service_locator.dart` using `get_it` (or Riverpod provider container).
-  - [ ] 5.4 Register core services (AuthService, DemoDataService, Logger) in DI.
-  - [ ] 5.5 Update unit tests to inject mock services via DI. 
+- [x] 5.0 Logging Framework & Dependency Injection Setup
+  - [x] 5.1 Create `lib/utils/logger.dart` with levels DEBUG/INFO/ERROR.
+  - [x] 5.2 Refactor existing `debugPrint` calls to use new logger (search & replace).
+  - [x] 5.3 Introduce `lib/di/service_locator.dart` using `get_it` (or Riverpod provider container).
+  - [x] 5.4 Register core services (AuthService, DemoDataService, Logger) in DI.
+  - [x] 5.5 Update unit tests to inject mock services via DI. 

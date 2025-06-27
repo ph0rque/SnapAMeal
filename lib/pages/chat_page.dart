@@ -10,11 +10,7 @@ class ChatPage extends StatefulWidget {
   final String chatRoomId;
   final String? recipientId; // Can be null for group chats
 
-  const ChatPage({
-    super.key,
-    required this.chatRoomId,
-    this.recipientId,
-  });
+  const ChatPage({super.key, required this.chatRoomId, this.recipientId});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -28,7 +24,10 @@ class _ChatPageState extends State<ChatPage> {
 
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
-      await _chatService.sendMessage(widget.chatRoomId, _messageController.text);
+      await _chatService.sendMessage(
+        widget.chatRoomId,
+        _messageController.text,
+      );
       _messageController.clear();
     }
   }
@@ -62,9 +61,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       body: Column(
         children: [
-          Expanded(
-            child: _buildMessageList(),
-          ),
+          Expanded(child: _buildMessageList()),
           _buildUserInput(),
         ],
       ),
@@ -83,8 +80,9 @@ class _ChatPageState extends State<ChatPage> {
         }
 
         return ListView(
-          children:
-              snapshot.data!.docs.map((doc) => _buildMessageItem(doc)).toList(),
+          children: snapshot.data!.docs
+              .map((doc) => _buildMessageItem(doc))
+              .toList(),
         );
       },
     );
@@ -97,8 +95,9 @@ class _ChatPageState extends State<ChatPage> {
     return Container(
       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment:
-            isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isCurrentUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           SnapChatBubble(
             message: data["message"],
@@ -129,4 +128,4 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-} 
+}

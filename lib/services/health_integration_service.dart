@@ -8,27 +8,19 @@ import '../models/meal_log.dart';
 import '../models/health_integration.dart';
 import '../services/data_conflict_resolution_service.dart';
 import '../config/ai_config.dart';
+import '../utils/logger.dart';
 
-enum IntegrationType {
-  myFitnessPal,
-  appleHealth,
-  googleFit,
-}
+enum IntegrationType { myFitnessPal, appleHealth, googleFit }
 
-enum IntegrationStatus {
-  disconnected,
-  connecting,
-  connected,
-  error,
-  syncing,
-}
+enum IntegrationStatus { disconnected, connecting, connected, error, syncing }
 
 class HealthIntegrationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final DataConflictResolutionService _conflictService = DataConflictResolutionService();
+  final DataConflictResolutionService _conflictService =
+      DataConflictResolutionService();
   String get _myFitnessPalApiKey => AIConfig.myFitnessPalApiKey;
   final String _myFitnessPalBaseUrl = 'https://api.myfitnesspal.com/v2';
-  
+
   // Cache for API responses to minimize requests
   final Map<String, dynamic> _foodCache = {};
   final Map<String, DateTime> _cacheTimestamps = {};
@@ -77,9 +69,11 @@ class HealthIntegrationService {
         .collection('health_integrations')
         .where('user_id', isEqualTo: userId)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => HealthIntegration.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => HealthIntegration.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   /// Connect to MyFitnessPal API
@@ -93,17 +87,17 @@ class HealthIntegrationService {
 
       // Update integration status to connecting
       await _updateIntegrationStatus(
-        userId, 
-        IntegrationType.myFitnessPal, 
-        IntegrationStatus.connecting
+        userId,
+        IntegrationType.myFitnessPal,
+        IntegrationStatus.connecting,
       );
 
       // Authenticate with MyFitnessPal API
       final authResponse = await _authenticateMyFitnessPal(username, password);
-      
+
       if (authResponse['success'] == true) {
         final accessToken = authResponse['access_token'] as String;
-        
+
         // Store integration data
         final integration = HealthIntegration(
           id: '${userId}_myfitnesspal',
@@ -127,24 +121,24 @@ class HealthIntegrationService {
             .doc(integration.id)
             .set(integration.toFirestore());
 
-        debugPrint('MyFitnessPal connected successfully');
+        Logger.d('MyFitnessPal connected successfully');
         return true;
       } else {
         await _updateIntegrationStatus(
-          userId, 
-          IntegrationType.myFitnessPal, 
-          IntegrationStatus.error
+          userId,
+          IntegrationType.myFitnessPal,
+          IntegrationStatus.error,
         );
         return false;
       }
     } catch (e) {
-      debugPrint('Error connecting MyFitnessPal: $e');
+      Logger.d('Error connecting MyFitnessPal: $e');
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         await _updateIntegrationStatus(
-          userId, 
-          IntegrationType.myFitnessPal, 
-          IntegrationStatus.error
+          userId,
+          IntegrationType.myFitnessPal,
+          IntegrationStatus.error,
         );
       }
       return false;
@@ -152,7 +146,9 @@ class HealthIntegrationService {
   }
 
   /// Search MyFitnessPal food database
-  Future<List<Map<String, dynamic>>> searchMyFitnessPalFoods(String query) async {
+  Future<List<Map<String, dynamic>>> searchMyFitnessPalFoods(
+    String query,
+  ) async {
     try {
       // Check cache first
       final cacheKey = 'search_$query';
@@ -161,12 +157,15 @@ class HealthIntegrationService {
       }
 
       final integration = await _getIntegration(IntegrationType.myFitnessPal);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
         throw Exception('MyFitnessPal not connected');
       }
 
       final response = await http.get(
-        Uri.parse('$_myFitnessPalBaseUrl/foods/search?q=${Uri.encodeComponent(query)}'),
+        Uri.parse(
+          '$_myFitnessPalBaseUrl/foods/search?q=${Uri.encodeComponent(query)}',
+        ),
         headers: {
           'Authorization': 'Bearer ${integration.accessToken}',
           'Content-Type': 'application/json',
@@ -176,11 +175,11 @@ class HealthIntegrationService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final foods = List<Map<String, dynamic>>.from(data['foods'] ?? []);
-        
+
         // Cache the results
         _foodCache[cacheKey] = foods;
         _cacheTimestamps[cacheKey] = DateTime.now();
-        
+
         return foods;
       } else if (response.statusCode == 401) {
         // Token expired, try to refresh
@@ -191,13 +190,15 @@ class HealthIntegrationService {
         throw Exception('Failed to search foods: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error searching MyFitnessPal foods: $e');
+      Logger.d('Error searching MyFitnessPal foods: $e');
       return [];
     }
   }
 
   /// Get detailed food information from MyFitnessPal
-  Future<Map<String, dynamic>?> getMyFitnessPalFoodDetails(String foodId) async {
+  Future<Map<String, dynamic>?> getMyFitnessPalFoodDetails(
+    String foodId,
+  ) async {
     try {
       // Check cache first
       final cacheKey = 'food_$foodId';
@@ -206,7 +207,8 @@ class HealthIntegrationService {
       }
 
       final integration = await _getIntegration(IntegrationType.myFitnessPal);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
         throw Exception('MyFitnessPal not connected');
       }
 
@@ -220,11 +222,11 @@ class HealthIntegrationService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         // Cache the results
         _foodCache[cacheKey] = data;
         _cacheTimestamps[cacheKey] = DateTime.now();
-        
+
         return data;
       } else if (response.statusCode == 401) {
         // Token expired, try to refresh
@@ -235,7 +237,7 @@ class HealthIntegrationService {
         throw Exception('Failed to get food details: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error getting MyFitnessPal food details: $e');
+      Logger.d('Error getting MyFitnessPal food details: $e');
       return null;
     }
   }
@@ -244,13 +246,14 @@ class HealthIntegrationService {
   Future<bool> syncMealToMyFitnessPal(MealLog mealLog) async {
     try {
       final integration = await _getIntegration(IntegrationType.myFitnessPal);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
-        debugPrint('MyFitnessPal not connected, skipping sync');
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
+        Logger.d('MyFitnessPal not connected, skipping sync');
         return false;
       }
 
       if (integration.settings['sync_meals'] != true) {
-        debugPrint('Meal sync disabled for MyFitnessPal');
+        Logger.d('Meal sync disabled for MyFitnessPal');
         return false;
       }
 
@@ -267,7 +270,7 @@ class HealthIntegrationService {
             'carbs': mealLog.recognitionResult.totalNutrition.carbs,
             'fat': mealLog.recognitionResult.totalNutrition.fat,
             'protein': mealLog.recognitionResult.totalNutrition.protein,
-          }
+          },
         ],
       };
 
@@ -282,18 +285,15 @@ class HealthIntegrationService {
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         // Update meal log with sync status
-        await _firestore
-            .collection('meal_logs')
-            .doc(mealLog.id)
-            .update({
+        await _firestore.collection('meal_logs').doc(mealLog.id).update({
           'synced_to_myfitnesspal': true,
           'myfitnesspal_sync_at': FieldValue.serverTimestamp(),
         });
 
         // Update last sync time
         await _updateLastSyncTime(integration.id);
-        
-        debugPrint('Meal synced to MyFitnessPal successfully');
+
+        Logger.d('Meal synced to MyFitnessPal successfully');
         return true;
       } else if (response.statusCode == 401) {
         // Token expired, try to refresh
@@ -301,11 +301,11 @@ class HealthIntegrationService {
         // Retry the sync
         return syncMealToMyFitnessPal(mealLog);
       } else {
-        debugPrint('Failed to sync meal to MyFitnessPal: ${response.statusCode}');
+        Logger.d('Failed to sync meal to MyFitnessPal: ${response.statusCode}');
         return false;
       }
     } catch (e) {
-      debugPrint('Error syncing meal to MyFitnessPal: $e');
+      Logger.d('Error syncing meal to MyFitnessPal: $e');
       return false;
     }
   }
@@ -317,23 +317,25 @@ class HealthIntegrationService {
   }) async {
     try {
       final integration = await _getIntegration(IntegrationType.myFitnessPal);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
         throw Exception('MyFitnessPal not connected');
       }
 
       await _updateIntegrationStatus(
-        integration.userId, 
-        IntegrationType.myFitnessPal, 
-        IntegrationStatus.syncing
+        integration.userId,
+        IntegrationType.myFitnessPal,
+        IntegrationStatus.syncing,
       );
 
       final meals = <Map<String, dynamic>>[];
-      
+
       // Import meals day by day
-      for (var date = startDate; 
-           date.isBefore(endDate.add(const Duration(days: 1))); 
-           date = date.add(const Duration(days: 1))) {
-        
+      for (
+        var date = startDate;
+        date.isBefore(endDate.add(const Duration(days: 1)));
+        date = date.add(const Duration(days: 1))
+      ) {
         final dateString = date.toIso8601String().split('T')[0];
         final response = await http.get(
           Uri.parse('$_myFitnessPalBaseUrl/diary?date=$dateString'),
@@ -346,11 +348,15 @@ class HealthIntegrationService {
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           final dayMeals = List<Map<String, dynamic>>.from(data['meals'] ?? []);
-          meals.addAll(dayMeals.map((meal) => {
-            ...meal,
-            'import_date': date.toIso8601String(),
-            'source': 'myfitnesspal',
-          }));
+          meals.addAll(
+            dayMeals.map(
+              (meal) => {
+                ...meal,
+                'import_date': date.toIso8601String(),
+                'source': 'myfitnesspal',
+              },
+            ),
+          );
         } else if (response.statusCode == 401) {
           // Token expired, try to refresh
           await _refreshMyFitnessPalToken(integration);
@@ -360,23 +366,23 @@ class HealthIntegrationService {
       }
 
       await _updateIntegrationStatus(
-        integration.userId, 
-        IntegrationType.myFitnessPal, 
-        IntegrationStatus.connected
+        integration.userId,
+        IntegrationType.myFitnessPal,
+        IntegrationStatus.connected,
       );
 
       await _updateLastSyncTime(integration.id);
-      
-      debugPrint('Imported ${meals.length} meals from MyFitnessPal');
+
+      Logger.d('Imported ${meals.length} meals from MyFitnessPal');
       return meals;
     } catch (e) {
-      debugPrint('Error importing meals from MyFitnessPal: $e');
+      Logger.d('Error importing meals from MyFitnessPal: $e');
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         await _updateIntegrationStatus(
-          userId, 
-          IntegrationType.myFitnessPal, 
-          IntegrationStatus.error
+          userId,
+          IntegrationType.myFitnessPal,
+          IntegrationStatus.error,
         );
       }
       return [];
@@ -399,21 +405,19 @@ class HealthIntegrationService {
       _foodCache.clear();
       _cacheTimestamps.clear();
 
-      debugPrint('MyFitnessPal disconnected successfully');
+      Logger.d('MyFitnessPal disconnected successfully');
       return true;
     } catch (e) {
-      debugPrint('Error disconnecting MyFitnessPal: $e');
+      Logger.d('Error disconnecting MyFitnessPal: $e');
       return false;
     }
   }
 
   /// Connect to Apple Health (iOS only)
-  Future<bool> connectAppleHealth({
-    List<String>? requestedDataTypes,
-  }) async {
+  Future<bool> connectAppleHealth({List<String>? requestedDataTypes}) async {
     try {
       if (!Platform.isIOS) {
-        debugPrint('Apple Health is only available on iOS');
+        Logger.d('Apple Health is only available on iOS');
         return false;
       }
 
@@ -422,15 +426,17 @@ class HealthIntegrationService {
 
       // Update integration status to connecting
       await _updateIntegrationStatus(
-        userId, 
-        IntegrationType.appleHealth, 
-        IntegrationStatus.connecting
+        userId,
+        IntegrationType.appleHealth,
+        IntegrationStatus.connecting,
       );
 
       // Request permissions for health data types
       final dataTypesToRequest = requestedDataTypes ?? _appleHealthDataTypes;
-      final permissionResult = await _requestAppleHealthPermissions(dataTypesToRequest);
-      
+      final permissionResult = await _requestAppleHealthPermissions(
+        dataTypesToRequest,
+      );
+
       if (permissionResult['success'] == true) {
         // Store integration data
         final integration = HealthIntegration(
@@ -461,24 +467,24 @@ class HealthIntegrationService {
             .doc(integration.id)
             .set(integration.toFirestore());
 
-        debugPrint('Apple Health connected successfully');
+        Logger.d('Apple Health connected successfully');
         return true;
       } else {
         await _updateIntegrationStatus(
-          userId, 
-          IntegrationType.appleHealth, 
-          IntegrationStatus.error
+          userId,
+          IntegrationType.appleHealth,
+          IntegrationStatus.error,
         );
         return false;
       }
     } catch (e) {
-      debugPrint('Error connecting Apple Health: $e');
+      Logger.d('Error connecting Apple Health: $e');
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         await _updateIntegrationStatus(
-          userId, 
-          IntegrationType.appleHealth, 
-          IntegrationStatus.error
+          userId,
+          IntegrationType.appleHealth,
+          IntegrationStatus.error,
         );
       }
       return false;
@@ -491,13 +497,14 @@ class HealthIntegrationService {
       if (!Platform.isIOS) return false;
 
       final integration = await _getIntegration(IntegrationType.appleHealth);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
-        debugPrint('Apple Health not connected, skipping sync');
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
+        Logger.d('Apple Health not connected, skipping sync');
         return false;
       }
 
       if (integration.settings['sync_nutrition'] != true) {
-        debugPrint('Nutrition sync disabled for Apple Health');
+        Logger.d('Nutrition sync disabled for Apple Health');
         return false;
       }
 
@@ -517,25 +524,22 @@ class HealthIntegrationService {
 
       if (success) {
         // Update meal log with sync status
-        await _firestore
-            .collection('meal_logs')
-            .doc(mealLog.id)
-            .update({
+        await _firestore.collection('meal_logs').doc(mealLog.id).update({
           'synced_to_apple_health': true,
           'apple_health_sync_at': FieldValue.serverTimestamp(),
         });
 
         // Update last sync time
         await _updateLastSyncTime(integration.id);
-        
-        debugPrint('Meal synced to Apple Health successfully');
+
+        Logger.d('Meal synced to Apple Health successfully');
         return true;
       } else {
-        debugPrint('Failed to sync meal to Apple Health');
+        Logger.d('Failed to sync meal to Apple Health');
         return false;
       }
     } catch (e) {
-      debugPrint('Error syncing meal to Apple Health: $e');
+      Logger.d('Error syncing meal to Apple Health: $e');
       return false;
     }
   }
@@ -552,14 +556,15 @@ class HealthIntegrationService {
       }
 
       final integration = await _getIntegration(IntegrationType.appleHealth);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
         throw Exception('Apple Health not connected');
       }
 
       await _updateIntegrationStatus(
-        integration.userId, 
-        IntegrationType.appleHealth, 
-        IntegrationStatus.syncing
+        integration.userId,
+        IntegrationType.appleHealth,
+        IntegrationStatus.syncing,
       );
 
       final typesToImport = dataTypes ?? _appleHealthDataTypes;
@@ -574,7 +579,7 @@ class HealthIntegrationService {
             startDate: startDate,
             endDate: endDate,
           );
-          
+
           if (typeData.isNotEmpty) {
             // Check for conflicts with existing data
             final conflicts = await _detectConflictsForImportedData(
@@ -583,26 +588,31 @@ class HealthIntegrationService {
               _mapAppleHealthDataType(dataType),
             );
             allConflicts.addAll(conflicts);
-            
+
             healthData[dataType] = typeData;
           }
         } catch (e) {
-          debugPrint('Error importing $dataType from Apple Health: $e');
+          Logger.d('Error importing $dataType from Apple Health: $e');
           // Continue with other data types
         }
       }
 
       await _updateIntegrationStatus(
-        integration.userId, 
-        IntegrationType.appleHealth, 
-        IntegrationStatus.connected
+        integration.userId,
+        IntegrationType.appleHealth,
+        IntegrationStatus.connected,
       );
 
       await _updateLastSyncTime(integration.id);
-      
-      final totalDataPoints = healthData.values.fold(0, (currentSum, list) => currentSum + list.length);
-      debugPrint('Imported $totalDataPoints health data points from Apple Health');
-      
+
+      final totalDataPoints = healthData.values.fold(
+        0,
+        (currentSum, list) => currentSum + list.length,
+      );
+      Logger.d(
+        'Imported $totalDataPoints health data points from Apple Health',
+      );
+
       return {
         'success': true,
         'data': healthData,
@@ -612,19 +622,16 @@ class HealthIntegrationService {
         'import_date': DateTime.now().toIso8601String(),
       };
     } catch (e) {
-      debugPrint('Error importing health data from Apple Health: $e');
+      Logger.d('Error importing health data from Apple Health: $e');
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         await _updateIntegrationStatus(
-          userId, 
-          IntegrationType.appleHealth, 
-          IntegrationStatus.error
+          userId,
+          IntegrationType.appleHealth,
+          IntegrationStatus.error,
         );
       }
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
+      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -634,7 +641,8 @@ class HealthIntegrationService {
       if (!Platform.isIOS) return null;
 
       final integration = await _getIntegration(IntegrationType.appleHealth);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
         return null;
       }
 
@@ -647,7 +655,7 @@ class HealthIntegrationService {
         endDate: DateTime.now(),
         limit: 1,
       );
-      
+
       if (weightData.isNotEmpty) {
         measurements['weight'] = {
           'value': weightData.first['value'],
@@ -663,7 +671,7 @@ class HealthIntegrationService {
         endDate: DateTime.now(),
         limit: 1,
       );
-      
+
       if (heightData.isNotEmpty) {
         measurements['height'] = {
           'value': heightData.first['value'],
@@ -674,7 +682,7 @@ class HealthIntegrationService {
 
       return measurements.isNotEmpty ? measurements : null;
     } catch (e) {
-      debugPrint('Error getting body measurements from Apple Health: $e');
+      Logger.d('Error getting body measurements from Apple Health: $e');
       return null;
     }
   }
@@ -685,7 +693,8 @@ class HealthIntegrationService {
       if (!Platform.isIOS) return null;
 
       final integration = await _getIntegration(IntegrationType.appleHealth);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
         return null;
       }
 
@@ -701,8 +710,11 @@ class HealthIntegrationService {
         startDate: startOfDay,
         endDate: endOfDay,
       );
-      
-      final totalSteps = stepsData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
+
+      final totalSteps = stepsData.fold(
+        0.0,
+        (currentSum, item) => currentSum + (item['value'] ?? 0.0),
+      );
       summary['steps'] = totalSteps.toInt();
 
       // Get active energy burned
@@ -711,8 +723,11 @@ class HealthIntegrationService {
         startDate: startOfDay,
         endDate: endOfDay,
       );
-      
-      final totalActiveEnergy = activeEnergyData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
+
+      final totalActiveEnergy = activeEnergyData.fold(
+        0.0,
+        (currentSum, item) => currentSum + (item['value'] ?? 0.0),
+      );
       summary['active_calories'] = totalActiveEnergy.toInt();
 
       // Get distance
@@ -721,14 +736,17 @@ class HealthIntegrationService {
         startDate: startOfDay,
         endDate: endOfDay,
       );
-      
-      final totalDistance = distanceData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
+
+      final totalDistance = distanceData.fold(
+        0.0,
+        (currentSum, item) => currentSum + (item['value'] ?? 0.0),
+      );
       summary['distance_km'] = (totalDistance / 1000).toStringAsFixed(2);
 
       summary['date'] = startOfDay.toIso8601String();
       return summary;
     } catch (e) {
-      debugPrint('Error getting activity summary from Apple Health: $e');
+      Logger.d('Error getting activity summary from Apple Health: $e');
       return null;
     }
   }
@@ -745,21 +763,19 @@ class HealthIntegrationService {
           .doc(integrationId)
           .delete();
 
-      debugPrint('Apple Health disconnected successfully');
+      Logger.d('Apple Health disconnected successfully');
       return true;
     } catch (e) {
-      debugPrint('Error disconnecting Apple Health: $e');
+      Logger.d('Error disconnecting Apple Health: $e');
       return false;
     }
   }
 
   /// Connect to Google Fit (Android only)
-  Future<bool> connectGoogleFit({
-    List<String>? requestedDataTypes,
-  }) async {
+  Future<bool> connectGoogleFit({List<String>? requestedDataTypes}) async {
     try {
       if (!Platform.isAndroid) {
-        debugPrint('Google Fit is only available on Android');
+        Logger.d('Google Fit is only available on Android');
         return false;
       }
 
@@ -768,15 +784,17 @@ class HealthIntegrationService {
 
       // Update integration status to connecting
       await _updateIntegrationStatus(
-        userId, 
-        IntegrationType.googleFit, 
-        IntegrationStatus.connecting
+        userId,
+        IntegrationType.googleFit,
+        IntegrationStatus.connecting,
       );
 
       // Request permissions for Google Fit data types
       final dataTypesToRequest = requestedDataTypes ?? _googleFitDataTypes;
-      final permissionResult = await _requestGoogleFitPermissions(dataTypesToRequest);
-      
+      final permissionResult = await _requestGoogleFitPermissions(
+        dataTypesToRequest,
+      );
+
       if (permissionResult['success'] == true) {
         // Store integration data
         final integration = HealthIntegration(
@@ -808,24 +826,24 @@ class HealthIntegrationService {
             .doc(integration.id)
             .set(integration.toFirestore());
 
-        debugPrint('Google Fit connected successfully');
+        Logger.d('Google Fit connected successfully');
         return true;
       } else {
         await _updateIntegrationStatus(
-          userId, 
-          IntegrationType.googleFit, 
-          IntegrationStatus.error
+          userId,
+          IntegrationType.googleFit,
+          IntegrationStatus.error,
         );
         return false;
       }
     } catch (e) {
-      debugPrint('Error connecting Google Fit: $e');
+      Logger.d('Error connecting Google Fit: $e');
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         await _updateIntegrationStatus(
-          userId, 
-          IntegrationType.googleFit, 
-          IntegrationStatus.error
+          userId,
+          IntegrationType.googleFit,
+          IntegrationStatus.error,
         );
       }
       return false;
@@ -838,13 +856,14 @@ class HealthIntegrationService {
       if (!Platform.isAndroid) return false;
 
       final integration = await _getIntegration(IntegrationType.googleFit);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
-        debugPrint('Google Fit not connected, skipping sync');
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
+        Logger.d('Google Fit not connected, skipping sync');
         return false;
       }
 
       if (integration.settings['sync_nutrition'] != true) {
-        debugPrint('Nutrition sync disabled for Google Fit');
+        Logger.d('Nutrition sync disabled for Google Fit');
         return false;
       }
 
@@ -853,8 +872,10 @@ class HealthIntegrationService {
         'dataSourceId': 'derived:com.google.nutrition:com.snapameal.app',
         'point': [
           {
-            'startTimeNanos': (mealLog.timestamp.millisecondsSinceEpoch * 1000000).toString(),
-            'endTimeNanos': (mealLog.timestamp.millisecondsSinceEpoch * 1000000).toString(),
+            'startTimeNanos':
+                (mealLog.timestamp.millisecondsSinceEpoch * 1000000).toString(),
+            'endTimeNanos': (mealLog.timestamp.millisecondsSinceEpoch * 1000000)
+                .toString(),
             'dataTypeName': 'com.google.nutrition',
             'value': [
               {
@@ -862,7 +883,8 @@ class HealthIntegrationService {
                   {
                     'key': 'calories',
                     'value': {
-                      'fpVal': mealLog.recognitionResult.totalNutrition.calories,
+                      'fpVal':
+                          mealLog.recognitionResult.totalNutrition.calories,
                     },
                   },
                   {
@@ -896,29 +918,29 @@ class HealthIntegrationService {
         ],
       };
 
-      final success = await _writeNutritionToGoogleFit(nutritionData, integration.accessToken!);
+      final success = await _writeNutritionToGoogleFit(
+        nutritionData,
+        integration.accessToken!,
+      );
 
       if (success) {
         // Update meal log with sync status
-        await _firestore
-            .collection('meal_logs')
-            .doc(mealLog.id)
-            .update({
+        await _firestore.collection('meal_logs').doc(mealLog.id).update({
           'synced_to_google_fit': true,
           'google_fit_sync_at': FieldValue.serverTimestamp(),
         });
 
         // Update last sync time
         await _updateLastSyncTime(integration.id);
-        
-        debugPrint('Meal synced to Google Fit successfully');
+
+        Logger.d('Meal synced to Google Fit successfully');
         return true;
       } else {
-        debugPrint('Failed to sync meal to Google Fit');
+        Logger.d('Failed to sync meal to Google Fit');
         return false;
       }
     } catch (e) {
-      debugPrint('Error syncing meal to Google Fit: $e');
+      Logger.d('Error syncing meal to Google Fit: $e');
       return false;
     }
   }
@@ -935,14 +957,15 @@ class HealthIntegrationService {
       }
 
       final integration = await _getIntegration(IntegrationType.googleFit);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
         throw Exception('Google Fit not connected');
       }
 
       await _updateIntegrationStatus(
-        integration.userId, 
-        IntegrationType.googleFit, 
-        IntegrationStatus.syncing
+        integration.userId,
+        IntegrationType.googleFit,
+        IntegrationStatus.syncing,
       );
 
       final typesToImport = dataTypes ?? _googleFitDataTypes;
@@ -958,7 +981,7 @@ class HealthIntegrationService {
             endDate: endDate,
             accessToken: integration.accessToken!,
           );
-          
+
           if (typeData.isNotEmpty) {
             // Check for conflicts with existing data
             final conflicts = await _detectConflictsForImportedData(
@@ -967,26 +990,29 @@ class HealthIntegrationService {
               _mapGoogleFitDataType(dataType),
             );
             allConflicts.addAll(conflicts);
-            
+
             fitnessData[dataType] = typeData;
           }
         } catch (e) {
-          debugPrint('Error importing $dataType from Google Fit: $e');
+          Logger.d('Error importing $dataType from Google Fit: $e');
           // Continue with other data types
         }
       }
 
       await _updateIntegrationStatus(
-        integration.userId, 
-        IntegrationType.googleFit, 
-        IntegrationStatus.connected
+        integration.userId,
+        IntegrationType.googleFit,
+        IntegrationStatus.connected,
       );
 
       await _updateLastSyncTime(integration.id);
-      
-      final totalDataPoints = fitnessData.values.fold(0, (currentSum, list) => currentSum + list.length);
-      debugPrint('Imported $totalDataPoints fitness data points from Google Fit');
-      
+
+      final totalDataPoints = fitnessData.values.fold(
+        0,
+        (currentSum, list) => currentSum + list.length,
+      );
+      Logger.d('Imported $totalDataPoints fitness data points from Google Fit');
+
       return {
         'success': true,
         'data': fitnessData,
@@ -996,19 +1022,16 @@ class HealthIntegrationService {
         'import_date': DateTime.now().toIso8601String(),
       };
     } catch (e) {
-      debugPrint('Error importing fitness data from Google Fit: $e');
+      Logger.d('Error importing fitness data from Google Fit: $e');
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
         await _updateIntegrationStatus(
-          userId, 
-          IntegrationType.googleFit, 
-          IntegrationStatus.error
+          userId,
+          IntegrationType.googleFit,
+          IntegrationStatus.error,
         );
       }
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
+      return {'success': false, 'error': e.toString()};
     }
   }
 
@@ -1018,7 +1041,8 @@ class HealthIntegrationService {
       if (!Platform.isAndroid) return null;
 
       final integration = await _getIntegration(IntegrationType.googleFit);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
         return null;
       }
 
@@ -1035,8 +1059,11 @@ class HealthIntegrationService {
         endDate: endOfDay,
         accessToken: integration.accessToken!,
       );
-      
-      final totalSteps = stepsData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
+
+      final totalSteps = stepsData.fold(
+        0.0,
+        (currentSum, item) => currentSum + (item['value'] ?? 0.0),
+      );
       summary['steps'] = totalSteps.toInt();
 
       // Get calories
@@ -1046,8 +1073,11 @@ class HealthIntegrationService {
         endDate: endOfDay,
         accessToken: integration.accessToken!,
       );
-      
-      final totalCalories = caloriesData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
+
+      final totalCalories = caloriesData.fold(
+        0.0,
+        (currentSum, item) => currentSum + (item['value'] ?? 0.0),
+      );
       summary['calories_burned'] = totalCalories.toInt();
 
       // Get distance
@@ -1057,8 +1087,11 @@ class HealthIntegrationService {
         endDate: endOfDay,
         accessToken: integration.accessToken!,
       );
-      
-      final totalDistance = distanceData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
+
+      final totalDistance = distanceData.fold(
+        0.0,
+        (currentSum, item) => currentSum + (item['value'] ?? 0.0),
+      );
       summary['distance_m'] = totalDistance.toInt();
 
       // Get active minutes
@@ -1068,25 +1101,30 @@ class HealthIntegrationService {
         endDate: endOfDay,
         accessToken: integration.accessToken!,
       );
-      
-      final totalActiveMinutes = activeMinutesData.fold(0.0, (currentSum, item) => currentSum + (item['value'] ?? 0.0));
+
+      final totalActiveMinutes = activeMinutesData.fold(
+        0.0,
+        (currentSum, item) => currentSum + (item['value'] ?? 0.0),
+      );
       summary['active_minutes'] = totalActiveMinutes.toInt();
 
       summary['date'] = startOfDay.toIso8601String();
       return summary;
     } catch (e) {
-      debugPrint('Error getting fitness summary from Google Fit: $e');
+      Logger.d('Error getting fitness summary from Google Fit: $e');
       return null;
     }
   }
 
   /// Get current body measurements from Google Fit
-  Future<Map<String, dynamic>?> getCurrentBodyMeasurementsFromGoogleFit() async {
+  Future<Map<String, dynamic>?>
+  getCurrentBodyMeasurementsFromGoogleFit() async {
     try {
       if (!Platform.isAndroid) return null;
 
       final integration = await _getIntegration(IntegrationType.googleFit);
-      if (integration == null || integration.status != IntegrationStatus.connected) {
+      if (integration == null ||
+          integration.status != IntegrationStatus.connected) {
         return null;
       }
 
@@ -1100,7 +1138,7 @@ class HealthIntegrationService {
         accessToken: integration.accessToken!,
         limit: 1,
       );
-      
+
       if (weightData.isNotEmpty) {
         measurements['weight'] = {
           'value': weightData.first['value'],
@@ -1117,7 +1155,7 @@ class HealthIntegrationService {
         accessToken: integration.accessToken!,
         limit: 1,
       );
-      
+
       if (heightData.isNotEmpty) {
         measurements['height'] = {
           'value': heightData.first['value'],
@@ -1134,7 +1172,7 @@ class HealthIntegrationService {
         accessToken: integration.accessToken!,
         limit: 1,
       );
-      
+
       if (bodyFatData.isNotEmpty) {
         measurements['body_fat_percentage'] = {
           'value': bodyFatData.first['value'],
@@ -1145,7 +1183,7 @@ class HealthIntegrationService {
 
       return measurements.isNotEmpty ? measurements : null;
     } catch (e) {
-      debugPrint('Error getting body measurements from Google Fit: $e');
+      Logger.d('Error getting body measurements from Google Fit: $e');
       return null;
     }
   }
@@ -1162,10 +1200,10 @@ class HealthIntegrationService {
           .doc(integrationId)
           .delete();
 
-      debugPrint('Google Fit disconnected successfully');
+      Logger.d('Google Fit disconnected successfully');
       return true;
     } catch (e) {
-      debugPrint('Error disconnecting Google Fit: $e');
+      Logger.d('Error disconnecting Google Fit: $e');
       return false;
     }
   }
@@ -1173,8 +1211,8 @@ class HealthIntegrationService {
   // Private helper methods
 
   Future<Map<String, dynamic>> _authenticateMyFitnessPal(
-    String username, 
-    String password
+    String username,
+    String password,
   ) async {
     // This is a simplified authentication flow
     // In a real implementation, you would use OAuth 2.0
@@ -1210,30 +1248,30 @@ class HealthIntegrationService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         // Update the integration with new tokens
         await _firestore
             .collection('health_integrations')
             .doc(integration.id)
             .update({
-          'access_token': data['access_token'],
-          'refresh_token': data['refresh_token'],
-          'updated_at': FieldValue.serverTimestamp(),
-        });
+              'access_token': data['access_token'],
+              'refresh_token': data['refresh_token'],
+              'updated_at': FieldValue.serverTimestamp(),
+            });
       } else {
         // Refresh failed, mark integration as error
         await _updateIntegrationStatus(
-          integration.userId, 
-          IntegrationType.myFitnessPal, 
-          IntegrationStatus.error
+          integration.userId,
+          IntegrationType.myFitnessPal,
+          IntegrationStatus.error,
         );
       }
     } catch (e) {
-      debugPrint('Error refreshing MyFitnessPal token: $e');
+      Logger.d('Error refreshing MyFitnessPal token: $e');
       await _updateIntegrationStatus(
-        integration.userId, 
-        IntegrationType.myFitnessPal, 
-        IntegrationStatus.error
+        integration.userId,
+        IntegrationType.myFitnessPal,
+        IntegrationStatus.error,
       );
     }
   }
@@ -1255,34 +1293,32 @@ class HealthIntegrationService {
   }
 
   Future<void> _updateIntegrationStatus(
-    String userId, 
-    IntegrationType type, 
-    IntegrationStatus status
+    String userId,
+    IntegrationType type,
+    IntegrationStatus status,
   ) async {
     final integrationId = '${userId}_${type.name}';
     await _firestore
         .collection('health_integrations')
         .doc(integrationId)
         .update({
-      'status': status.name,
-      'updated_at': FieldValue.serverTimestamp(),
-    });
+          'status': status.name,
+          'updated_at': FieldValue.serverTimestamp(),
+        });
   }
 
   Future<void> _updateLastSyncTime(String integrationId) async {
     await _firestore
         .collection('health_integrations')
         .doc(integrationId)
-        .update({
-      'last_sync_at': FieldValue.serverTimestamp(),
-    });
+        .update({'last_sync_at': FieldValue.serverTimestamp()});
   }
 
   bool _isCacheValid(String key) {
     if (!_foodCache.containsKey(key) || !_cacheTimestamps.containsKey(key)) {
       return false;
     }
-    
+
     final timestamp = _cacheTimestamps[key]!;
     return DateTime.now().difference(timestamp) < _cacheExpiry;
   }
@@ -1297,7 +1333,9 @@ class HealthIntegrationService {
 
   // Private Apple Health helper methods
 
-  Future<Map<String, dynamic>> _requestAppleHealthPermissions(List<String> dataTypes) async {
+  Future<Map<String, dynamic>> _requestAppleHealthPermissions(
+    List<String> dataTypes,
+  ) async {
     // This would use a platform channel to communicate with iOS HealthKit
     // For now, we'll simulate the response
     try {
@@ -1305,7 +1343,7 @@ class HealthIntegrationService {
       // final result = await _healthChannel.invokeMethod('requestPermissions', {
       //   'dataTypes': dataTypes,
       // });
-      
+
       // Simulated successful permission request
       return {
         'success': true,
@@ -1313,26 +1351,25 @@ class HealthIntegrationService {
         'denied_permissions': <String>[],
       };
     } catch (e) {
-      debugPrint('Error requesting Apple Health permissions: $e');
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
+      Logger.d('Error requesting Apple Health permissions: $e');
+      return {'success': false, 'error': e.toString()};
     }
   }
 
-  Future<bool> _writeNutritionToAppleHealth(Map<String, dynamic> nutritionData) async {
+  Future<bool> _writeNutritionToAppleHealth(
+    Map<String, dynamic> nutritionData,
+  ) async {
     // This would use a platform channel to write to iOS HealthKit
     try {
       // In a real implementation, this would call:
       // final result = await _healthChannel.invokeMethod('writeNutritionData', nutritionData);
       // return result['success'] == true;
-      
+
       // Simulated successful write
-      debugPrint('Writing nutrition data to Apple Health: $nutritionData');
+      Logger.d('Writing nutrition data to Apple Health: $nutritionData');
       return true;
     } catch (e) {
-      debugPrint('Error writing nutrition to Apple Health: $e');
+      Logger.d('Error writing nutrition to Apple Health: $e');
       return false;
     }
   }
@@ -1353,25 +1390,25 @@ class HealthIntegrationService {
       //   'limit': limit,
       // });
       // return List<Map<String, dynamic>>.from(result['data'] ?? []);
-      
+
       // Simulated health data
       return _generateSimulatedHealthData(dataType, startDate, endDate, limit);
     } catch (e) {
-      debugPrint('Error reading Apple Health data for $dataType: $e');
+      Logger.d('Error reading Apple Health data for $dataType: $e');
       return [];
     }
   }
 
   List<Map<String, dynamic>> _generateSimulatedHealthData(
-    String dataType, 
-    DateTime startDate, 
-    DateTime endDate, 
-    int? limit
+    String dataType,
+    DateTime startDate,
+    DateTime endDate,
+    int? limit,
   ) {
     // Generate realistic simulated data for testing
     final data = <Map<String, dynamic>>[];
     final random = DateTime.now().millisecondsSinceEpoch % 100;
-    
+
     switch (dataType) {
       case 'HKQuantityTypeIdentifierStepCount':
         data.add({
@@ -1402,20 +1439,22 @@ class HealthIntegrationService {
         });
         break;
     }
-    
+
     return limit != null ? data.take(limit).toList() : data;
   }
 
   // Private Google Fit helper methods
 
-  Future<Map<String, dynamic>> _requestGoogleFitPermissions(List<String> dataTypes) async {
+  Future<Map<String, dynamic>> _requestGoogleFitPermissions(
+    List<String> dataTypes,
+  ) async {
     // This would use Google Sign-In and Fitness API
     try {
       // In a real implementation, this would:
       // 1. Use GoogleSignIn to authenticate
       // 2. Request Fitness API permissions
       // 3. Get access tokens
-      
+
       // Simulated successful permission request
       return {
         'success': true,
@@ -1426,19 +1465,21 @@ class HealthIntegrationService {
         'account': 'user@example.com',
       };
     } catch (e) {
-      debugPrint('Error requesting Google Fit permissions: $e');
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
+      Logger.d('Error requesting Google Fit permissions: $e');
+      return {'success': false, 'error': e.toString()};
     }
   }
 
-  Future<bool> _writeNutritionToGoogleFit(Map<String, dynamic> nutritionData, String accessToken) async {
+  Future<bool> _writeNutritionToGoogleFit(
+    Map<String, dynamic> nutritionData,
+    String accessToken,
+  ) async {
     // This would use Google Fit REST API
     try {
       final response = await http.post(
-        Uri.parse('https://www.googleapis.com/fitness/v1/users/me/dataSources/derived:com.google.nutrition:com.snapameal.app/datasets/${DateTime.now().millisecondsSinceEpoch * 1000000}-${DateTime.now().millisecondsSinceEpoch * 1000000}'),
+        Uri.parse(
+          'https://www.googleapis.com/fitness/v1/users/me/dataSources/derived:com.google.nutrition:com.snapameal.app/datasets/${DateTime.now().millisecondsSinceEpoch * 1000000}-${DateTime.now().millisecondsSinceEpoch * 1000000}',
+        ),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
@@ -1447,14 +1488,16 @@ class HealthIntegrationService {
       );
 
       if (response.statusCode == 200) {
-        debugPrint('Nutrition data written to Google Fit successfully');
+        Logger.d('Nutrition data written to Google Fit successfully');
         return true;
       } else {
-        debugPrint('Failed to write nutrition to Google Fit: ${response.statusCode}');
+        Logger.d(
+          'Failed to write nutrition to Google Fit: ${response.statusCode}',
+        );
         return false;
       }
     } catch (e) {
-      debugPrint('Error writing nutrition to Google Fit: $e');
+      Logger.d('Error writing nutrition to Google Fit: $e');
       return false;
     }
   }
@@ -1468,11 +1511,15 @@ class HealthIntegrationService {
   }) async {
     // This would use Google Fit REST API
     try {
-      final startTimeNanos = (startDate.millisecondsSinceEpoch * 1000000).toString();
-      final endTimeNanos = (endDate.millisecondsSinceEpoch * 1000000).toString();
-      
+      final startTimeNanos = (startDate.millisecondsSinceEpoch * 1000000)
+          .toString();
+      final endTimeNanos = (endDate.millisecondsSinceEpoch * 1000000)
+          .toString();
+
       final response = await http.get(
-        Uri.parse('https://www.googleapis.com/fitness/v1/users/me/dataSources/derived:$dataType:com.google.android.gms/datasets/$startTimeNanos-$endTimeNanos'),
+        Uri.parse(
+          'https://www.googleapis.com/fitness/v1/users/me/dataSources/derived:$dataType:com.google.android.gms/datasets/$startTimeNanos-$endTimeNanos',
+        ),
         headers: {
           'Authorization': 'Bearer $accessToken',
           'Content-Type': 'application/json',
@@ -1482,41 +1529,53 @@ class HealthIntegrationService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final points = List<Map<String, dynamic>>.from(data['point'] ?? []);
-        
+
         // Transform Google Fit data format to our standardized format
         final transformedData = points.map((point) {
-          final value = point['value']?[0]?['fpVal'] ?? point['value']?[0]?['intVal'] ?? 0.0;
+          final value =
+              point['value']?[0]?['fpVal'] ??
+              point['value']?[0]?['intVal'] ??
+              0.0;
           final startTime = int.parse(point['startTimeNanos']) ~/ 1000000;
-          
+
           return {
             'value': value,
-            'date': DateTime.fromMillisecondsSinceEpoch(startTime).toIso8601String(),
+            'date': DateTime.fromMillisecondsSinceEpoch(
+              startTime,
+            ).toIso8601String(),
             'source': 'google_fit',
           };
         }).toList();
 
-        return limit != null ? transformedData.take(limit).toList() : transformedData;
+        return limit != null
+            ? transformedData.take(limit).toList()
+            : transformedData;
       } else {
-        debugPrint('Failed to read Google Fit data: ${response.statusCode}');
+        Logger.d('Failed to read Google Fit data: ${response.statusCode}');
         return [];
       }
     } catch (e) {
-      debugPrint('Error reading Google Fit data for $dataType: $e');
+      Logger.d('Error reading Google Fit data for $dataType: $e');
       // Return simulated data for testing
-      return _generateSimulatedGoogleFitData(dataType, startDate, endDate, limit);
+      return _generateSimulatedGoogleFitData(
+        dataType,
+        startDate,
+        endDate,
+        limit,
+      );
     }
   }
 
   List<Map<String, dynamic>> _generateSimulatedGoogleFitData(
-    String dataType, 
-    DateTime startDate, 
-    DateTime endDate, 
-    int? limit
+    String dataType,
+    DateTime startDate,
+    DateTime endDate,
+    int? limit,
   ) {
     // Generate realistic simulated data for testing
     final data = <Map<String, dynamic>>[];
     final random = DateTime.now().millisecondsSinceEpoch % 100;
-    
+
     switch (dataType) {
       case 'com.google.step_count.delta':
         data.add({
@@ -1561,7 +1620,7 @@ class HealthIntegrationService {
         });
         break;
     }
-    
+
     return limit != null ? data.take(limit).toList() : data;
   }
 
@@ -1586,7 +1645,7 @@ class HealthIntegrationService {
         );
         conflicts.addAll(detectedConflicts);
       } catch (e) {
-        debugPrint('Error detecting conflicts for data point: $e');
+        Logger.d('Error detecting conflicts for data point: $e');
       }
     }
 
@@ -1673,13 +1732,13 @@ class HealthIntegrationService {
           .collection('health_integrations')
           .doc(integrationId)
           .get();
-      
+
       if (!doc.exists) return false;
-      
+
       final integration = HealthIntegration.fromFirestore(doc);
       return integration.status == IntegrationStatus.connected;
     } catch (e) {
-      debugPrint('Error checking connection status: $e');
+      Logger.d('Error checking connection status: $e');
       return false;
     }
   }
@@ -1691,13 +1750,13 @@ class HealthIntegrationService {
           .collection('health_integrations')
           .doc(integrationId)
           .get();
-      
+
       if (!doc.exists) return null;
-      
+
       final integration = HealthIntegration.fromFirestore(doc);
       return integration.lastSyncAt;
     } catch (e) {
-      debugPrint('Error getting last sync time: $e');
+      Logger.d('Error getting last sync time: $e');
       return null;
     }
   }
@@ -1711,12 +1770,12 @@ class HealthIntegrationService {
           .collection('health_integrations')
           .doc(integrationId)
           .get();
-      
+
       if (!doc.exists) {
         // Create a new integration record
         final userId = FirebaseAuth.instance.currentUser?.uid;
         if (userId == null) return false;
-        
+
         // Determine integration type from ID
         IntegrationType type;
         if (integrationId.contains('myfitnesspal')) {
@@ -1726,7 +1785,7 @@ class HealthIntegrationService {
         } else {
           type = IntegrationType.googleFit;
         }
-        
+
         final integration = HealthIntegration(
           id: integrationId,
           userId: userId,
@@ -1735,12 +1794,12 @@ class HealthIntegrationService {
           connectedAt: DateTime.now(),
           settings: {},
         );
-        
+
         await _firestore
             .collection('health_integrations')
             .doc(integrationId)
             .set(integration.toFirestore());
-        
+
         return true;
       } else {
         // Update existing integration to connected
@@ -1754,7 +1813,7 @@ class HealthIntegrationService {
         return true;
       }
     } catch (e) {
-      debugPrint('Error connecting integration: $e');
+      Logger.d('Error connecting integration: $e');
       return false;
     }
   }
@@ -1772,7 +1831,7 @@ class HealthIntegrationService {
           });
       return true;
     } catch (e) {
-      debugPrint('Error disconnecting integration: $e');
+      Logger.d('Error disconnecting integration: $e');
       return false;
     }
   }
@@ -1784,17 +1843,17 @@ class HealthIntegrationService {
           .collection('health_integrations')
           .doc(integrationId)
           .get();
-      
+
       if (!doc.exists) return false;
-      
+
       final integration = HealthIntegration.fromFirestore(doc);
-      
+
       // Update status to syncing
       await _firestore
           .collection('health_integrations')
           .doc(integrationId)
           .update({'status': IntegrationStatus.syncing.name});
-      
+
       // Perform sync based on integration type
       bool syncSuccess = false;
       switch (integration.type) {
@@ -1808,19 +1867,21 @@ class HealthIntegrationService {
           syncSuccess = await _syncGoogleFitData(integration);
           break;
       }
-      
+
       // Update sync status
       await _firestore
           .collection('health_integrations')
           .doc(integrationId)
           .update({
-            'status': syncSuccess ? IntegrationStatus.connected.name : IntegrationStatus.error.name,
+            'status': syncSuccess
+                ? IntegrationStatus.connected.name
+                : IntegrationStatus.error.name,
             'last_sync_at': FieldValue.serverTimestamp(),
           });
-      
+
       return syncSuccess;
     } catch (e) {
-      debugPrint('Error syncing integration data: $e');
+      Logger.d('Error syncing integration data: $e');
       // Update status to error
       await _firestore
           .collection('health_integrations')
@@ -1845,4 +1906,4 @@ class HealthIntegrationService {
     // Simplified sync logic
     return true;
   }
-} 
+}

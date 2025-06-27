@@ -9,6 +9,7 @@ import '../models/meal_log.dart';
 import '../models/fasting_session.dart';
 import '../services/rag_service.dart';
 import '../services/openai_service.dart';
+import '../utils/logger.dart';
 
 class AIAdviceService {
   static final AIAdviceService _instance = AIAdviceService._internal();
@@ -20,10 +21,14 @@ class AIAdviceService {
   final RAGService _ragService = RAGService(OpenAIService());
 
   // Collections
-  CollectionReference get _adviceCollection => _firestore.collection('ai_advice');
-  CollectionReference get _healthProfilesCollection => _firestore.collection('health_profiles');
-  CollectionReference get _behaviorPatternsCollection => _firestore.collection('behavior_patterns');
-  CollectionReference get _adviceFeedbackCollection => _firestore.collection('advice_feedback');
+  CollectionReference get _adviceCollection =>
+      _firestore.collection('ai_advice');
+  CollectionReference get _healthProfilesCollection =>
+      _firestore.collection('health_profiles');
+  CollectionReference get _behaviorPatternsCollection =>
+      _firestore.collection('behavior_patterns');
+  CollectionReference get _adviceFeedbackCollection =>
+      _firestore.collection('advice_feedback');
 
   String? get currentUserId => _auth.currentUser?.uid;
 
@@ -36,24 +41,24 @@ class AIAdviceService {
       }
       return null;
     } catch (e) {
-      debugPrint('Error getting health profile: $e');
+      Logger.d('Error getting health profile: $e');
       return null;
     }
   }
 
   Future<void> updateHealthProfile(HealthProfile profile) async {
     try {
-      await _healthProfilesCollection.doc(profile.userId).set(
-        profile.toFirestore(),
-        SetOptions(merge: true),
-      );
+      await _healthProfilesCollection
+          .doc(profile.userId)
+          .set(profile.toFirestore(), SetOptions(merge: true));
     } catch (e) {
-      debugPrint('Error updating health profile: $e');
+      Logger.d('Error updating health profile: $e');
       rethrow;
     }
   }
 
-  Future<HealthProfile> createInitialHealthProfile(String userId, {
+  Future<HealthProfile> createInitialHealthProfile(
+    String userId, {
     int? age,
     String? gender,
     double? heightCm,
@@ -82,16 +87,16 @@ class AIAdviceService {
     try {
       // Analyze meal patterns
       final mealPatterns = await _analyzeMealPatterns(userId);
-      
+
       // Analyze fasting patterns
       final fastingPatterns = await _analyzeFastingPatterns(userId);
-      
+
       // Analyze app usage patterns
       final appUsagePatterns = await _analyzeAppUsagePatterns(userId);
-      
+
       // Analyze exercise patterns (from health profile updates)
       final exercisePatterns = await _analyzeExercisePatterns(userId);
-      
+
       // Analyze sleep patterns (if available)
       final sleepPatterns = await _analyzeSleepPatterns(userId);
 
@@ -112,10 +117,9 @@ class AIAdviceService {
       };
 
       // Store behavior analysis
-      await _behaviorPatternsCollection.doc(userId).set(
-        behaviorAnalysis,
-        SetOptions(merge: true),
-      );
+      await _behaviorPatternsCollection
+          .doc(userId)
+          .set(behaviorAnalysis, SetOptions(merge: true));
 
       // Update health profile with behavior patterns
       final profile = await getHealthProfile(userId);
@@ -132,7 +136,7 @@ class AIAdviceService {
 
       return behaviorAnalysis;
     } catch (e) {
-      debugPrint('Error analyzing behavior patterns: $e');
+      Logger.d('Error analyzing behavior patterns: $e');
       return {};
     }
   }
@@ -158,7 +162,11 @@ class AIAdviceService {
 
       double totalCalories = 0;
       Map<String, int> mealTypeCount = {};
-      Map<String, double> nutritionTotals = {'protein': 0, 'carbs': 0, 'fat': 0};
+      Map<String, double> nutritionTotals = {
+        'protein': 0,
+        'carbs': 0,
+        'fat': 0,
+      };
       Map<int, int> hourlyMeals = {};
 
       for (var doc in mealLogs.docs) {
@@ -172,8 +180,10 @@ class AIAdviceService {
 
         // Analyze nutrition
         final nutrition = mealLog.recognitionResult.totalNutrition;
-        nutritionTotals['protein'] = (nutritionTotals['protein'] ?? 0) + nutrition.protein;
-        nutritionTotals['carbs'] = (nutritionTotals['carbs'] ?? 0) + nutrition.carbs;
+        nutritionTotals['protein'] =
+            (nutritionTotals['protein'] ?? 0) + nutrition.protein;
+        nutritionTotals['carbs'] =
+            (nutritionTotals['carbs'] ?? 0) + nutrition.carbs;
         nutritionTotals['fat'] = (nutritionTotals['fat'] ?? 0) + nutrition.fat;
 
         // Categorize meal by time
@@ -196,17 +206,22 @@ class AIAdviceService {
       // Get most common meal types
       final sortedMealTypes = mealTypeCount.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
-      final mostCommonMealTypes = sortedMealTypes.take(3).map((e) => e.key).toList();
+      final mostCommonMealTypes = sortedMealTypes
+          .take(3)
+          .map((e) => e.key)
+          .toList();
 
       return {
         'average_calories': avgCalories,
         'meal_frequency': mealFrequency,
         'most_common_meal_types': mostCommonMealTypes,
         'nutrition_balance': nutritionTotals,
-        'eating_schedule': hourlyMeals.map((k, v) => MapEntry(k.toString(), v.toDouble())),
+        'eating_schedule': hourlyMeals.map(
+          (k, v) => MapEntry(k.toString(), v.toDouble()),
+        ),
       };
     } catch (e) {
-      debugPrint('Error analyzing meal patterns: $e');
+      Logger.d('Error analyzing meal patterns: $e');
       return {
         'average_calories': 0.0,
         'meal_frequency': 0.0,
@@ -241,15 +256,18 @@ class AIAdviceService {
 
       for (var doc in fastingSessions.docs) {
         final session = FastingSession.fromJson(doc.data());
-        
-        totalDuration += (session.actualDuration?.inHours ?? session.plannedDuration.inHours);
+
+        totalDuration +=
+            (session.actualDuration?.inHours ??
+            session.plannedDuration.inHours);
 
         if (session.state == FastingState.completed) {
           completedSessions++;
         }
 
         // Analyze start times
-        DateTime? startTime = session.actualStartTime ?? session.plannedStartTime;
+        DateTime? startTime =
+            session.actualStartTime ?? session.plannedStartTime;
         if (startTime != null) {
           final hour = startTime.hour;
           startTimeCount[hour] = (startTimeCount[hour] ?? 0) + 1;
@@ -262,7 +280,10 @@ class AIAdviceService {
       // Get preferred start times
       final sortedStartTimes = startTimeCount.entries.toList()
         ..sort((a, b) => b.value.compareTo(a.value));
-      final preferredTimes = sortedStartTimes.take(3).map((e) => '${e.key}:00').toList();
+      final preferredTimes = sortedStartTimes
+          .take(3)
+          .map((e) => '${e.key}:00')
+          .toList();
 
       return {
         'average_duration': avgDuration,
@@ -271,7 +292,7 @@ class AIAdviceService {
         'success_factors': <String>['consistency', 'preparation', 'motivation'],
       };
     } catch (e) {
-      debugPrint('Error analyzing fasting patterns: $e');
+      Logger.d('Error analyzing fasting patterns: $e');
       return {
         'average_duration': 0.0,
         'completion_rate': 0.0,
@@ -365,7 +386,11 @@ class AIAdviceService {
       final behaviorAnalysis = await _getBehaviorAnalysis(userId);
 
       // Build context for RAG query
-      final ragContext = _buildRAGContext(healthProfile, behaviorAnalysis, context);
+      final ragContext = _buildRAGContext(
+        healthProfile,
+        behaviorAnalysis,
+        context,
+      );
 
       // Generate advice using RAG
       final adviceContent = await _generateAdviceWithRAG(
@@ -386,8 +411,15 @@ class AIAdviceService {
         'priority': _determinePriority(adviceContent, healthProfile).name,
         'context': ragContext,
         'tags': adviceContent['tags'] ?? [],
-        'personalizationFactors': _extractPersonalizationFactors(healthProfile, behaviorAnalysis),
-        'trigger': (userQuery != null ? AdviceTrigger.userRequested : AdviceTrigger.behavioral).name,
+        'personalizationFactors': _extractPersonalizationFactors(
+          healthProfile,
+          behaviorAnalysis,
+        ),
+        'trigger':
+            (userQuery != null
+                    ? AdviceTrigger.userRequested
+                    : AdviceTrigger.behavioral)
+                .name,
         'sourceQuery': userQuery,
         'ragSources': adviceContent['sources'] ?? [],
         'confidenceScore': adviceContent['confidence']?.toDouble(),
@@ -422,8 +454,13 @@ class AIAdviceService {
         priority: _determinePriority(adviceContent, healthProfile),
         context: ragContext,
         tags: adviceContent['tags'] ?? [],
-        personalizationFactors: _extractPersonalizationFactors(healthProfile, behaviorAnalysis),
-        trigger: userQuery != null ? AdviceTrigger.userRequested : AdviceTrigger.behavioral,
+        personalizationFactors: _extractPersonalizationFactors(
+          healthProfile,
+          behaviorAnalysis,
+        ),
+        trigger: userQuery != null
+            ? AdviceTrigger.userRequested
+            : AdviceTrigger.behavioral,
         sourceQuery: userQuery,
         ragSources: adviceContent['sources'] ?? [],
         confidenceScore: adviceContent['confidence']?.toDouble(),
@@ -438,7 +475,7 @@ class AIAdviceService {
 
       return savedAdvice;
     } catch (e) {
-      debugPrint('Error generating personalized advice: $e');
+      Logger.d('Error generating personalized advice: $e');
       rethrow;
     }
   }
@@ -451,7 +488,7 @@ class AIAdviceService {
       }
       return {};
     } catch (e) {
-      debugPrint('Error getting behavior analysis: $e');
+      Logger.d('Error getting behavior analysis: $e');
       return {};
     }
   }
@@ -469,13 +506,17 @@ class AIAdviceService {
         'gender': profile.gender,
         'activityLevel': profile.activityLevel.name,
         'primaryGoals': profile.primaryGoals.map((g) => g.name).toList(),
-        'dietaryPreferences': profile.dietaryPreferences.map((d) => d.name).toList(),
-        'healthConditions': profile.healthConditions.map((h) => h.name).toList(),
+        'dietaryPreferences': profile.dietaryPreferences
+            .map((d) => d.name)
+            .toList(),
+        'healthConditions': profile.healthConditions
+            .map((h) => h.name)
+            .toList(),
       };
     }
 
     context['behaviorPatterns'] = behaviorAnalysis;
-    
+
     if (additionalContext != null) {
       context.addAll(additionalContext);
     }
@@ -495,23 +536,29 @@ class AIAdviceService {
         maxResults: 5,
       );
 
-              // Build prompt for OpenAI
-        final prompt = _buildAdvicePrompt(query, context, ragResults.map((r) => r.document.content).toList(), type);
+      // Build prompt for OpenAI
+      final prompt = _buildAdvicePrompt(
+        query,
+        context,
+        ragResults.map((r) => r.document.content).toList(),
+        type,
+      );
 
-        // Generate advice using OpenAI
-        final response = await OpenAIService().getChatCompletion(prompt);
+      // Generate advice using OpenAI
+      final response = await OpenAIService().getChatCompletion(prompt);
 
-        // Parse response (assuming structured JSON response)
-        if (response != null && response.isNotEmpty) {
-          return _parseAdviceResponse(response, type, query, context);
-        } else {
-          throw Exception('Empty response from OpenAI');
-        }
+      // Parse response (assuming structured JSON response)
+      if (response != null && response.isNotEmpty) {
+        return _parseAdviceResponse(response, type, query, context);
+      } else {
+        throw Exception('Empty response from OpenAI');
+      }
     } catch (e) {
-      debugPrint('Error generating advice with RAG: $e');
+      Logger.d('Error generating advice with RAG: $e');
       return {
         'title': 'Health Tip',
-        'content': 'Stay hydrated and maintain a balanced diet for optimal health.',
+        'content':
+            'Stay hydrated and maintain a balanced diet for optimal health.',
         'summary': 'Basic health advice',
         'actions': ['Drink 8 glasses of water daily'],
         'confidence': 0.5,
@@ -566,7 +613,7 @@ Make the advice:
 
   String _formatRAGResultsForPrompt(List<String> ragResults) {
     if (ragResults.isEmpty) return 'No specific knowledge retrieved.';
-    
+
     final buffer = StringBuffer();
     for (final result in ragResults) {
       buffer.writeln('- $result');
@@ -574,7 +621,12 @@ Make the advice:
     return buffer.toString();
   }
 
-  Map<String, dynamic> _parseAdviceResponse(String response, AdviceType type, String query, Map<String, dynamic> context) {
+  Map<String, dynamic> _parseAdviceResponse(
+    String response,
+    AdviceType type,
+    String query,
+    Map<String, dynamic> context,
+  ) {
     try {
       // This would parse the JSON response from OpenAI
       // For now, return a structured response
@@ -587,12 +639,8 @@ Make the advice:
         'confidence': 0.8,
       };
     } catch (e) {
-      debugPrint('Error parsing advice response: $e');
-      return {
-        'title': 'Health Advice',
-        'content': response,
-        'confidence': 0.5,
-      };
+      Logger.d('Error parsing advice response: $e');
+      return {'title': 'Health Advice', 'content': response, 'confidence': 0.5};
     }
   }
 
@@ -613,7 +661,10 @@ Make the advice:
     }
   }
 
-  AdvicePriority _determinePriority(Map<String, dynamic> adviceContent, HealthProfile? profile) {
+  AdvicePriority _determinePriority(
+    Map<String, dynamic> adviceContent,
+    HealthProfile? profile,
+  ) {
     // Logic to determine priority based on content and user profile
     if (adviceContent['urgent'] == true) return AdvicePriority.urgent;
     if (adviceContent['important'] == true) return AdvicePriority.high;
@@ -625,23 +676,28 @@ Make the advice:
     Map<String, dynamic> behaviorAnalysis,
   ) {
     final factors = <String, dynamic>{};
-    
+
     if (profile != null) {
       factors['hasHealthGoals'] = profile.primaryGoals.isNotEmpty;
       factors['hasHealthConditions'] = profile.healthConditions.isNotEmpty;
       factors['activityLevel'] = profile.activityLevel.name;
     }
-    
+
     if (behaviorAnalysis.isNotEmpty) {
       factors['hasMealPatterns'] = behaviorAnalysis['mealPatterns'] != null;
-      factors['hasFastingPatterns'] = behaviorAnalysis['fastingPatterns'] != null;
+      factors['hasFastingPatterns'] =
+          behaviorAnalysis['fastingPatterns'] != null;
     }
-    
+
     return factors;
   }
 
   // Task 6.4: Feedback Mechanism
-  Future<void> recordAdviceFeedback(String adviceId, int rating, {String? comment}) async {
+  Future<void> recordAdviceFeedback(
+    String adviceId,
+    int rating, {
+    String? comment,
+  }) async {
     try {
       final userId = currentUserId;
       if (userId == null) return;
@@ -665,26 +721,30 @@ Make the advice:
       // Update user health profile with feedback
       await _updateUserFeedbackProfile(userId, adviceId, rating);
     } catch (e) {
-      debugPrint('Error recording advice feedback: $e');
+      Logger.d('Error recording advice feedback: $e');
       rethrow;
     }
   }
 
-  Future<void> _updateUserFeedbackProfile(String userId, String adviceId, int rating) async {
+  Future<void> _updateUserFeedbackProfile(
+    String userId,
+    String adviceId,
+    int rating,
+  ) async {
     try {
       final profile = await getHealthProfile(userId);
       if (profile != null) {
         final updatedFeedback = Map<String, int>.from(profile.adviceFeedback);
         updatedFeedback[adviceId] = rating;
-        
+
         final updatedProfile = profile.copyWith(
           adviceFeedback: updatedFeedback,
         );
-        
+
         await updateHealthProfile(updatedProfile);
       }
     } catch (e) {
-      debugPrint('Error updating user feedback profile: $e');
+      Logger.d('Error updating user feedback profile: $e');
     }
   }
 
@@ -693,14 +753,14 @@ Make the advice:
     try {
       // Analyze user feedback patterns
       final feedbackAnalysis = await _analyzeFeedbackPatterns(userId);
-      
+
       // Update personalization insights
       await _updatePersonalizationInsights(userId, feedbackAnalysis);
-      
+
       // Adjust advice generation parameters
       await _adjustAdviceParameters(userId, feedbackAnalysis);
     } catch (e) {
-      debugPrint('Error improving recommendations: $e');
+      Logger.d('Error improving recommendations: $e');
     }
   }
 
@@ -712,18 +772,22 @@ Make the advice:
           .limit(100)
           .get();
 
-      final feedbacks = feedbackQuery.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+      final feedbacks = feedbackQuery.docs
+          .map((doc) => doc.data() as Map<String, dynamic>)
+          .toList();
 
       // Analyze rating patterns
       final ratings = feedbacks.map((f) => f['rating'] as int).toList();
-      final avgRating = ratings.isEmpty ? 0.0 : ratings.reduce((a, b) => a + b) / ratings.length;
-      
+      final avgRating = ratings.isEmpty
+          ? 0.0
+          : ratings.reduce((a, b) => a + b) / ratings.length;
+
       // Analyze advice type preferences
       final typePreferences = <String, double>{};
       final categoryPreferences = <String, double>{};
-      
+
       // This would analyze which types/categories get better ratings
-      
+
       return {
         'averageRating': avgRating,
         'totalFeedbacks': feedbacks.length,
@@ -732,51 +796,60 @@ Make the advice:
         'improvementTrend': _calculateImprovementTrend(ratings),
       };
     } catch (e) {
-      debugPrint('Error analyzing feedback patterns: $e');
+      Logger.d('Error analyzing feedback patterns: $e');
       return {};
     }
   }
 
   double _calculateImprovementTrend(List<int> ratings) {
     if (ratings.length < 10) return 0.0;
-    
+
     final recent = ratings.take(20).toList();
     final older = ratings.skip(20).take(20).toList();
-    
+
     if (older.isEmpty) return 0.0;
-    
+
     final recentAvg = recent.reduce((a, b) => a + b) / recent.length;
     final olderAvg = older.reduce((a, b) => a + b) / older.length;
-    
+
     return recentAvg - olderAvg;
   }
 
-  Future<void> _updatePersonalizationInsights(String userId, Map<String, dynamic> feedbackAnalysis) async {
+  Future<void> _updatePersonalizationInsights(
+    String userId,
+    Map<String, dynamic> feedbackAnalysis,
+  ) async {
     try {
       final profile = await getHealthProfile(userId);
       if (profile != null) {
-        final insights = Map<String, dynamic>.from(profile.personalizedInsights);
+        final insights = Map<String, dynamic>.from(
+          profile.personalizedInsights,
+        );
         insights['feedbackAnalysis'] = feedbackAnalysis;
         insights['lastUpdated'] = DateTime.now().toIso8601String();
-        
-        final updatedProfile = profile.copyWith(
-          personalizedInsights: insights,
-        );
-        
+
+        final updatedProfile = profile.copyWith(personalizedInsights: insights);
+
         await updateHealthProfile(updatedProfile);
       }
     } catch (e) {
-      debugPrint('Error updating personalization insights: $e');
+      Logger.d('Error updating personalization insights: $e');
     }
   }
 
-  Future<void> _adjustAdviceParameters(String userId, Map<String, dynamic> feedbackAnalysis) async {
+  Future<void> _adjustAdviceParameters(
+    String userId,
+    Map<String, dynamic> feedbackAnalysis,
+  ) async {
     // This would adjust the AI advice generation parameters based on feedback
     // For example, prefer certain advice types, adjust tone, etc.
   }
 
   // Task 6.6: Conversational AI Advice Interface
-  Future<AIAdvice> handleConversationalQuery(String userId, String query) async {
+  Future<AIAdvice> handleConversationalQuery(
+    String userId,
+    String query,
+  ) async {
     try {
       return await generatePersonalizedAdvice(
         userId,
@@ -785,26 +858,31 @@ Make the advice:
         category: AdviceCategory.recommendation,
       );
     } catch (e) {
-      debugPrint('Error handling conversational query: $e');
+      Logger.d('Error handling conversational query: $e');
       rethrow;
     }
   }
 
   AdviceType _inferAdviceTypeFromQuery(String query) {
     final lowerQuery = query.toLowerCase();
-    
-    if (lowerQuery.contains('food') || lowerQuery.contains('eat') || lowerQuery.contains('nutrition')) {
+
+    if (lowerQuery.contains('food') ||
+        lowerQuery.contains('eat') ||
+        lowerQuery.contains('nutrition')) {
       return AdviceType.nutrition;
-    } else if (lowerQuery.contains('exercise') || lowerQuery.contains('workout') || lowerQuery.contains('fitness')) {
+    } else if (lowerQuery.contains('exercise') ||
+        lowerQuery.contains('workout') ||
+        lowerQuery.contains('fitness')) {
       return AdviceType.exercise;
     } else if (lowerQuery.contains('fast') || lowerQuery.contains('fasting')) {
       return AdviceType.fasting;
     } else if (lowerQuery.contains('sleep') || lowerQuery.contains('rest')) {
       return AdviceType.sleep;
-    } else if (lowerQuery.contains('motivation') || lowerQuery.contains('motivated')) {
+    } else if (lowerQuery.contains('motivation') ||
+        lowerQuery.contains('motivated')) {
       return AdviceType.motivation;
     }
-    
+
     return AdviceType.custom;
   }
 
@@ -815,13 +893,17 @@ Make the advice:
       if (profile == null || !profile.receiveAdvice) return;
 
       final behaviorAnalysis = await _getBehaviorAnalysis(userId);
-      final triggers = await _identifyAdviceTriggers(userId, profile, behaviorAnalysis);
+      final triggers = await _identifyAdviceTriggers(
+        userId,
+        profile,
+        behaviorAnalysis,
+      );
 
       for (final trigger in triggers) {
         await _generateProactiveAdvice(userId, trigger);
       }
     } catch (e) {
-      debugPrint('Error checking proactive advice triggers: $e');
+      Logger.d('Error checking proactive advice triggers: $e');
     }
   }
 
@@ -834,10 +916,12 @@ Make the advice:
 
     // Check for inactivity triggers
     if (behaviorAnalysis['mealPatterns']?['daysActive'] != null) {
-      final daysSinceLastMeal = DateTime.now().difference(
-        DateTime.parse(behaviorAnalysis['mealPatterns']['lastAnalyzed'])
-      ).inDays;
-      
+      final daysSinceLastMeal = DateTime.now()
+          .difference(
+            DateTime.parse(behaviorAnalysis['mealPatterns']['lastAnalyzed']),
+          )
+          .inDays;
+
       if (daysSinceLastMeal > 3) {
         triggers.add({
           'type': 'inactivity',
@@ -872,22 +956,22 @@ Make the advice:
     return triggers;
   }
 
-  Future<void> _generateProactiveAdvice(String userId, Map<String, dynamic> trigger) async {
+  Future<void> _generateProactiveAdvice(
+    String userId,
+    Map<String, dynamic> trigger,
+  ) async {
     try {
       final adviceType = _mapTriggerToAdviceType(trigger['category']);
       final category = _mapTriggerToAdviceCategory(trigger['type']);
-      
+
       await generatePersonalizedAdvice(
         userId,
         type: adviceType,
         category: category,
-        context: {
-          'trigger': trigger,
-          'proactive': true,
-        },
+        context: {'trigger': trigger, 'proactive': true},
       );
     } catch (e) {
-      debugPrint('Error generating proactive advice: $e');
+      Logger.d('Error generating proactive advice: $e');
     }
   }
 
@@ -926,9 +1010,10 @@ Make the advice:
         .orderBy('createdAt', descending: true)
         .limit(50)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AIAdvice.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) =>
+              snapshot.docs.map((doc) => AIAdvice.fromFirestore(doc)).toList(),
+        );
   }
 
   Future<void> markAdviceAsRead(String adviceId) async {
@@ -939,7 +1024,7 @@ Make the advice:
         'viewCount': FieldValue.increment(1),
       });
     } catch (e) {
-      debugPrint('Error marking advice as read: $e');
+      Logger.d('Error marking advice as read: $e');
     }
   }
 
@@ -950,7 +1035,7 @@ Make the advice:
         'interactedAt': Timestamp.now(),
       });
     } catch (e) {
-      debugPrint('Error bookmarking advice: $e');
+      Logger.d('Error bookmarking advice: $e');
     }
   }
 
@@ -961,7 +1046,7 @@ Make the advice:
         'interactedAt': Timestamp.now(),
       });
     } catch (e) {
-      debugPrint('Error dismissing advice: $e');
+      Logger.d('Error dismissing advice: $e');
     }
   }
-} 
+}

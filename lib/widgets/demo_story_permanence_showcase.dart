@@ -9,22 +9,24 @@ class DemoStoryPermanenceShowcase extends StatefulWidget {
   const DemoStoryPermanenceShowcase({super.key});
 
   @override
-  State<DemoStoryPermanenceShowcase> createState() => _DemoStoryPermanenceShowcaseState();
+  State<DemoStoryPermanenceShowcase> createState() =>
+      _DemoStoryPermanenceShowcaseState();
 }
 
-class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcase>
+class _DemoStoryPermanenceShowcaseState
+    extends State<DemoStoryPermanenceShowcase>
     with TickerProviderStateMixin {
   late AnimationController _algorithmController;
   late AnimationController _archiveController;
   late Animation<double> _algorithmAnimation;
   late Animation<double> _archiveAnimation;
-  
+
   bool _showAlgorithm = false;
   bool _showArchive = false;
   int _selectedTimeframe = 0; // 0: 7 days, 1: 30 days, 2: 90 days
-  
+
   final List<String> _timeframes = ['7 Days', '30 Days', '90 Days'];
-  
+
   final List<Map<String, dynamic>> _storyExamples = [
     {
       'type': 'daily',
@@ -71,7 +73,7 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
       'description': 'Helpful content with standard decay pattern',
     },
   ];
-  
+
   final List<Map<String, dynamic>> _algorithmFactors = [
     {
       'factor': 'Initial Engagement',
@@ -102,36 +104,28 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
       'color': SnapColors.accentPurple,
     },
   ];
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _algorithmController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
+
     _archiveController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
-    _algorithmAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _algorithmController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _archiveAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _archiveController,
-      curve: Curves.elasticOut,
-    ));
+
+    _algorithmAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _algorithmController, curve: Curves.easeInOut),
+    );
+
+    _archiveAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _archiveController, curve: Curves.elasticOut),
+    );
   }
 
   @override
@@ -148,7 +142,7 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
       builder: (context, snapshot) {
         final isDemo = snapshot.data ?? false;
         if (!isDemo) return const SizedBox.shrink();
-        
+
         return Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(20),
@@ -172,29 +166,29 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
             children: [
               // Demo indicator
               _buildDemoIndicator(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Permanence overview
               _buildPermanenceOverview(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Story lifecycle visualization
               _buildStoryLifecycleSection(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Algorithm explanation
               _buildAlgorithmSection(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Milestone archive showcase
               _buildMilestoneArchiveSection(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Competitive advantage
               _buildCompetitiveAdvantage(),
             ],
@@ -214,11 +208,7 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.auto_graph,
-            size: 16,
-            color: Colors.black,
-          ),
+          const Icon(Icons.auto_graph, size: 16, color: Colors.black),
           const SizedBox(width: 6),
           const Text(
             'Story Permanence Algorithm Demo',
@@ -292,7 +282,13 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
     );
   }
 
-  Widget _buildOverviewCard(String title, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildOverviewCard(
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -341,18 +337,16 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.timeline,
-                color: SnapColors.accentBlue,
-                size: 20,
-              ),
+              Icon(Icons.timeline, color: SnapColors.accentBlue, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Story Lifecycle Visualization',
@@ -375,7 +369,7 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
                     final index = entry.key;
                     final timeframe = entry.value;
                     final isSelected = _selectedTimeframe == index;
-                    
+
                     return GestureDetector(
                       onTap: () {
                         setState(() {
@@ -383,10 +377,13 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
                         });
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: isSelected 
-                              ? SnapColors.accentBlue 
+                          color: isSelected
+                              ? SnapColors.accentBlue
                               : Colors.transparent,
                           borderRadius: BorderRadius.circular(6),
                         ),
@@ -395,8 +392,8 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
                           style: TextStyle(
                             fontSize: 10,
                             fontWeight: FontWeight.w600,
-                            color: isSelected 
-                                ? Colors.white 
+                            color: isSelected
+                                ? Colors.white
                                 : SnapColors.textSecondary,
                           ),
                         ),
@@ -407,14 +404,14 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Story examples with decay visualization
           Column(
-            children: _storyExamples.map((story) => 
-              _buildStoryDecayVisualization(story)
-            ).toList(),
+            children: _storyExamples
+                .map((story) => _buildStoryDecayVisualization(story))
+                .toList(),
           ),
         ],
       ),
@@ -424,14 +421,17 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
   Widget _buildStoryDecayVisualization(Map<String, dynamic> story) {
     final daysAgo = story['daysAgo'] as int;
     final permanence = story['permanence'] as int;
-    
+
     // Calculate current permanence based on timeframe
     double currentPermanence = permanence / 100.0;
     if (story['type'] != 'milestone') {
       final decayRate = story['decayRate'] as double;
-      currentPermanence = math.max(0.1, permanence / 100.0 - (daysAgo * decayRate));
+      currentPermanence = math.max(
+        0.1,
+        permanence / 100.0 - (daysAgo * decayRate),
+      );
     }
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
@@ -481,9 +481,9 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
               ),
             ],
           ),
-          
+
           const SizedBox(height: 8),
-          
+
           // Decay visualization bar
           Row(
             children: [
@@ -518,16 +518,12 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
               ),
               const SizedBox(width: 8),
               if (story['type'] == 'milestone')
-                Icon(
-                  Icons.lock,
-                  size: 12,
-                  color: SnapColors.accentGreen,
-                ),
+                Icon(Icons.lock, size: 12, color: SnapColors.accentGreen),
             ],
           ),
-          
+
           const SizedBox(height: 4),
-          
+
           Text(
             story['description'] as String,
             style: TextStyle(
@@ -547,18 +543,16 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.psychology,
-                color: SnapColors.accentPurple,
-                size: 20,
-              ),
+              Icon(Icons.psychology, color: SnapColors.accentPurple, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Permanence Algorithm Factors',
@@ -586,7 +580,7 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
               ),
             ],
           ),
-          
+
           if (_showAlgorithm) ...[
             const SizedBox(height: 16),
             AnimatedBuilder(
@@ -597,8 +591,11 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
                     final index = entry.key;
                     final factor = entry.value;
                     final delay = index * 0.2;
-                    final progress = math.max(0.0, math.min(1.0, (_algorithmAnimation.value - delay) / 0.3));
-                    
+                    final progress = math.max(
+                      0.0,
+                      math.min(1.0, (_algorithmAnimation.value - delay) / 0.3),
+                    );
+
                     return Transform.scale(
                       scale: 0.8 + (0.2 * progress),
                       child: Opacity(
@@ -607,10 +604,14 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: (factor['color'] as Color).withValues(alpha: 0.1),
+                            color: (factor['color'] as Color).withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: (factor['color'] as Color).withValues(alpha: 0.3),
+                              color: (factor['color'] as Color).withValues(
+                                alpha: 0.3,
+                              ),
                             ),
                           ),
                           child: Row(
@@ -637,10 +638,16 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
                                         ),
                                         const Spacer(),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: (factor['color'] as Color).withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color: (factor['color'] as Color)
+                                                .withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
                                           ),
                                           child: Text(
                                             '${factor['weight']}%',
@@ -685,18 +692,16 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.archive,
-                color: SnapColors.accentGreen,
-                size: 20,
-              ),
+              Icon(Icons.archive, color: SnapColors.accentGreen, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Milestone Archive System',
@@ -724,9 +729,9 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Text(
             'AI automatically identifies and permanently preserves significant life achievements and milestones.',
             style: TextStyle(
@@ -735,7 +740,7 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
               height: 1.3,
             ),
           ),
-          
+
           if (_showArchive) ...[
             const SizedBox(height: 16),
             AnimatedBuilder(
@@ -805,7 +810,14 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
     );
   }
 
-  Widget _buildArchiveCategory(String title, String count, String description, IconData icon, Color color, double progress) {
+  Widget _buildArchiveCategory(
+    String title,
+    String count,
+    String description,
+    IconData icon,
+    Color color,
+    double progress,
+  ) {
     return Transform.scale(
       scale: 0.8 + (0.2 * progress),
       child: Opacity(
@@ -876,11 +888,7 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
         children: [
           Row(
             children: [
-              Icon(
-                Icons.trending_up,
-                color: SnapColors.accentGreen,
-                size: 20,
-              ),
+              Icon(Icons.trending_up, color: SnapColors.accentGreen, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Competitive Advantage',
@@ -891,9 +899,9 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Text(
             'Our logarithmic permanence system creates lasting value for users while differentiating from ephemeral social media.',
             style: TextStyle(
@@ -902,9 +910,9 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
               height: 1.3,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Row(
             children: [
               Expanded(
@@ -940,7 +948,12 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
     );
   }
 
-  Widget _buildAdvantagePoint(String title, String description, IconData icon, Color color) {
+  Widget _buildAdvantagePoint(
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -974,4 +987,4 @@ class _DemoStoryPermanenceShowcaseState extends State<DemoStoryPermanenceShowcas
       ),
     );
   }
-} 
+}

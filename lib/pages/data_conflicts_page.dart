@@ -11,10 +11,11 @@ class DataConflictsPage extends StatefulWidget {
   State<DataConflictsPage> createState() => _DataConflictsPageState();
 }
 
-class _DataConflictsPageState extends State<DataConflictsPage> with TickerProviderStateMixin {
+class _DataConflictsPageState extends State<DataConflictsPage>
+    with TickerProviderStateMixin {
   final HealthIntegrationService _healthService = HealthIntegrationService();
   late TabController _tabController;
-  
+
   List<DataConflict> _conflicts = [];
   Map<String, int> _statistics = {};
   bool _isLoading = true;
@@ -56,10 +57,11 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
   }
 
   Future<void> _resolveConflict(
-    DataConflict conflict, 
-    ConflictResolutionStrategy strategy,
-    {String? selectedSourceId, Map<String, dynamic>? mergedData}
-  ) async {
+    DataConflict conflict,
+    ConflictResolutionStrategy strategy, {
+    String? selectedSourceId,
+    Map<String, dynamic>? mergedData,
+  }) async {
     setState(() {
       _isResolving = true;
     });
@@ -89,19 +91,13 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
 
   void _showErrorSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      ),
+      SnackBar(content: Text(message), backgroundColor: Colors.green),
     );
   }
 
@@ -279,11 +275,7 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
         color: iconColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Icon(
-        iconData,
-        color: iconColor,
-        size: 24,
-      ),
+      child: Icon(iconData, color: iconColor, size: 24),
     );
   }
 
@@ -456,7 +448,9 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
       decoration: BoxDecoration(
         color: SnapColors.primaryYellow.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: SnapColors.primaryYellow.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: SnapColors.primaryYellow.withValues(alpha: 0.3),
+        ),
       ),
       child: Row(
         children: [
@@ -500,28 +494,34 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
         if (conflict.suggestedResolution != null)
           SnapButton(
             text: 'Accept Suggestion',
-            onTap: _isResolving ? null : () => _resolveConflict(
-              conflict, 
-              conflict.suggestedResolution!,
-            ),
+            onTap: _isResolving
+                ? null
+                : () =>
+                      _resolveConflict(conflict, conflict.suggestedResolution!),
           ),
         SnapButton(
           text: 'Keep Highest Priority',
-          onTap: _isResolving ? null : () => _resolveConflict(
-            conflict, 
-            ConflictResolutionStrategy.highestPriority,
-          ),
+          onTap: _isResolving
+              ? null
+              : () => _resolveConflict(
+                  conflict,
+                  ConflictResolutionStrategy.highestPriority,
+                ),
         ),
         SnapButton(
           text: 'Keep Most Recent',
-          onTap: _isResolving ? null : () => _resolveConflict(
-            conflict, 
-            ConflictResolutionStrategy.mostRecent,
-          ),
+          onTap: _isResolving
+              ? null
+              : () => _resolveConflict(
+                  conflict,
+                  ConflictResolutionStrategy.mostRecent,
+                ),
         ),
         SnapButton(
           text: 'Manual Choice',
-          onTap: _isResolving ? null : () => _showManualResolutionDialog(conflict),
+          onTap: _isResolving
+              ? null
+              : () => _showManualResolutionDialog(conflict),
         ),
       ],
     );
@@ -635,7 +635,12 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Card(
       color: SnapColors.backgroundSecondary,
       margin: const EdgeInsets.only(bottom: 12),
@@ -764,9 +769,7 @@ class _DataConflictsPageState extends State<DataConflictsPage> with TickerProvid
       leading: _buildDataSourceIcon(source),
       title: Text(
         name,
-        style: SnapTypography.body.copyWith(
-          color: SnapColors.textPrimary,
-        ),
+        style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
       ),
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

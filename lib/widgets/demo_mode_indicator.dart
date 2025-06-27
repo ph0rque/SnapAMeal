@@ -39,11 +39,7 @@ class DemoModeIndicator extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.science_outlined,
-                size: size,
-                color: indicatorColor,
-              ),
+              Icon(Icons.science_outlined, size: size, color: indicatorColor),
               if (showLabel) ...[
                 const SizedBox(width: 4.0),
                 Text(
@@ -69,10 +65,7 @@ class CompactDemoIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const DemoModeIndicator(
-      showLabel: false,
-      size: 14.0,
-    );
+    return const DemoModeIndicator(showLabel: false, size: 14.0);
   }
 }
 
@@ -81,11 +74,7 @@ class DemoBannerIndicator extends StatelessWidget {
   final String? message;
   final VoidCallback? onTap;
 
-  const DemoBannerIndicator({
-    super.key,
-    this.message,
-    this.onTap,
-  });
+  const DemoBannerIndicator({super.key, this.message, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -103,7 +92,10 @@ class DemoBannerIndicator extends StatelessWidget {
           onTap: onTap,
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
@@ -120,11 +112,7 @@ class DemoBannerIndicator extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.science_outlined,
-                  size: 16.0,
-                  color: bannerColor,
-                ),
+                Icon(Icons.science_outlined, size: 16.0, color: bannerColor),
                 const SizedBox(width: 8.0),
                 Expanded(
                   child: Text(
@@ -163,12 +151,9 @@ extension DemoModeExtension on Widget {
     return Column(
       children: [
         if (showBanner)
-          DemoBannerIndicator(
-            message: bannerMessage,
-            onTap: onBannerTap,
-          ),
+          DemoBannerIndicator(message: bannerMessage, onTap: onBannerTap),
         Expanded(child: this),
       ],
     );
   }
-} 
+}

@@ -14,14 +14,15 @@ class AIAdvicePage extends StatefulWidget {
   State<AIAdvicePage> createState() => _AIAdvicePageState();
 }
 
-class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMixin {
+class _AIAdvicePageState extends State<AIAdvicePage>
+    with TickerProviderStateMixin {
   final AIAdviceService _adviceService = AIAdviceService();
   final AuthService _authService = AuthService();
   final TextEditingController _queryController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
-  
+
   late TabController _tabController;
-  
+
   bool _isGeneratingAdvice = false;
   String? _currentUserId;
   HealthProfile? _healthProfile;
@@ -44,7 +45,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
   Future<void> _initializeUser() async {
     final authService = Provider.of<AuthService>(context, listen: false);
     _currentUserId = authService.getCurrentUser()?.uid;
-    
+
     if (_currentUserId != null) {
       _healthProfile = await _adviceService.getHealthProfile(_currentUserId!);
       setState(() {});
@@ -60,7 +61,9 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         elevation: 0,
         title: Text(
           'AI Health Advisor',
-          style: SnapTypography.heading2.copyWith(color: SnapColors.primaryYellow),
+          style: SnapTypography.heading2.copyWith(
+            color: SnapColors.primaryYellow,
+          ),
         ),
         centerTitle: true,
         bottom: TabBar(
@@ -106,7 +109,9 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
           decoration: BoxDecoration(
             color: SnapColors.backgroundLight,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: SnapColors.primaryYellow.withValues(alpha: 0.3)),
+            border: Border.all(
+              color: SnapColors.primaryYellow.withValues(alpha: 0.3),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +134,9 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                   Expanded(
                     child: Text(
                       'AI Health Advisor',
-                      style: SnapTypography.titleLarge.copyWith(color: SnapColors.primaryYellow),
+                      style: SnapTypography.titleLarge.copyWith(
+                        color: SnapColors.primaryYellow,
+                      ),
                     ),
                   ),
                 ],
@@ -137,7 +144,9 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
               const SizedBox(height: 8),
               Text(
                 'Ask questions about health, nutrition, fitness, or wellness.',
-                style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+                style: SnapTypography.caption.copyWith(
+                  color: SnapColors.textSecondary,
+                ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -146,7 +155,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
             ],
           ),
         ),
-        
+
         // Chat interface
         Expanded(
           child: StreamBuilder<List<AIAdvice>>(
@@ -154,21 +163,25 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
-                  child: CircularProgressIndicator(color: SnapColors.primaryYellow),
+                  child: CircularProgressIndicator(
+                    color: SnapColors.primaryYellow,
+                  ),
                 );
               }
-              
+
               if (snapshot.hasError) {
                 return Center(
                   child: Text(
                     'Error loading advice: ${snapshot.error}',
-                    style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+                    style: SnapTypography.body.copyWith(
+                      color: SnapColors.textSecondary,
+                    ),
                   ),
                 );
               }
-              
+
               final adviceList = snapshot.data ?? [];
-              
+
               if (adviceList.isEmpty) {
                 return Center(
                   child: Column(
@@ -183,14 +196,18 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                       const SizedBox(height: 12),
                       Text(
                         'No advice yet',
-                        style: SnapTypography.heading3.copyWith(color: SnapColors.textSecondary),
+                        style: SnapTypography.heading3.copyWith(
+                          color: SnapColors.textSecondary,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'Ask a question or tap one of the suggestions above',
-                          style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+                          style: SnapTypography.body.copyWith(
+                            color: SnapColors.textSecondary,
+                          ),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -198,7 +215,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                   ),
                 );
               }
-              
+
               return ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -211,7 +228,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
             },
           ),
         ),
-        
+
         // Input area
         _buildInputArea(),
       ],
@@ -229,21 +246,32 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: questions.map((question) => GestureDetector(
-        onTap: () => _askQuestion(question),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-          decoration: BoxDecoration(
-            color: SnapColors.primaryYellow.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: SnapColors.primaryYellow.withValues(alpha: 0.3)),
-          ),
-          child: Text(
-            question,
-            style: SnapTypography.caption.copyWith(color: SnapColors.primaryYellow),
-          ),
-        ),
-      )).toList(),
+      children: questions
+          .map(
+            (question) => GestureDetector(
+              onTap: () => _askQuestion(question),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: SnapColors.primaryYellow.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: SnapColors.primaryYellow.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Text(
+                  question,
+                  style: SnapTypography.caption.copyWith(
+                    color: SnapColors.primaryYellow,
+                  ),
+                ),
+              ),
+            ),
+          )
+          .toList(),
     );
   }
 
@@ -265,7 +293,9 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: _getAdviceTypeColor(advice.type).withValues(alpha: 0.1),
+                  color: _getAdviceTypeColor(
+                    advice.type,
+                  ).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Icon(
@@ -281,11 +311,15 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                   children: [
                     Text(
                       advice.title,
-                      style: SnapTypography.titleLarge.copyWith(color: SnapColors.textPrimary),
+                      style: SnapTypography.titleLarge.copyWith(
+                        color: SnapColors.textPrimary,
+                      ),
                     ),
                     Text(
                       '${advice.typeDisplayName} • ${advice.categoryDisplayName}',
-                      style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+                      style: SnapTypography.caption.copyWith(
+                        color: SnapColors.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -293,51 +327,57 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
               _buildAdvicePriorityBadge(advice.priority),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Content
           Text(
             advice.content,
             style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
           ),
-          
+
           // Suggested Actions
           if (advice.suggestedActions.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(
               'Suggested Actions:',
-              style: SnapTypography.headlineMedium.copyWith(color: SnapColors.primaryYellow),
+              style: SnapTypography.headlineMedium.copyWith(
+                color: SnapColors.primaryYellow,
+              ),
             ),
             const SizedBox(height: 8),
-            ...advice.suggestedActions.map((action) => Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    margin: const EdgeInsets.only(top: 6),
-                    width: 4,
-                    height: 4,
-                    decoration: const BoxDecoration(
-                      color: SnapColors.primaryYellow,
-                      shape: BoxShape.circle,
+            ...advice.suggestedActions.map(
+              (action) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(top: 6),
+                      width: 4,
+                      height: 4,
+                      decoration: const BoxDecoration(
+                        color: SnapColors.primaryYellow,
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      action,
-                      style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        action,
+                        style: SnapTypography.body.copyWith(
+                          color: SnapColors.textSecondary,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            )),
+            ),
           ],
-          
+
           const SizedBox(height: 16),
-          
+
           // Actions
           Row(
             children: [
@@ -348,7 +388,9 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                   IconButton(
                     icon: Icon(
                       Icons.thumb_down,
-                      color: advice.isNegativelyRated ? SnapColors.error : SnapColors.textSecondary,
+                      color: advice.isNegativelyRated
+                          ? SnapColors.error
+                          : SnapColors.textSecondary,
                       size: 20,
                     ),
                     onPressed: () => _rateAdvice(advice.id, -1),
@@ -356,26 +398,31 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                   IconButton(
                     icon: Icon(
                       Icons.thumb_up,
-                      color: advice.isPositivelyRated ? SnapColors.primaryYellow : SnapColors.textSecondary,
+                      color: advice.isPositivelyRated
+                          ? SnapColors.primaryYellow
+                          : SnapColors.textSecondary,
                       size: 20,
                     ),
                     onPressed: () => _rateAdvice(advice.id, 1),
                   ),
                 ],
               ),
-              
+
               const Spacer(),
-              
+
               // Bookmark
               IconButton(
                 icon: Icon(
                   advice.isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                  color: advice.isBookmarked ? SnapColors.primaryYellow : SnapColors.textSecondary,
+                  color: advice.isBookmarked
+                      ? SnapColors.primaryYellow
+                      : SnapColors.textSecondary,
                   size: 20,
                 ),
-                onPressed: () => _bookmarkAdvice(advice.id, !advice.isBookmarked),
+                onPressed: () =>
+                    _bookmarkAdvice(advice.id, !advice.isBookmarked),
               ),
-              
+
               // Share
               IconButton(
                 icon: const Icon(
@@ -469,9 +516,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
-        border: Border(
-          top: BorderSide(color: SnapColors.border),
-        ),
+        border: Border(top: BorderSide(color: SnapColors.border)),
       ),
       child: Row(
         children: [
@@ -497,10 +542,7 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
                         strokeWidth: 2,
                       ),
                     )
-                  : const Icon(
-                      Icons.send,
-                      color: SnapColors.backgroundDark,
-                    ),
+                  : const Icon(Icons.send, color: SnapColors.backgroundDark),
               onPressed: _isGeneratingAdvice ? null : _sendQuery,
             ),
           ),
@@ -529,7 +571,9 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         }
 
         final adviceList = snapshot.data ?? [];
-        final bookmarkedAdvice = adviceList.where((advice) => advice.isBookmarked).toList();
+        final bookmarkedAdvice = adviceList
+            .where((advice) => advice.isBookmarked)
+            .toList();
         final recentAdvice = adviceList.take(10).toList();
 
         return SingleChildScrollView(
@@ -539,24 +583,28 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
             children: [
               // Stats
               _buildAdviceStats(adviceList),
-              
+
               const SizedBox(height: 24),
-              
+
               // Bookmarked advice
               if (bookmarkedAdvice.isNotEmpty) ...[
                 Text(
                   'Bookmarked Advice',
-                  style: SnapTypography.headlineMedium.copyWith(color: SnapColors.textPrimary),
+                  style: SnapTypography.headlineMedium.copyWith(
+                    color: SnapColors.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 ...bookmarkedAdvice.map((advice) => _buildAdviceCard(advice)),
                 const SizedBox(height: 24),
               ],
-              
+
               // Recent advice
               Text(
                 'Recent Advice',
-                style: SnapTypography.headlineMedium.copyWith(color: SnapColors.textPrimary),
+                style: SnapTypography.headlineMedium.copyWith(
+                  color: SnapColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 16),
               ...recentAdvice.map((advice) => _buildAdviceCard(advice)),
@@ -569,10 +617,17 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
 
   Widget _buildAdviceStats(List<AIAdvice> adviceList) {
     final totalAdvice = adviceList.length;
-    final positiveRatings = adviceList.where((advice) => advice.isPositivelyRated).length;
+    final positiveRatings = adviceList
+        .where((advice) => advice.isPositivelyRated)
+        .length;
     final bookmarked = adviceList.where((advice) => advice.isBookmarked).length;
-    final thisWeek = adviceList.where((advice) => 
-        advice.createdAt.isAfter(DateTime.now().subtract(const Duration(days: 7)))).length;
+    final thisWeek = adviceList
+        .where(
+          (advice) => advice.createdAt.isAfter(
+            DateTime.now().subtract(const Duration(days: 7)),
+          ),
+        )
+        .length;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -586,20 +641,46 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         children: [
           Text(
             'Your AI Advice Stats',
-            style: SnapTypography.titleLarge.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.titleLarge.copyWith(
+              color: SnapColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(child: _buildStatItem('Total Advice', totalAdvice.toString(), Icons.lightbulb)),
-              Expanded(child: _buildStatItem('This Week', thisWeek.toString(), Icons.calendar_today)),
+              Expanded(
+                child: _buildStatItem(
+                  'Total Advice',
+                  totalAdvice.toString(),
+                  Icons.lightbulb,
+                ),
+              ),
+              Expanded(
+                child: _buildStatItem(
+                  'This Week',
+                  thisWeek.toString(),
+                  Icons.calendar_today,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
           Row(
             children: [
-              Expanded(child: _buildStatItem('Liked', positiveRatings.toString(), Icons.thumb_up)),
-              Expanded(child: _buildStatItem('Bookmarked', bookmarked.toString(), Icons.bookmark)),
+              Expanded(
+                child: _buildStatItem(
+                  'Liked',
+                  positiveRatings.toString(),
+                  Icons.thumb_up,
+                ),
+              ),
+              Expanded(
+                child: _buildStatItem(
+                  'Bookmarked',
+                  bookmarked.toString(),
+                  Icons.bookmark,
+                ),
+              ),
             ],
           ),
         ],
@@ -614,11 +695,15 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         const SizedBox(height: 4),
         Text(
           value,
-          style: SnapTypography.heading3.copyWith(color: SnapColors.primaryYellow),
+          style: SnapTypography.heading3.copyWith(
+            color: SnapColors.primaryYellow,
+          ),
         ),
         Text(
           label,
-          style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+          style: SnapTypography.caption.copyWith(
+            color: SnapColors.textSecondary,
+          ),
         ),
       ],
     );
@@ -641,22 +726,22 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         children: [
           // Health profile summary
           _buildHealthProfileSummary(),
-          
+
           const SizedBox(height: 24),
-          
+
           // Advice preferences
           _buildAdvicePreferences(),
-          
+
           const SizedBox(height: 24),
-          
+
           // Actions
           SnapButton(
             text: 'Update Health Profile',
             onTap: _updateHealthProfile,
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Logout button
           SizedBox(
             width: double.infinity,
@@ -691,17 +776,30 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         children: [
           Text(
             'Health Profile',
-            style: SnapTypography.titleLarge.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.titleLarge.copyWith(
+              color: SnapColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
           if (_healthProfile != null) ...[
-            _buildProfileItem('Age', _healthProfile!.age?.toString() ?? 'Not set'),
-            _buildProfileItem('Activity Level', _healthProfile!.activityLevelDisplayName),
-            _buildProfileItem('Primary Goals', _healthProfile!.primaryGoalsDisplayNames.join(', ')),
+            _buildProfileItem(
+              'Age',
+              _healthProfile!.age?.toString() ?? 'Not set',
+            ),
+            _buildProfileItem(
+              'Activity Level',
+              _healthProfile!.activityLevelDisplayName,
+            ),
+            _buildProfileItem(
+              'Primary Goals',
+              _healthProfile!.primaryGoalsDisplayNames.join(', '),
+            ),
           ] else ...[
             Text(
               'No health profile found. Please update your profile to get personalized advice.',
-              style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
             ),
           ],
         ],
@@ -719,13 +817,17 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
             width: 120,
             child: Text(
               '$label:',
-              style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
             ),
           ),
           Expanded(
             child: Text(
               value.isEmpty ? 'Not set' : value,
-              style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textPrimary,
+              ),
             ),
           ),
         ],
@@ -746,21 +848,27 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
         children: [
           Text(
             'Advice Preferences',
-            style: SnapTypography.titleLarge.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.titleLarge.copyWith(
+              color: SnapColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 16),
           SwitchListTile(
             title: Text(
               'Receive AI Advice',
-              style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textPrimary,
+              ),
             ),
             subtitle: Text(
               'Get personalized health advice based on your activity',
-              style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+              style: SnapTypography.caption.copyWith(
+                color: SnapColors.textSecondary,
+              ),
             ),
             value: _healthProfile?.receiveAdvice ?? true,
             onChanged: _toggleAdvicePreference,
-                                  activeThumbColor: SnapColors.primaryYellow,
+            activeThumbColor: SnapColors.primaryYellow,
           ),
         ],
       ),
@@ -780,9 +888,12 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
     });
 
     try {
-      await _adviceService.handleConversationalQuery(_currentUserId!, _queryController.text.trim());
+      await _adviceService.handleConversationalQuery(
+        _currentUserId!,
+        _queryController.text.trim(),
+      );
       _queryController.clear();
-      
+
       // Scroll to top to show new advice
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -903,4 +1014,4 @@ class _AIAdvicePageState extends State<AIAdvicePage> with TickerProviderStateMix
       ),
     );
   }
-} 
+}

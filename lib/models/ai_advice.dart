@@ -19,15 +19,10 @@ enum AdviceType {
   fastingGuidance,
   exerciseRecommendation,
   motivationalMessage,
-  custom
+  custom,
 }
 
-enum AdvicePriority {
-  low,
-  medium,
-  high,
-  urgent
-}
+enum AdvicePriority { low, medium, high, urgent }
 
 enum AdviceCategory {
   tip,
@@ -37,7 +32,7 @@ enum AdviceCategory {
   insight,
   recommendation,
   challenge,
-  celebration
+  celebration,
 }
 
 enum AdviceTrigger {
@@ -47,7 +42,7 @@ enum AdviceTrigger {
   reactive,
   milestone,
   emergency,
-  userRequested
+  userRequested,
 }
 
 class AIAdvice {
@@ -55,7 +50,7 @@ class AIAdvice {
   final String userId;
   final DateTime createdAt;
   final DateTime? updatedAt;
-  
+
   // Core Advice Content
   final String title;
   final String content;
@@ -63,19 +58,20 @@ class AIAdvice {
   final AdviceType type;
   final AdviceCategory category;
   final AdvicePriority priority;
-  
+
   // Personalization Context
   final Map<String, dynamic> context; // User data that influenced this advice
   final List<String> tags; // Keywords for categorization
-  final Map<String, dynamic> personalizationFactors; // What made this advice relevant
-  
+  final Map<String, dynamic>
+  personalizationFactors; // What made this advice relevant
+
   // Delivery & Timing
   final AdviceTrigger trigger;
   final DateTime? scheduledFor;
   final DateTime? deliveredAt;
   final DateTime? expiresAt;
   final bool isProactive; // AI-initiated vs user-requested
-  
+
   // User Interaction
   final int? userRating; // -1, 0, 1 (dislike, neutral, like)
   final DateTime? ratedAt;
@@ -84,20 +80,21 @@ class AIAdvice {
   final bool isBookmarked;
   final DateTime? interactedAt;
   final Map<String, dynamic> interactionData; // Clicks, time spent, etc.
-  
+
   // AI Learning Data
   final String? sourceQuery; // Original user question if applicable
   final List<String> ragSources; // Knowledge base sources used
   final double? confidenceScore; // AI confidence in this advice (0-1)
   final Map<String, dynamic> generationMetadata; // Model version, tokens, etc.
-  
+
   // Follow-up & Actions
   final List<String> suggestedActions; // Actionable steps
   final String? followUpAdviceId; // Link to related advice
   final bool hasReminder;
   final DateTime? reminderAt;
-  final Map<String, dynamic> actionTracking; // User completion of suggested actions
-  
+  final Map<String, dynamic>
+  actionTracking; // User completion of suggested actions
+
   // Effectiveness Tracking
   final int viewCount;
   final int shareCount;
@@ -152,7 +149,9 @@ class AIAdvice {
       id: doc.id,
       userId: data['userId'],
       createdAt: (data['createdAt'] as Timestamp).toDate(),
-      updatedAt: data['updatedAt'] != null ? (data['updatedAt'] as Timestamp).toDate() : null,
+      updatedAt: data['updatedAt'] != null
+          ? (data['updatedAt'] as Timestamp).toDate()
+          : null,
       title: data['title'],
       content: data['content'],
       summary: data['summary'],
@@ -170,30 +169,46 @@ class AIAdvice {
       ),
       context: Map<String, dynamic>.from(data['context'] ?? {}),
       tags: List<String>.from(data['tags'] ?? []),
-      personalizationFactors: Map<String, dynamic>.from(data['personalizationFactors'] ?? {}),
+      personalizationFactors: Map<String, dynamic>.from(
+        data['personalizationFactors'] ?? {},
+      ),
       trigger: AdviceTrigger.values.firstWhere(
         (trigger) => trigger.name == data['trigger'],
         orElse: () => AdviceTrigger.scheduled,
       ),
-      scheduledFor: data['scheduledFor'] != null ? (data['scheduledFor'] as Timestamp).toDate() : null,
-      deliveredAt: data['deliveredAt'] != null ? (data['deliveredAt'] as Timestamp).toDate() : null,
-      expiresAt: data['expiresAt'] != null ? (data['expiresAt'] as Timestamp).toDate() : null,
+      scheduledFor: data['scheduledFor'] != null
+          ? (data['scheduledFor'] as Timestamp).toDate()
+          : null,
+      deliveredAt: data['deliveredAt'] != null
+          ? (data['deliveredAt'] as Timestamp).toDate()
+          : null,
+      expiresAt: data['expiresAt'] != null
+          ? (data['expiresAt'] as Timestamp).toDate()
+          : null,
       isProactive: data['isProactive'] ?? true,
       userRating: data['userRating'],
-      ratedAt: data['ratedAt'] != null ? (data['ratedAt'] as Timestamp).toDate() : null,
+      ratedAt: data['ratedAt'] != null
+          ? (data['ratedAt'] as Timestamp).toDate()
+          : null,
       isRead: data['isRead'] ?? false,
       isDismissed: data['isDismissed'] ?? false,
       isBookmarked: data['isBookmarked'] ?? false,
-      interactedAt: data['interactedAt'] != null ? (data['interactedAt'] as Timestamp).toDate() : null,
+      interactedAt: data['interactedAt'] != null
+          ? (data['interactedAt'] as Timestamp).toDate()
+          : null,
       interactionData: Map<String, dynamic>.from(data['interactionData'] ?? {}),
       sourceQuery: data['sourceQuery'],
       ragSources: List<String>.from(data['ragSources'] ?? []),
       confidenceScore: data['confidenceScore']?.toDouble(),
-      generationMetadata: Map<String, dynamic>.from(data['generationMetadata'] ?? {}),
+      generationMetadata: Map<String, dynamic>.from(
+        data['generationMetadata'] ?? {},
+      ),
       suggestedActions: List<String>.from(data['suggestedActions'] ?? []),
       followUpAdviceId: data['followUpAdviceId'],
       hasReminder: data['hasReminder'] ?? false,
-      reminderAt: data['reminderAt'] != null ? (data['reminderAt'] as Timestamp).toDate() : null,
+      reminderAt: data['reminderAt'] != null
+          ? (data['reminderAt'] as Timestamp).toDate()
+          : null,
       actionTracking: Map<String, dynamic>.from(data['actionTracking'] ?? {}),
       viewCount: data['viewCount'] ?? 0,
       shareCount: data['shareCount'] ?? 0,
@@ -218,8 +233,12 @@ class AIAdvice {
       'tags': tags,
       'personalizationFactors': personalizationFactors,
       'trigger': trigger.name,
-      'scheduledFor': scheduledFor != null ? Timestamp.fromDate(scheduledFor!) : null,
-      'deliveredAt': deliveredAt != null ? Timestamp.fromDate(deliveredAt!) : null,
+      'scheduledFor': scheduledFor != null
+          ? Timestamp.fromDate(scheduledFor!)
+          : null,
+      'deliveredAt': deliveredAt != null
+          ? Timestamp.fromDate(deliveredAt!)
+          : null,
       'expiresAt': expiresAt != null ? Timestamp.fromDate(expiresAt!) : null,
       'isProactive': isProactive,
       'userRating': userRating,
@@ -227,7 +246,9 @@ class AIAdvice {
       'isRead': isRead,
       'isDismissed': isDismissed,
       'isBookmarked': isBookmarked,
-      'interactedAt': interactedAt != null ? Timestamp.fromDate(interactedAt!) : null,
+      'interactedAt': interactedAt != null
+          ? Timestamp.fromDate(interactedAt!)
+          : null,
       'interactionData': interactionData,
       'sourceQuery': sourceQuery,
       'ragSources': ragSources,
@@ -296,7 +317,8 @@ class AIAdvice {
       priority: priority ?? this.priority,
       context: context ?? this.context,
       tags: tags ?? this.tags,
-      personalizationFactors: personalizationFactors ?? this.personalizationFactors,
+      personalizationFactors:
+          personalizationFactors ?? this.personalizationFactors,
       trigger: trigger ?? this.trigger,
       scheduledFor: scheduledFor ?? this.scheduledFor,
       deliveredAt: deliveredAt ?? this.deliveredAt,
@@ -327,7 +349,8 @@ class AIAdvice {
 
   // Utility methods
   bool get isExpired => expiresAt != null && DateTime.now().isAfter(expiresAt!);
-  bool get isScheduled => scheduledFor != null && DateTime.now().isBefore(scheduledFor!);
+  bool get isScheduled =>
+      scheduledFor != null && DateTime.now().isBefore(scheduledFor!);
   bool get isDelivered => deliveredAt != null;
   bool get isPending => !isDelivered && !isExpired;
   bool get hasUserFeedback => userRating != null;
@@ -413,32 +436,34 @@ class AIAdvice {
   // Calculate engagement score based on interactions
   double calculateEngagementScore() {
     double score = 0.0;
-    
+
     // Base score for reading
     if (isRead) score += 0.2;
-    
+
     // Rating feedback
     if (userRating != null) {
       score += 0.3;
       if (userRating! > 0) score += 0.2; // Bonus for positive rating
     }
-    
+
     // Bookmarking shows high engagement
     if (isBookmarked) score += 0.4;
-    
+
     // View count contribution (diminishing returns)
     score += (viewCount * 0.1).clamp(0.0, 0.3);
-    
+
     // Share count shows very high engagement
     score += shareCount * 0.2;
-    
+
     // Action completion
-    final completedActions = actionTracking.values.where((completed) => completed == true).length;
+    final completedActions = actionTracking.values
+        .where((completed) => completed == true)
+        .length;
     final totalActions = suggestedActions.length;
     if (totalActions > 0) {
       score += (completedActions / totalActions) * 0.3;
     }
-    
+
     return score.clamp(0.0, 1.0);
   }
 
@@ -448,10 +473,15 @@ class AIAdvice {
       'engagementScore': calculateEngagementScore(),
       'isActive': !isDismissed && !isExpired,
       'hasPositiveFeedback': isPositivelyRated,
-      'completionRate': suggestedActions.isEmpty ? 0.0 : 
-          actionTracking.values.where((completed) => completed == true).length / suggestedActions.length,
-      'daysActive': deliveredAt != null ? 
-          DateTime.now().difference(deliveredAt!).inDays : 0,
+      'completionRate': suggestedActions.isEmpty
+          ? 0.0
+          : actionTracking.values
+                    .where((completed) => completed == true)
+                    .length /
+                suggestedActions.length,
+      'daysActive': deliveredAt != null
+          ? DateTime.now().difference(deliveredAt!).inDays
+          : 0,
     };
   }
 }

@@ -6,6 +6,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:csv/csv.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
+import '../utils/logger.dart';
 
 enum ExportFormat { csv, json }
 
@@ -67,22 +68,27 @@ class DataExportService {
       }
       final userId = user.uid;
 
-      debugPrint('Starting data export for user: $userId');
-      debugPrint('Export options: ${options.format}, ${options.dataTypes}');
+      Logger.d('Starting data export for user: $userId');
+      Logger.d('Export options: ${options.format}, ${options.dataTypes}');
 
       final data = await _collectData(userId, options);
       final result = await _writeDataToFile(data, options);
 
-      debugPrint('Export completed: ${result.fileName} (${result.recordCount} records)');
+      Logger.d(
+        'Export completed: ${result.fileName} (${result.recordCount} records)',
+      );
       return result;
     } catch (e) {
-      debugPrint('Export failed: $e');
+      Logger.d('Export failed: $e');
       rethrow;
     }
   }
 
   /// Collect data from Firestore based on export options
-  Future<Map<String, dynamic>> _collectData(String userId, ExportOptions options) async {
+  Future<Map<String, dynamic>> _collectData(
+    String userId,
+    ExportOptions options,
+  ) async {
     final Map<String, dynamic> exportData = {
       'exportInfo': {
         'userId': options.anonymizeData ? _anonymizeUserId(userId) : userId,
@@ -160,7 +166,10 @@ class DataExportService {
   }
 
   /// Export meal logs
-  Future<List<Map<String, dynamic>>> _exportMealLogs(String userId, ExportOptions options) async {
+  Future<List<Map<String, dynamic>>> _exportMealLogs(
+    String userId,
+    ExportOptions options,
+  ) async {
     try {
       Query query = _firestore
           .collection('meal_logs')
@@ -168,10 +177,16 @@ class DataExportService {
           .orderBy('timestamp', descending: true);
 
       if (options.startDate != null) {
-        query = query.where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(options.startDate!));
+        query = query.where(
+          'timestamp',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(options.startDate!),
+        );
       }
       if (options.endDate != null) {
-        query = query.where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(options.endDate!));
+        query = query.where(
+          'timestamp',
+          isLessThanOrEqualTo: Timestamp.fromDate(options.endDate!),
+        );
       }
 
       final snapshot = await query.get();
@@ -179,11 +194,13 @@ class DataExportService {
 
       for (final doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        
+
         // Process meal log data
         final mealLog = {
           'id': doc.id,
-          'timestamp': (data['timestamp'] as Timestamp).toDate().toIso8601String(),
+          'timestamp': (data['timestamp'] as Timestamp)
+              .toDate()
+              .toIso8601String(),
           'mealType': data['meal_type'],
           'foods': data['foods'] ?? [],
           'totalCalories': data['total_calories'],
@@ -213,13 +230,16 @@ class DataExportService {
 
       return mealLogs;
     } catch (e) {
-      debugPrint('Error exporting meal logs: $e');
+      Logger.d('Error exporting meal logs: $e');
       return [];
     }
   }
 
   /// Export fasting sessions
-  Future<List<Map<String, dynamic>>> _exportFastingSessions(String userId, ExportOptions options) async {
+  Future<List<Map<String, dynamic>>> _exportFastingSessions(
+    String userId,
+    ExportOptions options,
+  ) async {
     try {
       Query query = _firestore
           .collection('fasting_sessions')
@@ -227,10 +247,16 @@ class DataExportService {
           .orderBy('startTime', descending: true);
 
       if (options.startDate != null) {
-        query = query.where('startTime', isGreaterThanOrEqualTo: Timestamp.fromDate(options.startDate!));
+        query = query.where(
+          'startTime',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(options.startDate!),
+        );
       }
       if (options.endDate != null) {
-        query = query.where('startTime', isLessThanOrEqualTo: Timestamp.fromDate(options.endDate!));
+        query = query.where(
+          'startTime',
+          isLessThanOrEqualTo: Timestamp.fromDate(options.endDate!),
+        );
       }
 
       final snapshot = await query.get();
@@ -238,12 +264,14 @@ class DataExportService {
 
       for (final doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        
+
         final session = {
           'id': doc.id,
-          'startTime': (data['startTime'] as Timestamp).toDate().toIso8601String(),
-          'endTime': data['endTime'] != null 
-              ? (data['endTime'] as Timestamp).toDate().toIso8601String() 
+          'startTime': (data['startTime'] as Timestamp)
+              .toDate()
+              .toIso8601String(),
+          'endTime': data['endTime'] != null
+              ? (data['endTime'] as Timestamp).toDate().toIso8601String()
               : null,
           'duration': data['duration'],
           'targetDuration': data['target_duration'],
@@ -267,20 +295,26 @@ class DataExportService {
 
       return sessions;
     } catch (e) {
-      debugPrint('Error exporting fasting sessions: $e');
+      Logger.d('Error exporting fasting sessions: $e');
       return [];
     }
   }
 
   /// Export health profile
-  Future<Map<String, dynamic>?> _exportHealthProfile(String userId, ExportOptions options) async {
+  Future<Map<String, dynamic>?> _exportHealthProfile(
+    String userId,
+    ExportOptions options,
+  ) async {
     try {
-      final doc = await _firestore.collection('health_profiles').doc(userId).get();
-      
+      final doc = await _firestore
+          .collection('health_profiles')
+          .doc(userId)
+          .get();
+
       if (!doc.exists) return null;
-      
+
       final data = doc.data() as Map<String, dynamic>;
-      
+
       final profile = {
         'id': doc.id,
         'age': data['age'],
@@ -291,8 +325,12 @@ class DataExportService {
         'healthGoals': data['health_goals'],
         'dietaryPreferences': data['dietary_preferences'],
         'healthConditions': data['health_conditions'],
-        'createdAt': (data['created_at'] as Timestamp).toDate().toIso8601String(),
-        'updatedAt': (data['updated_at'] as Timestamp).toDate().toIso8601String(),
+        'createdAt': (data['created_at'] as Timestamp)
+            .toDate()
+            .toIso8601String(),
+        'updatedAt': (data['updated_at'] as Timestamp)
+            .toDate()
+            .toIso8601String(),
       };
 
       // Handle personal info based on options
@@ -312,13 +350,16 @@ class DataExportService {
 
       return profile;
     } catch (e) {
-      debugPrint('Error exporting health profile: $e');
+      Logger.d('Error exporting health profile: $e');
       return null;
     }
   }
 
   /// Export AI advice
-  Future<List<Map<String, dynamic>>> _exportAiAdvice(String userId, ExportOptions options) async {
+  Future<List<Map<String, dynamic>>> _exportAiAdvice(
+    String userId,
+    ExportOptions options,
+  ) async {
     try {
       Query query = _firestore
           .collection('ai_advice')
@@ -326,10 +367,16 @@ class DataExportService {
           .orderBy('createdAt', descending: true);
 
       if (options.startDate != null) {
-        query = query.where('createdAt', isGreaterThanOrEqualTo: Timestamp.fromDate(options.startDate!));
+        query = query.where(
+          'createdAt',
+          isGreaterThanOrEqualTo: Timestamp.fromDate(options.startDate!),
+        );
       }
       if (options.endDate != null) {
-        query = query.where('createdAt', isLessThanOrEqualTo: Timestamp.fromDate(options.endDate!));
+        query = query.where(
+          'createdAt',
+          isLessThanOrEqualTo: Timestamp.fromDate(options.endDate!),
+        );
       }
 
       final snapshot = await query.get();
@@ -337,7 +384,7 @@ class DataExportService {
 
       for (final doc in snapshot.docs) {
         final data = doc.data() as Map<String, dynamic>;
-        
+
         final adviceItem = {
           'id': doc.id,
           'title': data['title'],
@@ -345,7 +392,9 @@ class DataExportService {
           'category': data['category'],
           'type': data['type'],
           'priority': data['priority'],
-          'createdAt': (data['createdAt'] as Timestamp).toDate().toIso8601String(),
+          'createdAt': (data['createdAt'] as Timestamp)
+              .toDate()
+              .toIso8601String(),
           'rating': data['rating'],
           'isRead': data['is_read'],
         };
@@ -362,13 +411,16 @@ class DataExportService {
 
       return advice;
     } catch (e) {
-      debugPrint('Error exporting AI advice: $e');
+      Logger.d('Error exporting AI advice: $e');
       return [];
     }
   }
 
   /// Export integrations
-  Future<List<Map<String, dynamic>>> _exportIntegrations(String userId, ExportOptions options) async {
+  Future<List<Map<String, dynamic>>> _exportIntegrations(
+    String userId,
+    ExportOptions options,
+  ) async {
     try {
       final snapshot = await _firestore
           .collection('health_integrations')
@@ -379,14 +431,18 @@ class DataExportService {
 
       for (final doc in snapshot.docs) {
         final data = doc.data();
-        
+
         final integration = {
           'id': doc.id,
           'name': data['name'],
           'type': data['type'],
           'isEnabled': data['is_enabled'],
-          'connectedAt': (data['connected_at'] as Timestamp?)?.toDate().toIso8601String(),
-          'lastSyncAt': (data['last_sync_at'] as Timestamp?)?.toDate().toIso8601String(),
+          'connectedAt': (data['connected_at'] as Timestamp?)
+              ?.toDate()
+              .toIso8601String(),
+          'lastSyncAt': (data['last_sync_at'] as Timestamp?)
+              ?.toDate()
+              .toIso8601String(),
           'permissions': data['permissions'],
         };
 
@@ -406,13 +462,16 @@ class DataExportService {
 
       return integrations;
     } catch (e) {
-      debugPrint('Error exporting integrations: $e');
+      Logger.d('Error exporting integrations: $e');
       return [];
     }
   }
 
   /// Write collected data to file
-  Future<ExportResult> _writeDataToFile(Map<String, dynamic> data, ExportOptions options) async {
+  Future<ExportResult> _writeDataToFile(
+    Map<String, dynamic> data,
+    ExportOptions options,
+  ) async {
     final directory = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final fileName = 'snapameal_export_$timestamp.${options.format.name}';
@@ -446,7 +505,10 @@ class DataExportService {
   }
 
   /// Write data as JSON file
-  Future<File> _writeJsonFile(String filePath, Map<String, dynamic> data) async {
+  Future<File> _writeJsonFile(
+    String filePath,
+    Map<String, dynamic> data,
+  ) async {
     final file = File(filePath);
     final jsonString = const JsonEncoder.withIndent('  ').convert(data);
     await file.writeAsString(jsonString);
@@ -470,17 +532,19 @@ class DataExportService {
       if (entry.key == 'exportInfo') continue;
 
       csvData.add([entry.key.toUpperCase()]);
-      
+
       if (entry.value is List) {
         final list = entry.value as List;
         if (list.isNotEmpty && list.first is Map) {
           // Add headers
           final headers = (list.first as Map<String, dynamic>).keys.toList();
           csvData.add(headers);
-          
+
           // Add data rows
           for (final item in list) {
-            final row = headers.map((header) => (item as Map)[header]?.toString() ?? '').toList();
+            final row = headers
+                .map((header) => (item as Map)[header]?.toString() ?? '')
+                .toList();
             csvData.add(row);
           }
         }
@@ -490,7 +554,7 @@ class DataExportService {
           csvData.add([mapEntry.key, mapEntry.value?.toString() ?? '']);
         }
       }
-      
+
       csvData.add([]); // Empty row between sections
     }
 
@@ -509,7 +573,7 @@ class DataExportService {
         subject: 'Health Data Export',
       );
     } catch (e) {
-      debugPrint('Error sharing file: $e');
+      Logger.d('Error sharing file: $e');
       rethrow;
     }
   }
@@ -518,10 +582,10 @@ class DataExportService {
   Future<Map<String, int>> getExportStatistics(String userId) async {
     try {
       final stats = <String, int>{};
-      
+
       // Use aggregation queries for better performance - these are more efficient than downloading all docs
       // For now, we'll limit the queries to avoid performance issues
-      
+
       // Count meal logs (limit to recent data for performance)
       final mealLogsSnapshot = await _firestore
           .collection('meal_logs')
@@ -565,7 +629,7 @@ class DataExportService {
 
       return stats;
     } catch (e) {
-      debugPrint('Error getting export statistics: $e');
+      Logger.d('Error getting export statistics: $e');
       return {};
     }
   }
@@ -599,11 +663,7 @@ class DataExportService {
         'startDate': DateTime(now.year, 1, 1),
         'endDate': now,
       },
-      {
-        'label': 'All time',
-        'startDate': null,
-        'endDate': null,
-      },
+      {'label': 'All time', 'startDate': null, 'endDate': null},
     ];
   }
-} 
+}

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../services/content_filter_service.dart';
+import '../utils/logger.dart';
 import '../services/fasting_service.dart';
 import '../models/fasting_session.dart';
 
@@ -14,8 +15,8 @@ class ChatService {
   ChatService({
     ContentFilterService? contentFilterService,
     FastingService? fastingService,
-  })  : _contentFilterService = contentFilterService,
-        _fastingService = fastingService;
+  }) : _contentFilterService = contentFilterService,
+       _fastingService = fastingService;
 
   // Get chat stream for the current user
   Stream<QuerySnapshot> getChatsStream() {
@@ -47,11 +48,12 @@ class ChatService {
         .doc(chatRoomId)
         .collection('messages')
         .add({
-      'senderId': currentUserId,
-      'message': message,
-      'timestamp': timestamp,
-      'isViewed': false, // Note: isViewed logic will need to be updated for groups
-    });
+          'senderId': currentUserId,
+          'message': message,
+          'timestamp': timestamp,
+          'isViewed':
+              false, // Note: isViewed logic will need to be updated for groups
+        });
 
     // Also update the last message timestamp on the chat room for sorting
     await _firestore.collection('chat_rooms').doc(chatRoomId).update({
@@ -101,13 +103,13 @@ class ChatService {
 
   /// Get filtered messages stream for a specific chat room
   Stream<List<DocumentSnapshot>> getFilteredMessages(String chatRoomId) async* {
-    await for (final snapshot in _firestore
-        .collection('chat_rooms')
-        .doc(chatRoomId)
-        .collection('messages')
-        .orderBy('timestamp', descending: false)
-        .snapshots()) {
-      
+    await for (final snapshot
+        in _firestore
+            .collection('chat_rooms')
+            .doc(chatRoomId)
+            .collection('messages')
+            .orderBy('timestamp', descending: false)
+            .snapshots()) {
       if (_contentFilterService == null || _fastingService == null) {
         yield snapshot.docs;
         continue;
@@ -116,16 +118,16 @@ class ChatService {
       try {
         // Get current fasting session
         final currentSession = await _fastingService.getCurrentSession();
-        
+
         // Filter messages based on fasting state
         final filteredMessages = await _contentFilterService.filterChatMessages(
           snapshot.docs,
           currentSession,
         );
-        
+
         yield filteredMessages;
       } catch (e) {
-        debugPrint('Error filtering chat messages: $e');
+        Logger.d('Error filtering chat messages: $e');
         yield snapshot.docs; // Fallback to unfiltered
       }
     }
@@ -151,21 +153,25 @@ class ChatService {
 
       return result.shouldFilter;
     } catch (e) {
-      debugPrint('Error checking message filter: $e');
+      Logger.d('Error checking message filter: $e');
       return false;
     }
   }
 
   /// Send message with content filtering warning
-  Future<Map<String, dynamic>> sendMessageWithFiltering(String chatRoomId, String message) async {
+  Future<Map<String, dynamic>> sendMessageWithFiltering(
+    String chatRoomId,
+    String message,
+  ) async {
     final shouldFilter = await shouldFilterMessage(message);
-    
+
     if (shouldFilter) {
       // Return filter warning instead of sending
       return {
         'success': false,
         'filtered': true,
-        'message': 'Message contains content that might affect your fasting goals. Consider rephrasing or waiting until your eating window.',
+        'message':
+            'Message contains content that might affect your fasting goals. Consider rephrasing or waiting until your eating window.',
       };
     }
 
@@ -179,7 +185,9 @@ class ChatService {
   }
 
   /// Get alternative suggestion for filtered message
-  Future<String?> getAlternativeMessageSuggestion(String originalMessage) async {
+  Future<String?> getAlternativeMessageSuggestion(
+    String originalMessage,
+  ) async {
     if (_contentFilterService == null || _fastingService == null) {
       return null;
     }
@@ -198,24 +206,22 @@ class ChatService {
       );
 
       if (result.shouldFilter && result.category != null) {
-        final alternative = await _contentFilterService.generateAlternativeContent(
-          result.category!,
-          currentSession,
-        );
-        
+        final alternative = await _contentFilterService
+            .generateAlternativeContent(result.category!, currentSession);
+
         return alternative.description;
       }
 
       return null;
     } catch (e) {
-      debugPrint('Error generating alternative message: $e');
+      Logger.d('Error generating alternative message: $e');
       return null;
     }
   }
 
   /// Create health-focused group chat
   Future<String> createHealthGroupChat(
-    List<String> memberIds, 
+    List<String> memberIds,
     String groupName,
     String healthCategory, // e.g., 'fasting', 'weight-loss', 'fitness'
   ) async {
@@ -246,19 +252,23 @@ class ChatService {
   Future<Map<String, dynamic>> getHealthGroupStats(String chatRoomId) async {
     try {
       // Get group info
-      final groupDoc = await _firestore.collection('chat_rooms').doc(chatRoomId).get();
+      final groupDoc = await _firestore
+          .collection('chat_rooms')
+          .doc(chatRoomId)
+          .get();
       final groupData = groupDoc.data();
-      
+
       if (groupData?['isHealthGroup'] != true) {
         return {};
       }
 
       final members = List<String>.from(groupData?['members'] ?? []);
-      
+
       // Get member fasting stats if this is a fasting group
-      if (groupData?['healthCategory'] == 'fasting' && _fastingService != null) {
+      if (groupData?['healthCategory'] == 'fasting' &&
+          _fastingService != null) {
         final memberStats = <Map<String, dynamic>>[];
-        
+
         for (final memberId in members) {
           try {
             final sessions = await _firestore
@@ -266,12 +276,12 @@ class ChatService {
                 .where('userId', isEqualTo: memberId)
                 .where('isActive', isEqualTo: true)
                 .get();
-            
+
             if (sessions.docs.isNotEmpty) {
               final sessionData = sessions.docs.first.data();
               sessionData['id'] = sessions.docs.first.id;
               final session = FastingSession.fromMap(sessionData);
-              
+
               memberStats.add({
                 'userId': memberId,
                 'isActive': session.isActive,
@@ -280,13 +290,15 @@ class ChatService {
               });
             }
           } catch (e) {
-            debugPrint('Error getting member stats: $e');
+            Logger.d('Error getting member stats: $e');
           }
         }
-        
+
         return {
           'totalMembers': members.length,
-          'activeFasters': memberStats.where((s) => s['isActive'] == true).length,
+          'activeFasters': memberStats
+              .where((s) => s['isActive'] == true)
+              .length,
           'memberStats': memberStats,
         };
       }
@@ -296,8 +308,8 @@ class ChatService {
         'healthCategory': groupData?['healthCategory'],
       };
     } catch (e) {
-      debugPrint('Error getting health group stats: $e');
+      Logger.d('Error getting health group stats: $e');
       return {};
     }
   }
-} 
+}

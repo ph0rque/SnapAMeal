@@ -6,8 +6,9 @@ class SnapUITypography {
   const SnapUITypography._();
 
   // Fallback font family for when Google Fonts fails to load
-  static const String _fallbackFontFamily = 'SF Pro Display'; // macOS system font
-  
+  static const String _fallbackFontFamily =
+      'SF Pro Display'; // macOS system font
+
   // Helper method to create text style with fallback
   static TextStyle _createTextStyle({
     required double fontSize,
@@ -36,22 +37,78 @@ class SnapUITypography {
   }
 
   static final TextTheme lightTextTheme = TextTheme(
-    displayLarge: _createTextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: SnapUIColors.textPrimaryLight),
-    displayMedium: _createTextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: SnapUIColors.textPrimaryLight),
-    headlineMedium: _createTextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: SnapUIColors.textPrimaryLight),
-    titleLarge: _createTextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: SnapUIColors.textPrimaryLight),
-    bodyLarge: _createTextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: SnapUIColors.textPrimaryLight),
-    bodyMedium: _createTextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: SnapUIColors.textSecondaryLight),
-    labelLarge: _createTextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: SnapUIColors.white), // For buttons
+    displayLarge: _createTextStyle(
+      fontSize: 32,
+      fontWeight: FontWeight.bold,
+      color: SnapUIColors.textPrimaryLight,
+    ),
+    displayMedium: _createTextStyle(
+      fontSize: 28,
+      fontWeight: FontWeight.bold,
+      color: SnapUIColors.textPrimaryLight,
+    ),
+    headlineMedium: _createTextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.bold,
+      color: SnapUIColors.textPrimaryLight,
+    ),
+    titleLarge: _createTextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+      color: SnapUIColors.textPrimaryLight,
+    ),
+    bodyLarge: _createTextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.normal,
+      color: SnapUIColors.textPrimaryLight,
+    ),
+    bodyMedium: _createTextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.normal,
+      color: SnapUIColors.textSecondaryLight,
+    ),
+    labelLarge: _createTextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: SnapUIColors.white,
+    ), // For buttons
   );
 
   static final TextTheme darkTextTheme = TextTheme(
-    displayLarge: _createTextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: SnapUIColors.textPrimaryDark),
-    displayMedium: _createTextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: SnapUIColors.textPrimaryDark),
-    headlineMedium: _createTextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: SnapUIColors.textPrimaryDark),
-    titleLarge: _createTextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: SnapUIColors.textPrimaryDark),
-    bodyLarge: _createTextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: SnapUIColors.textPrimaryDark),
-    bodyMedium: _createTextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: SnapUIColors.textSecondaryDark),
-    labelLarge: _createTextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: SnapUIColors.white), // For buttons
+    displayLarge: _createTextStyle(
+      fontSize: 32,
+      fontWeight: FontWeight.bold,
+      color: SnapUIColors.textPrimaryDark,
+    ),
+    displayMedium: _createTextStyle(
+      fontSize: 28,
+      fontWeight: FontWeight.bold,
+      color: SnapUIColors.textPrimaryDark,
+    ),
+    headlineMedium: _createTextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.bold,
+      color: SnapUIColors.textPrimaryDark,
+    ),
+    titleLarge: _createTextStyle(
+      fontSize: 20,
+      fontWeight: FontWeight.w600,
+      color: SnapUIColors.textPrimaryDark,
+    ),
+    bodyLarge: _createTextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.normal,
+      color: SnapUIColors.textPrimaryDark,
+    ),
+    bodyMedium: _createTextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.normal,
+      color: SnapUIColors.textSecondaryDark,
+    ),
+    labelLarge: _createTextStyle(
+      fontSize: 16,
+      fontWeight: FontWeight.bold,
+      color: SnapUIColors.white,
+    ), // For buttons
   );
-} 
+}

@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void login(BuildContext context) async {
     if (_isLoading) return; // Prevent multiple simultaneous login attempts
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -59,7 +59,7 @@ class _LoginPageState extends State<LoginPage> {
 
   void _demoLogin(BuildContext context, String persona) async {
     if (_isLoading) return; // Prevent multiple simultaneous login attempts
-    
+
     setState(() {
       _isLoading = true;
     });
@@ -103,178 +103,186 @@ class _LoginPageState extends State<LoginPage> {
           Center(
             child: SingleChildScrollView(
               child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // logo
-              const Icon(
-                EvaIcons.messageSquare,
-                size: 60,
-              ),
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // logo
+                  const Icon(EvaIcons.messageSquare, size: 60),
 
-              const SizedBox(height: 50),
+                  const SizedBox(height: 50),
 
-              // welcome back message
-              Text(
-                "Welcome back, you've been missed!",
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-
-              const SizedBox(height: 10),
-
-              // user switching info
-              Container(
-                padding: const EdgeInsets.all(12),
-                margin: const EdgeInsets.symmetric(horizontal: 32),
-                decoration: BoxDecoration(
-                  color: SnapUIColors.primaryYellow.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: SnapUIColors.primaryYellow.withValues(alpha: 0.3),
+                  // welcome back message
+                  Text(
+                    "Welcome back, you've been missed!",
+                    style: Theme.of(context).textTheme.bodyLarge,
                   ),
-                ),
-                child: Text(
-                  "💡 Tip: You can easily switch between different user accounts by logging out and logging back in with different credentials.",
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: SnapUIColors.secondaryDark,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ),
 
-              const SizedBox(height: 25),
+                  const SizedBox(height: 10),
 
-              // demo login section
-              Container(
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.symmetric(horizontal: 32),
-                decoration: BoxDecoration(
-                  color: SnapUIColors.secondaryDark.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: SnapUIColors.secondaryDark.withValues(alpha: 0.1),
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      "Quick Demo Login",
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: SnapUIColors.secondaryDark,
+                  // user switching info
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    decoration: BoxDecoration(
+                      color: SnapUIColors.primaryYellow.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: SnapUIColors.primaryYellow.withValues(
+                          alpha: 0.3,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
+                    child: Text(
+                      "💡 Tip: You can easily switch between different user accounts by logging out and logging back in with different credentials.",
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: SnapUIColors.secondaryDark,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // demo login section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    decoration: BoxDecoration(
+                      color: SnapUIColors.secondaryDark.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: SnapUIColors.secondaryDark.withValues(
+                          alpha: 0.1,
+                        ),
+                      ),
+                    ),
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: SnapButton(
-                            onTap: _isLoading ? null : () => _demoLogin(context, 'alice'),
-                            text: "Alice",
-                            type: SnapButtonType.secondary,
-                          ),
+                        Text(
+                          "Quick Demo Login",
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: SnapUIColors.secondaryDark,
+                              ),
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: SnapButton(
-                            onTap: _isLoading ? null : () => _demoLogin(context, 'bob'),
-                            text: "Bob",
-                            type: SnapButtonType.secondary,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: SnapButton(
-                            onTap: _isLoading ? null : () => _demoLogin(context, 'charlie'),
-                            text: "Charlie",
-                            type: SnapButtonType.secondary,
-                          ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SnapButton(
+                                onTap: _isLoading
+                                    ? null
+                                    : () => _demoLogin(context, 'alice'),
+                                text: "Alice",
+                                type: SnapButtonType.secondary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: SnapButton(
+                                onTap: _isLoading
+                                    ? null
+                                    : () => _demoLogin(context, 'bob'),
+                                text: "Bob",
+                                type: SnapButtonType.secondary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: SnapButton(
+                                onTap: _isLoading
+                                    ? null
+                                    : () => _demoLogin(context, 'charlie'),
+                                text: "Charlie",
+                                type: SnapButtonType.secondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
 
-              const SizedBox(height: 25),
+                  const SizedBox(height: 25),
 
-              // divider
-              Row(
-                children: [
-                  const Expanded(child: Divider()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      "or",
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: SnapUIColors.secondaryDark.withValues(alpha: 0.6),
+                  // divider
+                  Row(
+                    children: [
+                      const Expanded(child: Divider()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          "or",
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: SnapUIColors.secondaryDark.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
+                        ),
                       ),
-                    ),
+                      const Expanded(child: Divider()),
+                    ],
                   ),
-                  const Expanded(child: Divider()),
+
+                  const SizedBox(height: 25),
+
+                  // email textfield
+                  SnapTextField(
+                    hintText: "Email",
+                    obscureText: false,
+                    controller: _emailController,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // pw textfield
+                  SnapTextField(
+                    hintText: "Password",
+                    obscureText: true,
+                    controller: _pwController,
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // sign in button
+                  SnapButton(
+                    onTap: _isLoading ? null : () => login(context),
+                    text: _isLoading ? "Signing in..." : "Login",
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // register now
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "Not a member? ",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      GestureDetector(
+                        onTap: widget.onTap,
+                        child: Text(
+                          "Register now",
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
-
-              const SizedBox(height: 25),
-
-              // email textfield
-              SnapTextField(
-                hintText: "Email",
-                obscureText: false,
-                controller: _emailController,
-              ),
-
-              const SizedBox(height: 10),
-
-              // pw textfield
-              SnapTextField(
-                hintText: "Password",
-                obscureText: true,
-                controller: _pwController,
-              ),
-
-              const SizedBox(height: 25),
-
-              // sign in button
-              SnapButton(
-                onTap: _isLoading ? null : () => login(context),
-                text: _isLoading ? "Signing in..." : "Login",
-              ),
-
-              const SizedBox(height: 25),
-
-              // register now
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Not a member? ",
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  GestureDetector(
-                    onTap: widget.onTap,
-                    child: Text(
-                      "Register now",
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
-        ),
           // Loading overlay
           if (_isLoading)
             Container(
               color: Colors.black.withValues(alpha: 0.3),
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
         ],
       ),
     );
   }
-} 
+}

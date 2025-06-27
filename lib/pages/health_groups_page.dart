@@ -6,7 +6,6 @@ import '../services/friend_service.dart';
 import '../services/openai_service.dart';
 import '../models/health_group.dart';
 
-
 class HealthGroupsPage extends StatefulWidget {
   const HealthGroupsPage({super.key});
 
@@ -14,13 +13,14 @@ class HealthGroupsPage extends StatefulWidget {
   State<HealthGroupsPage> createState() => _HealthGroupsPageState();
 }
 
-class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProviderStateMixin {
+class _HealthGroupsPageState extends State<HealthGroupsPage>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   late HealthCommunityService _healthCommunityService;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  
+
   HealthGroupType? _selectedType;
   HealthGroupPrivacy? _selectedPrivacy = HealthGroupPrivacy.public;
 
@@ -28,12 +28,11 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    
+
     // Initialize services
     final friendService = FriendService();
     final ragService = RAGService(OpenAIService());
     _healthCommunityService = HealthCommunityService(ragService, friendService);
-    
   }
 
   @override
@@ -53,7 +52,9 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
         backgroundColor: SnapColors.backgroundDark,
         title: Text(
           'Health Groups',
-          style: SnapTypography.heading2.copyWith(color: SnapColors.primaryYellow),
+          style: SnapTypography.heading2.copyWith(
+            color: SnapColors.primaryYellow,
+          ),
         ),
         centerTitle: true,
         bottom: TabBar(
@@ -99,7 +100,9 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           return Center(
             child: Text(
               'Error loading groups: \${snapshot.error}',
-              style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
             ),
           );
         }
@@ -129,12 +132,16 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           child: StreamBuilder<List<HealthGroup>>(
             stream: _healthCommunityService.searchHealthGroups(
               type: _selectedType,
-              searchTerm: _searchController.text.isEmpty ? null : _searchController.text,
+              searchTerm: _searchController.text.isEmpty
+                  ? null
+                  : _searchController.text,
             ),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
-                  child: CircularProgressIndicator(color: SnapColors.primaryYellow),
+                  child: CircularProgressIndicator(
+                    color: SnapColors.primaryYellow,
+                  ),
                 );
               }
 
@@ -142,7 +149,9 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                 return Center(
                   child: Text(
                     'Error loading groups: \${snapshot.error}',
-                    style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+                    style: SnapTypography.body.copyWith(
+                      color: SnapColors.textSecondary,
+                    ),
                   ),
                 );
               }
@@ -182,16 +191,16 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
       color: SnapColors.backgroundLight,
       child: Column(
         children: [
-                      TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search groups...',
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+          TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: 'Search groups...',
+              prefixIcon: const Icon(Icons.search),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
+          ),
           const SizedBox(height: 12),
           SizedBox(
             height: 40,
@@ -206,7 +215,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                     });
                   });
                 }
-                
+
                 final type = HealthGroupType.values[index - 1];
                 return _buildFilterChip(
                   type.name.toUpperCase(),
@@ -235,14 +244,18 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           decoration: BoxDecoration(
             color: isSelected ? SnapColors.primaryYellow : Colors.transparent,
             border: Border.all(
-              color: isSelected ? SnapColors.primaryYellow : SnapColors.textSecondary,
+              color: isSelected
+                  ? SnapColors.primaryYellow
+                  : SnapColors.textSecondary,
             ),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             label,
             style: SnapTypography.caption.copyWith(
-              color: isSelected ? SnapColors.backgroundDark : SnapColors.textSecondary,
+              color: isSelected
+                  ? SnapColors.backgroundDark
+                  : SnapColors.textSecondary,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
@@ -286,11 +299,15 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                   children: [
                     Text(
                       group.name,
-                      style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+                      style: SnapTypography.heading3.copyWith(
+                        color: SnapColors.textPrimary,
+                      ),
                     ),
                     Text(
                       group.typeDisplayName,
-                      style: SnapTypography.caption.copyWith(color: SnapColors.primaryYellow),
+                      style: SnapTypography.caption.copyWith(
+                        color: SnapColors.primaryYellow,
+                      ),
                     ),
                   ],
                 ),
@@ -303,7 +320,9 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                 ),
                 child: Text(
                   '\${group.memberCount} members',
-                  style: SnapTypography.caption.copyWith(color: SnapColors.primaryYellow),
+                  style: SnapTypography.caption.copyWith(
+                    color: SnapColors.primaryYellow,
+                  ),
                 ),
               ),
             ],
@@ -311,7 +330,9 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           const SizedBox(height: 12),
           Text(
             group.description,
-            style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+            style: SnapTypography.caption.copyWith(
+              color: SnapColors.textSecondary,
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
@@ -319,17 +340,27 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
-              children: group.tags.take(3).map((tag) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: SnapColors.backgroundDark,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '#\$tag',
-                  style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
-                ),
-              )).toList(),
+              children: group.tags
+                  .take(3)
+                  .map(
+                    (tag) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: SnapColors.backgroundDark,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '#\$tag',
+                        style: SnapTypography.caption.copyWith(
+                          color: SnapColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ],
           const SizedBox(height: 12),
@@ -344,7 +375,10 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
               if (!isMyGroup) ...[
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.info_outline, color: SnapColors.textSecondary),
+                  icon: const Icon(
+                    Icons.info_outline,
+                    color: SnapColors.textSecondary,
+                  ),
                   onPressed: () => _showGroupDetails(group),
                 ),
               ],
@@ -376,12 +410,16 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           const SizedBox(height: 16),
           Text(
             'No Groups Yet',
-            style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.heading3.copyWith(
+              color: SnapColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Join health groups to connect with\nlike-minded fitness enthusiasts',
-            style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+            style: SnapTypography.caption.copyWith(
+              color: SnapColors.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -407,12 +445,16 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           const SizedBox(height: 16),
           Text(
             'No Groups Found',
-            style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.heading3.copyWith(
+              color: SnapColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Try adjusting your search or filters',
-            style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+            style: SnapTypography.caption.copyWith(
+              color: SnapColors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -429,12 +471,14 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
 
   void _joinGroup(HealthGroup group) async {
     final success = await _healthCommunityService.joinHealthGroup(group.id);
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            success ? 'Successfully joined \${group.name}!' : 'Failed to join group',
+            success
+                ? 'Successfully joined \${group.name}!'
+                : 'Failed to join group',
             style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: success ? Colors.green : Colors.red,
@@ -491,11 +535,15 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                       children: [
                         Text(
                           group.name,
-                          style: SnapTypography.heading2.copyWith(color: SnapColors.textPrimary),
+                          style: SnapTypography.heading2.copyWith(
+                            color: SnapColors.textPrimary,
+                          ),
                         ),
                         Text(
                           group.typeDisplayName,
-                          style: SnapTypography.body.copyWith(color: SnapColors.primaryYellow),
+                          style: SnapTypography.body.copyWith(
+                            color: SnapColors.primaryYellow,
+                          ),
                         ),
                       ],
                     ),
@@ -505,19 +553,26 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
               const SizedBox(height: 16),
               Text(
                 'Description',
-                style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+                style: SnapTypography.heading3.copyWith(
+                  color: SnapColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 group.description,
-                style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+                style: SnapTypography.body.copyWith(
+                  color: SnapColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 16),
               Row(
                 children: [
                   _buildStatItem('Members', '\${group.memberCount}'),
                   _buildStatItem('Privacy', group.privacy.name.toUpperCase()),
-                  _buildStatItem('Activity', group.activityLevel.name.toUpperCase()),
+                  _buildStatItem(
+                    'Activity',
+                    group.activityLevel.name.toUpperCase(),
+                  ),
                 ],
               ),
               const SizedBox(height: 24),
@@ -541,11 +596,15 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
         children: [
           Text(
             value,
-            style: SnapTypography.heading3.copyWith(color: SnapColors.primaryYellow),
+            style: SnapTypography.heading3.copyWith(
+              color: SnapColors.primaryYellow,
+            ),
           ),
           Text(
             label,
-            style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+            style: SnapTypography.caption.copyWith(
+              color: SnapColors.textSecondary,
+            ),
           ),
         ],
       ),
@@ -560,7 +619,9 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
           backgroundColor: SnapColors.backgroundLight,
           title: Text(
             'Create Health Group',
-            style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.heading3.copyWith(
+              color: SnapColors.textPrimary,
+            ),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -571,14 +632,14 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                   hintText: 'Group name',
                 ),
                 const SizedBox(height: 12),
-                                  TextField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      hintText: 'Group description',
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 3,
+                TextField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(
+                    hintText: 'Group description',
+                    border: OutlineInputBorder(),
                   ),
+                  maxLines: 3,
+                ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<HealthGroupType>(
                   value: _selectedType,
@@ -587,11 +648,19 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                     border: OutlineInputBorder(),
                   ),
                   dropdownColor: SnapColors.backgroundLight,
-                  style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
-                  items: HealthGroupType.values.map((type) => DropdownMenuItem(
-                    value: type,
-                    child: Text('\${type.name.toUpperCase()} - \${_getTypeDisplayName(type)}'),
-                  )).toList(),
+                  style: SnapTypography.body.copyWith(
+                    color: SnapColors.textPrimary,
+                  ),
+                  items: HealthGroupType.values
+                      .map(
+                        (type) => DropdownMenuItem(
+                          value: type,
+                          child: Text(
+                            '\${type.name.toUpperCase()} - \${_getTypeDisplayName(type)}',
+                          ),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (value) {
                     if (value != null) {
                       setState(() {
@@ -608,11 +677,17 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
                     border: OutlineInputBorder(),
                   ),
                   dropdownColor: SnapColors.backgroundLight,
-                  style: SnapTypography.body.copyWith(color: SnapColors.textPrimary),
-                  items: HealthGroupPrivacy.values.map((privacy) => DropdownMenuItem(
-                    value: privacy,
-                    child: Text(privacy.name.toUpperCase()),
-                  )).toList(),
+                  style: SnapTypography.body.copyWith(
+                    color: SnapColors.textPrimary,
+                  ),
+                  items: HealthGroupPrivacy.values
+                      .map(
+                        (privacy) => DropdownMenuItem(
+                          value: privacy,
+                          child: Text(privacy.name.toUpperCase()),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (value) {
                     if (value != null) {
                       setState(() {
@@ -629,13 +704,12 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
               onPressed: () => Navigator.pop(context),
               child: Text(
                 'Cancel',
-                style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+                style: SnapTypography.body.copyWith(
+                  color: SnapColors.textSecondary,
+                ),
               ),
             ),
-            SnapButton(
-              text: 'Create Group',
-              onTap: _createGroup,
-            ),
+            SnapButton(text: 'Create Group', onTap: _createGroup),
           ],
         ),
       ),
@@ -693,7 +767,9 @@ class _HealthGroupsPageState extends State<HealthGroupsPage> with TickerProvider
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            groupId != null ? 'Group created successfully!' : 'Failed to create group',
+            groupId != null
+                ? 'Group created successfully!'
+                : 'Failed to create group',
             style: const TextStyle(color: Colors.white),
           ),
           backgroundColor: groupId != null ? Colors.green : Colors.red,

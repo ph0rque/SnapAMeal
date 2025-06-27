@@ -2,17 +2,18 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/fasting_session.dart';
 import '../services/rag_service.dart';
+import '../utils/logger.dart';
 
 /// Types of AR filters available for fasting mode
 enum FastingARFilterType {
-  motivationalText,      // Floating motivational quotes
-  progressRing,          // Animated progress rings around face
-  achievement,           // Achievement celebration effects
-  strengthAura,          // Glowing strength aura
-  timeCounter,           // Floating time counter
-  willpowerBoost,        // Power-up style effects
-  zenMode,               // Calming, meditative effects
-  challengeMode,         // Intense, focused effects
+  motivationalText, // Floating motivational quotes
+  progressRing, // Animated progress rings around face
+  achievement, // Achievement celebration effects
+  strengthAura, // Glowing strength aura
+  timeCounter, // Floating time counter
+  willpowerBoost, // Power-up style effects
+  zenMode, // Calming, meditative effects
+  challengeMode, // Intense, focused effects
 }
 
 /// Configuration for an AR filter
@@ -58,14 +59,15 @@ class ARFilterOverlay {
 /// Service for managing AR filters and effects during fasting
 class ARFilterService {
   final RAGService _ragService;
-  
+
   // Animation controllers and state
-  final Map<FastingARFilterType, AnimationController> _animationControllers = {};
+  final Map<FastingARFilterType, AnimationController> _animationControllers =
+      {};
   final List<ARFilterOverlay> _activeOverlays = [];
-  
+
   // Filter configurations
   late final Map<FastingARFilterType, ARFilterConfig> _filterConfigs;
-  
+
   // Motivational content cache
   final Map<String, List<String>> _motivationalCache = {};
 
@@ -93,7 +95,7 @@ class ARFilterService {
           'Growing Stronger 🌱',
         ],
       ),
-      
+
       FastingARFilterType.progressRing: ARFilterConfig(
         type: FastingARFilterType.progressRing,
         name: 'Progress Ring',
@@ -102,7 +104,7 @@ class ARFilterService {
         accentColor: Colors.lightGreen,
         animationDuration: Duration(seconds: 2),
       ),
-      
+
       FastingARFilterType.achievement: ARFilterConfig(
         type: FastingARFilterType.achievement,
         name: 'Achievement Burst',
@@ -111,7 +113,7 @@ class ARFilterService {
         accentColor: Colors.yellow,
         animationDuration: Duration(seconds: 4),
       ),
-      
+
       FastingARFilterType.strengthAura: ARFilterConfig(
         type: FastingARFilterType.strengthAura,
         name: 'Strength Aura',
@@ -120,7 +122,7 @@ class ARFilterService {
         accentColor: Colors.deepPurple,
         animationDuration: Duration(seconds: 3),
       ),
-      
+
       FastingARFilterType.timeCounter: ARFilterConfig(
         type: FastingARFilterType.timeCounter,
         name: 'Time Counter',
@@ -128,7 +130,7 @@ class ARFilterService {
         primaryColor: Colors.cyan,
         accentColor: Colors.teal,
       ),
-      
+
       FastingARFilterType.willpowerBoost: ARFilterConfig(
         type: FastingARFilterType.willpowerBoost,
         name: 'Willpower Boost',
@@ -137,7 +139,7 @@ class ARFilterService {
         accentColor: Colors.orange,
         animationDuration: Duration(seconds: 2),
       ),
-      
+
       FastingARFilterType.zenMode: ARFilterConfig(
         type: FastingARFilterType.zenMode,
         name: 'Zen Mode',
@@ -146,7 +148,7 @@ class ARFilterService {
         accentColor: Colors.blue,
         animationDuration: Duration(seconds: 5),
       ),
-      
+
       FastingARFilterType.challengeMode: ARFilterConfig(
         type: FastingARFilterType.challengeMode,
         name: 'Challenge Mode',
@@ -161,38 +163,38 @@ class ARFilterService {
   /// Get available filters for the current fasting session
   List<ARFilterConfig> getAvailableFilters(FastingSession? session) {
     if (session == null) return [];
-    
+
     final filters = <ARFilterConfig>[];
-    
+
     // Always available filters
     filters.addAll([
       _filterConfigs[FastingARFilterType.motivationalText]!,
       _filterConfigs[FastingARFilterType.progressRing]!,
       _filterConfigs[FastingARFilterType.timeCounter]!,
     ]);
-    
+
     // Progress-based filters
     if (session.progressPercentage > 0.25) {
       filters.add(_filterConfigs[FastingARFilterType.strengthAura]!);
     }
-    
+
     if (session.progressPercentage > 0.5) {
       filters.add(_filterConfigs[FastingARFilterType.willpowerBoost]!);
     }
-    
+
     if (session.progressPercentage > 0.75) {
       filters.add(_filterConfigs[FastingARFilterType.achievement]!);
     }
-    
+
     // Session type specific filters
-    if (session.type == FastingType.extended24 || 
-        session.type == FastingType.extended36 || 
+    if (session.type == FastingType.extended24 ||
+        session.type == FastingType.extended36 ||
         session.type == FastingType.extended48) {
       filters.add(_filterConfigs[FastingARFilterType.challengeMode]!);
     } else {
       filters.add(_filterConfigs[FastingARFilterType.zenMode]!);
     }
-    
+
     return filters;
   }
 
@@ -207,38 +209,66 @@ class ARFilterService {
 
     try {
       Widget filterWidget;
-      
+
       switch (type) {
         case FastingARFilterType.motivationalText:
-          filterWidget = await _buildMotivationalTextFilter(config, session, tickerProvider);
+          filterWidget = await _buildMotivationalTextFilter(
+            config,
+            session,
+            tickerProvider,
+          );
           break;
-          
+
         case FastingARFilterType.progressRing:
-          filterWidget = _buildProgressRingFilter(config, session, tickerProvider);
+          filterWidget = _buildProgressRingFilter(
+            config,
+            session,
+            tickerProvider,
+          );
           break;
-          
+
         case FastingARFilterType.achievement:
-          filterWidget = _buildAchievementFilter(config, session, tickerProvider);
+          filterWidget = _buildAchievementFilter(
+            config,
+            session,
+            tickerProvider,
+          );
           break;
-          
+
         case FastingARFilterType.strengthAura:
-          filterWidget = _buildStrengthAuraFilter(config, session, tickerProvider);
+          filterWidget = _buildStrengthAuraFilter(
+            config,
+            session,
+            tickerProvider,
+          );
           break;
-          
+
         case FastingARFilterType.timeCounter:
-          filterWidget = _buildTimeCounterFilter(config, session, tickerProvider);
+          filterWidget = _buildTimeCounterFilter(
+            config,
+            session,
+            tickerProvider,
+          );
           break;
-          
+
         case FastingARFilterType.willpowerBoost:
-          filterWidget = _buildWillpowerBoostFilter(config, session, tickerProvider);
+          filterWidget = _buildWillpowerBoostFilter(
+            config,
+            session,
+            tickerProvider,
+          );
           break;
-          
+
         case FastingARFilterType.zenMode:
           filterWidget = _buildZenModeFilter(config, session, tickerProvider);
           break;
-          
+
         case FastingARFilterType.challengeMode:
-          filterWidget = _buildChallengeModeFilter(config, session, tickerProvider);
+          filterWidget = _buildChallengeModeFilter(
+            config,
+            session,
+            tickerProvider,
+          );
           break;
       }
 
@@ -252,7 +282,7 @@ class ARFilterService {
       _activeOverlays.add(overlay);
       return overlay;
     } catch (e) {
-      debugPrint('Error applying AR filter: $e');
+      Logger.d('Error applying AR filter: $e');
       return null;
     }
   }
@@ -265,23 +295,24 @@ class ARFilterService {
   ) async {
     // Get AI-generated motivational text
     String motivationalText = await _getAIMotivationalText(session);
-    
+
     final controller = AnimationController(
       duration: config.animationDuration,
       vsync: tickerProvider,
     );
-    
-    final fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
-    
+
+    final fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
     final slideAnimation = Tween<Offset>(
       begin: Offset(0, 0.3),
       end: Offset(0, 0),
     ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOutBack));
-    
+
     controller.forward();
-    
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -340,19 +371,19 @@ class ARFilterService {
       duration: config.animationDuration,
       vsync: tickerProvider,
     );
-    
+
     final progressAnimation = Tween<double>(
       begin: 0.0,
       end: session.progressPercentage,
     ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOutCubic));
-    
+
     final pulseAnimation = Tween<double>(
       begin: 1.0,
       end: 1.2,
     ).animate(CurvedAnimation(parent: controller, curve: Curves.elasticOut));
-    
+
     controller.forward();
-    
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -384,17 +415,19 @@ class ARFilterService {
       duration: config.animationDuration,
       vsync: tickerProvider,
     );
-    
-    final scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: controller, curve: Curves.elasticOut),
-    );
-    
-    final rotationAnimation = Tween<double>(begin: 0.0, end: 2 * math.pi).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
-    
+
+    final scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.elasticOut));
+
+    final rotationAnimation = Tween<double>(
+      begin: 0.0,
+      end: 2 * math.pi,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
     controller.forward();
-    
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -416,11 +449,7 @@ class ARFilterService {
                 ),
               ),
               child: Center(
-                child: Icon(
-                  Icons.celebration,
-                  size: 60,
-                  color: Colors.white,
-                ),
+                child: Icon(Icons.celebration, size: 60, color: Colors.white),
               ),
             ),
           ),
@@ -439,13 +468,14 @@ class ARFilterService {
       duration: config.animationDuration,
       vsync: tickerProvider,
     );
-    
-    final pulseAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
-    
+
+    final pulseAnimation = Tween<double>(
+      begin: 0.5,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
     controller.repeat(reverse: true);
-    
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -457,8 +487,12 @@ class ARFilterService {
             gradient: RadialGradient(
               colors: [
                 Colors.transparent,
-                config.primaryColor.withValues(alpha: 0.1 * pulseAnimation.value),
-                config.accentColor.withValues(alpha: 0.3 * pulseAnimation.value),
+                config.primaryColor.withValues(
+                  alpha: 0.1 * pulseAnimation.value,
+                ),
+                config.accentColor.withValues(
+                  alpha: 0.3 * pulseAnimation.value,
+                ),
                 Colors.transparent,
               ],
               stops: [0.0, 0.3, 0.7, 1.0],
@@ -479,13 +513,14 @@ class ARFilterService {
       duration: Duration(seconds: 2),
       vsync: tickerProvider,
     );
-    
-    final floatAnimation = Tween<double>(begin: -5.0, end: 5.0).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
-    
+
+    final floatAnimation = Tween<double>(
+      begin: -5.0,
+      end: 5.0,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
     controller.repeat(reverse: true);
-    
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -523,13 +558,14 @@ class ARFilterService {
       duration: config.animationDuration,
       vsync: tickerProvider,
     );
-    
-    final burstAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeOutExpo),
-    );
-    
+
+    final burstAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOutExpo));
+
     controller.forward();
-    
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -538,7 +574,7 @@ class ARFilterService {
           children: List.generate(8, (index) {
             final angle = (index * math.pi * 2) / 8;
             final distance = 100 * burstAnimation.value;
-            
+
             return Transform.translate(
               offset: Offset(
                 math.cos(angle) * distance,
@@ -553,10 +589,7 @@ class ARFilterService {
                     shape: BoxShape.circle,
                     color: config.primaryColor,
                     boxShadow: [
-                      BoxShadow(
-                        color: config.accentColor,
-                        blurRadius: 10,
-                      ),
+                      BoxShadow(color: config.accentColor, blurRadius: 10),
                     ],
                   ),
                 ),
@@ -578,13 +611,14 @@ class ARFilterService {
       duration: config.animationDuration,
       vsync: tickerProvider,
     );
-    
-    final breatheAnimation = Tween<double>(begin: 0.8, end: 1.2).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
-    
+
+    final breatheAnimation = Tween<double>(
+      begin: 0.8,
+      end: 1.2,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
     controller.repeat(reverse: true);
-    
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -626,13 +660,14 @@ class ARFilterService {
       duration: config.animationDuration,
       vsync: tickerProvider,
     );
-    
-    final intensityAnimation = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: controller, curve: Curves.easeInOut),
-    );
-    
+
+    final intensityAnimation = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+
     controller.repeat(reverse: true);
-    
+
     return AnimatedBuilder(
       animation: controller,
       builder: (context, child) {
@@ -642,12 +677,16 @@ class ARFilterService {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: config.primaryColor.withValues(alpha: intensityAnimation.value),
+              color: config.primaryColor.withValues(
+                alpha: intensityAnimation.value,
+              ),
               width: 4,
             ),
             boxShadow: [
               BoxShadow(
-                color: config.accentColor.withValues(alpha: intensityAnimation.value * 0.5),
+                color: config.accentColor.withValues(
+                  alpha: intensityAnimation.value * 0.5,
+                ),
                 blurRadius: 20,
                 spreadRadius: 5,
               ),
@@ -657,7 +696,9 @@ class ARFilterService {
             child: Icon(
               Icons.fitness_center,
               size: 60,
-              color: config.primaryColor.withValues(alpha: intensityAnimation.value),
+              color: config.primaryColor.withValues(
+                alpha: intensityAnimation.value,
+              ),
             ),
           ),
         );
@@ -669,8 +710,9 @@ class ARFilterService {
   Future<String> _getAIMotivationalText(FastingSession session) async {
     try {
       // Check cache first
-      final cacheKey = '${session.type.name}_${(session.progressPercentage * 10).floor()}';
-      if (_motivationalCache.containsKey(cacheKey) && 
+      final cacheKey =
+          '${session.type.name}_${(session.progressPercentage * 10).floor()}';
+      if (_motivationalCache.containsKey(cacheKey) &&
           _motivationalCache[cacheKey]!.isNotEmpty) {
         final cached = _motivationalCache[cacheKey]!;
         return cached[math.Random().nextInt(cached.length)];
@@ -695,7 +737,8 @@ class ARFilterService {
       );
 
       final aiText = await _ragService.generateContextualizedResponse(
-        userQuery: 'Give me a short, powerful motivational message for my ${session.typeDescription} session. I\'m ${(session.progressPercentage * 100).toInt()}% complete. Keep it under 10 words and make it inspiring.',
+        userQuery:
+            'Give me a short, powerful motivational message for my ${session.typeDescription} session. I\'m ${(session.progressPercentage * 100).toInt()}% complete. Keep it under 10 words and make it inspiring.',
         healthContext: healthContext,
         maxContextLength: 500,
       );
@@ -706,12 +749,14 @@ class ARFilterService {
         return aiText;
       }
     } catch (e) {
-      debugPrint('Error getting AI motivational text: $e');
+      Logger.d('Error getting AI motivational text: $e');
     }
 
     // Fallback to predefined motivational texts
     final config = _filterConfigs[FastingARFilterType.motivationalText]!;
-    return config.motivationalTexts[math.Random().nextInt(config.motivationalTexts.length)];
+    return config.motivationalTexts[math.Random().nextInt(
+      config.motivationalTexts.length,
+    )];
   }
 
   /// Remove an active overlay
@@ -725,7 +770,8 @@ class ARFilterService {
   }
 
   /// Get list of active overlays
-  List<ARFilterOverlay> get activeOverlays => List.unmodifiable(_activeOverlays);
+  List<ARFilterOverlay> get activeOverlays =>
+      List.unmodifiable(_activeOverlays);
 
   /// Format duration for display
   String _formatDuration(Duration duration) {
@@ -760,16 +806,16 @@ class ProgressRingPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = size.width / 2 - 10;
-    
+
     // Background ring
     final backgroundPaint = Paint()
       ..color = primaryColor.withValues(alpha: 0.2)
       ..strokeWidth = 8.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-    
+
     canvas.drawCircle(center, radius, backgroundPaint);
-    
+
     // Progress ring
     if (progress > 0) {
       final progressPaint = Paint()
@@ -780,7 +826,7 @@ class ProgressRingPainter extends CustomPainter {
         ..strokeWidth = 8.0
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round;
-      
+
       final sweepAngle = 2 * math.pi * progress;
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
@@ -795,7 +841,7 @@ class ProgressRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(ProgressRingPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-           oldDelegate.primaryColor != primaryColor ||
-           oldDelegate.accentColor != accentColor;
+        oldDelegate.primaryColor != primaryColor ||
+        oldDelegate.accentColor != accentColor;
   }
-} 
+}

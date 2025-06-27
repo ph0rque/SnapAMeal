@@ -24,35 +24,45 @@ class SnapUI {
   static const colors = SnapUIColors;
   static const dimensions = SnapUIDimensions;
   static const typography = SnapUITypography;
-  
+
   // Color getters for backward compatibility
   static Color get backgroundColor => SnapUIColors.backgroundLight;
   static Color get primaryColor => SnapUIColors.primaryYellow;
-  
+
   // Spacing getters
-  static EdgeInsets get pagePadding => const EdgeInsets.all(SnapUIDimensions.spacingM);
-  static EdgeInsets get cardPadding => const EdgeInsets.all(SnapUIDimensions.spacingM);
-  static SizedBox get verticalSpaceXSmall => const SizedBox(height: SnapUIDimensions.spacingXXS);
-  static SizedBox get verticalSpaceSmall => const SizedBox(height: SnapUIDimensions.spacingS);
-  static SizedBox get verticalSpaceMedium => const SizedBox(height: SnapUIDimensions.spacingM);
-  static SizedBox get verticalSpaceLarge => const SizedBox(height: SnapUIDimensions.spacingL);
-  static SizedBox get horizontalSpaceSmall => const SizedBox(width: SnapUIDimensions.spacingS);
-  
+  static EdgeInsets get pagePadding =>
+      const EdgeInsets.all(SnapUIDimensions.spacingM);
+  static EdgeInsets get cardPadding =>
+      const EdgeInsets.all(SnapUIDimensions.spacingM);
+  static SizedBox get verticalSpaceXSmall =>
+      const SizedBox(height: SnapUIDimensions.spacingXXS);
+  static SizedBox get verticalSpaceSmall =>
+      const SizedBox(height: SnapUIDimensions.spacingS);
+  static SizedBox get verticalSpaceMedium =>
+      const SizedBox(height: SnapUIDimensions.spacingM);
+  static SizedBox get verticalSpaceLarge =>
+      const SizedBox(height: SnapUIDimensions.spacingL);
+  static SizedBox get horizontalSpaceSmall =>
+      const SizedBox(width: SnapUIDimensions.spacingS);
+
   // Border radius getters
-  static BorderRadius get borderRadius => BorderRadius.circular(SnapUIDimensions.radiusM);
-  
+  static BorderRadius get borderRadius =>
+      BorderRadius.circular(SnapUIDimensions.radiusM);
+
   // Text style getters
-  static TextStyle get headingStyle => SnapUITypography.lightTextTheme.headlineMedium!;
+  static TextStyle get headingStyle =>
+      SnapUITypography.lightTextTheme.headlineMedium!;
   static TextStyle get bodyStyle => SnapUITypography.lightTextTheme.bodyLarge!;
-  static TextStyle get captionStyle => SnapUITypography.lightTextTheme.bodyMedium!;
-  
+  static TextStyle get captionStyle =>
+      SnapUITypography.lightTextTheme.bodyMedium!;
+
   // Decoration getters
   static BoxDecoration get cardDecorationWithBorder => BoxDecoration(
     color: SnapUIColors.white,
     borderRadius: BorderRadius.circular(SnapUIDimensions.radiusM),
     border: Border.all(color: SnapUIColors.border),
   );
-  
+
   // Input decoration getter
   static InputDecoration get inputDecoration => InputDecoration(
     border: OutlineInputBorder(
@@ -60,7 +70,7 @@ class SnapUI {
     ),
     contentPadding: const EdgeInsets.all(SnapUIDimensions.spacingM),
   );
-  
+
   // AppBar method
   static AppBar appBar({
     required String title,
@@ -77,7 +87,7 @@ class SnapUI {
       foregroundColor: SnapUIColors.secondaryDark,
     );
   }
-  
+
   // Button methods
   static Widget primaryButton(
     String text,
@@ -98,13 +108,13 @@ class SnapUI {
           borderRadius: BorderRadius.circular(SnapUIDimensions.radiusM),
         ),
       ),
-      child: isLoading 
-        ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          )
-        : icon != null
+      child: isLoading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : icon != null
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -116,7 +126,7 @@ class SnapUI {
           : Text(text),
     );
   }
-  
+
   static Widget secondaryButton(
     String text,
     VoidCallback onPressed, {
@@ -136,13 +146,13 @@ class SnapUI {
           borderRadius: BorderRadius.circular(SnapUIDimensions.radiusM),
         ),
       ),
-      child: isLoading 
-        ? const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          )
-        : icon != null
+      child: isLoading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : icon != null
           ? Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -154,7 +164,7 @@ class SnapUI {
           : Text(text),
     );
   }
-  
+
   // SnackBar methods
   static SnackBar successSnackBar(String message) {
     return SnackBar(
@@ -166,7 +176,7 @@ class SnapUI {
       ),
     );
   }
-  
+
   static SnackBar errorSnackBar(String message) {
     return SnackBar(
       content: Text(message),
@@ -199,7 +209,7 @@ class SnapColors {
   static const textSecondaryLight = SnapUIColors.textSecondaryLight;
   static const textSecondaryDark = SnapUIColors.textSecondaryDark;
   static const border = SnapUIColors.border;
-  
+
   // Additional semantic aliases
   static const primary = primaryYellow;
   static const secondary = secondaryDark;
@@ -209,13 +219,13 @@ class SnapColors {
   static const textPrimary = textPrimaryLight;
   static const textSecondary = textSecondaryLight;
   static const divider = greyLight;
-  
+
   // Additional missing aliases for compatibility
   static const surface = white;
   static const shadow = black;
   static const warning = primaryYellow;
   static const cardBackground = greyBackground;
-  
+
   // Missing properties referenced in data_conflicts_page.dart
   static const backgroundPrimary = backgroundLight;
   static const backgroundSecondary = greyBackground;
@@ -229,7 +239,7 @@ class SnapTypography {
   static final bodyLarge = SnapUITypography.lightTextTheme.bodyLarge!;
   static final bodyMedium = SnapUITypography.lightTextTheme.bodyMedium!;
   static final labelLarge = SnapUITypography.lightTextTheme.labelLarge!;
-  
+
   // Additional aliases
   static final heading1 = displayLarge;
   static final heading2 = displayMedium;
@@ -237,7 +247,7 @@ class SnapTypography {
   static final heading = headlineMedium; // Generic heading alias
   static final body = bodyLarge;
   static final caption = bodyMedium;
-  
+
   // Missing properties referenced in data_conflicts_page.dart
   static final heading4 = titleLarge;
 }
@@ -250,23 +260,23 @@ class SnapDimensions {
   static const spacingL = SnapUIDimensions.spacingL;
   static const spacingXL = SnapUIDimensions.spacingXL;
   static const spacingXXL = SnapUIDimensions.spacingXXL;
-  
+
   static const radiusS = SnapUIDimensions.radiusS;
   static const radiusM = SnapUIDimensions.radiusM;
   static const radiusL = SnapUIDimensions.radiusL;
   static const radiusCircle = SnapUIDimensions.radiusCircle;
-  
+
   static const iconSizeS = SnapUIDimensions.iconSizeS;
   static const iconSizeM = SnapUIDimensions.iconSizeM;
   static const iconSizeL = SnapUIDimensions.iconSizeL;
-  
+
   static const borderWidthS = SnapUIDimensions.borderWidthS;
   static const borderWidthM = SnapUIDimensions.borderWidthM;
-  
+
   // Additional common aliases
   static const paddingSmall = spacingS;
   static const paddingMedium = spacingM;
   static const paddingLarge = spacingL;
   static const borderRadius = radiusM;
   static const radiusMedium = radiusM;
-} 
+}

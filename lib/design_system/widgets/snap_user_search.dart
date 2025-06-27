@@ -57,12 +57,16 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
         ),
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: SnapUIDimensions.spacingS),
+            padding: const EdgeInsets.symmetric(
+              horizontal: SnapUIDimensions.spacingS,
+            ),
             child: StreamBuilder(
               stream: _usersStream,
               builder: (context, snapshot) {
                 if (_searchController.text.isEmpty) {
-                  return const Center(child: Text('Enter a username to find friends.'));
+                  return const Center(
+                    child: Text('Enter a username to find friends.'),
+                  );
                 }
                 if (snapshot.hasError) {
                   return const Center(child: Text('Error loading users.'));
@@ -90,7 +94,10 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
                       subtitle: Text(user['email']),
                       trailing: IconButton(
                         icon: isRequestSent
-                            ? const Icon(EvaIcons.checkmark, color: SnapUIColors.accentGreen)
+                            ? const Icon(
+                                EvaIcons.checkmark,
+                                color: SnapUIColors.accentGreen,
+                              )
                             : const Icon(EvaIcons.personAddOutline),
                         onPressed: isRequestSent
                             ? null
@@ -106,4 +113,4 @@ class _SnapUserSearchState extends State<SnapUserSearch> {
       ],
     );
   }
-} 
+}

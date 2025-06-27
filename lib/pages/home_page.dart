@@ -5,16 +5,13 @@ import 'package:snapameal/pages/milestone_stories_page.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
-
 import 'package:snapameal/services/notification_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-
 import 'package:snapameal/services/story_service.dart';
 
 import 'package:snapameal/design_system/snap_ui.dart';
-
 
 import 'package:provider/provider.dart';
 import '../providers/fasting_state_provider.dart';
@@ -47,7 +44,8 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   void _onItemTapped(int index) {
-    if (index == 1) { // Middle button for camera
+    if (index == 1) {
+      // Middle button for camera
       _showCameraOptions();
       return;
     }
@@ -84,7 +82,9 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MealLoggingPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const MealLoggingPage(),
+                  ),
                 );
               },
             ),
@@ -93,8 +93,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-
 
   @override
   void initState() {
@@ -122,7 +120,9 @@ class _HomePageState extends State<HomePage> {
               Navigator.pop(context);
               await _authService.signOut();
             },
-            style: TextButton.styleFrom(foregroundColor: SnapUIColors.accentRed),
+            style: TextButton.styleFrom(
+              foregroundColor: SnapUIColors.accentRed,
+            ),
             child: const Text('Logout'),
           ),
         ],
@@ -140,7 +140,9 @@ class _HomePageState extends State<HomePage> {
             actions: [
               IconButton(
                 icon: Icon(
-                  fastingState.fastingModeEnabled ? Icons.shield : Icons.settings,
+                  fastingState.fastingModeEnabled
+                      ? Icons.shield
+                      : Icons.settings,
                 ),
                 onPressed: () {
                   Navigator.pushNamed(context, '/settings');
@@ -162,7 +164,10 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Icon(Icons.logout, color: SnapUIColors.accentRed),
                         SizedBox(width: 8),
-                        Text('Logout', style: TextStyle(color: SnapUIColors.accentRed)),
+                        Text(
+                          'Logout',
+                          style: TextStyle(color: SnapUIColors.accentRed),
+                        ),
                       ],
                     ),
                   ),
@@ -190,23 +195,22 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             children: [
               // Add top padding when banner is showing
-              if (fastingState.isActiveFasting)
-                SizedBox(height: 80),
-              
+              if (fastingState.isActiveFasting) SizedBox(height: 80),
+
               // Fasting status card (shown when fasting is active)
               if (fastingState.isActiveFasting)
                 _buildFastingStatusCard(fastingState),
-              
+
               // Main content with conditional visibility
               _buildMainContent(fastingState),
-              
+
               // Fasting insights (shown after sessions)
               if (fastingState.totalSessionsCount > 0)
                 _buildFastingInsights(fastingState),
             ],
           ),
         ),
-        
+
         // Floating status banner
         if (fastingState.isActiveFasting)
           Positioned(
@@ -243,11 +247,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.timer,
-                  size: 40,
-                  color: fastingState.appThemeColor,
-                ),
+                Icon(Icons.timer, size: 40, color: fastingState.appThemeColor),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -263,10 +263,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Text(
                         fastingState.fastingTypeDisplay,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -274,7 +271,9 @@ class _HomePageState extends State<HomePage> {
                 CircularProgressIndicator(
                   value: fastingState.progressPercentage,
                   backgroundColor: Colors.grey[300],
-                  valueColor: AlwaysStoppedAnimation<Color>(fastingState.appThemeColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    fastingState.appThemeColor,
+                  ),
                 ),
               ],
             ),
@@ -282,7 +281,9 @@ class _HomePageState extends State<HomePage> {
             LinearProgressIndicator(
               value: fastingState.progressPercentage,
               backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation<Color>(fastingState.appThemeColor),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                fastingState.appThemeColor,
+              ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -311,7 +312,7 @@ class _HomePageState extends State<HomePage> {
     // Filter content based on fasting state
     final stories = _getFilteredStories(fastingState);
     final recommendations = _getFilteredRecommendations(fastingState);
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -321,45 +322,45 @@ class _HomePageState extends State<HomePage> {
           builder: (context, snapshot) {
             final isDemo = snapshot.data ?? false;
             if (!isDemo) return const SizedBox.shrink();
-            
+
             return Column(
               children: [
                 // Fasting demo showcase
                 const DemoFastingShowcase(),
                 const SizedBox(height: 20),
-                
+
                 // Meal logging demo showcase
                 const DemoMealShowcase(),
                 const SizedBox(height: 20),
-                
+
                 // Health dashboard demo showcase
                 const DemoHealthDashboardShowcase(),
                 const SizedBox(height: 20),
-                
+
                 // AI advice demo showcase
                 const DemoAIAdviceShowcase(),
                 const SizedBox(height: 20),
-                
+
                 // Social features demo showcase
                 const DemoSocialShowcase(),
                 const SizedBox(height: 20),
-                
+
                 // Story sharing demo showcase
                 const DemoStoryShowcase(),
                 const SizedBox(height: 20),
-                
+
                 // Friend matching demo showcase
                 const DemoFriendMatchingShowcase(),
                 const SizedBox(height: 20),
-                
+
                 // Story permanence demo showcase
                 const DemoStoryPermanenceShowcase(),
                 const SizedBox(height: 20),
-                
+
                 // Performance demo showcase
                 const DemoPerformanceShowcase(),
                 const SizedBox(height: 20),
-                
+
                 // AI sophistication demo showcase
                 const DemoAISophisticationShowcase(),
                 const SizedBox(height: 20),
@@ -372,12 +373,14 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: EdgeInsets.all(16),
             child: Text(
-              fastingState.fastingModeEnabled ? 'Motivation Stories' : 'Recent Stories',
+              fastingState.fastingModeEnabled
+                  ? 'Motivation Stories'
+                  : 'Recent Stories',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: fastingState.fastingModeEnabled 
-                    ? fastingState.appThemeColor 
+                color: fastingState.fastingModeEnabled
+                    ? fastingState.appThemeColor
                     : null,
               ),
             ),
@@ -388,14 +391,12 @@ class _HomePageState extends State<HomePage> {
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.symmetric(horizontal: 16),
               itemCount: stories.length,
-              itemBuilder: (context, index) => _buildStoryItem(
-                stories[index], 
-                fastingState,
-              ),
+              itemBuilder: (context, index) =>
+                  _buildStoryItem(stories[index], fastingState),
             ),
           ),
         ],
-        
+
         // Milestone Stories section
         Padding(
           padding: EdgeInsets.all(16),
@@ -407,8 +408,8 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: fastingState.fastingModeEnabled 
-                      ? fastingState.appThemeColor 
+                  color: fastingState.fastingModeEnabled
+                      ? fastingState.appThemeColor
                       : null,
                 ),
               ),
@@ -424,8 +425,8 @@ class _HomePageState extends State<HomePage> {
                 child: Text(
                   'View All',
                   style: TextStyle(
-                    color: fastingState.fastingModeEnabled 
-                        ? fastingState.appThemeColor 
+                    color: fastingState.fastingModeEnabled
+                        ? fastingState.appThemeColor
                         : Theme.of(context).primaryColor,
                   ),
                 ),
@@ -440,26 +441,27 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: EdgeInsets.all(16),
             child: Text(
-              fastingState.fastingModeEnabled 
-                  ? 'Health Recommendations' 
+              fastingState.fastingModeEnabled
+                  ? 'Health Recommendations'
                   : 'For You',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: fastingState.fastingModeEnabled 
-                    ? fastingState.appThemeColor 
+                color: fastingState.fastingModeEnabled
+                    ? fastingState.appThemeColor
                     : null,
               ),
             ),
           ),
-          ...recommendations.map((item) => _buildRecommendationItem(
-            item,
-            fastingState,
-          )),
+          ...recommendations.map(
+            (item) => _buildRecommendationItem(item, fastingState),
+          ),
         ],
-        
+
         // Fasting mode empty state
-        if (fastingState.fastingModeEnabled && stories.isEmpty && recommendations.isEmpty)
+        if (fastingState.fastingModeEnabled &&
+            stories.isEmpty &&
+            recommendations.isEmpty)
           _buildFastingEmptyState(fastingState),
       ],
     );
@@ -476,23 +478,17 @@ class _HomePageState extends State<HomePage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.insights,
-                  color: fastingState.appThemeColor,
-                ),
+                Icon(Icons.insights, color: fastingState.appThemeColor),
                 SizedBox(width: 8),
                 Text(
                   'Your Fasting Journey',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            
+
             SizedBox(height: 16),
-            
+
             Row(
               children: [
                 Expanded(
@@ -521,9 +517,9 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            
+
             SizedBox(height: 16),
-            
+
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 minimumSize: Size(double.infinity, 44),
@@ -540,7 +536,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// Build stat item widget
-  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Column(
       children: [
         Icon(icon, color: color, size: 24),
@@ -555,10 +556,7 @@ class _HomePageState extends State<HomePage> {
         ),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
           textAlign: TextAlign.center,
         ),
       ],
@@ -579,8 +577,8 @@ class _HomePageState extends State<HomePage> {
             margin: EdgeInsets.symmetric(horizontal: 16),
             child: Center(
               child: CircularProgressIndicator(
-                color: fastingState.fastingModeEnabled 
-                    ? fastingState.appThemeColor 
+                color: fastingState.fastingModeEnabled
+                    ? fastingState.appThemeColor
                     : Theme.of(context).primaryColor,
               ),
             ),
@@ -588,18 +586,18 @@ class _HomePageState extends State<HomePage> {
         }
 
         final milestoneStories = snapshot.data ?? [];
-        
+
         if (milestoneStories.isEmpty) {
           return Container(
             margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: fastingState.fastingModeEnabled 
+              color: fastingState.fastingModeEnabled
                   ? fastingState.appThemeColor.withValues(alpha: 0.05)
                   : Colors.grey[100],
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: fastingState.fastingModeEnabled 
+                color: fastingState.fastingModeEnabled
                     ? fastingState.appThemeColor.withValues(alpha: 0.2)
                     : Colors.grey[300]!,
               ),
@@ -608,8 +606,8 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Icon(
                   Icons.auto_awesome_outlined,
-                  color: fastingState.fastingModeEnabled 
-                      ? fastingState.appThemeColor 
+                  color: fastingState.fastingModeEnabled
+                      ? fastingState.appThemeColor
                       : Colors.grey[600],
                   size: 32,
                 ),
@@ -622,17 +620,14 @@ class _HomePageState extends State<HomePage> {
                         'No milestone stories yet',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: fastingState.fastingModeEnabled 
-                              ? fastingState.appThemeColor 
+                          color: fastingState.fastingModeEnabled
+                              ? fastingState.appThemeColor
                               : Colors.grey[800],
                         ),
                       ),
                       Text(
                         'Stories with high engagement become milestones',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -654,7 +649,7 @@ class _HomePageState extends State<HomePage> {
               final permanence = data['permanence'] as Map<String, dynamic>?;
               final tier = permanence?['tier'] ?? 'standard';
               final mediaUrl = data['mediaUrl'] as String?;
-              
+
               return GestureDetector(
                 onTap: () {
                   Navigator.push(
@@ -697,7 +692,9 @@ class _HomePageState extends State<HomePage> {
                                   },
                                 )
                               : Container(
-                                  color: _getMilestoneTierColor(tier).withValues(alpha: 0.2),
+                                  color: _getMilestoneTierColor(
+                                    tier,
+                                  ).withValues(alpha: 0.2),
                                   child: Icon(
                                     _getMilestoneTierIcon(tier),
                                     color: _getMilestoneTierColor(tier),
@@ -770,11 +767,7 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Column(
         children: [
-          Icon(
-            Icons.shield,
-            size: 64,
-            color: fastingState.appThemeColor,
-          ),
+          Icon(Icons.shield, size: 64, color: fastingState.appThemeColor),
           SizedBox(height: 16),
           Text(
             'Fasting Mode Active',
@@ -787,10 +780,7 @@ class _HomePageState extends State<HomePage> {
           SizedBox(height: 8),
           Text(
             'Content is being filtered to support your fasting goals. Stay strong!',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           SizedBox(height: 20),
@@ -816,7 +806,7 @@ class _HomePageState extends State<HomePage> {
       // Return motivation/health-focused stories
       return _getMotivationalStories();
     }
-    
+
     return _getAllStories();
   }
 
@@ -825,7 +815,7 @@ class _HomePageState extends State<HomePage> {
     if (fastingState.fastingModeEnabled) {
       return _getHealthRecommendations();
     }
-    
+
     return _getAllRecommendations();
   }
 
@@ -844,7 +834,7 @@ class _HomePageState extends State<HomePage> {
       },
     ];
   }
-  
+
   /// Get all stories for normal mode
   List<dynamic> _getAllStories() {
     return [
@@ -860,7 +850,7 @@ class _HomePageState extends State<HomePage> {
       },
     ];
   }
-  
+
   /// Get health recommendations for fasting mode
   List<dynamic> _getHealthRecommendations() {
     return [
@@ -876,7 +866,7 @@ class _HomePageState extends State<HomePage> {
       },
     ];
   }
-  
+
   /// Get all recommendations for normal mode
   List<dynamic> _getAllRecommendations() {
     return [
@@ -892,7 +882,7 @@ class _HomePageState extends State<HomePage> {
       },
     ];
   }
-  
+
   /// Build story item widget
   Widget _buildStoryItem(dynamic story, FastingStateProvider fastingState) {
     return Container(
@@ -905,22 +895,25 @@ class _HomePageState extends State<HomePage> {
             height: 80,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              color: fastingState.fastingModeEnabled 
+              color: fastingState.fastingModeEnabled
                   ? fastingState.appThemeColor.withValues(alpha: 0.1)
                   : SnapUIColors.greyLight,
               border: Border.all(
-                color: fastingState.fastingModeEnabled 
-                    ? fastingState.appThemeColor 
+                color: fastingState.fastingModeEnabled
+                    ? fastingState.appThemeColor
                     : SnapUIColors.grey,
               ),
             ),
             child: Icon(
-              story['type'] == 'motivation' ? Icons.favorite :
-              story['type'] == 'education' ? Icons.school :
-              story['type'] == 'recipe' ? Icons.restaurant :
-              Icons.camera_alt,
-              color: fastingState.fastingModeEnabled 
-                  ? fastingState.appThemeColor 
+              story['type'] == 'motivation'
+                  ? Icons.favorite
+                  : story['type'] == 'education'
+                  ? Icons.school
+                  : story['type'] == 'recipe'
+                  ? Icons.restaurant
+                  : Icons.camera_alt,
+              color: fastingState.fastingModeEnabled
+                  ? fastingState.appThemeColor
                   : SnapUIColors.grey,
             ),
           ),
@@ -930,8 +923,8 @@ class _HomePageState extends State<HomePage> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w500,
-              color: fastingState.fastingModeEnabled 
-                  ? fastingState.appThemeColor 
+              color: fastingState.fastingModeEnabled
+                  ? fastingState.appThemeColor
                   : null,
             ),
             textAlign: TextAlign.center,
@@ -942,23 +935,29 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   /// Build recommendation item widget
-  Widget _buildRecommendationItem(dynamic item, FastingStateProvider fastingState) {
+  Widget _buildRecommendationItem(
+    dynamic item,
+    FastingStateProvider fastingState,
+  ) {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: fastingState.fastingModeEnabled 
+          backgroundColor: fastingState.fastingModeEnabled
               ? fastingState.appThemeColor.withValues(alpha: 0.1)
               : SnapUIColors.primaryYellow.withValues(alpha: 0.1),
           child: Icon(
-            item['type'] == 'health' ? Icons.health_and_safety :
-            item['type'] == 'fitness' ? Icons.fitness_center :
-            item['type'] == 'restaurant' ? Icons.restaurant :
-            Icons.lightbulb,
-            color: fastingState.fastingModeEnabled 
-                ? fastingState.appThemeColor 
+            item['type'] == 'health'
+                ? Icons.health_and_safety
+                : item['type'] == 'fitness'
+                ? Icons.fitness_center
+                : item['type'] == 'restaurant'
+                ? Icons.restaurant
+                : Icons.lightbulb,
+            color: fastingState.fastingModeEnabled
+                ? fastingState.appThemeColor
                 : SnapUIColors.primaryYellow,
           ),
         ),
@@ -966,8 +965,8 @@ class _HomePageState extends State<HomePage> {
           item['title'] ?? '',
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            color: fastingState.fastingModeEnabled 
-                ? fastingState.appThemeColor 
+            color: fastingState.fastingModeEnabled
+                ? fastingState.appThemeColor
                 : null,
           ),
         ),
@@ -975,8 +974,8 @@ class _HomePageState extends State<HomePage> {
         trailing: Icon(
           Icons.arrow_forward_ios,
           size: 16,
-          color: fastingState.fastingModeEnabled 
-              ? fastingState.appThemeColor 
+          color: fastingState.fastingModeEnabled
+              ? fastingState.appThemeColor
               : null,
         ),
         onTap: () {
@@ -998,7 +997,7 @@ class _HomePageState extends State<HomePage> {
         child: Icon(Icons.camera_alt),
       );
     }
-    
+
     // Normal FAB
     return FloatingActionButton(
       onPressed: () {
@@ -1011,25 +1010,10 @@ class _HomePageState extends State<HomePage> {
   /// Get navigation items for bottom navigation
   List<BottomNavigationBarItem> _getNavigationItems() {
     return const [
-      BottomNavigationBarItem(
-        icon: Icon(Icons.home),
-        label: 'Home',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.camera_alt),
-        label: 'Camera',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.chat),
-        label: 'Chats',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.people),
-        label: 'Friends',
-      ),
+      BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+      BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Camera'),
+      BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chats'),
+      BottomNavigationBarItem(icon: Icon(Icons.people), label: 'Friends'),
     ];
   }
-
-
-
 }

@@ -10,29 +10,41 @@ class DemoAISophisticationShowcase extends StatefulWidget {
   const DemoAISophisticationShowcase({super.key});
 
   @override
-  State<DemoAISophisticationShowcase> createState() => _DemoAISophisticationShowcaseState();
+  State<DemoAISophisticationShowcase> createState() =>
+      _DemoAISophisticationShowcaseState();
 }
 
-class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowcase>
+class _DemoAISophisticationShowcaseState
+    extends State<DemoAISophisticationShowcase>
     with TickerProviderStateMixin {
   late AnimationController _scenarioController;
   late AnimationController _insightController;
   late Animation<double> _scenarioAnimation;
   late Animation<double> _insightAnimation;
-  
+
   Timer? _scenarioTimer;
   int _currentScenario = 0;
   int _currentInsight = 0;
   bool _showAdvancedFeatures = false;
-  
+
   final List<Map<String, dynamic>> _aiScenarios = [
     {
       'title': 'Predictive Health Intervention',
       'scenario': 'Alice\'s fasting pattern analysis',
-      'description': 'AI detected 73% probability of breaking fast early based on stress indicators, sleep quality (6.2h), and historical patterns. Proactively suggested mindfulness session.',
+      'description':
+          'AI detected 73% probability of breaking fast early based on stress indicators, sleep quality (6.2h), and historical patterns. Proactively suggested mindfulness session.',
       'outcome': 'Successfully completed 16-hour fast with 94% confidence',
-      'aiCapabilities': ['Pattern Recognition', 'Predictive Analytics', 'Behavioral Modeling'],
-      'dataPoints': ['Heart Rate Variability', 'Sleep Quality', 'Stress Biomarkers', 'Historical Behavior'],
+      'aiCapabilities': [
+        'Pattern Recognition',
+        'Predictive Analytics',
+        'Behavioral Modeling',
+      ],
+      'dataPoints': [
+        'Heart Rate Variability',
+        'Sleep Quality',
+        'Stress Biomarkers',
+        'Historical Behavior',
+      ],
       'accuracy': 94,
       'confidence': 89,
       'icon': Icons.psychology,
@@ -42,10 +54,20 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
     {
       'title': 'Contextual Meal Recognition',
       'scenario': 'Bob\'s restaurant dining analysis',
-      'description': 'Computer vision identified Mediterranean bowl with 97% accuracy. Cross-referenced with restaurant menu, dietary restrictions, and macro targets. Suggested portion adjustment.',
+      'description':
+          'Computer vision identified Mediterranean bowl with 97% accuracy. Cross-referenced with restaurant menu, dietary restrictions, and macro targets. Suggested portion adjustment.',
       'outcome': 'Optimized meal choice aligned with fitness goals',
-      'aiCapabilities': ['Computer Vision', 'Contextual Analysis', 'Nutritional Intelligence'],
-      'dataPoints': ['Visual Recognition', 'Menu Database', 'Dietary Preferences', 'Macro Targets'],
+      'aiCapabilities': [
+        'Computer Vision',
+        'Contextual Analysis',
+        'Nutritional Intelligence',
+      ],
+      'dataPoints': [
+        'Visual Recognition',
+        'Menu Database',
+        'Dietary Preferences',
+        'Macro Targets',
+      ],
       'accuracy': 97,
       'confidence': 92,
       'icon': Icons.camera_alt,
@@ -55,10 +77,20 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
     {
       'title': 'Social Health Optimization',
       'scenario': 'Charlie\'s community engagement',
-      'description': 'NLP analysis of group conversations identified declining motivation. AI matched with mentor Sarah (94% compatibility) and suggested participation in weekend hiking challenge.',
+      'description':
+          'NLP analysis of group conversations identified declining motivation. AI matched with mentor Sarah (94% compatibility) and suggested participation in weekend hiking challenge.',
       'outcome': 'Increased engagement by 156% in following week',
-      'aiCapabilities': ['Natural Language Processing', 'Social Matching', 'Motivation Analysis'],
-      'dataPoints': ['Conversation Sentiment', 'Engagement Patterns', 'Goal Alignment', 'Personality Traits'],
+      'aiCapabilities': [
+        'Natural Language Processing',
+        'Social Matching',
+        'Motivation Analysis',
+      ],
+      'dataPoints': [
+        'Conversation Sentiment',
+        'Engagement Patterns',
+        'Goal Alignment',
+        'Personality Traits',
+      ],
       'accuracy': 91,
       'confidence': 87,
       'icon': Icons.people,
@@ -68,10 +100,20 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
     {
       'title': 'Adaptive Learning Evolution',
       'scenario': 'Multi-user pattern synthesis',
-      'description': 'AI synthesized learnings from 10K+ users to identify optimal fasting windows for different chronotypes. Personalized recommendations improved success rates by 34%.',
+      'description':
+          'AI synthesized learnings from 10K+ users to identify optimal fasting windows for different chronotypes. Personalized recommendations improved success rates by 34%.',
       'outcome': 'Enhanced algorithm performance across user base',
-      'aiCapabilities': ['Machine Learning', 'Pattern Synthesis', 'Personalization Engine'],
-      'dataPoints': ['Chronotype Analysis', 'Success Patterns', 'Circadian Rhythms', 'Lifestyle Factors'],
+      'aiCapabilities': [
+        'Machine Learning',
+        'Pattern Synthesis',
+        'Personalization Engine',
+      ],
+      'dataPoints': [
+        'Chronotype Analysis',
+        'Success Patterns',
+        'Circadian Rhythms',
+        'Lifestyle Factors',
+      ],
       'accuracy': 89,
       'confidence': 95,
       'icon': Icons.auto_awesome,
@@ -79,11 +121,12 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
       'impact': 'Improved success rates by 34% platform-wide',
     },
   ];
-  
+
   final List<Map<String, dynamic>> _advancedInsights = [
     {
       'insight': 'Circadian Rhythm Optimization',
-      'description': 'AI identified optimal meal timing based on individual circadian patterns, improving metabolic efficiency by 23%',
+      'description':
+          'AI identified optimal meal timing based on individual circadian patterns, improving metabolic efficiency by 23%',
       'technology': 'Temporal Pattern Analysis + Metabolic Modeling',
       'impact': '23% efficiency improvement',
       'users': '2.1K users optimized',
@@ -92,7 +135,8 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
     },
     {
       'insight': 'Micro-Nutrient Gap Analysis',
-      'description': 'Computer vision + nutritional database analysis identifies subtle nutrient deficiencies before symptoms appear',
+      'description':
+          'Computer vision + nutritional database analysis identifies subtle nutrient deficiencies before symptoms appear',
       'technology': 'Multi-Modal AI + Predictive Health Analytics',
       'impact': '67% reduction in deficiencies',
       'users': '5.3K users monitored',
@@ -101,7 +145,8 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
     },
     {
       'insight': 'Behavioral Intervention Triggers',
-      'description': 'NLP sentiment analysis of user communications predicts motivation drops 3-5 days before they occur',
+      'description':
+          'NLP sentiment analysis of user communications predicts motivation drops 3-5 days before they occur',
       'technology': 'Advanced NLP + Behavioral Psychology AI',
       'impact': '78% prevention rate',
       'users': '8.7K interventions delivered',
@@ -110,7 +155,8 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
     },
     {
       'insight': 'Social Network Health Effects',
-      'description': 'Graph neural networks analyze social connections to predict health outcome improvements through friend matching',
+      'description':
+          'Graph neural networks analyze social connections to predict health outcome improvements through friend matching',
       'technology': 'Graph Neural Networks + Social Psychology',
       'impact': '45% better outcomes',
       'users': '12.4K connections optimized',
@@ -118,68 +164,72 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
       'color': SnapColors.accentRed,
     },
   ];
-  
+
   final List<Map<String, dynamic>> _aiCapabilities = [
     {
       'capability': 'Computer Vision Excellence',
-      'description': 'State-of-the-art food recognition with 97.3% accuracy across 50K+ food items',
+      'description':
+          'State-of-the-art food recognition with 97.3% accuracy across 50K+ food items',
       'metrics': ['97.3% accuracy', '0.8s processing', '50K+ items'],
       'icon': Icons.visibility,
       'color': SnapColors.accentBlue,
     },
     {
       'capability': 'Predictive Health Analytics',
-      'description': 'Machine learning models predict health outcomes 3-7 days in advance with 89% accuracy',
-      'metrics': ['89% prediction accuracy', '3-7 day horizon', '15+ biomarkers'],
+      'description':
+          'Machine learning models predict health outcomes 3-7 days in advance with 89% accuracy',
+      'metrics': [
+        '89% prediction accuracy',
+        '3-7 day horizon',
+        '15+ biomarkers',
+      ],
       'icon': Icons.analytics,
       'color': SnapColors.accentGreen,
     },
     {
       'capability': 'Natural Language Understanding',
-      'description': 'Advanced NLP processes health conversations with medical-grade understanding',
+      'description':
+          'Advanced NLP processes health conversations with medical-grade understanding',
       'metrics': ['94% intent accuracy', '12 languages', 'Medical context'],
       'icon': Icons.psychology,
       'color': SnapColors.accentPurple,
     },
     {
       'capability': 'Behavioral Intelligence',
-      'description': 'AI models human behavior patterns to optimize health interventions and timing',
-      'metrics': ['78% intervention success', 'Real-time adaptation', 'Personal patterns'],
+      'description':
+          'AI models human behavior patterns to optimize health interventions and timing',
+      'metrics': [
+        '78% intervention success',
+        'Real-time adaptation',
+        'Personal patterns',
+      ],
       'icon': Icons.psychology_alt,
       'color': SnapColors.primaryYellow,
     },
   ];
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _scenarioController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
+
     _insightController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
-    _scenarioAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _scenarioController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _insightAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _insightController,
-      curve: Curves.elasticOut,
-    ));
-    
+
+    _scenarioAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _scenarioController, curve: Curves.easeInOut),
+    );
+
+    _insightAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _insightController, curve: Curves.elasticOut),
+    );
+
     _startScenarioRotation();
   }
 
@@ -202,7 +252,7 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
         _insightController.forward(from: 0);
       }
     });
-    
+
     // Start initial animations
     _scenarioController.forward();
     _insightController.forward();
@@ -215,7 +265,7 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
       builder: (context, snapshot) {
         final isDemo = snapshot.data ?? false;
         if (!isDemo) return const SizedBox.shrink();
-        
+
         return Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(20),
@@ -240,29 +290,29 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
             children: [
               // Demo indicator
               _buildDemoIndicator(),
-              
+
               const SizedBox(height: 20),
-              
+
               // AI sophistication overview
               _buildAIOverview(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Featured AI scenario
               _buildFeaturedScenario(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Advanced insights
               _buildAdvancedInsights(),
-              
+
               const SizedBox(height: 20),
-              
+
               // AI capabilities matrix
               _buildAICapabilities(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Competitive differentiation
               _buildCompetitiveDifferentiation(),
             ],
@@ -284,11 +334,7 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.auto_awesome,
-            size: 16,
-            color: Colors.black,
-          ),
+          const Icon(Icons.auto_awesome, size: 16, color: Colors.black),
           const SizedBox(width: 6),
           const Text(
             'AI Sophistication Showcase',
@@ -362,7 +408,13 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
     );
   }
 
-  Widget _buildOverviewCard(String title, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildOverviewCard(
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -407,7 +459,7 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
 
   Widget _buildFeaturedScenario() {
     final scenario = _aiScenarios[_currentScenario];
-    
+
     return AnimatedBuilder(
       animation: _scenarioAnimation,
       builder: (context, child) {
@@ -441,7 +493,9 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: (scenario['color'] as Color).withValues(alpha: 0.2),
+                          color: (scenario['color'] as Color).withValues(
+                            alpha: 0.2,
+                          ),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(
@@ -478,9 +532,14 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
                       Column(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
-                              color: SnapColors.accentGreen.withValues(alpha: 0.2),
+                              color: SnapColors.accentGreen.withValues(
+                                alpha: 0.2,
+                              ),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -504,9 +563,9 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
                       ),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Scenario description
                   Container(
                     padding: const EdgeInsets.all(12),
@@ -523,34 +582,41 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
                       ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   // AI capabilities used
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
-                    children: (scenario['aiCapabilities'] as List<String>).map((capability) =>
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: (scenario['color'] as Color).withValues(alpha: 0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          capability,
-                          style: TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w600,
-                            color: scenario['color'] as Color,
+                    children: (scenario['aiCapabilities'] as List<String>)
+                        .map(
+                          (capability) => Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: (scenario['color'] as Color).withValues(
+                                alpha: 0.2,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              capability,
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
+                                color: scenario['color'] as Color,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ).toList(),
+                        )
+                        .toList(),
                   ),
-                  
+
                   const SizedBox(height: 12),
-                  
+
                   // Outcome and impact
                   Row(
                     children: [
@@ -558,10 +624,14 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: SnapColors.accentGreen.withValues(alpha: 0.1),
+                            color: SnapColors.accentGreen.withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: SnapColors.accentGreen.withValues(alpha: 0.3),
+                              color: SnapColors.accentGreen.withValues(
+                                alpha: 0.3,
+                              ),
                             ),
                           ),
                           child: Column(
@@ -602,10 +672,14 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
                         child: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: (scenario['color'] as Color).withValues(alpha: 0.1),
+                            color: (scenario['color'] as Color).withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: (scenario['color'] as Color).withValues(alpha: 0.3),
+                              color: (scenario['color'] as Color).withValues(
+                                alpha: 0.3,
+                              ),
                             ),
                           ),
                           child: Column(
@@ -658,18 +732,16 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.lightbulb,
-                color: SnapColors.primaryYellow,
-                size: 20,
-              ),
+              Icon(Icons.lightbulb, color: SnapColors.primaryYellow, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Advanced AI Insights',
@@ -692,15 +764,15 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Current insight highlight
           AnimatedBuilder(
             animation: _insightAnimation,
             builder: (context, child) {
               final insight = _advancedInsights[_currentInsight];
-              
+
               return Transform.scale(
                 scale: 0.98 + (0.02 * _insightAnimation.value),
                 child: Container(
@@ -749,9 +821,13 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: (insight['color'] as Color).withValues(alpha: 0.2),
+                                    color: (insight['color'] as Color)
+                                        .withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   child: Text(
@@ -782,7 +858,7 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
               );
             },
           ),
-          
+
           if (_showAdvancedFeatures) ...[
             const SizedBox(height: 16),
             // All insights grid
@@ -793,9 +869,9 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
               childAspectRatio: 1.2,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
-              children: _advancedInsights.map((insight) =>
-                _buildInsightCard(insight)
-              ).toList(),
+              children: _advancedInsights
+                  .map((insight) => _buildInsightCard(insight))
+                  .toList(),
             ),
           ],
         ],
@@ -852,7 +928,9 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -874,13 +952,13 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Column(
-            children: _aiCapabilities.map((capability) =>
-              _buildCapabilityTile(capability)
-            ).toList(),
+            children: _aiCapabilities
+                .map((capability) => _buildCapabilityTile(capability))
+                .toList(),
           ),
         ],
       ),
@@ -929,23 +1007,30 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
                 const SizedBox(height: 6),
                 Wrap(
                   spacing: 6,
-                  children: (capability['metrics'] as List<String>).map((metric) =>
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: (capability['color'] as Color).withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        metric,
-                        style: TextStyle(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w600,
-                          color: capability['color'] as Color,
+                  children: (capability['metrics'] as List<String>)
+                      .map(
+                        (metric) => Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: (capability['color'] as Color).withValues(
+                              alpha: 0.2,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            metric,
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.w600,
+                              color: capability['color'] as Color,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ).toList(),
+                      )
+                      .toList(),
                 ),
               ],
             ),
@@ -992,9 +1077,9 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Text(
             'Our AI sophistication creates defensible moats through advanced health intelligence that competitors cannot easily replicate.',
             style: TextStyle(
@@ -1003,9 +1088,9 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
               height: 1.3,
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           Row(
             children: [
               Expanded(
@@ -1036,9 +1121,9 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -1071,7 +1156,12 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
     );
   }
 
-  Widget _buildDifferentiatorCard(String title, String description, IconData icon, Color color) {
+  Widget _buildDifferentiatorCard(
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -1106,4 +1196,4 @@ class _DemoAISophisticationShowcaseState extends State<DemoAISophisticationShowc
       ),
     );
   }
-} 
+}

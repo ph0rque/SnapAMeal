@@ -7,6 +7,7 @@ import 'package:snapameal/services/story_service.dart';
 import 'package:snapameal/services/friend_service.dart';
 import 'package:video_player/video_player.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
+import '../utils/logger.dart';
 
 class StoryViewPage extends StatefulWidget {
   final String userId;
@@ -16,7 +17,8 @@ class StoryViewPage extends StatefulWidget {
   State<StoryViewPage> createState() => _StoryViewPageState();
 }
 
-class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateMixin {
+class _StoryViewPageState extends State<StoryViewPage>
+    with TickerProviderStateMixin {
   final StoryService _storyService = StoryService();
   final FriendService _friendService = FriendService();
   late PageController _pageController;
@@ -50,7 +52,9 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
         _hasError = false;
       });
 
-      final storiesSnapshot = await _storyService.getStoriesForUserStream(widget.userId).first;
+      final storiesSnapshot = await _storyService
+          .getStoriesForUserStream(widget.userId)
+          .first;
 
       if (!mounted) return;
 
@@ -80,7 +84,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
         _handleError("No stories found");
       }
     } catch (e) {
-      debugPrint('StoryViewPage: Error loading stories: $e');
+      Logger.d('StoryViewPage: Error loading stories: $e');
       _handleError("Failed to load stories");
     }
   }
@@ -91,7 +95,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       _hasError = true;
       _errorMessage = message;
     });
-    
+
     // Auto-close after showing error
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) Navigator.of(context).pop();
@@ -104,7 +108,8 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       return;
     }
 
-    final currentStoryData = _stories[_currentIndex].data() as Map<String, dynamic>?;
+    final currentStoryData =
+        _stories[_currentIndex].data() as Map<String, dynamic>?;
 
     if (currentStoryData == null) {
       _handleError("Story data unavailable");
@@ -115,7 +120,9 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
     _progressController.stop();
     _progressController.reset();
 
-    final type = currentStoryData['type'] ?? (currentStoryData['isVideo'] == true ? 'video' : 'image');
+    final type =
+        currentStoryData['type'] ??
+        (currentStoryData['isVideo'] == true ? 'video' : 'image');
     final duration = currentStoryData['duration'] ?? 5;
 
     try {
@@ -127,7 +134,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
         _progressController.forward();
       }
     } catch (e) {
-      debugPrint('StoryViewPage: Error starting story: $e');
+      Logger.d('StoryViewPage: Error starting story: $e');
       _nextStory(); // Skip to next story on error
     }
 
@@ -137,36 +144,35 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
   Future<void> _initializeVideo(Map<String, dynamic> storyData) async {
     try {
       _videoController?.dispose();
-      
+
       final videoUrl = storyData['mediaUrl'] as String;
-      debugPrint('StoryViewPage: Initializing video: $videoUrl');
-      
+      Logger.d('StoryViewPage: Initializing video: $videoUrl');
+
       _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
-      
+
       await _videoController!.initialize();
-      
+
       if (!mounted) return;
-      
+
       setState(() {});
-      
+
       // Set progress duration to video duration
       final videoDuration = _videoController!.value.duration;
       _progressController.duration = videoDuration;
-      
+
       // Start video playback
       await _videoController!.play();
       _progressController.forward();
-      
-      debugPrint('StoryViewPage: Video initialized and playing');
-      
+
+      Logger.d('StoryViewPage: Video initialized and playing');
     } catch (e) {
-      debugPrint('StoryViewPage: Error initializing video: $e');
+      Logger.d('StoryViewPage: Error initializing video: $e');
       // Fallback to default duration if video fails
       _progressController.duration = const Duration(seconds: 5);
       _progressController.forward();
     }
   }
-  
+
   void _onProgressComplete(AnimationStatus status) {
     if (status == AnimationStatus.completed && !_isPaused) {
       _nextStory();
@@ -175,7 +181,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
 
   void _nextStory() {
     _progressController.removeStatusListener(_onProgressComplete);
-    
+
     if (_currentIndex < _stories.length - 1) {
       setState(() {
         _currentIndex++;
@@ -192,7 +198,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
 
   void _previousStory() {
     _progressController.removeStatusListener(_onProgressComplete);
-    
+
     if (_currentIndex > 0) {
       setState(() {
         _currentIndex--;
@@ -236,11 +242,11 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
     if (_isLoading) {
       return _buildLoadingScreen();
     }
-    
+
     if (_hasError) {
       return _buildErrorScreen();
     }
-    
+
     if (_stories.isEmpty) {
       return _buildNoStoriesScreen();
     }
@@ -272,10 +278,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
             const SizedBox(height: 16),
             const Text(
               'Loading stories...',
-              style: TextStyle(
-                color: SnapUIColors.white,
-                fontSize: 16,
-              ),
+              style: TextStyle(color: SnapUIColors.white, fontSize: 16),
             ),
           ],
         ),
@@ -298,19 +301,13 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
             const SizedBox(height: 16),
             Text(
               _errorMessage,
-              style: const TextStyle(
-                color: SnapUIColors.white,
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: SnapUIColors.white, fontSize: 16),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             const Text(
               'Closing automatically...',
-              style: TextStyle(
-                color: SnapUIColors.grey,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: SnapUIColors.grey, fontSize: 14),
             ),
           ],
         ),
@@ -325,18 +322,11 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              EvaIcons.imageOutline,
-              color: SnapUIColors.grey,
-              size: 48,
-            ),
+            Icon(EvaIcons.imageOutline, color: SnapUIColors.grey, size: 48),
             SizedBox(height: 16),
             Text(
               'No stories available',
-              style: TextStyle(
-                color: SnapUIColors.white,
-                fontSize: 16,
-              ),
+              style: TextStyle(color: SnapUIColors.white, fontSize: 16),
             ),
           ],
         ),
@@ -380,13 +370,13 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
               },
               itemBuilder: (context, index) => _buildStoryContent(index),
             ),
-            
+
             // Progress indicators
             _buildProgressIndicators(),
-            
+
             // User info header
             _buildUserHeader(),
-            
+
             // Pause indicator
             if (_isPaused) _buildPauseIndicator(),
           ],
@@ -397,13 +387,14 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
 
   Widget _buildStoryContent(int index) {
     if (index >= _stories.length) return const SizedBox.shrink();
-    
+
     final story = _stories[index].data() as Map<String, dynamic>?;
     if (story == null) return const SizedBox.shrink();
 
-    final type = story['type'] ?? (story['isVideo'] == true ? 'video' : 'image');
+    final type =
+        story['type'] ?? (story['isVideo'] == true ? 'video' : 'image');
     final mediaUrl = story['mediaUrl'] as String?;
-    
+
     if (mediaUrl == null) {
       return const Center(
         child: Icon(
@@ -431,9 +422,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       );
     } else {
       return const Center(
-        child: CircularProgressIndicator(
-          color: SnapUIColors.white,
-        ),
+        child: CircularProgressIndicator(color: SnapUIColors.white),
       );
     }
   }
@@ -444,9 +433,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
         imageUrl: imageUrl,
         fit: BoxFit.contain,
         placeholder: (context, url) => const Center(
-          child: CircularProgressIndicator(
-            color: SnapUIColors.white,
-          ),
+          child: CircularProgressIndicator(color: SnapUIColors.white),
         ),
         errorWidget: (context, url, error) => const Center(
           child: Icon(
@@ -480,11 +467,13 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
                   } else {
                     value = 0.0;
                   }
-                  
+
                   return LinearProgressIndicator(
                     value: value,
                     backgroundColor: Colors.white.withValues(alpha: 0.3),
-                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Colors.white,
+                    ),
                     minHeight: 3,
                   );
                 },
@@ -497,11 +486,12 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
   }
 
   Widget _buildUserHeader() {
-    if (_stories.isEmpty || _currentIndex >= _stories.length) return const SizedBox.shrink();
-    
+    if (_stories.isEmpty || _currentIndex >= _stories.length)
+      return const SizedBox.shrink();
+
     final story = _stories[_currentIndex].data() as Map<String, dynamic>?;
     if (story == null) return const SizedBox.shrink();
-    
+
     return Positioned(
       top: 80,
       left: 16,
@@ -509,13 +499,15 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       child: Column(
         children: [
           FutureBuilder<DocumentSnapshot>(
-            future: _friendService.getUserData(story['senderId'] ?? widget.userId),
+            future: _friendService.getUserData(
+              story['senderId'] ?? widget.userId,
+            ),
             builder: (context, snapshot) {
               if (!snapshot.hasData) return const SizedBox.shrink();
-              
+
               final userData = snapshot.data!.data() as Map<String, dynamic>?;
               final username = userData?['username'] ?? 'Unknown User';
-              
+
               return Row(
                 children: [
                   CircleAvatar(
@@ -570,12 +562,12 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
   Widget _buildPermanenceBadge(Map<String, dynamic> story) {
     final permanence = story['permanence'] as Map<String, dynamic>?;
     final tier = permanence?['tier'] as String?;
-    
+
     if (tier == null || tier == 'standard') return const SizedBox.shrink();
-    
+
     Color badgeColor;
     IconData badgeIcon;
-    
+
     switch (tier) {
       case 'weekly':
         badgeColor = Colors.amber;
@@ -592,7 +584,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       default:
         return const SizedBox.shrink();
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
@@ -602,11 +594,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            badgeIcon,
-            size: 12,
-            color: Colors.white,
-          ),
+          Icon(badgeIcon, size: 12, color: Colors.white),
           const SizedBox(width: 2),
           Text(
             tier.toUpperCase(),
@@ -649,11 +637,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
               color: Colors.black.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.share,
-              color: Colors.white,
-              size: 20,
-            ),
+            child: const Icon(Icons.share, color: Colors.white, size: 20),
           ),
         ),
       ],
@@ -663,16 +647,16 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
   Widget _buildEngagementStats(Map<String, dynamic> story) {
     final engagement = story['engagement'] as Map<String, dynamic>? ?? {};
     final permanence = story['permanence'] as Map<String, dynamic>?;
-    
+
     final views = engagement['views'] as int? ?? 0;
     final likes = engagement['likes'] as int? ?? 0;
     final comments = engagement['comments'] as int? ?? 0;
     final shares = engagement['shares'] as int? ?? 0;
-    
+
     // Show permanence info if story is extended
     final isExtended = permanence?['isExtended'] as bool? ?? false;
     final expiresAt = permanence?['expiresAt'] as Timestamp?;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -691,11 +675,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
           _buildEngagementStat(Icons.share, shares),
           if (isExtended && expiresAt != null) ...[
             const SizedBox(width: 12),
-            const Icon(
-              Icons.access_time,
-              color: Colors.white,
-              size: 14,
-            ),
+            const Icon(Icons.access_time, color: Colors.white, size: 14),
             const SizedBox(width: 4),
             Text(
               _getTimeUntilExpiry(expiresAt),
@@ -715,11 +695,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: Colors.white,
-          size: 14,
-        ),
+        Icon(icon, color: Colors.white, size: 14),
         const SizedBox(width: 4),
         Text(
           count.toString(),
@@ -735,31 +711,31 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
 
   void _handleEngagement(String engagementType) async {
     if (_stories.isEmpty || _currentIndex >= _stories.length) return;
-    
+
     final storyId = _stories[_currentIndex].id;
     final storyOwnerId = widget.userId;
-    
+
     try {
       await _storyService.updateStoryEngagement(
         storyOwnerId,
         storyId,
         engagementType,
       );
-      
+
       // Provide haptic feedback
       HapticFeedback.lightImpact();
-      
+
       // Show visual feedback
       _showEngagementFeedback(engagementType);
     } catch (e) {
-      debugPrint('Error updating engagement: $e');
+      Logger.d('Error updating engagement: $e');
     }
   }
 
   void _showEngagementFeedback(String engagementType) {
     IconData icon;
     Color color;
-    
+
     switch (engagementType) {
       case 'likes':
         icon = Icons.favorite;
@@ -772,7 +748,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       default:
         return;
     }
-    
+
     // Show animated feedback
     showDialog(
       context: context,
@@ -784,11 +760,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
           builder: (context, value, child) {
             return Transform.scale(
               scale: value,
-              child: Icon(
-                icon,
-                color: color,
-                size: 64,
-              ),
+              child: Icon(icon, color: color, size: 64),
             );
           },
           onEnd: () {
@@ -803,7 +775,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
     final now = DateTime.now();
     final expiry = expiresAt.toDate();
     final difference = expiry.difference(now);
-    
+
     if (difference.isNegative) {
       return 'Expired';
     } else if (difference.inDays > 0) {
@@ -820,11 +792,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       child: Container(
         color: Colors.black.withValues(alpha: 0.3),
         child: const Center(
-          child: Icon(
-            Icons.pause,
-            color: Colors.white,
-            size: 64,
-          ),
+          child: Icon(Icons.pause, color: Colors.white, size: 64),
         ),
       ),
     );
@@ -832,11 +800,11 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
 
   String _getTimeAgo(Timestamp? timestamp) {
     if (timestamp == null) return '';
-    
+
     final now = DateTime.now();
     final storyTime = timestamp.toDate();
     final difference = now.difference(storyTime);
-    
+
     if (difference.inHours > 0) {
       return '${difference.inHours}h ago';
     } else if (difference.inMinutes > 0) {
@@ -845,4 +813,4 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
       return 'now';
     }
   }
-} 
+}

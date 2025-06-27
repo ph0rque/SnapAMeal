@@ -60,14 +60,22 @@ class MealLog {
       imagePath: json['image_path'],
       imageUrl: json['image_url'],
       timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp']),
-      recognitionResult: MealRecognitionResult.fromJson(json['recognition_result']),
+      recognitionResult: MealRecognitionResult.fromJson(
+        json['recognition_result'],
+      ),
       userCaption: json['user_caption'],
       aiCaption: json['ai_caption'],
       tags: List<String>.from(json['tags'] ?? []),
-      moodRating: json['mood_rating'] != null ? MoodRating.fromJson(json['mood_rating']) : null,
-      hungerLevel: json['hunger_level'] != null ? HungerLevel.fromJson(json['hunger_level']) : null,
-      recipeSuggestions: json['recipe_suggestions'] != null 
-          ? (json['recipe_suggestions'] as List).map((r) => RecipeSuggestion.fromJson(r)).toList()
+      moodRating: json['mood_rating'] != null
+          ? MoodRating.fromJson(json['mood_rating'])
+          : null,
+      hungerLevel: json['hunger_level'] != null
+          ? HungerLevel.fromJson(json['hunger_level'])
+          : null,
+      recipeSuggestions: json['recipe_suggestions'] != null
+          ? (json['recipe_suggestions'] as List)
+                .map((r) => RecipeSuggestion.fromJson(r))
+                .toList()
           : null,
       metadata: json['metadata'] ?? {},
       myFitnessPalFoodId: json['myfitnesspal_food_id'],
@@ -119,7 +127,9 @@ class MealRecognitionResult {
       confidenceScore: json['confidence_score']?.toDouble() ?? 0.0,
       primaryFoodCategory: json['primary_food_category'],
       allergenWarnings: List<String>.from(json['allergen_warnings'] ?? []),
-      analysisTimestamp: DateTime.fromMillisecondsSinceEpoch(json['analysis_timestamp']),
+      analysisTimestamp: DateTime.fromMillisecondsSinceEpoch(
+        json['analysis_timestamp'],
+      ),
     );
   }
 }
@@ -163,8 +173,8 @@ class FoodItem {
       confidence: json['confidence']?.toDouble() ?? 0.0,
       nutrition: NutritionInfo.fromJson(json['nutrition']),
       estimatedWeight: json['estimated_weight']?.toDouble() ?? 0.0,
-      boundingBox: json['bounding_box'] != null 
-          ? BoundingBox.fromJson(json['bounding_box']) 
+      boundingBox: json['bounding_box'] != null
+          ? BoundingBox.fromJson(json['bounding_box'])
           : null,
       alternativeNames: List<String>.from(json['alternative_names'] ?? []),
     );
@@ -231,7 +241,7 @@ class NutritionInfo {
   Map<String, double> get macroPercentages {
     final totalCals = calories;
     if (totalCals == 0) return {'protein': 0, 'carbs': 0, 'fat': 0};
-    
+
     return {
       'protein': (protein * 4) / totalCals * 100,
       'carbs': (carbs * 4) / totalCals * 100,
@@ -255,12 +265,7 @@ class BoundingBox {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'x': x,
-      'y': y,
-      'width': width,
-      'height': height,
-    };
+    return {'x': x, 'y': y, 'width': width, 'height': height};
   }
 
   factory BoundingBox.fromJson(Map<String, dynamic> json) {
@@ -394,4 +399,4 @@ class RecipeSuggestion {
       source: json['source'],
     );
   }
-} 
+}

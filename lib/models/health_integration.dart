@@ -29,7 +29,7 @@ class HealthIntegration {
   /// Create HealthIntegration from Firestore document
   factory HealthIntegration.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return HealthIntegration(
       id: doc.id,
       userId: data['user_id'] ?? '',
@@ -43,11 +43,12 @@ class HealthIntegration {
       ),
       accessToken: data['access_token'],
       refreshToken: data['refresh_token'],
-      connectedAt: (data['connected_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      connectedAt:
+          (data['connected_at'] as Timestamp?)?.toDate() ?? DateTime.now(),
       lastSyncAt: (data['last_sync_at'] as Timestamp?)?.toDate(),
       settings: Map<String, dynamic>.from(data['settings'] ?? {}),
-      metadata: data['metadata'] != null 
-          ? Map<String, dynamic>.from(data['metadata']) 
+      metadata: data['metadata'] != null
+          ? Map<String, dynamic>.from(data['metadata'])
           : null,
     );
   }
@@ -61,7 +62,9 @@ class HealthIntegration {
       'access_token': accessToken,
       'refresh_token': refreshToken,
       'connected_at': Timestamp.fromDate(connectedAt),
-      'last_sync_at': lastSyncAt != null ? Timestamp.fromDate(lastSyncAt!) : null,
+      'last_sync_at': lastSyncAt != null
+          ? Timestamp.fromDate(lastSyncAt!)
+          : null,
       'settings': settings,
       'metadata': metadata,
       'created_at': FieldValue.serverTimestamp(),
@@ -165,10 +168,10 @@ class HealthIntegration {
     if (lastSyncAt == null) {
       return 'Never synced';
     }
-    
+
     final now = DateTime.now();
     final difference = now.difference(lastSyncAt!);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just synced';
     } else if (difference.inHours < 1) {
@@ -200,7 +203,7 @@ class HealthIntegration {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    
+
     return other is HealthIntegration &&
         other.id == id &&
         other.userId == userId &&
@@ -210,9 +213,6 @@ class HealthIntegration {
 
   @override
   int get hashCode {
-    return id.hashCode ^
-        userId.hashCode ^
-        type.hashCode ^
-        status.hashCode;
+    return id.hashCode ^ userId.hashCode ^ type.hashCode ^ status.hashCode;
   }
-} 
+}

@@ -1,9 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum Gender {
-  male,
-  female,
-}
+enum Gender { male, female }
 
 enum HealthGoalType {
   weightLoss,
@@ -26,14 +23,14 @@ enum HealthGoalType {
   improveDigestion,
   longevity,
   mentalClarity,
-  custom
+  custom,
 }
 
 enum ActivityLevel {
-  sedentary,     // Little to no exercise
+  sedentary, // Little to no exercise
   lightlyActive, // Light exercise 1-3 days/week
   moderatelyActive, // Moderate exercise 3-5 days/week
-  veryActive,    // Hard exercise 6-7 days/week
+  veryActive, // Hard exercise 6-7 days/week
   extremelyActive, // Very hard exercise, physical job, or training twice a day
 }
 
@@ -54,7 +51,7 @@ enum DietaryPreference {
   nutFree,
   lowSodium,
   diabetic,
-  custom
+  custom,
 }
 
 enum HealthCondition {
@@ -71,14 +68,14 @@ enum HealthCondition {
   digestiveIssues,
   sleepApnea,
   chronicPain,
-  custom
+  custom,
 }
 
 class HealthProfile {
   final String userId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  
+
   // Basic Health Information
   final int? age;
   final String? gender;
@@ -86,50 +83,54 @@ class HealthProfile {
   final double? weightKg;
   final double? targetWeightKg;
   final ActivityLevel activityLevel;
-  
+
   // Imperial unit properties (for UI display)
   double? get heightFeet => heightCm != null ? heightCm! / 30.48 : null;
-  double? get heightInches => heightCm != null ? (heightCm! % 30.48) / 2.54 : null;
+  double? get heightInches =>
+      heightCm != null ? (heightCm! % 30.48) / 2.54 : null;
   double? get weightLbs => weightKg != null ? weightKg! * 2.20462 : null;
-  double? get targetWeightLbs => targetWeightKg != null ? targetWeightKg! * 2.20462 : null;
-  
+  double? get targetWeightLbs =>
+      targetWeightKg != null ? targetWeightKg! * 2.20462 : null;
+
   // Health Goals & Preferences
   final List<HealthGoalType> primaryGoals;
   final List<DietaryPreference> dietaryPreferences;
   final List<HealthCondition> healthConditions;
   final List<String> allergies;
   final List<String> medications;
-  
+
   // Behavioral Patterns (tracked automatically)
   final Map<String, dynamic> mealPatterns; // Timing, frequency, portions
-  final Map<String, dynamic> fastingPatterns; // Duration, frequency, success rate
+  final Map<String, dynamic>
+  fastingPatterns; // Duration, frequency, success rate
   final Map<String, dynamic> exercisePatterns; // Type, duration, frequency
   final Map<String, dynamic> sleepPatterns; // Duration, quality, timing
-  final Map<String, dynamic> appUsagePatterns; // Feature usage, engagement times
-  
+  final Map<String, dynamic>
+  appUsagePatterns; // Feature usage, engagement times
+
   // Preferences & Settings
   final bool receiveAdvice;
   final List<String> preferredAdviceCategories;
   final Map<String, dynamic> notificationPreferences;
   final String? timezone;
   final String? language;
-  
+
   // AI Learning Data
   final Map<String, int> adviceFeedback; // advice_id -> rating (-1, 0, 1)
   final List<String> dismissedAdviceTypes;
   final Map<String, dynamic> personalizedInsights;
   final double? engagementScore;
-  
+
   // Calculated Metrics
   final double? bmr; // Basal Metabolic Rate
   final double? tdee; // Total Daily Energy Expenditure
   final Map<String, double> healthScores; // Various health metrics (0-100)
-  
+
   // Conversion methods
   static double feetInchesToCm(int feet, double inches) {
     return (feet * 30.48) + (inches * 2.54);
   }
-  
+
   static double lbsToKg(double lbs) {
     return lbs / 2.20462;
   }
@@ -184,46 +185,71 @@ class HealthProfile {
         (level) => level.name == data['activityLevel'],
         orElse: () => ActivityLevel.moderatelyActive,
       ),
-      primaryGoals: (data['primaryGoals'] as List<dynamic>?)
-          ?.map((goal) => HealthGoalType.values.firstWhere(
-                (type) => type.name == goal,
-                orElse: () => HealthGoalType.custom,
-              ))
-          .toList() ?? [],
-      dietaryPreferences: (data['dietaryPreferences'] as List<dynamic>?)
-          ?.map((pref) => DietaryPreference.values.firstWhere(
-                (type) => type.name == pref,
-                orElse: () => DietaryPreference.custom,
-              ))
-          .toList() ?? [],
-      healthConditions: (data['healthConditions'] as List<dynamic>?)
-          ?.map((condition) => HealthCondition.values.firstWhere(
-                (type) => type.name == condition,
-                orElse: () => HealthCondition.custom,
-              ))
-          .toList() ?? [],
+      primaryGoals:
+          (data['primaryGoals'] as List<dynamic>?)
+              ?.map(
+                (goal) => HealthGoalType.values.firstWhere(
+                  (type) => type.name == goal,
+                  orElse: () => HealthGoalType.custom,
+                ),
+              )
+              .toList() ??
+          [],
+      dietaryPreferences:
+          (data['dietaryPreferences'] as List<dynamic>?)
+              ?.map(
+                (pref) => DietaryPreference.values.firstWhere(
+                  (type) => type.name == pref,
+                  orElse: () => DietaryPreference.custom,
+                ),
+              )
+              .toList() ??
+          [],
+      healthConditions:
+          (data['healthConditions'] as List<dynamic>?)
+              ?.map(
+                (condition) => HealthCondition.values.firstWhere(
+                  (type) => type.name == condition,
+                  orElse: () => HealthCondition.custom,
+                ),
+              )
+              .toList() ??
+          [],
       allergies: List<String>.from(data['allergies'] ?? []),
       medications: List<String>.from(data['medications'] ?? []),
       mealPatterns: Map<String, dynamic>.from(data['mealPatterns'] ?? {}),
       fastingPatterns: Map<String, dynamic>.from(data['fastingPatterns'] ?? {}),
-      exercisePatterns: Map<String, dynamic>.from(data['exercisePatterns'] ?? {}),
+      exercisePatterns: Map<String, dynamic>.from(
+        data['exercisePatterns'] ?? {},
+      ),
       sleepPatterns: Map<String, dynamic>.from(data['sleepPatterns'] ?? {}),
-      appUsagePatterns: Map<String, dynamic>.from(data['appUsagePatterns'] ?? {}),
+      appUsagePatterns: Map<String, dynamic>.from(
+        data['appUsagePatterns'] ?? {},
+      ),
       receiveAdvice: data['receiveAdvice'] ?? true,
-      preferredAdviceCategories: List<String>.from(data['preferredAdviceCategories'] ?? []),
-      notificationPreferences: Map<String, dynamic>.from(data['notificationPreferences'] ?? {}),
+      preferredAdviceCategories: List<String>.from(
+        data['preferredAdviceCategories'] ?? [],
+      ),
+      notificationPreferences: Map<String, dynamic>.from(
+        data['notificationPreferences'] ?? {},
+      ),
       timezone: data['timezone'],
       language: data['language'],
       adviceFeedback: Map<String, int>.from(data['adviceFeedback'] ?? {}),
-      dismissedAdviceTypes: List<String>.from(data['dismissedAdviceTypes'] ?? []),
-      personalizedInsights: Map<String, dynamic>.from(data['personalizedInsights'] ?? {}),
+      dismissedAdviceTypes: List<String>.from(
+        data['dismissedAdviceTypes'] ?? [],
+      ),
+      personalizedInsights: Map<String, dynamic>.from(
+        data['personalizedInsights'] ?? {},
+      ),
       engagementScore: data['engagementScore']?.toDouble(),
       bmr: data['bmr']?.toDouble(),
       tdee: data['tdee']?.toDouble(),
       healthScores: Map<String, double>.from(
         (data['healthScores'] as Map<String, dynamic>?)?.map(
-          (key, value) => MapEntry(key, value.toDouble()),
-        ) ?? {},
+              (key, value) => MapEntry(key, value.toDouble()),
+            ) ??
+            {},
       ),
     );
   }
@@ -240,8 +266,12 @@ class HealthProfile {
       'targetWeightKg': targetWeightKg,
       'activityLevel': activityLevel.name,
       'primaryGoals': primaryGoals.map((goal) => goal.name).toList(),
-      'dietaryPreferences': dietaryPreferences.map((pref) => pref.name).toList(),
-      'healthConditions': healthConditions.map((condition) => condition.name).toList(),
+      'dietaryPreferences': dietaryPreferences
+          .map((pref) => pref.name)
+          .toList(),
+      'healthConditions': healthConditions
+          .map((condition) => condition.name)
+          .toList(),
       'allergies': allergies,
       'medications': medications,
       'mealPatterns': mealPatterns,
@@ -264,12 +294,11 @@ class HealthProfile {
     };
   }
 
-
-
   // Calculate BMR using Mifflin-St Jeor Equation
   double? calculateBMR() {
-    if (weightKg == null || heightCm == null || age == null || gender == null) return null;
-    
+    if (weightKg == null || heightCm == null || age == null || gender == null)
+      return null;
+
     if (gender!.toLowerCase() == 'male') {
       return (10 * weightKg!) + (6.25 * heightCm!) - (5 * age!) + 5;
     } else {
@@ -281,7 +310,7 @@ class HealthProfile {
   double? calculateTDEE() {
     final bmrValue = calculateBMR();
     if (bmrValue == null) return null;
-    
+
     switch (activityLevel) {
       case ActivityLevel.sedentary:
         return bmrValue * 1.2;
@@ -295,8 +324,6 @@ class HealthProfile {
         return bmrValue * 1.9;
     }
   }
-
-
 
   // Copy with method for updates
   HealthProfile copyWith({
@@ -349,8 +376,10 @@ class HealthProfile {
       sleepPatterns: sleepPatterns ?? this.sleepPatterns,
       appUsagePatterns: appUsagePatterns ?? this.appUsagePatterns,
       receiveAdvice: receiveAdvice ?? this.receiveAdvice,
-      preferredAdviceCategories: preferredAdviceCategories ?? this.preferredAdviceCategories,
-      notificationPreferences: notificationPreferences ?? this.notificationPreferences,
+      preferredAdviceCategories:
+          preferredAdviceCategories ?? this.preferredAdviceCategories,
+      notificationPreferences:
+          notificationPreferences ?? this.notificationPreferences,
       timezone: timezone ?? this.timezone,
       language: language ?? this.language,
       adviceFeedback: adviceFeedback ?? this.adviceFeedback,
@@ -431,4 +460,4 @@ class HealthProfile {
   double? get targetWeight => targetWeightKg;
   List<HealthGoalType> get healthGoals => primaryGoals;
   String? get name => gender != null ? 'User' : null; // Placeholder name
-} 
+}

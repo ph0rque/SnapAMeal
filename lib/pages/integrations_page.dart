@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../design_system/snap_ui.dart';
 import '../services/health_integration_service.dart';
+import '../utils/logger.dart';
 import '../models/health_integration.dart';
 import '../services/auth_service.dart';
 import 'data_export_page.dart';
@@ -13,19 +14,27 @@ class IntegrationsPage extends StatefulWidget {
   State<IntegrationsPage> createState() => _IntegrationsPageState();
 }
 
-class _IntegrationsPageState extends State<IntegrationsPage> with TickerProviderStateMixin {
-  final HealthIntegrationService _integrationService = HealthIntegrationService();
+class _IntegrationsPageState extends State<IntegrationsPage>
+    with TickerProviderStateMixin {
+  final HealthIntegrationService _integrationService =
+      HealthIntegrationService();
   final AuthService _authService = AuthService();
-  
+
   late TabController _tabController;
   bool _isLoading = false;
   String? _currentUserId;
   List<HealthIntegration> _integrations = [];
   Map<String, bool> _connectionStatus = {};
   Map<String, DateTime?> _lastSyncTimes = {};
-  
+
   // Integration categories
-  final List<String> _categories = ['All', 'Fitness', 'Nutrition', 'Wellness', 'Medical'];
+  final List<String> _categories = [
+    'All',
+    'Fitness',
+    'Nutrition',
+    'Wellness',
+    'Medical',
+  ];
   String _selectedCategory = 'All';
 
   @override
@@ -43,7 +52,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
 
   Future<void> _initializeData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       _currentUserId = _authService.getCurrentUser()?.uid;
       if (_currentUserId != null) {
@@ -51,7 +60,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         await _checkConnectionStatuses();
       }
     } catch (e) {
-      debugPrint('Error initializing integrations data: $e');
+      Logger.d('Error initializing integrations data: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -59,41 +68,43 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
 
   Future<void> _loadIntegrations() async {
     if (_currentUserId == null) return;
-    
+
     try {
       // Get user's existing integrations
-      final userIntegrations = await _integrationService.getUserIntegrations().first;
-      
+      final userIntegrations = await _integrationService
+          .getUserIntegrations()
+          .first;
+
       // Get all available integrations (including ones not yet connected)
       final allAvailableIntegrations = _getAllAvailableIntegrations();
-      
+
       // Merge existing with available ones
       final integrationsMap = <String, HealthIntegration>{};
-      
+
       // Add existing integrations
       for (final integration in userIntegrations) {
         integrationsMap[integration.id] = integration;
       }
-      
+
       // Add available integrations that user hasn't connected yet
       for (final availableIntegration in allAvailableIntegrations) {
         if (!integrationsMap.containsKey(availableIntegration.id)) {
           integrationsMap[availableIntegration.id] = availableIntegration;
         }
       }
-      
+
       setState(() {
         _integrations = integrationsMap.values.toList();
       });
     } catch (e) {
-      debugPrint('Error loading integrations: $e');
+      Logger.d('Error loading integrations: $e');
     }
   }
 
   /// Get all available integrations including ones not yet connected
   List<HealthIntegration> _getAllAvailableIntegrations() {
     if (_currentUserId == null) return [];
-    
+
     return [
       // MyFitnessPal - Coming Soon
       HealthIntegration(
@@ -104,7 +115,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         connectedAt: DateTime.now(),
         settings: {'coming_soon': true},
       ),
-      // Apple Health - Coming Soon  
+      // Apple Health - Coming Soon
       HealthIntegration(
         id: '${_currentUserId}_applehealth',
         userId: _currentUserId!,
@@ -128,12 +139,16 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
   Future<void> _checkConnectionStatuses() async {
     final Map<String, bool> statuses = {};
     final Map<String, DateTime?> syncTimes = {};
-    
+
     for (final integration in _integrations) {
       try {
-        final isConnected = await _integrationService.checkConnectionStatus(integration.id);
-        final lastSync = await _integrationService.getLastSyncTime(integration.id);
-        
+        final isConnected = await _integrationService.checkConnectionStatus(
+          integration.id,
+        );
+        final lastSync = await _integrationService.getLastSyncTime(
+          integration.id,
+        );
+
         statuses[integration.id] = isConnected;
         syncTimes[integration.id] = lastSync;
       } catch (e) {
@@ -141,7 +156,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         syncTimes[integration.id] = null;
       }
     }
-    
+
     setState(() {
       _connectionStatus = statuses;
       _lastSyncTimes = syncTimes;
@@ -161,25 +176,29 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         settings: {},
       ),
     );
-    
+
     if (integration.settings['coming_soon'] == true) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnapSnackBar.error('${integration.typeName} integration is coming soon! We\'re working on getting the necessary permissions.'),
+          SnapSnackBar.error(
+            '${integration.typeName} integration is coming soon! We\'re working on getting the necessary permissions.',
+          ),
         );
       }
       return;
     }
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       await _integrationService.connectIntegration(integrationId);
       await _checkConnectionStatuses();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnapSnackBar.success('Successfully connected to ${_getIntegrationName(integrationId)}'),
+          SnapSnackBar.success(
+            'Successfully connected to ${_getIntegrationName(integrationId)}',
+          ),
         );
       }
     } catch (e) {
@@ -196,16 +215,18 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
   Future<void> _disconnectIntegration(String integrationId) async {
     final confirmed = await _showDisconnectDialog(integrationId);
     if (!confirmed) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       await _integrationService.disconnectIntegration(integrationId);
       await _checkConnectionStatuses();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnapSnackBar.success('Disconnected from ${_getIntegrationName(integrationId)}'),
+          SnapSnackBar.success(
+            'Disconnected from ${_getIntegrationName(integrationId)}',
+          ),
         );
       }
     } catch (e) {
@@ -221,21 +242,23 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
 
   Future<void> _syncIntegration(String integrationId) async {
     setState(() => _isLoading = true);
-    
+
     try {
       await _integrationService.syncIntegrationData(integrationId);
       await _checkConnectionStatuses();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnapSnackBar.success('${_getIntegrationName(integrationId)} synced successfully'),
+          SnapSnackBar.success(
+            '${_getIntegrationName(integrationId)} synced successfully',
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnapSnackBar.error('Sync failed: ${e.toString()}'),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnapSnackBar.error('Sync failed: ${e.toString()}'));
       }
     } finally {
       setState(() => _isLoading = false);
@@ -244,25 +267,26 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
 
   Future<bool> _showDisconnectDialog(String integrationId) async {
     return await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Disconnect ${_getIntegrationName(integrationId)}?'),
-        content: const Text(
-          'This will stop syncing data and remove access permissions. You can reconnect anytime.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Disconnect ${_getIntegrationName(integrationId)}?'),
+            content: const Text(
+              'This will stop syncing data and remove access permissions. You can reconnect anytime.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: SnapColors.error),
+                child: const Text('Disconnect'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: SnapColors.error),
-            child: const Text('Disconnect'),
-          ),
-        ],
-      ),
-    ) ?? false;
+        ) ??
+        false;
   }
 
   String _getIntegrationName(String integrationId) {
@@ -282,12 +306,12 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
 
   List<HealthIntegration> get _filteredIntegrations {
     if (_selectedCategory == 'All') return _integrations;
-    
+
     return _integrations.where((integration) {
       switch (_selectedCategory) {
         case 'Fitness':
-          return integration.type == IntegrationType.googleFit || 
-                 integration.type == IntegrationType.appleHealth;
+          return integration.type == IntegrationType.googleFit ||
+              integration.type == IntegrationType.appleHealth;
         case 'Nutrition':
           return integration.type == IntegrationType.myFitnessPal;
         case 'Wellness':
@@ -305,7 +329,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
     // Check if this page was accessed via settings route
     final route = ModalRoute.of(context);
     final isSettingsRoute = route?.settings.name == '/settings';
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -316,7 +340,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         iconTheme: IconThemeData(color: SnapColors.textPrimary),
         elevation: 0,
         automaticallyImplyLeading: true, // Ensure back button is shown
-        leading: Navigator.canPop(context) 
+        leading: Navigator.canPop(context)
             ? IconButton(
                 icon: Icon(Icons.arrow_back, color: SnapColors.textPrimary),
                 onPressed: () => Navigator.pop(context),
@@ -420,110 +444,96 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        _buildSettingsSection(
-          'Data Sync',
-          [
-            _buildSettingsTile(
-              'Auto Sync',
-              'Automatically sync data when app opens',
-              Icons.sync,
-              trailing: Switch(
-                value: true,
-                onChanged: (value) {
-                  // TODO: Implement auto sync setting
-                },
-              ),
-            ),
-            _buildSettingsTile(
-              'Sync Frequency',
-              'Every 4 hours',
-              Icons.schedule,
-              onTap: () {
-                // TODO: Show sync frequency dialog
+        _buildSettingsSection('Data Sync', [
+          _buildSettingsTile(
+            'Auto Sync',
+            'Automatically sync data when app opens',
+            Icons.sync,
+            trailing: Switch(
+              value: true,
+              onChanged: (value) {
+                // TODO: Implement auto sync setting
               },
             ),
-            _buildSettingsTile(
-              'Background Sync',
-              'Sync data in background',
-              Icons.cloud_sync,
-              trailing: Switch(
-                value: false,
-                onChanged: (value) {
-                  // TODO: Implement background sync setting
-                },
-              ),
+          ),
+          _buildSettingsTile(
+            'Sync Frequency',
+            'Every 4 hours',
+            Icons.schedule,
+            onTap: () {
+              // TODO: Show sync frequency dialog
+            },
+          ),
+          _buildSettingsTile(
+            'Background Sync',
+            'Sync data in background',
+            Icons.cloud_sync,
+            trailing: Switch(
+              value: false,
+              onChanged: (value) {
+                // TODO: Implement background sync setting
+              },
             ),
-          ],
-        ),
+          ),
+        ]),
         const SizedBox(height: 24),
-        _buildSettingsSection(
-          'Privacy & Permissions',
-          [
-            _buildSettingsTile(
-              'Data Sharing',
-              'Manage what data is shared',
-              Icons.share,
-              onTap: () {
-                // TODO: Show data sharing settings
-              },
-            ),
-            _buildSettingsTile(
-              'Permission Manager',
-              'Review app permissions',
-              Icons.security,
-              onTap: () {
-                // TODO: Show permission manager
-              },
-            ),
-            _buildSettingsTile(
-              'Data Retention',
-              'Control how long data is kept',
-              Icons.history,
-              onTap: () {
-                // TODO: Show data retention settings
-              },
-            ),
-          ],
-        ),
+        _buildSettingsSection('Privacy & Permissions', [
+          _buildSettingsTile(
+            'Data Sharing',
+            'Manage what data is shared',
+            Icons.share,
+            onTap: () {
+              // TODO: Show data sharing settings
+            },
+          ),
+          _buildSettingsTile(
+            'Permission Manager',
+            'Review app permissions',
+            Icons.security,
+            onTap: () {
+              // TODO: Show permission manager
+            },
+          ),
+          _buildSettingsTile(
+            'Data Retention',
+            'Control how long data is kept',
+            Icons.history,
+            onTap: () {
+              // TODO: Show data retention settings
+            },
+          ),
+        ]),
         const SizedBox(height: 24),
-        _buildSettingsSection(
-          'Advanced',
-          [
-            _buildSettingsTile(
-              'Export Data',
-              'Download your health data',
-              Icons.download,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DataExportPage(),
-                  ),
-                );
-              },
-            ),
-            _buildSettingsTile(
-              'Reset Connections',
-              'Disconnect all integrations',
-              Icons.restore,
-              onTap: () {
-                // TODO: Show reset confirmation
-              },
-            ),
-          ],
-        ),
+        _buildSettingsSection('Advanced', [
+          _buildSettingsTile(
+            'Export Data',
+            'Download your health data',
+            Icons.download,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DataExportPage()),
+              );
+            },
+          ),
+          _buildSettingsTile(
+            'Reset Connections',
+            'Disconnect all integrations',
+            Icons.restore,
+            onTap: () {
+              // TODO: Show reset confirmation
+            },
+          ),
+        ]),
         const SizedBox(height: 24),
-        _buildSettingsSection(
-          'Account',
-          [
-            _buildSettingsTile(
-              'Logout',
-              'Sign out of your account',
-              Icons.logout,
-              onTap: _showLogoutDialog,
-            ),
-          ],
-        ),
+        _buildSettingsSection('Account', [
+          _buildSettingsTile(
+            'Logout',
+            'Sign out of your account',
+            Icons.logout,
+            onTap: _showLogoutDialog,
+          ),
+        ]),
       ],
     );
   }
@@ -562,7 +572,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         itemBuilder: (context, index) {
           final category = _categories[index];
           final isSelected = category == _selectedCategory;
-          
+
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
@@ -576,7 +586,9 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
               backgroundColor: SnapColors.surface,
               selectedColor: SnapColors.primary.withValues(alpha: 0.2),
               labelStyle: TextStyle(
-                color: isSelected ? SnapColors.primary : SnapColors.textSecondary,
+                color: isSelected
+                    ? SnapColors.primary
+                    : SnapColors.textSecondary,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),
@@ -589,7 +601,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
   Widget _buildConnectedIntegrationCard(HealthIntegration integration) {
     final lastSync = _lastSyncTimes[integration.id];
     final isConnected = _connectionStatus[integration.id] == true;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -613,15 +625,21 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
                       Row(
                         children: [
                           Icon(
-                            isConnected ? Icons.check_circle : Icons.error_outline,
+                            isConnected
+                                ? Icons.check_circle
+                                : Icons.error_outline,
                             size: 16,
-                            color: isConnected ? SnapColors.success : SnapColors.error,
+                            color: isConnected
+                                ? SnapColors.success
+                                : SnapColors.error,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             isConnected ? 'Connected' : 'Connection Error',
                             style: SnapTypography.body.copyWith(
-                              color: isConnected ? SnapColors.success : SnapColors.error,
+                              color: isConnected
+                                  ? SnapColors.success
+                                  : SnapColors.error,
                               fontSize: 12,
                             ),
                           ),
@@ -671,7 +689,10 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
                         children: [
                           Icon(Icons.link_off, color: SnapColors.error),
                           SizedBox(width: 8),
-                          Text('Disconnect', style: TextStyle(color: SnapColors.error)),
+                          Text(
+                            'Disconnect',
+                            style: TextStyle(color: SnapColors.error),
+                          ),
                         ],
                       ),
                     ),
@@ -696,7 +717,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
 
   Widget _buildAvailableIntegrationCard(HealthIntegration integration) {
     final isComingSoon = integration.settings['coming_soon'] == true;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -721,7 +742,10 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
                       if (isComingSoon) ...[
                         const SizedBox(width: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: SnapColors.warning.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(10),
@@ -740,7 +764,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    isComingSoon 
+                    isComingSoon
                         ? _getComingSoonDescription(integration.type)
                         : _getIntegrationDescription(integration.type),
                     style: SnapTypography.body.copyWith(
@@ -753,7 +777,10 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
             ),
             if (isComingSoon)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: SnapColors.textSecondary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
@@ -780,7 +807,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
   Widget _buildIntegrationIcon(IntegrationType type) {
     IconData iconData;
     Color color;
-    
+
     switch (type) {
       case IntegrationType.myFitnessPal:
         iconData = Icons.restaurant;
@@ -795,7 +822,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         color = SnapColors.primary;
         break;
     }
-    
+
     return Container(
       width: 48,
       height: 48,
@@ -803,11 +830,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Icon(
-        iconData,
-        color: color,
-        size: 24,
-      ),
+      child: Icon(iconData, color: color, size: 24),
     );
   }
 
@@ -815,10 +838,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: SnapTypography.heading.copyWith(fontSize: 18),
-        ),
+        Text(title, style: SnapTypography.heading.copyWith(fontSize: 18)),
         const SizedBox(height: 12),
         ...children,
       ],
@@ -836,7 +856,8 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
       leading: Icon(icon, color: SnapColors.primary),
       title: Text(title, style: SnapTypography.body),
       subtitle: Text(subtitle, style: SnapTypography.caption),
-      trailing: trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
+      trailing:
+          trailing ?? (onTap != null ? const Icon(Icons.chevron_right) : null),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
     );
@@ -855,11 +876,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 64,
-              color: SnapColors.textSecondary,
-            ),
+            Icon(icon, size: 64, color: SnapColors.textSecondary),
             const SizedBox(height: 16),
             Text(
               title,
@@ -869,15 +886,14 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
             const SizedBox(height: 8),
             Text(
               subtitle,
-              style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
             if (actionText != null && onAction != null) ...[
               const SizedBox(height: 24),
-              SnapButton(
-                text: actionText,
-                onTap: onAction,
-              ),
+              SnapButton(text: actionText, onTap: onAction),
             ],
           ],
         ),
@@ -910,7 +926,7 @@ class _IntegrationsPageState extends State<IntegrationsPage> with TickerProvider
   String _formatDateTime(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inMinutes < 1) {
       return 'Just now';
     } else if (difference.inHours < 1) {
@@ -934,7 +950,7 @@ extension SnapSnackBar on ScaffoldMessenger {
       behavior: SnackBarBehavior.floating,
     );
   }
-  
+
   static SnackBar error(String message) {
     return SnackBar(
       content: Text(message),
@@ -942,4 +958,4 @@ extension SnapSnackBar on ScaffoldMessenger {
       behavior: SnackBarBehavior.floating,
     );
   }
-} 
+}

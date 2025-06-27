@@ -27,10 +27,11 @@ class AuthGate extends StatelessWidget {
                   .doc(snapshot.data!.uid)
                   .get(),
               builder: (context, profileSnapshot) {
-                if (profileSnapshot.connectionState == ConnectionState.waiting) {
+                if (profileSnapshot.connectionState ==
+                    ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                
+
                 // Check if user has completed health onboarding
                 if (profileSnapshot.hasData && profileSnapshot.data!.exists) {
                   // User has health profile, go to dashboard
@@ -42,7 +43,6 @@ class AuthGate extends StatelessWidget {
               },
             );
           }
-
           // user is NOT logged in
           else {
             return const LoginOrRegister();
@@ -51,4 +51,4 @@ class AuthGate extends StatelessWidget {
       ),
     );
   }
-} 
+}

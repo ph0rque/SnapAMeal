@@ -18,35 +18,31 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
   late AnimationController _nutritionController;
   late Animation<double> _recognitionAnimation;
 
-  
   bool _showingRecognitionDemo = false;
   bool _showingNutritionDemo = false;
   MealLog? _demoMeal;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _recognitionController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _nutritionController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
-    _recognitionAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _recognitionController,
-      curve: Curves.easeOutCubic,
-    ));
-    
 
-    
+    _recognitionAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _recognitionController,
+        curve: Curves.easeOutCubic,
+      ),
+    );
+
     _initializeDemoMeal();
   }
 
@@ -142,7 +138,8 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         allergenWarnings: ['Fish'],
         analysisTimestamp: DateTime.now().subtract(const Duration(minutes: 15)),
       ),
-      aiCaption: 'Healthy balanced lunch with lean protein, complex carbs, and vegetables',
+      aiCaption:
+          'Healthy balanced lunch with lean protein, complex carbs, and vegetables',
       tags: ['healthy', 'balanced', 'high-protein', 'omega-3'],
       metadata: {
         'meal_type': 'lunch',
@@ -164,7 +161,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
       future: AuthService().isCurrentUserDemo(),
       builder: (context, snapshot) {
         final isDemo = snapshot.data ?? false;
-        
+
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -187,24 +184,24 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
             children: [
               // Demo indicator for investors
               if (isDemo) _buildDemoIndicator(),
-              
+
               const SizedBox(height: 16),
-              
+
               // AI Recognition showcase
               _buildAIRecognitionShowcase(isDemo),
-              
+
               const SizedBox(height: 20),
-              
+
               // Nutrition analysis showcase
               if (isDemo) _buildNutritionAnalysisShowcase(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Smart insights preview
               if (isDemo) _buildSmartInsightsPreview(),
-              
+
               const SizedBox(height: 16),
-              
+
               // Quick action buttons
               if (isDemo) _buildQuickActions(),
             ],
@@ -224,11 +221,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.restaurant_menu,
-            size: 16,
-            color: Colors.white,
-          ),
+          Icon(Icons.restaurant_menu, size: 16, color: Colors.white),
           const SizedBox(width: 6),
           Text(
             'AI Meal Recognition Demo',
@@ -256,11 +249,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.camera_enhance,
-                color: SnapColors.primary,
-                size: 20,
-              ),
+              Icon(Icons.camera_enhance, color: SnapColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'AI Food Recognition',
@@ -272,7 +261,10 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
               const Spacer(),
               if (_showingRecognitionDemo)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: SnapColors.success.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -291,13 +283,10 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
           const SizedBox(height: 12),
           Text(
             'GPT-4 Vision instantly recognizes food items and estimates portions',
-            style: TextStyle(
-              color: SnapColors.textSecondary,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: SnapColors.textSecondary, fontSize: 14),
           ),
           const SizedBox(height: 16),
-          
+
           // Mock camera preview with recognition overlay
           Container(
             height: 200,
@@ -327,10 +316,10 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
                     ),
                   ),
                 ),
-                
+
                 // Recognition overlays
                 if (_showingRecognitionDemo) _buildRecognitionOverlays(),
-                
+
                 // Camera controls
                 Positioned(
                   bottom: 12,
@@ -347,9 +336,9 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
               ],
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           // Recognition results
           if (_showingRecognitionDemo && _demoMeal != null)
             _buildRecognitionResults(),
@@ -382,7 +371,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
                 ),
               ),
             ),
-            
+
             // Food detection boxes
             if (_recognitionAnimation.value > 0.3) ...[
               _buildDetectionBox('Salmon', 40, 60, 120, 80),
@@ -395,7 +384,13 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
     );
   }
 
-  Widget _buildDetectionBox(String label, double left, double top, double width, double height) {
+  Widget _buildDetectionBox(
+    String label,
+    double left,
+    double top,
+    double width,
+    double height,
+  ) {
     return Positioned(
       left: left,
       top: top,
@@ -403,10 +398,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         width: width,
         height: height,
         decoration: BoxDecoration(
-          border: Border.all(
-            color: SnapColors.success,
-            width: 2,
-          ),
+          border: Border.all(color: SnapColors.success, width: 2),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Align(
@@ -470,15 +462,12 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
           ),
           const SizedBox(height: 8),
           Text(
-                          _demoMeal!.aiCaption ?? 'AI analysis in progress...',
-            style: TextStyle(
-              color: SnapColors.textSecondary,
-              fontSize: 12,
-            ),
+            _demoMeal!.aiCaption ?? 'AI analysis in progress...',
+            style: TextStyle(color: SnapColors.textSecondary, fontSize: 12),
           ),
           const SizedBox(height: 8),
           Text(
-                          'Detected: ${_demoMeal!.recognitionResult.detectedFoods.map((f) => f.name).join(', ')}',
+            'Detected: ${_demoMeal!.recognitionResult.detectedFoods.map((f) => f.name).join(', ')}',
             style: TextStyle(
               color: SnapColors.textPrimary,
               fontSize: 12,
@@ -492,9 +481,9 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
 
   Widget _buildNutritionAnalysisShowcase() {
     if (_demoMeal == null) return const SizedBox.shrink();
-    
+
     final nutrition = _demoMeal!.recognitionResult.totalNutrition;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -507,11 +496,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.analytics,
-                color: SnapColors.primary,
-                size: 20,
-              ),
+              Icon(Icons.analytics, color: SnapColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Nutrition Analysis',
@@ -539,17 +524,17 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Calorie and macro breakdown
           _buildNutritionStats(nutrition),
-          
+
           const SizedBox(height: 16),
-          
+
           // Macro distribution chart
           _buildMacroChart(nutrition),
-          
+
           const SizedBox(height: 16),
-          
+
           // AI recommendations
           _buildNutritionRecommendations(nutrition),
         ],
@@ -563,7 +548,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         Expanded(
           child: _buildNutritionStatCard(
             'Calories',
-                            '${nutrition.calories.toInt()}',
+            '${nutrition.calories.toInt()}',
             'kcal',
             Icons.local_fire_department,
             SnapColors.accent,
@@ -573,8 +558,8 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         Expanded(
           child: _buildNutritionStatCard(
             'Protein',
-                          '${nutrition.protein.toInt()}g',
-                            '${((nutrition.protein * 4 / nutrition.calories) * 100).toInt()}%',
+            '${nutrition.protein.toInt()}g',
+            '${((nutrition.protein * 4 / nutrition.calories) * 100).toInt()}%',
             Icons.fitness_center,
             Colors.blue,
           ),
@@ -583,8 +568,8 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         Expanded(
           child: _buildNutritionStatCard(
             'Carbs',
-                          '${nutrition.carbs.toInt()}g',
-              '${((nutrition.carbs * 4 / nutrition.calories) * 100).toInt()}%',
+            '${nutrition.carbs.toInt()}g',
+            '${((nutrition.carbs * 4 / nutrition.calories) * 100).toInt()}%',
             Icons.grain,
             Colors.orange,
           ),
@@ -593,8 +578,8 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         Expanded(
           child: _buildNutritionStatCard(
             'Fat',
-                          '${nutrition.fat.toInt()}g',
-              '${((nutrition.fat * 9 / nutrition.calories) * 100).toInt()}%',
+            '${nutrition.fat.toInt()}g',
+            '${((nutrition.fat * 9 / nutrition.calories) * 100).toInt()}%',
             Icons.opacity,
             Colors.green,
           ),
@@ -603,7 +588,13 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
     );
   }
 
-  Widget _buildNutritionStatCard(String label, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildNutritionStatCard(
+    String label,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -625,10 +616,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
           ),
           Text(
             label,
-            style: TextStyle(
-              color: SnapColors.textSecondary,
-              fontSize: 10,
-            ),
+            style: TextStyle(color: SnapColors.textSecondary, fontSize: 10),
           ),
           Text(
             subtitle,
@@ -653,7 +641,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
       child: Row(
         children: [
           Flexible(
-                          flex: (nutrition.protein * 4).toInt(),
+            flex: (nutrition.protein * 4).toInt(),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.blue.withValues(alpha: 0.8),
@@ -674,7 +662,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
             ),
           ),
           Flexible(
-                          flex: (nutrition.carbs * 4).toInt(),
+            flex: (nutrition.carbs * 4).toInt(),
             child: Container(
               color: Colors.orange.withValues(alpha: 0.8),
               child: Center(
@@ -689,7 +677,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
             ),
           ),
           Flexible(
-                          flex: (nutrition.fat * 9).toInt(),
+            flex: (nutrition.fat * 9).toInt(),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.green.withValues(alpha: 0.8),
@@ -727,29 +715,33 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
           ),
         ),
         const SizedBox(height: 8),
-                  ...(_demoMeal!.metadata['recommendations'] as List<String>? ?? []).take(2).map((recommendation) => Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.lightbulb_outline,
-                size: 14,
-                color: SnapColors.accent,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  recommendation,
-                  style: TextStyle(
-                    color: SnapColors.textSecondary,
-                    fontSize: 12,
-                  ),
+        ...(_demoMeal!.metadata['recommendations'] as List<String>? ?? [])
+            .take(2)
+            .map(
+              (recommendation) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.lightbulb_outline,
+                      size: 14,
+                      color: SnapColors.accent,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        recommendation,
+                        style: TextStyle(
+                          color: SnapColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        )),
+            ),
       ],
     );
   }
@@ -767,11 +759,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.psychology,
-                color: SnapColors.primary,
-                size: 20,
-              ),
+              Icon(Icons.psychology, color: SnapColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Smart Meal Insights',
@@ -787,7 +775,7 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
             'Perfect Protein Timing',
             'This meal provides optimal protein for your 2pm workout. Consider eating 1-2 hours before training.',
             Icons.schedule,
-                            SnapColors.accentBlue,
+            SnapColors.accentBlue,
           ),
           const SizedBox(height: 8),
           _buildInsightCard(
@@ -801,7 +789,12 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
     );
   }
 
-  Widget _buildInsightCard(String title, String description, IconData icon, Color color) {
+  Widget _buildInsightCard(
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -894,4 +887,4 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
       }
     });
   }
-} 
+}

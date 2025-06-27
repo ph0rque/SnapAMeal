@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
+import '../utils/logger.dart';
 
 enum ConflictType {
   duplicateEntry,
@@ -19,13 +20,7 @@ enum ConflictResolutionStrategy {
   keepAll,
 }
 
-enum DataSource {
-  manual,
-  myFitnessPal,
-  appleHealth,
-  googleFit,
-  snapAMeal,
-}
+enum DataSource { manual, myFitnessPal, appleHealth, googleFit, snapAMeal }
 
 class DataConflict {
   final String id;
@@ -72,7 +67,9 @@ class DataConflict {
           .map((e) => ConflictingData.fromJson(e))
           .toList(),
       suggestedResolution: json['suggestedResolution'] != null
-          ? ConflictResolutionStrategy.values.firstWhere((e) => e.name == json['suggestedResolution'])
+          ? ConflictResolutionStrategy.values.firstWhere(
+              (e) => e.name == json['suggestedResolution'],
+            )
           : null,
       isResolved: json['isResolved'] ?? false,
       userId: json['userId'],
@@ -155,11 +152,11 @@ class DataConflictResolutionService {
 
   // Data source priorities (higher = more trusted)
   static const Map<DataSource, int> _sourcePriorities = {
-    DataSource.manual: 100,          // User input is highest priority
-    DataSource.snapAMeal: 90,        // Our app's data
-    DataSource.myFitnessPal: 80,     // Dedicated nutrition app
-    DataSource.appleHealth: 70,      // Health platform
-    DataSource.googleFit: 60,        // Fitness platform
+    DataSource.manual: 100, // User input is highest priority
+    DataSource.snapAMeal: 90, // Our app's data
+    DataSource.myFitnessPal: 80, // Dedicated nutrition app
+    DataSource.appleHealth: 70, // Health platform
+    DataSource.googleFit: 60, // Fitness platform
   };
 
   /// Detect conflicts when new data is added
@@ -209,7 +206,7 @@ class DataConflictResolutionService {
 
       return conflicts;
     } catch (e) {
-      debugPrint('Error detecting conflicts: $e');
+      Logger.d('Error detecting conflicts: $e');
       return [];
     }
   }
@@ -228,7 +225,10 @@ class DataConflictResolutionService {
       final snapshot = await _firestore
           .collection(collection)
           .where('userId', isEqualTo: userId)
-          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startTime))
+          .where(
+            'timestamp',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(startTime),
+          )
           .where('timestamp', isLessThanOrEqualTo: Timestamp.fromDate(endTime))
           .get();
 
@@ -340,7 +340,11 @@ class DataConflictResolutionService {
   }
 
   /// Check if entries are duplicates
-  bool _isDuplicateEntry(Map<String, dynamic> data1, Map<String, dynamic> data2, String dataType) {
+  bool _isDuplicateEntry(
+    Map<String, dynamic> data1,
+    Map<String, dynamic> data2,
+    String dataType,
+  ) {
     switch (dataType) {
       case 'meal':
         return _compareMealData(data1, data2);
@@ -354,7 +358,11 @@ class DataConflictResolutionService {
   }
 
   /// Check for value discrepancies
-  bool _hasValueDiscrepancy(Map<String, dynamic> data1, Map<String, dynamic> data2, String dataType) {
+  bool _hasValueDiscrepancy(
+    Map<String, dynamic> data1,
+    Map<String, dynamic> data2,
+    String dataType,
+  ) {
     switch (dataType) {
       case 'meal':
         return _hasMealValueDiscrepancy(data1, data2);
@@ -370,7 +378,7 @@ class DataConflictResolutionService {
   /// Check for timestamp overlaps
   bool _hasTimestampOverlap(DateTime time1, DateTime time2, String dataType) {
     final difference = time1.difference(time2).abs();
-    
+
     switch (dataType) {
       case 'meal':
         return difference.inMinutes < 15; // Meals within 15 minutes
@@ -384,101 +392,119 @@ class DataConflictResolutionService {
   }
 
   /// Compare meal data for duplicates
-  bool _compareMealData(Map<String, dynamic> meal1, Map<String, dynamic> meal2) {
+  bool _compareMealData(
+    Map<String, dynamic> meal1,
+    Map<String, dynamic> meal2,
+  ) {
     final calories1 = meal1['total_calories'] ?? meal1['calories'];
     final calories2 = meal2['total_calories'] ?? meal2['calories'];
-    
+
     if (calories1 != null && calories2 != null) {
       final calorieDiff = (calories1 - calories2).abs();
       return calorieDiff < 50; // Within 50 calories
     }
-    
+
     return false;
   }
 
   /// Compare exercise data for duplicates
-  bool _compareExerciseData(Map<String, dynamic> ex1, Map<String, dynamic> ex2) {
+  bool _compareExerciseData(
+    Map<String, dynamic> ex1,
+    Map<String, dynamic> ex2,
+  ) {
     final duration1 = ex1['duration'];
     final duration2 = ex2['duration'];
     final type1 = ex1['type'] ?? ex1['exercise_type'];
     final type2 = ex2['type'] ?? ex2['exercise_type'];
-    
-    return type1 == type2 && 
-           duration1 != null && 
-           duration2 != null && 
-           (duration1 - duration2).abs() < 300; // Within 5 minutes
+
+    return type1 == type2 &&
+        duration1 != null &&
+        duration2 != null &&
+        (duration1 - duration2).abs() < 300; // Within 5 minutes
   }
 
   /// Compare weight data for duplicates
   bool _compareWeightData(Map<String, dynamic> w1, Map<String, dynamic> w2) {
     final weight1 = w1['weight'];
     final weight2 = w2['weight'];
-    
+
     if (weight1 != null && weight2 != null) {
       final weightDiff = (weight1 - weight2).abs();
       return weightDiff < 0.5; // Within 0.5 lbs
     }
-    
+
     return false;
   }
 
   /// Compare generic data
-  bool _compareGenericData(Map<String, dynamic> data1, Map<String, dynamic> data2) {
+  bool _compareGenericData(
+    Map<String, dynamic> data1,
+    Map<String, dynamic> data2,
+  ) {
     // Basic comparison of key fields
     final keys = ['value', 'amount', 'count', 'duration'];
-    
+
     for (final key in keys) {
       if (data1[key] != null && data2[key] != null) {
         return data1[key] == data2[key];
       }
     }
-    
+
     return false;
   }
 
   /// Check meal value discrepancy
-  bool _hasMealValueDiscrepancy(Map<String, dynamic> meal1, Map<String, dynamic> meal2) {
+  bool _hasMealValueDiscrepancy(
+    Map<String, dynamic> meal1,
+    Map<String, dynamic> meal2,
+  ) {
     final calories1 = meal1['total_calories'] ?? meal1['calories'];
     final calories2 = meal2['total_calories'] ?? meal2['calories'];
-    
+
     if (calories1 != null && calories2 != null) {
       final calorieDiff = (calories1 - calories2).abs();
       return calorieDiff > 100; // More than 100 calories difference
     }
-    
+
     return false;
   }
 
   /// Check exercise value discrepancy
-  bool _hasExerciseValueDiscrepancy(Map<String, dynamic> ex1, Map<String, dynamic> ex2) {
+  bool _hasExerciseValueDiscrepancy(
+    Map<String, dynamic> ex1,
+    Map<String, dynamic> ex2,
+  ) {
     final calories1 = ex1['calories_burned'];
     final calories2 = ex2['calories_burned'];
-    
+
     if (calories1 != null && calories2 != null) {
       final calorieDiff = (calories1 - calories2).abs();
       return calorieDiff > 50; // More than 50 calories difference
     }
-    
+
     return false;
   }
 
   /// Check weight value discrepancy
-  bool _hasWeightValueDiscrepancy(Map<String, dynamic> w1, Map<String, dynamic> w2) {
+  bool _hasWeightValueDiscrepancy(
+    Map<String, dynamic> w1,
+    Map<String, dynamic> w2,
+  ) {
     final weight1 = w1['weight'];
     final weight2 = w2['weight'];
-    
+
     if (weight1 != null && weight2 != null) {
       final weightDiff = (weight1 - weight2).abs();
       return weightDiff > 2.0; // More than 2 lbs difference
     }
-    
+
     return false;
   }
 
   /// Get data source from data
   DataSource _getDataSource(Map<String, dynamic> data) {
     final source = data['source'] ?? data['data_source'];
-    
+
     if (source is String) {
       try {
         return DataSource.values.firstWhere((e) => e.name == source);
@@ -486,14 +512,14 @@ class DataConflictResolutionService {
         return DataSource.manual;
       }
     }
-    
+
     return DataSource.manual;
   }
 
   /// Calculate confidence score
   double _calculateConfidence(Map<String, dynamic> data, DataSource source) {
     double confidence = 0.5; // Base confidence
-    
+
     // Adjust based on source reliability
     switch (source) {
       case DataSource.manual:
@@ -510,11 +536,11 @@ class DataConflictResolutionService {
         confidence = 0.7; // Moderate confidence for health platforms
         break;
     }
-    
+
     // Adjust based on data completeness
     final completeness = _calculateDataCompleteness(data);
     confidence *= completeness;
-    
+
     return confidence.clamp(0.0, 1.0);
   }
 
@@ -522,18 +548,18 @@ class DataConflictResolutionService {
   double _calculateDataCompleteness(Map<String, dynamic> data) {
     final requiredFields = ['timestamp'];
     final optionalFields = ['calories', 'duration', 'type', 'notes'];
-    
+
     int presentFields = 0;
     int totalFields = requiredFields.length + optionalFields.length;
-    
+
     for (final field in requiredFields) {
       if (data[field] != null) presentFields++;
     }
-    
+
     for (final field in optionalFields) {
       if (data[field] != null) presentFields++;
     }
-    
+
     return presentFields / totalFields;
   }
 
@@ -546,15 +572,15 @@ class DataConflictResolutionService {
       case ConflictType.duplicateEntry:
         // For duplicates, prefer highest priority source
         return ConflictResolutionStrategy.highestPriority;
-      
+
       case ConflictType.valueDiscrepancy:
         // For value differences, prefer most accurate (highest confidence)
         return ConflictResolutionStrategy.mostAccurate;
-      
+
       case ConflictType.timestampOverlap:
         // For time overlaps, prefer most recent
         return ConflictResolutionStrategy.mostRecent;
-      
+
       default:
         return ConflictResolutionStrategy.userChoice;
     }
@@ -584,7 +610,7 @@ class DataConflictResolutionService {
           .doc(conflict.id)
           .set(conflict.toJson());
     } catch (e) {
-      debugPrint('Error saving conflict: $e');
+      Logger.d('Error saving conflict: $e');
     }
   }
 
@@ -593,7 +619,7 @@ class DataConflictResolutionService {
     try {
       final user = _authService.getCurrentUser();
       final targetUserId = userId ?? user?.uid;
-      
+
       if (targetUserId == null) return [];
 
       final snapshot = await _firestore
@@ -607,7 +633,7 @@ class DataConflictResolutionService {
           .map((doc) => DataConflict.fromJson(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      debugPrint('Error getting unresolved conflicts: $e');
+      Logger.d('Error getting unresolved conflicts: $e');
       return [];
     }
   }
@@ -638,21 +664,23 @@ class DataConflictResolutionService {
           .add(resolution.toJson());
 
       // Mark conflict as resolved
-      await _firestore
-          .collection('data_conflicts')
-          .doc(conflictId)
-          .update({
-            'isResolved': true,
-            'resolvedAt': FieldValue.serverTimestamp(),
-            'resolvedBy': user.uid,
-          });
+      await _firestore.collection('data_conflicts').doc(conflictId).update({
+        'isResolved': true,
+        'resolvedAt': FieldValue.serverTimestamp(),
+        'resolvedBy': user.uid,
+      });
 
       // Apply resolution to actual data
-      await _applyResolution(conflictId, strategy, selectedSourceId, mergedData);
+      await _applyResolution(
+        conflictId,
+        strategy,
+        selectedSourceId,
+        mergedData,
+      );
 
       return true;
     } catch (e) {
-      debugPrint('Error resolving conflict: $e');
+      Logger.d('Error resolving conflict: $e');
       return false;
     }
   }
@@ -702,33 +730,39 @@ class DataConflictResolutionService {
 
   /// Apply highest priority resolution
   Future<void> _applyHighestPriorityResolution(DataConflict conflict) async {
-    final highestPriority = conflict.conflictingData
-        .reduce((a, b) => a.priority > b.priority ? a : b);
-    
+    final highestPriority = conflict.conflictingData.reduce(
+      (a, b) => a.priority > b.priority ? a : b,
+    );
+
     await _keepDataAndRemoveOthers(conflict, highestPriority.sourceId);
   }
 
   /// Apply most recent resolution
   Future<void> _applyMostRecentResolution(DataConflict conflict) async {
-    final mostRecent = conflict.conflictingData
-        .reduce((a, b) => a.lastUpdated.isAfter(b.lastUpdated) ? a : b);
-    
+    final mostRecent = conflict.conflictingData.reduce(
+      (a, b) => a.lastUpdated.isAfter(b.lastUpdated) ? a : b,
+    );
+
     await _keepDataAndRemoveOthers(conflict, mostRecent.sourceId);
   }
 
   /// Apply most accurate resolution
   Future<void> _applyMostAccurateResolution(DataConflict conflict) async {
-    final mostAccurate = conflict.conflictingData
-        .reduce((a, b) => a.confidence > b.confidence ? a : b);
-    
+    final mostAccurate = conflict.conflictingData.reduce(
+      (a, b) => a.confidence > b.confidence ? a : b,
+    );
+
     await _keepDataAndRemoveOthers(conflict, mostAccurate.sourceId);
   }
 
   /// Apply merged data resolution
-  Future<void> _applyMergedDataResolution(DataConflict conflict, Map<String, dynamic> mergedData) async {
+  Future<void> _applyMergedDataResolution(
+    DataConflict conflict,
+    Map<String, dynamic> mergedData,
+  ) async {
     // Remove all conflicting entries and add merged data
     await _removeAllConflictingData(conflict);
-    
+
     // Add merged data to appropriate collection
     final collections = _getCollectionsForDataType(conflict.dataType);
     if (collections.isNotEmpty) {
@@ -737,12 +771,18 @@ class DataConflictResolutionService {
   }
 
   /// Apply user choice resolution
-  Future<void> _applyUserChoiceResolution(DataConflict conflict, String selectedSourceId) async {
+  Future<void> _applyUserChoiceResolution(
+    DataConflict conflict,
+    String selectedSourceId,
+  ) async {
     await _keepDataAndRemoveOthers(conflict, selectedSourceId);
   }
 
   /// Keep selected data and remove others
-  Future<void> _keepDataAndRemoveOthers(DataConflict conflict, String keepSourceId) async {
+  Future<void> _keepDataAndRemoveOthers(
+    DataConflict conflict,
+    String keepSourceId,
+  ) async {
     for (final data in conflict.conflictingData) {
       if (data.sourceId != keepSourceId) {
         await _removeDataEntry(data);
@@ -768,7 +808,7 @@ class DataConflictResolutionService {
             .delete();
       }
     } catch (e) {
-      debugPrint('Error removing data entry: $e');
+      Logger.d('Error removing data entry: $e');
     }
   }
 
@@ -777,7 +817,7 @@ class DataConflictResolutionService {
     try {
       final user = _authService.getCurrentUser();
       final targetUserId = userId ?? user?.uid;
-      
+
       if (targetUserId == null) return {};
 
       final snapshot = await _firestore
@@ -796,19 +836,19 @@ class DataConflictResolutionService {
 
       for (final doc in snapshot.docs) {
         final conflict = DataConflict.fromJson(doc.data(), doc.id);
-        
+
         if (conflict.isResolved) {
           stats['resolved'] = (stats['resolved'] ?? 0) + 1;
         } else {
           stats['unresolved'] = (stats['unresolved'] ?? 0) + 1;
         }
-        
+
         stats[conflict.type.name] = (stats[conflict.type.name] ?? 0) + 1;
       }
 
       return stats;
     } catch (e) {
-      debugPrint('Error getting conflict statistics: $e');
+      Logger.d('Error getting conflict statistics: $e');
       return {};
     }
   }

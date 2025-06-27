@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../design_system/snap_ui.dart';
 import '../models/health_profile.dart';
+import '../utils/logger.dart';
 
 import 'health_dashboard_page.dart';
 
@@ -15,10 +16,10 @@ class HealthOnboardingPage extends StatefulWidget {
 
 class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
   final PageController _pageController = PageController();
-  
+
   int _currentPage = 0;
   final int _totalPages = 6;
-  
+
   // Form data
   String _name = '';
   int _age = 25;
@@ -29,7 +30,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
   ActivityLevel _activityLevel = ActivityLevel.moderatelyActive;
   final Set<HealthGoalType> _selectedGoals = {};
   final Set<DietaryPreference> _selectedDietaryPrefs = {};
-  
+
   bool _isLoading = false;
 
   @override
@@ -60,7 +61,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
 
   Future<void> _completeOnboarding() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('User not authenticated');
@@ -89,13 +90,11 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
       // Navigate to dashboard
       if (mounted) {
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const HealthDashboardPage(),
-          ),
+          MaterialPageRoute(builder: (context) => const HealthDashboardPage()),
         );
       }
     } catch (e) {
-      debugPrint('Error completing onboarding: $e');
+      Logger.d('Error completing onboarding: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -118,7 +117,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
           children: [
             // Progress indicator
             _buildProgressIndicator(),
-            
+
             // Page content
             Expanded(
               child: PageView(
@@ -136,7 +135,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                 ],
               ),
             ),
-            
+
             // Navigation buttons
             _buildNavigationButtons(),
           ],
@@ -224,11 +223,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.security,
-                    color: SnapColors.accentBlue,
-                    size: 24,
-                  ),
+                  Icon(Icons.security, color: SnapColors.accentBlue, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -270,7 +265,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               ),
             ),
             const SizedBox(height: 32),
-            
+
             // Name input
             Text(
               'What should we call you?',
@@ -300,15 +295,21 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: SnapColors.primaryYellow, width: 2),
+                  borderSide: BorderSide(
+                    color: SnapColors.primaryYellow,
+                    width: 2,
+                  ),
                 ),
                 filled: true,
                 fillColor: SnapColors.white,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Age slider
             Text(
               'Age: $_age years',
@@ -327,7 +328,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               onChanged: (value) => setState(() => _age = value.round()),
             ),
             const SizedBox(height: 24),
-            
+
             // Gender selection
             Text(
               'Gender',
@@ -348,21 +349,26 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         decoration: BoxDecoration(
-                          color: isSelected 
+                          color: isSelected
                               ? SnapColors.primaryYellow.withValues(alpha: 0.1)
                               : SnapColors.greyLight,
                           borderRadius: BorderRadius.circular(12),
-                          border: isSelected 
-                              ? Border.all(color: SnapColors.primaryYellow, width: 2)
+                          border: isSelected
+                              ? Border.all(
+                                  color: SnapColors.primaryYellow,
+                                  width: 2,
+                                )
                               : null,
                         ),
                         child: Text(
                           _getGenderDisplayName(gender),
                           style: SnapTypography.body.copyWith(
-                            color: isSelected 
-                                ? SnapColors.primaryYellow 
+                            color: isSelected
+                                ? SnapColors.primaryYellow
                                 : SnapColors.textSecondary,
-                            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -383,10 +389,11 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
   Widget _buildPhysicalStatsPage() {
     // Convert metric to imperial for display
     final heightFeet = (_height / 30.48).floor();
-    final heightInches = ((_height % 30.48) / 2.54).round(); // Round to nearest inch
+    final heightInches = ((_height % 30.48) / 2.54)
+        .round(); // Round to nearest inch
     final currentWeightLbs = _currentWeight * 2.20462;
     final targetWeightLbs = _targetWeight * 2.20462;
-    
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: SingleChildScrollView(
@@ -407,7 +414,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               ),
             ),
             const SizedBox(height: 32),
-            
+
             // Height
             Text(
               'Height: $heightFeet\'$heightInches"',
@@ -426,7 +433,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               onChanged: (value) => setState(() => _height = value),
             ),
             const SizedBox(height: 24),
-            
+
             // Current weight
             Text(
               'Current Weight: ${currentWeightLbs.round()} lbs',
@@ -445,7 +452,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               onChanged: (value) => setState(() => _currentWeight = value),
             ),
             const SizedBox(height: 24),
-            
+
             // Target weight
             Text(
               'Target Weight: ${targetWeightLbs.round()} lbs',
@@ -464,7 +471,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               onChanged: (value) => setState(() => _targetWeight = value),
             ),
             const SizedBox(height: 24),
-            
+
             // Health info summary
             Container(
               width: double.infinity,
@@ -519,7 +526,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
             ),
           ),
           const SizedBox(height: 32),
-          
+
           Expanded(
             child: ListView(
               children: ActivityLevel.values.map((level) {
@@ -531,13 +538,13 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: isSelected 
+                        color: isSelected
                             ? SnapColors.primaryYellow.withValues(alpha: 0.1)
                             : SnapColors.white,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: isSelected 
-                              ? SnapColors.primaryYellow 
+                          color: isSelected
+                              ? SnapColors.primaryYellow
                               : SnapColors.greyLight,
                           width: isSelected ? 2 : 1,
                         ),
@@ -549,8 +556,8 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                             _getActivityLevelTitle(level),
                             style: SnapTypography.body.copyWith(
                               fontWeight: FontWeight.w600,
-                              color: isSelected 
-                                  ? SnapColors.primaryYellow 
+                              color: isSelected
+                                  ? SnapColors.primaryYellow
                                   : SnapColors.textPrimary,
                             ),
                           ),
@@ -594,7 +601,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
             ),
           ),
           const SizedBox(height: 32),
-          
+
           Expanded(
             child: GridView.builder(
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -607,7 +614,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               itemBuilder: (context, index) {
                 final goal = HealthGoalType.values[index];
                 final isSelected = _selectedGoals.contains(goal);
-                
+
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -621,13 +628,13 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                   child: Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: isSelected 
+                      color: isSelected
                           ? SnapColors.primaryYellow.withValues(alpha: 0.1)
                           : SnapColors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: isSelected 
-                            ? SnapColors.primaryYellow 
+                        color: isSelected
+                            ? SnapColors.primaryYellow
                             : SnapColors.greyLight,
                         width: isSelected ? 2 : 1,
                       ),
@@ -638,8 +645,8 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                         Icon(
                           _getGoalIcon(goal),
                           size: 32,
-                          color: isSelected 
-                              ? SnapColors.primaryYellow 
+                          color: isSelected
+                              ? SnapColors.primaryYellow
                               : SnapColors.textSecondary,
                         ),
                         const SizedBox(height: 8),
@@ -647,8 +654,8 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                           _getGoalDisplayName(goal),
                           style: SnapTypography.caption.copyWith(
                             fontWeight: FontWeight.w600,
-                            color: isSelected 
-                                ? SnapColors.primaryYellow 
+                            color: isSelected
+                                ? SnapColors.primaryYellow
                                 : SnapColors.textPrimary,
                           ),
                           textAlign: TextAlign.center,
@@ -685,7 +692,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
             ),
           ),
           const SizedBox(height: 32),
-          
+
           Expanded(
             child: ListView(
               children: DietaryPreference.values.map((pref) {
@@ -717,7 +724,7 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
               }).toList(),
             ),
           ),
-          
+
           const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(16),
@@ -778,7 +785,11 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
           Expanded(
             flex: _currentPage == 0 ? 1 : 1,
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _canProceed() ? _nextPage : null,
+              onPressed: _isLoading
+                  ? null
+                  : _canProceed()
+                  ? _nextPage
+                  : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: SnapColors.primaryYellow,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -796,7 +807,9 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
                       ),
                     )
                   : Text(
-                      _currentPage == _totalPages - 1 ? 'Complete Setup' : 'Next',
+                      _currentPage == _totalPages - 1
+                          ? 'Complete Setup'
+                          : 'Next',
                       style: SnapTypography.body.copyWith(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
@@ -993,4 +1006,4 @@ class _HealthOnboardingPageState extends State<HealthOnboardingPage> {
         return 'Custom';
     }
   }
-} 
+}

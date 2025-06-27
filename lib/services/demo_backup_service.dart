@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
+import '../utils/logger.dart';
 
 /// Service for backing up and restoring demo data
 class DemoBackupService {
@@ -29,8 +30,8 @@ class DemoBackupService {
   /// Create a comprehensive backup of all demo data
   Future<DemoBackupResult> createFullBackup() async {
     try {
-      debugPrint('Starting full demo data backup...');
-      
+      Logger.d('Starting full demo data backup...');
+
       final backup = DemoBackup(
         backupId: _generateBackupId(),
         timestamp: DateTime.now(),
@@ -39,22 +40,24 @@ class DemoBackupService {
       );
 
       int totalDocuments = 0;
-      
+
       for (final collection in demoCollections) {
-        debugPrint('Backing up collection: $collection');
-        
+        Logger.d('Backing up collection: $collection');
+
         final snapshot = await _firestore.collection(collection).get();
         final documents = <String, Map<String, dynamic>>{};
-        
+
         for (final doc in snapshot.docs) {
           // ignore: unnecessary_cast
-          documents[doc.id] = _sanitizeDocumentData(doc.data() as Map<String, dynamic>);
+          documents[doc.id] = _sanitizeDocumentData(
+            doc.data() as Map<String, dynamic>,
+          );
         }
-        
+
         backup.collections[collection] = documents;
         totalDocuments += documents.length;
-        
-        debugPrint('Backed up ${documents.length} documents from $collection');
+
+        Logger.d('Backed up ${documents.length} documents from $collection');
       }
 
       // Add metadata
@@ -66,16 +69,17 @@ class DemoBackupService {
         'appVersion': '2.1.0',
       };
 
-      debugPrint('Backup completed: $totalDocuments documents across ${demoCollections.length} collections');
-      
+      Logger.d(
+        'Backup completed: $totalDocuments documents across ${demoCollections.length} collections',
+      );
+
       return DemoBackupResult(
         success: true,
         backup: backup,
         message: 'Backup created successfully',
       );
-
     } catch (e) {
-      debugPrint('Error creating backup: $e');
+      Logger.d('Error creating backup: $e');
       return DemoBackupResult(
         success: false,
         message: 'Failed to create backup: $e',
@@ -86,8 +90,8 @@ class DemoBackupService {
   /// Create a backup for a specific demo user
   Future<DemoBackupResult> createUserBackup(String userId) async {
     try {
-      debugPrint('Starting user backup for: $userId');
-      
+      Logger.d('Starting user backup for: $userId');
+
       final backup = DemoBackup(
         backupId: _generateBackupId(),
         timestamp: DateTime.now(),
@@ -97,37 +101,48 @@ class DemoBackupService {
       );
 
       int totalDocuments = 0;
-      
+
       for (final collection in demoCollections) {
-        debugPrint('Backing up user data from collection: $collection');
-        
+        Logger.d('Backing up user data from collection: $collection');
+
         Query query = _firestore.collection(collection);
-        
+
         // Add user-specific filters based on collection structure
         if (collection == 'demo_users') {
           query = query.where(FieldPath.documentId, isEqualTo: userId);
         } else if (collection == 'demo_session_data') {
           query = query.where('userId', isEqualTo: userId);
-        } else if (['demo_meal_logs', 'demo_fasting_sessions', 'demo_ai_advice'].contains(collection)) {
+        } else if ([
+          'demo_meal_logs',
+          'demo_fasting_sessions',
+          'demo_ai_advice',
+        ].contains(collection)) {
           query = query.where('user_id', isEqualTo: userId);
-        } else if (['demo_stories', 'demo_health_groups'].contains(collection)) {
+        } else if ([
+          'demo_stories',
+          'demo_health_groups',
+        ].contains(collection)) {
           query = query.where('userId', isEqualTo: userId);
         } else if (collection == 'demo_chat_rooms') {
           query = query.where('members', arrayContains: userId);
         }
-        
+
         final snapshot = await query.get();
         final documents = <String, Map<String, dynamic>>{};
-        
+
         for (final doc in snapshot.docs) {
           // ignore: unnecessary_cast
-          documents[doc.id] = _sanitizeDocumentData(doc.data() as Map<String, dynamic>);
+          documents[doc.id] = _sanitizeDocumentData(
+            doc.data() as Map<String, dynamic>,
+          );
         }
-        
+
         backup.collections[collection] = documents;
         totalDocuments += documents.length;
-        
-        debugPrint('Backed up ${documents.length} user documents from $collection');
+
+        Logger.d(
+          'Backed up ${documents.length} user documents from $collection',
+        );
       }
 
       // Add metadata
@@ -140,16 +155,15 @@ class DemoBackupService {
         'appVersion': '2.1.0',
       };
 
-      debugPrint('User backup completed: $totalDocuments documents');
-      
+      Logger.d('User backup completed: $totalDocuments documents');
+
       return DemoBackupResult(
         success: true,
         backup: backup,
         message: 'User backup created successfully',
       );
-
     } catch (e) {
-      debugPrint('Error creating user backup: $e');
+      Logger.d('Error creating user backup: $e');
       return DemoBackupResult(
         success: false,
         message: 'Failed to create user backup: $e',
@@ -164,24 +178,23 @@ class DemoBackupService {
         // For web, return JSON string for download
         return jsonEncode(backup.toJson());
       }
-      
+
       final directory = await getApplicationDocumentsDirectory();
       final backupDir = Directory('${directory.path}/demo_backups');
-      
+
       if (!await backupDir.exists()) {
         await backupDir.create(recursive: true);
       }
-      
+
       final fileName = 'demo_backup_${backup.backupId}.json';
       final file = File('${backupDir.path}/$fileName');
-      
+
       await file.writeAsString(jsonEncode(backup.toJson()));
-      
-      debugPrint('Backup saved to: ${file.path}');
+
+      Logger.d('Backup saved to: ${file.path}');
       return file.path;
-      
     } catch (e) {
-      debugPrint('Error saving backup to file: $e');
+      Logger.d('Error saving backup to file: $e');
       return null;
     }
   }
@@ -191,40 +204,44 @@ class DemoBackupService {
     try {
       final file = File(filePath);
       if (!await file.exists()) {
-        debugPrint('Backup file not found: $filePath');
+        Logger.d('Backup file not found: $filePath');
         return null;
       }
-      
+
       final jsonString = await file.readAsString();
       final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
-      
+
       return DemoBackup.fromJson(jsonData);
-      
     } catch (e) {
-      debugPrint('Error loading backup from file: $e');
+      Logger.d('Error loading backup from file: $e');
       return null;
     }
   }
 
   /// Restore demo data from backup
-  Future<DemoRestoreResult> restoreFromBackup(DemoBackup backup, {bool overwrite = false}) async {
+  Future<DemoRestoreResult> restoreFromBackup(
+    DemoBackup backup, {
+    bool overwrite = false,
+  }) async {
     try {
-      debugPrint('Starting restore from backup: ${backup.backupId}');
-      
+      Logger.d('Starting restore from backup: ${backup.backupId}');
+
       int restoredDocuments = 0;
       int skippedDocuments = 0;
       final errors = <String>[];
-      
+
       for (final collectionName in backup.collections.keys) {
         final documents = backup.collections[collectionName]!;
-        
-        debugPrint('Restoring collection: $collectionName (${documents.length} documents)');
-        
+
+        Logger.d(
+          'Restoring collection: $collectionName (${documents.length} documents)',
+        );
+
         for (final docId in documents.keys) {
           try {
             final docData = documents[docId]!;
             final docRef = _firestore.collection(collectionName).doc(docId);
-            
+
             if (!overwrite) {
               final existingDoc = await docRef.get();
               if (existingDoc.exists) {
@@ -232,37 +249,44 @@ class DemoBackupService {
                 continue;
               }
             }
-            
+
             // Restore timestamps
             final sanitizedData = _restoreTimestamps(docData);
-            
+
             await docRef.set(sanitizedData);
             restoredDocuments++;
-            
           } catch (e) {
-            errors.add('Failed to restore document $docId in $collectionName: $e');
-            debugPrint('Error restoring document $docId: $e');
+            errors.add(
+              'Failed to restore document $docId in $collectionName: $e',
+            );
+            Logger.d('Error restoring document $docId: $e');
           }
         }
       }
 
       // Log restore operation
-      await _logRestoreOperation(backup, restoredDocuments, skippedDocuments, errors);
-      
-      debugPrint('Restore completed: $restoredDocuments restored, $skippedDocuments skipped, ${errors.length} errors');
-      
+      await _logRestoreOperation(
+        backup,
+        restoredDocuments,
+        skippedDocuments,
+        errors,
+      );
+
+      Logger.d(
+        'Restore completed: $restoredDocuments restored, $skippedDocuments skipped, ${errors.length} errors',
+      );
+
       return DemoRestoreResult(
         success: errors.isEmpty || restoredDocuments > 0,
         restoredDocuments: restoredDocuments,
         skippedDocuments: skippedDocuments,
         errors: errors,
-        message: errors.isEmpty 
+        message: errors.isEmpty
             ? 'Restore completed successfully'
             : 'Restore completed with ${errors.length} errors',
       );
-
     } catch (e) {
-      debugPrint('Error restoring from backup: $e');
+      Logger.d('Error restoring from backup: $e');
       return DemoRestoreResult(
         success: false,
         restoredDocuments: 0,
@@ -280,46 +304,46 @@ class DemoBackupService {
         // Web doesn't have access to local files
         return [];
       }
-      
+
       final directory = await getApplicationDocumentsDirectory();
       final backupDir = Directory('${directory.path}/demo_backups');
-      
+
       if (!await backupDir.exists()) {
         return [];
       }
-      
+
       final files = await backupDir.list().toList();
       final backups = <DemoBackupInfo>[];
-      
+
       for (final file in files) {
         if (file is File && file.path.endsWith('.json')) {
           try {
             final jsonString = await file.readAsString();
             final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
-            
-            backups.add(DemoBackupInfo(
-              filePath: file.path,
-              fileName: file.path.split('/').last,
-              backupId: jsonData['backupId'],
-              timestamp: DateTime.parse(jsonData['timestamp']),
-              version: jsonData['version'],
-              totalDocuments: jsonData['metadata']?['totalDocuments'] ?? 0,
-              userId: jsonData['userId'],
-            ));
-            
+
+            backups.add(
+              DemoBackupInfo(
+                filePath: file.path,
+                fileName: file.path.split('/').last,
+                backupId: jsonData['backupId'],
+                timestamp: DateTime.parse(jsonData['timestamp']),
+                version: jsonData['version'],
+                totalDocuments: jsonData['metadata']?['totalDocuments'] ?? 0,
+                userId: jsonData['userId'],
+              ),
+            );
           } catch (e) {
-            debugPrint('Error reading backup file ${file.path}: $e');
+            Logger.d('Error reading backup file ${file.path}: $e');
           }
         }
       }
-      
+
       // Sort by timestamp (newest first)
       backups.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-      
+
       return backups;
-      
     } catch (e) {
-      debugPrint('Error getting available backups: $e');
+      Logger.d('Error getting available backups: $e');
       return [];
     }
   }
@@ -330,12 +354,12 @@ class DemoBackupService {
       final file = File(filePath);
       if (await file.exists()) {
         await file.delete();
-        debugPrint('Backup deleted: $filePath');
+        Logger.d('Backup deleted: $filePath');
         return true;
       }
       return false;
     } catch (e) {
-      debugPrint('Error deleting backup: $e');
+      Logger.d('Error deleting backup: $e');
       return false;
     }
   }
@@ -343,10 +367,10 @@ class DemoBackupService {
   /// Sanitize document data for JSON serialization
   Map<String, dynamic> _sanitizeDocumentData(Map<String, dynamic> data) {
     final sanitized = <String, dynamic>{};
-    
+
     for (final key in data.keys) {
       final value = data[key];
-      
+
       if (value is Timestamp) {
         sanitized[key] = {
           '_type': 'timestamp',
@@ -359,34 +383,38 @@ class DemoBackupService {
           '_longitude': value.longitude,
         };
       } else if (value is DocumentReference) {
-        sanitized[key] = {
-          '_type': 'reference',
-          '_path': value.path,
-        };
+        sanitized[key] = {'_type': 'reference', '_path': value.path};
       } else if (value is List) {
-        sanitized[key] = value.map((item) => 
-            item is Map<String, dynamic> ? _sanitizeDocumentData(item) : item).toList();
+        sanitized[key] = value
+            .map(
+              (item) => item is Map<String, dynamic>
+                  ? _sanitizeDocumentData(item)
+                  : item,
+            )
+            .toList();
       } else if (value is Map<String, dynamic>) {
         sanitized[key] = _sanitizeDocumentData(value);
       } else {
         sanitized[key] = value;
       }
     }
-    
+
     return sanitized;
   }
 
   /// Restore special Firestore types from sanitized data
   Map<String, dynamic> _restoreTimestamps(Map<String, dynamic> data) {
     final restored = <String, dynamic>{};
-    
+
     for (final key in data.keys) {
       final value = data[key];
-      
+
       if (value is Map<String, dynamic> && value.containsKey('_type')) {
         switch (value['_type']) {
           case 'timestamp':
-            restored[key] = Timestamp.fromMillisecondsSinceEpoch(value['_value']);
+            restored[key] = Timestamp.fromMillisecondsSinceEpoch(
+              value['_value'],
+            );
             break;
           case 'geopoint':
             restored[key] = GeoPoint(value['_latitude'], value['_longitude']);
@@ -398,15 +426,20 @@ class DemoBackupService {
             restored[key] = value;
         }
       } else if (value is List) {
-        restored[key] = value.map((item) => 
-            item is Map<String, dynamic> ? _restoreTimestamps(item) : item).toList();
+        restored[key] = value
+            .map(
+              (item) => item is Map<String, dynamic>
+                  ? _restoreTimestamps(item)
+                  : item,
+            )
+            .toList();
       } else if (value is Map<String, dynamic>) {
         restored[key] = _restoreTimestamps(value);
       } else {
         restored[key] = value;
       }
     }
-    
+
     return restored;
   }
 
@@ -421,7 +454,12 @@ class DemoBackupService {
   }
 
   /// Log restore operation for audit trail
-  Future<void> _logRestoreOperation(DemoBackup backup, int restored, int skipped, List<String> errors) async {
+  Future<void> _logRestoreOperation(
+    DemoBackup backup,
+    int restored,
+    int skipped,
+    List<String> errors,
+  ) async {
     try {
       await _firestore.collection('demo_restore_history').add({
         'backupId': backup.backupId,
@@ -435,7 +473,7 @@ class DemoBackupService {
         'backupVersion': backup.version,
       });
     } catch (e) {
-      debugPrint('Error logging restore operation: $e');
+      Logger.d('Error logging restore operation: $e');
     }
   }
 
@@ -479,10 +517,10 @@ class DemoBackup {
       timestamp: DateTime.parse(json['timestamp']),
       version: json['version'],
       collections: Map<String, Map<String, Map<String, dynamic>>>.from(
-        json['collections'].map((key, value) => MapEntry(
-          key,
-          Map<String, Map<String, dynamic>>.from(value),
-        )),
+        json['collections'].map(
+          (key, value) =>
+              MapEntry(key, Map<String, Map<String, dynamic>>.from(value)),
+        ),
       ),
       userId: json['userId'],
       metadata: json['metadata'],
@@ -496,11 +534,7 @@ class DemoBackupResult {
   final DemoBackup? backup;
   final String message;
 
-  DemoBackupResult({
-    required this.success,
-    this.backup,
-    required this.message,
-  });
+  DemoBackupResult({required this.success, this.backup, required this.message});
 }
 
 /// Restore operation result
@@ -539,4 +573,4 @@ class DemoBackupInfo {
     required this.totalDocuments,
     this.userId,
   });
-} 
+}

@@ -30,40 +30,32 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   late AnimationController _progressController;
   late Animation<double> _pulseAnimation;
   late Animation<double> _progressAnimation;
-  
+
   FastingSession? _currentSession;
 
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animations
     _pulseController = AnimationController(
       duration: Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _progressController = AnimationController(
       duration: Duration(milliseconds: 800),
       vsync: this,
     );
-    
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _progressController,
-      curve: Curves.easeOutCubic,
-    ));
-    
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _progressController, curve: Curves.easeOutCubic),
+    );
+
     // Start pulse animation
     _pulseController.repeat(reverse: true);
   }
@@ -83,14 +75,16 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
           stream: fastingService.sessionStream,
           builder: (context, snapshot) {
             final session = snapshot.data;
-            
+
             // Update session and trigger animation if changed
             if (session != _currentSession) {
               _updateSession(session);
             }
-            
+
             return GestureDetector(
-              onTap: widget.onTap ?? () => _handleTimerTap(context, fastingService),
+              onTap:
+                  widget.onTap ??
+                  () => _handleTimerTap(context, fastingService),
               child: SizedBox(
                 width: widget.size,
                 height: widget.size,
@@ -99,16 +93,16 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
                   children: [
                     // Background circle
                     _buildBackgroundCircle(),
-                    
+
                     // Progress circle
                     _buildProgressCircle(session),
-                    
+
                     // Inner content
                     _buildInnerContent(session),
-                    
+
                     // Pulse effect for active sessions
                     if (session?.isActive == true) _buildPulseEffect(),
-                    
+
                     // Control buttons
                     if (widget.showControls && session != null)
                       _buildControlButtons(context, fastingService, session),
@@ -126,13 +120,13 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   void _updateSession(FastingSession? newSession) {
     final oldSession = _currentSession;
     _currentSession = newSession;
-    
+
     // Trigger progress animation when session changes
     if (newSession != null && oldSession?.id != newSession.id) {
       _progressController.reset();
       _progressController.forward();
     }
-    
+
     // Notify parent of session change
     widget.onSessionChanged?.call(newSession);
   }
@@ -152,10 +146,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
             offset: Offset(0, 8),
           ),
         ],
-        border: Border.all(
-          color: SnapColors.border,
-          width: 2,
-        ),
+        border: Border.all(color: SnapColors.border, width: 2),
       ),
     );
   }
@@ -165,12 +156,12 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
     final progress = session?.progressPercentage ?? 0.0;
     final isActive = session?.isActive == true;
     final isPaused = session?.isPaused == true;
-    
+
     return AnimatedBuilder(
       animation: _progressAnimation,
       builder: (context, child) {
         final animatedProgress = progress * _progressAnimation.value;
-        
+
         return CustomPaint(
           size: Size(widget.size, widget.size),
           painter: CircularProgressPainter(
@@ -196,14 +187,14 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
         children: [
           // Time display
           _buildTimeDisplay(session),
-          
+
           SizedBox(height: 8),
-          
+
           // Status text
           _buildStatusText(session),
-          
+
           SizedBox(height: 4),
-          
+
           // Progress percentage
           if (session != null) _buildProgressText(session),
         ],
@@ -215,7 +206,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   Widget _buildTimeDisplay(FastingSession? session) {
     String timeText;
     String label;
-    
+
     if (session == null) {
       timeText = '00:00';
       label = 'Ready to start';
@@ -231,7 +222,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
       timeText = '00:00';
       label = 'Ended';
     }
-    
+
     return Column(
       children: [
         Text(
@@ -257,7 +248,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   Widget _buildStatusText(FastingSession? session) {
     String statusText;
     Color statusColor;
-    
+
     if (session == null) {
       statusText = 'Tap to start fasting';
       statusColor = SnapColors.textSecondary;
@@ -284,7 +275,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
           statusColor = SnapColors.textSecondary;
       }
     }
-    
+
     return Text(
       statusText,
       style: SnapTypography.bodyMedium.copyWith(
@@ -299,7 +290,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   /// Build the progress percentage text
   Widget _buildProgressText(FastingSession session) {
     final progress = (session.progressPercentage * 100).toInt();
-    
+
     return Text(
       '$progress% complete',
       style: SnapTypography.caption.copyWith(
@@ -350,11 +341,13 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
               onTap: () => session.isActive
                   ? fastingService.pauseFastingSession()
                   : fastingService.resumeFastingSession(),
-              backgroundColor: session.isActive ? SnapColors.warning : SnapColors.success,
+              backgroundColor: session.isActive
+                  ? SnapColors.warning
+                  : SnapColors.success,
             ),
-          
+
           SizedBox(width: 16),
-          
+
           // Stop button
           if (session.isActive || session.isPaused)
             _buildControlButton(
@@ -389,11 +382,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
             ),
           ],
         ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 24,
-        ),
+        child: Icon(icon, color: Colors.white, size: 24),
       ),
     );
   }
@@ -408,7 +397,10 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   }
 
   /// Show start session dialog
-  void _showStartSessionDialog(BuildContext context, FastingService fastingService) {
+  void _showStartSessionDialog(
+    BuildContext context,
+    FastingService fastingService,
+  ) {
     showDialog(
       context: context,
       builder: (context) => FastingStartDialog(
@@ -423,12 +415,17 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   }
 
   /// Show end session dialog
-  void _showEndSessionDialog(BuildContext context, FastingService fastingService) {
+  void _showEndSessionDialog(
+    BuildContext context,
+    FastingService fastingService,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('End Fasting Session?'),
-        content: Text('Are you sure you want to end your current fasting session?'),
+        content: Text(
+          'Are you sure you want to end your current fasting session?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -437,7 +434,9 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              await fastingService.endFastingSession(FastingEndReason.userBreak);
+              await fastingService.endFastingSession(
+                FastingEndReason.userBreak,
+              );
             },
             child: Text(
               'End Session',
@@ -452,7 +451,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   /// Get progress color based on session state
   Color _getProgressColor(FastingSession? session) {
     if (session == null) return SnapColors.border;
-    
+
     switch (session.state) {
       case FastingState.active:
         return SnapColors.primary;
@@ -470,7 +469,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   /// Get time color based on session state
   Color _getTimeColor(FastingSession? session) {
     if (session == null) return SnapColors.textSecondary;
-    
+
     switch (session.state) {
       case FastingState.active:
         return SnapColors.textPrimary;
@@ -489,7 +488,7 @@ class _FastingTimerWidgetState extends State<FastingTimerWidget>
   String _formatDuration(Duration duration) {
     final hours = duration.inHours;
     final minutes = duration.inMinutes.remainder(60);
-    
+
     if (hours > 0) {
       return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
     } else {
@@ -520,16 +519,16 @@ class CircularProgressPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
     final radius = (size.width - strokeWidth) / 2;
-    
+
     // Background circle
     final backgroundPaint = Paint()
       ..color = backgroundColor
       ..strokeWidth = strokeWidth
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
-    
+
     canvas.drawCircle(center, radius, backgroundPaint);
-    
+
     // Progress arc
     if (progress > 0) {
       final progressPaint = Paint()
@@ -537,7 +536,7 @@ class CircularProgressPainter extends CustomPainter {
         ..strokeWidth = strokeWidth
         ..style = PaintingStyle.stroke
         ..strokeCap = StrokeCap.round;
-      
+
       // Add gradient effect for active sessions
       if (isActive) {
         final gradient = SweepGradient(
@@ -548,15 +547,15 @@ class CircularProgressPainter extends CustomPainter {
           ],
           stops: [0.0, 0.5, 1.0],
         );
-        
+
         progressPaint.shader = gradient.createShader(
           Rect.fromCircle(center: center, radius: radius),
         );
       }
-      
+
       final startAngle = -math.pi / 2; // Start from top
       final sweepAngle = 2 * math.pi * progress;
-      
+
       canvas.drawArc(
         Rect.fromCircle(center: center, radius: radius),
         startAngle,
@@ -564,23 +563,19 @@ class CircularProgressPainter extends CustomPainter {
         false,
         progressPaint,
       );
-      
+
       // Add animated dots for paused state
       if (isPaused) {
         final dotPaint = Paint()
           ..color = progressColor
           ..style = PaintingStyle.fill;
-        
+
         for (int i = 0; i < 3; i++) {
           final angle = startAngle + sweepAngle + (i * 0.1);
           final dotX = center.dx + radius * math.cos(angle);
           final dotY = center.dy + radius * math.sin(angle);
-          
-          canvas.drawCircle(
-            Offset(dotX, dotY),
-            strokeWidth / 4,
-            dotPaint,
-          );
+
+          canvas.drawCircle(Offset(dotX, dotY), strokeWidth / 4, dotPaint);
         }
       }
     }
@@ -589,9 +584,9 @@ class CircularProgressPainter extends CustomPainter {
   @override
   bool shouldRepaint(CircularProgressPainter oldDelegate) {
     return oldDelegate.progress != progress ||
-           oldDelegate.progressColor != progressColor ||
-           oldDelegate.isActive != isActive ||
-           oldDelegate.isPaused != isPaused;
+        oldDelegate.progressColor != progressColor ||
+        oldDelegate.isActive != isActive ||
+        oldDelegate.isPaused != isPaused;
   }
 }
 
@@ -599,10 +594,7 @@ class CircularProgressPainter extends CustomPainter {
 class FastingStartDialog extends StatefulWidget {
   final Function(FastingType type, String? goal) onStart;
 
-  const FastingStartDialog({
-    super.key,
-    required this.onStart,
-  });
+  const FastingStartDialog({super.key, required this.onStart});
 
   @override
   State<FastingStartDialog> createState() => _FastingStartDialogState();
@@ -634,70 +626,72 @@ class _FastingStartDialogState extends State<FastingStartDialog> {
               ),
             ),
             SizedBox(height: 12),
-            
+
             // Fasting type selection
-            ...FastingType.values.map((type) => Card(
-              margin: EdgeInsets.symmetric(vertical: 4),
-              child: InkWell(
-                onTap: () {
-                  setState(() {
-                    _selectedType = type;
-                  });
-                },
-                child: Container(
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: _selectedType == type 
-                          ? Theme.of(context).primaryColor 
-                          : Colors.grey.shade300,
-                      width: _selectedType == type ? 2 : 1,
+            ...FastingType.values.map(
+              (type) => Card(
+                margin: EdgeInsets.symmetric(vertical: 4),
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      _selectedType = type;
+                    });
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _selectedType == type
+                            ? Theme.of(context).primaryColor
+                            : Colors.grey.shade300,
+                        width: _selectedType == type ? 2 : 1,
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _selectedType == type 
-                            ? Icons.radio_button_checked 
-                            : Icons.radio_button_unchecked,
-                        color: _selectedType == type 
-                            ? Theme.of(context).primaryColor 
-                            : Colors.grey,
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _getTypeDescription(type),
-                              style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: _selectedType == type 
-                                    ? Theme.of(context).primaryColor 
-                                    : null,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              _getTypeDuration(type),
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                    child: Row(
+                      children: [
+                        Icon(
+                          _selectedType == type
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          color: _selectedType == type
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey,
                         ),
-                      ),
-                    ],
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _getTypeDescription(type),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: _selectedType == type
+                                      ? Theme.of(context).primaryColor
+                                      : null,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                _getTypeDuration(type),
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            )),
-            
+            ),
+
             SizedBox(height: 16),
-            
+
             // Personal goal input
             Text(
               'Personal goal (optional):',
@@ -765,4 +759,4 @@ class _FastingStartDialogState extends State<FastingStartDialog> {
     final duration = FastingSession.getStandardDuration(type);
     return '${duration.inHours} hours';
   }
-} 
+}

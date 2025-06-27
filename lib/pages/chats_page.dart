@@ -22,7 +22,7 @@ class _ChatsPageState extends State<ChatsPage> {
 
   String _formatTimestamp(Timestamp? timestamp) {
     if (timestamp == null) return '';
-    
+
     final now = DateTime.now();
     final messageTime = timestamp.toDate();
     final difference = now.difference(messageTime);
@@ -76,14 +76,14 @@ class _ChatsPageState extends State<ChatsPage> {
         sortedDocs.sort((a, b) {
           final aData = a.data() as Map<String, dynamic>?;
           final bData = b.data() as Map<String, dynamic>?;
-          
+
           final aTimestamp = aData?['lastMessageTimestamp'] as Timestamp?;
           final bTimestamp = bData?['lastMessageTimestamp'] as Timestamp?;
-          
+
           if (aTimestamp == null && bTimestamp == null) return 0;
           if (aTimestamp == null) return 1;
           if (bTimestamp == null) return -1;
-          
+
           return bTimestamp.compareTo(aTimestamp); // Most recent first
         });
 
@@ -113,7 +113,8 @@ class _ChatsPageState extends State<ChatsPage> {
           if (!friendSnapshot.hasData) {
             return const ListTile(title: Text("Loading..."));
           }
-          final streakData = friendSnapshot.data!.data() as Map<String, dynamic>?;
+          final streakData =
+              friendSnapshot.data!.data() as Map<String, dynamic>?;
           final streakCount = streakData?['streakCount'] ?? 0;
 
           return FutureBuilder<DocumentSnapshot>(
@@ -122,23 +123,24 @@ class _ChatsPageState extends State<ChatsPage> {
               if (!userSnapshot.hasData) {
                 return const ListTile(title: Text("Loading..."));
               }
-              final friendData = userSnapshot.data!.data() as Map<String, dynamic>?;
+              final friendData =
+                  userSnapshot.data!.data() as Map<String, dynamic>?;
               if (friendData == null) return const SizedBox.shrink();
-              
+
               title = friendData['username'] ?? 'User';
               final imageUrl = friendData['profileImageUrl'] as String?;
-              
-              final lastMessageTimestamp = chatData['lastMessageTimestamp'] as Timestamp?;
+
+              final lastMessageTimestamp =
+                  chatData['lastMessageTimestamp'] as Timestamp?;
               final timestampText = _formatTimestamp(lastMessageTimestamp);
-              
+
               return ListTile(
-                leading: SnapAvatar(
-                  imageUrl: imageUrl,
-                  name: title,
-                ),
+                leading: SnapAvatar(imageUrl: imageUrl, name: title),
                 title: Text(title),
-                subtitle: timestampText.isNotEmpty ? Text('Last message: $timestampText') : null,
-                trailing: streakCount > 0 
+                subtitle: timestampText.isNotEmpty
+                    ? Text('Last message: $timestampText')
+                    : null,
+                trailing: streakCount > 0
                     ? Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -150,62 +152,57 @@ class _ChatsPageState extends State<ChatsPage> {
                             ),
                         ],
                       )
-                    : (timestampText.isNotEmpty 
-                        ? Text(
-                            timestampText,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          )
-                        : null),
+                    : (timestampText.isNotEmpty
+                          ? Text(
+                              timestampText,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            )
+                          : null),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          ChatPage(chatRoomId: chatDoc.id, recipientId: otherUserId),
+                      builder: (context) => ChatPage(
+                        chatRoomId: chatDoc.id,
+                        recipientId: otherUserId,
+                      ),
                     ),
                   );
                 },
               );
             },
           );
-        }
+        },
       );
     } else {
       // For group chats, show member count and timestamp
-      final lastMessageTimestamp = chatData['lastMessageTimestamp'] as Timestamp?;
+      final lastMessageTimestamp =
+          chatData['lastMessageTimestamp'] as Timestamp?;
       final timestampText = _formatTimestamp(lastMessageTimestamp);
-      
+
       return ListTile(
-        leading: const SnapAvatar(
-          name: "Group",
-          isGroup: true,
-        ),
+        leading: const SnapAvatar(name: "Group", isGroup: true),
         title: Text(title),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('${members.length} members'),
-            if (timestampText.isNotEmpty)
-              Text('Last message: $timestampText'),
+            if (timestampText.isNotEmpty) Text('Last message: $timestampText'),
           ],
         ),
-        trailing: timestampText.isNotEmpty 
-            ? Text(
-                timestampText,
-                style: Theme.of(context).textTheme.bodySmall,
-              )
+        trailing: timestampText.isNotEmpty
+            ? Text(timestampText, style: Theme.of(context).textTheme.bodySmall)
             : null,
         onTap: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  ChatPage(chatRoomId: chatDoc.id),
+              builder: (context) => ChatPage(chatRoomId: chatDoc.id),
             ),
           );
         },
       );
     }
   }
-} 
+}

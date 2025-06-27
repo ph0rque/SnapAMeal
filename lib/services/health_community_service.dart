@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../models/health_group.dart';
 import '../models/health_challenge.dart';
+import '../utils/logger.dart';
 import 'rag_service.dart';
 import 'friend_service.dart';
 
@@ -21,7 +22,9 @@ class HealthCommunityService {
   HealthCommunityService(this._ragService, this._friendService) {
     _groupsCollection = _firestore.collection('health_groups');
     _challengesCollection = _firestore.collection('health_challenges');
-    _userHealthProfilesCollection = _firestore.collection('user_health_profiles');
+    _userHealthProfilesCollection = _firestore.collection(
+      'user_health_profiles',
+    );
   }
 
   /// Get current user ID
@@ -67,10 +70,10 @@ class HealthCommunityService {
       );
 
       final docRef = await _groupsCollection.add(group.toFirestore());
-      debugPrint('Created health group: ${docRef.id}');
+      Logger.d('Created health group: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      debugPrint('Error creating health group: $e');
+      Logger.d('Error creating health group: $e');
       return null;
     }
   }
@@ -85,16 +88,16 @@ class HealthCommunityService {
       if (!groupDoc.exists) throw Exception('Group not found');
 
       final group = HealthGroup.fromFirestore(groupDoc);
-      
+
       // Check if already a member
       if (group.isMember(userId)) {
-        debugPrint('User already member of group');
+        Logger.d('User already member of group');
         return true;
       }
 
       // Check if group is full
       if (group.isFull) {
-        debugPrint('Group is full');
+        Logger.d('Group is full');
         return false;
       }
 
@@ -104,10 +107,10 @@ class HealthCommunityService {
         'last_activity': Timestamp.now(),
       });
 
-      debugPrint('Successfully joined health group: $groupId');
+      Logger.d('Successfully joined health group: $groupId');
       return true;
     } catch (e) {
-      debugPrint('Error joining health group: $e');
+      Logger.d('Error joining health group: $e');
       return false;
     }
   }
@@ -124,10 +127,10 @@ class HealthCommunityService {
         'last_activity': Timestamp.now(),
       });
 
-      debugPrint('Successfully left health group: $groupId');
+      Logger.d('Successfully left health group: $groupId');
       return true;
     } catch (e) {
-      debugPrint('Error leaving health group: $e');
+      Logger.d('Error leaving health group: $e');
       return false;
     }
   }
@@ -141,9 +144,11 @@ class HealthCommunityService {
         .where('member_ids', arrayContains: userId)
         .orderBy('last_activity', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => HealthGroup.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => HealthGroup.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   /// Search health groups
@@ -165,34 +170,44 @@ class HealthCommunityService {
     }
 
     return query
-        .orderBy('member_count', descending: true) // Order by member count for better results
+        .orderBy(
+          'member_count',
+          descending: true,
+        ) // Order by member count for better results
         .limit(50) // Increased limit to account for client-side filtering
         .snapshots()
         .map((snapshot) {
-      var groups = snapshot.docs
-          .map((doc) => HealthGroup.fromFirestore(doc))
-          .toList();
+          var groups = snapshot.docs
+              .map((doc) => HealthGroup.fromFirestore(doc))
+              .toList();
 
-      // Filter by multiple tags if provided (client-side for complex queries)
-      if (tags.length > 1) {
-        groups = groups.where((group) => 
-            group.tags.any((tag) => tags.contains(tag))
-        ).toList();
-      }
+          // Filter by multiple tags if provided (client-side for complex queries)
+          if (tags.length > 1) {
+            groups = groups
+                .where((group) => group.tags.any((tag) => tags.contains(tag)))
+                .toList();
+          }
 
-      // Filter by search term if provided (client-side for text search)
-      if (searchTerm != null && searchTerm.isNotEmpty) {
-        final lowerSearchTerm = searchTerm.toLowerCase();
-        groups = groups.where((group) =>
-            group.name.toLowerCase().contains(lowerSearchTerm) ||
-            group.description.toLowerCase().contains(lowerSearchTerm) ||
-            group.tags.any((tag) => tag.toLowerCase().contains(lowerSearchTerm))
-        ).toList();
-      }
+          // Filter by search term if provided (client-side for text search)
+          if (searchTerm != null && searchTerm.isNotEmpty) {
+            final lowerSearchTerm = searchTerm.toLowerCase();
+            groups = groups
+                .where(
+                  (group) =>
+                      group.name.toLowerCase().contains(lowerSearchTerm) ||
+                      group.description.toLowerCase().contains(
+                        lowerSearchTerm,
+                      ) ||
+                      group.tags.any(
+                        (tag) => tag.toLowerCase().contains(lowerSearchTerm),
+                      ),
+                )
+                .toList();
+          }
 
-      // Limit final results after filtering
-      return groups.take(20).toList();
-    });
+          // Limit final results after filtering
+          return groups.take(20).toList();
+        });
   }
 
   /// Create a health challenge
@@ -240,10 +255,10 @@ class HealthCommunityService {
       );
 
       final docRef = await _challengesCollection.add(challenge.toFirestore());
-      debugPrint('Created health challenge: ${docRef.id}');
+      Logger.d('Created health challenge: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      debugPrint('Error creating health challenge: $e');
+      Logger.d('Error creating health challenge: $e');
       return null;
     }
   }
@@ -258,16 +273,16 @@ class HealthCommunityService {
       if (!challengeDoc.exists) throw Exception('Challenge not found');
 
       final challenge = HealthChallenge.fromFirestore(challengeDoc);
-      
+
       // Check if already participating
       if (challenge.isParticipating(userId)) {
-        debugPrint('User already participating in challenge');
+        Logger.d('User already participating in challenge');
         return true;
       }
 
       // Check if challenge is full
       if (challenge.isFull) {
-        debugPrint('Challenge is full');
+        Logger.d('Challenge is full');
         return false;
       }
 
@@ -288,10 +303,10 @@ class HealthCommunityService {
         'participants': FieldValue.arrayUnion([participant.toMap()]),
       });
 
-      debugPrint('Successfully joined health challenge: $challengeId');
+      Logger.d('Successfully joined health challenge: $challengeId');
       return true;
     } catch (e) {
-      debugPrint('Error joining health challenge: $e');
+      Logger.d('Error joining health challenge: $e');
       return false;
     }
   }
@@ -302,13 +317,20 @@ class HealthCommunityService {
     if (userId == null) return Stream.value([]);
 
     return _challengesCollection
-        .where('participants', arrayContainsAny: [{'user_id': userId}])
+        .where(
+          'participants',
+          arrayContainsAny: [
+            {'user_id': userId},
+          ],
+        )
         .orderBy('start_date', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => HealthChallenge.fromFirestore(doc))
-            .where((challenge) => challenge.isParticipating(userId))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => HealthChallenge.fromFirestore(doc))
+              .where((challenge) => challenge.isParticipating(userId))
+              .toList(),
+        );
   }
 
   /// Search public challenges
@@ -335,28 +357,36 @@ class HealthCommunityService {
         .limit(20)
         .snapshots()
         .map((snapshot) {
-      var challenges = snapshot.docs
-          .map((doc) => HealthChallenge.fromFirestore(doc))
-          .toList();
+          var challenges = snapshot.docs
+              .map((doc) => HealthChallenge.fromFirestore(doc))
+              .toList();
 
-      // Filter by tags if provided
-      if (tags.isNotEmpty) {
-        challenges = challenges.where((challenge) => 
-            challenge.tags.any((tag) => tags.contains(tag))
-        ).toList();
-      }
+          // Filter by tags if provided
+          if (tags.isNotEmpty) {
+            challenges = challenges
+                .where(
+                  (challenge) =>
+                      challenge.tags.any((tag) => tags.contains(tag)),
+                )
+                .toList();
+          }
 
-      // Filter by search term if provided
-      if (searchTerm != null && searchTerm.isNotEmpty) {
-        final lowerSearchTerm = searchTerm.toLowerCase();
-        challenges = challenges.where((challenge) =>
-            challenge.title.toLowerCase().contains(lowerSearchTerm) ||
-            challenge.description.toLowerCase().contains(lowerSearchTerm)
-        ).toList();
-      }
+          // Filter by search term if provided
+          if (searchTerm != null && searchTerm.isNotEmpty) {
+            final lowerSearchTerm = searchTerm.toLowerCase();
+            challenges = challenges
+                .where(
+                  (challenge) =>
+                      challenge.title.toLowerCase().contains(lowerSearchTerm) ||
+                      challenge.description.toLowerCase().contains(
+                        lowerSearchTerm,
+                      ),
+                )
+                .toList();
+          }
 
-      return challenges;
-    });
+          return challenges;
+        });
   }
 
   /// Get AI-powered friend suggestions based on health goals
@@ -371,13 +401,16 @@ class HealthCommunityService {
 
       // Get users with similar health goals and patterns
       final suggestions = await _findSimilarUsers(userProfile);
-      
+
       // Use RAG to enhance suggestions with context
-      final enhancedSuggestions = await _enhanceSuggestionsWithRAG(suggestions, userProfile);
-      
+      final enhancedSuggestions = await _enhanceSuggestionsWithRAG(
+        suggestions,
+        userProfile,
+      );
+
       return enhancedSuggestions;
     } catch (e) {
-      debugPrint('Error getting health-based friend suggestions: $e');
+      Logger.d('Error getting health-based friend suggestions: $e');
       return [];
     }
   }
@@ -397,14 +430,17 @@ class HealthCommunityService {
       if (healthGoals != null) updates['health_goals'] = healthGoals;
       if (interests != null) updates['interests'] = interests;
       if (preferences != null) updates['preferences'] = preferences;
-      if (activityPatterns != null) updates['activity_patterns'] = activityPatterns;
+      if (activityPatterns != null)
+        updates['activity_patterns'] = activityPatterns;
       updates['updated_at'] = Timestamp.now();
 
-      await _userHealthProfilesCollection.doc(userId).set(updates, SetOptions(merge: true));
-      debugPrint('Updated user health profile');
+      await _userHealthProfilesCollection
+          .doc(userId)
+          .set(updates, SetOptions(merge: true));
+      Logger.d('Updated user health profile');
       return true;
     } catch (e) {
-      debugPrint('Error updating user health profile: $e');
+      Logger.d('Error updating user health profile: $e');
       return false;
     }
   }
@@ -418,13 +454,15 @@ class HealthCommunityService {
       }
       return null;
     } catch (e) {
-      debugPrint('Error getting user health profile: $e');
+      Logger.d('Error getting user health profile: $e');
       return null;
     }
   }
 
   /// Find users with similar health profiles
-  Future<List<Map<String, dynamic>>> _findSimilarUsers(Map<String, dynamic> userProfile) async {
+  Future<List<Map<String, dynamic>>> _findSimilarUsers(
+    Map<String, dynamic> userProfile,
+  ) async {
     try {
       final userGoals = List<String>.from(userProfile['health_goals'] ?? []);
       if (userGoals.isEmpty) return [];
@@ -440,27 +478,34 @@ class HealthCommunityService {
         if (doc.id != currentUserId) {
           final profile = doc.data() as Map<String, dynamic>;
           profile['user_id'] = doc.id;
-          
+
           // Calculate similarity score
           final similarity = _calculateHealthSimilarity(userProfile, profile);
           profile['similarity_score'] = similarity;
-          
+
           suggestions.add(profile);
         }
       }
 
       // Sort by similarity score
-      suggestions.sort((a, b) => (b['similarity_score'] as double).compareTo(a['similarity_score'] as double));
-      
+      suggestions.sort(
+        (a, b) => (b['similarity_score'] as double).compareTo(
+          a['similarity_score'] as double,
+        ),
+      );
+
       return suggestions.take(10).toList();
     } catch (e) {
-      debugPrint('Error finding similar users: $e');
+      Logger.d('Error finding similar users: $e');
       return [];
     }
   }
 
   /// Calculate similarity score between two health profiles
-  double _calculateHealthSimilarity(Map<String, dynamic> profile1, Map<String, dynamic> profile2) {
+  double _calculateHealthSimilarity(
+    Map<String, dynamic> profile1,
+    Map<String, dynamic> profile2,
+  ) {
     double score = 0.0;
 
     // Compare health goals (40% weight)
@@ -482,12 +527,16 @@ class HealthCommunityService {
     }
 
     // Compare activity patterns (30% weight)
-    final patterns1 = Map<String, dynamic>.from(profile1['activity_patterns'] ?? {});
-    final patterns2 = Map<String, dynamic>.from(profile2['activity_patterns'] ?? {});
+    final patterns1 = Map<String, dynamic>.from(
+      profile1['activity_patterns'] ?? {},
+    );
+    final patterns2 = Map<String, dynamic>.from(
+      profile2['activity_patterns'] ?? {},
+    );
     if (patterns1.isNotEmpty && patterns2.isNotEmpty) {
       double patternSimilarity = 0.0;
       int comparisons = 0;
-      
+
       for (final key in patterns1.keys) {
         if (patterns2.containsKey(key)) {
           // Normalize values and compare
@@ -500,7 +549,7 @@ class HealthCommunityService {
           }
         }
       }
-      
+
       if (comparisons > 0) {
         score += 0.3 * (patternSimilarity / comparisons);
       }
@@ -522,7 +571,7 @@ class HealthCommunityService {
       }
       return suggestions;
     } catch (e) {
-      debugPrint('Error enhancing suggestions with RAG: $e');
+      Logger.d('Error enhancing suggestions with RAG: $e');
       return suggestions;
     }
   }
@@ -533,7 +582,8 @@ class HealthCommunityService {
     Map<String, dynamic> userProfile,
   ) async {
     try {
-      final context = '''
+      final context =
+          '''
       User Profile: ${userProfile['health_goals']?.join(', ')}
       Suggested User: ${suggestion['health_goals']?.join(', ')}
       Similarity Score: ${suggestion['similarity_score']}
@@ -544,11 +594,11 @@ class HealthCommunityService {
         query: 'health friend recommendations based on profile: $context',
         maxResults: 3,
       );
-      
+
       return healthAdvice.map((result) => result.document.content).join('\n');
     } catch (e) {
-      debugPrint('Error generating suggestion reason: $e');
+      Logger.d('Error generating suggestion reason: $e');
       return 'You share similar health goals and could motivate each other!';
     }
   }
-} 
+}

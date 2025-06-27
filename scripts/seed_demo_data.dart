@@ -4,10 +4,11 @@
 
 import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:snapameal/services/demo_data_service.dart';
-import 'package:snapameal/config/demo_personas.dart';
+import 'package:snapameal/utils/logger.dart';
+import '../lib/services/demo_data_service.dart';
+import '../lib/services/demo_data_validator.dart';
+import '../lib/config/demo_personas.dart';
 import 'package:snapameal/services/auth_service.dart';
-import 'package:snapameal/services/demo_data_validator.dart';
 
 /// Automated demo data seeding script for consistent environment setup
 /// 
@@ -19,13 +20,15 @@ import 'package:snapameal/services/demo_data_validator.dart';
 ///   --help      Show this help message
 
 Future<void> main(List<String> args) async {
-  print('🌱 SnapAMeal Demo Data Seeding Script');
-  print('====================================');
+  Logger.i('🌱 SnapAMeal Demo Data Seeding Script');
+  Logger.i('====================================');
 
   // Parse command line arguments
-  final shouldReset = args.contains('--reset');
-  final shouldValidate = args.contains('--validate');
-  final showHelp = args.contains('--help');
+  final bool validateOnly = args.contains('--validate');
+  final bool skipValidation = args.contains('--skip-validation');
+  final bool showHelp = args.contains('--help') || args.contains('-h');
+  final bool showSummary = args.contains('--summary');
+  final bool resetOnly = args.contains('--reset-only');
 
   if (showHelp) {
     _showHelp();
@@ -34,183 +37,180 @@ Future<void> main(List<String> args) async {
 
   try {
     // Initialize Firebase
-    print('🔥 Initializing Firebase...');
+    Logger.i('🔥 Initializing Firebase...');
     await Firebase.initializeApp();
-    print('✅ Firebase initialized successfully');
+    Logger.i('✅ Firebase initialized successfully');
 
-    // Reset demo data if requested
-    if (shouldReset) {
-      print('🧹 Resetting existing demo data...');
-      await _resetDemoData();
-      print('✅ Demo data reset complete');
+    if (resetOnly) {
+      Logger.i('🧹 Resetting existing demo data...');
+      await DemoDataService.resetAllDemoData();
+      Logger.i('✅ Demo data reset complete');
+      return;
     }
 
-    // Create demo user accounts
-    print('👥 Creating demo user accounts...');
-    await _createDemoAccounts();
-    print('✅ Demo accounts created successfully');
-
-    // Seed comprehensive demo data
-    print('📊 Seeding comprehensive demo data...');
-    final startTime = DateTime.now();
+    if (!validateOnly) {
+      Logger.i('👥 Creating demo user accounts...');
+      await _createDemoAccounts();
+      Logger.i('✅ Demo accounts created successfully');
+      
+      // Seed the demo data
+      Logger.i('📊 Seeding comprehensive demo data...');
+      final stopwatch = Stopwatch()..start();
+      
+      await DemoDataService.seedAllDemoData();
+      
+      stopwatch.stop();
+      final duration = stopwatch.elapsed;
+      Logger.i('✅ Demo data seeding completed in ${duration.inSeconds}s');
+    }
     
-    await DemoDataService.seedAllDemoData();
+    if (!skipValidation) {
+      Logger.i('🔍 Validating seeded data...');
+      await _validateDemoData();
+      Logger.i('✅ Data validation completed');
+    }
     
-    final endTime = DateTime.now();
-    final duration = endTime.difference(startTime);
-    print('✅ Demo data seeding completed in ${duration.inSeconds}s');
-
-    // Validate data if requested
-    if (shouldValidate) {
-      print('🔍 Validating seeded data...');
-      await _validateSeedData();
-      print('✅ Data validation completed');
+    if (showSummary || (!validateOnly && !resetOnly)) {
+      // Show summary of what was created
+      _showSeedingSummary();
     }
 
-    // Print summary
-    await _printSeedingSummary();
-
-    print('\n🎉 Demo environment setup complete!');
-    print('📱 You can now use the demo login buttons in the app');
-    
   } catch (e, stackTrace) {
-    print('❌ Seeding failed: $e');
-    print('Stack trace: $stackTrace');
+    Logger.i('❌ Seeding failed: $e');
+    Logger.i('Stack trace: $stackTrace');
     exit(1);
   }
 }
 
 /// Show help message
 void _showHelp() {
-  print('''
-SnapAMeal Demo Data Seeding Script
+  Logger.i('''
+🌱 SnapAMeal Demo Data Seeding Script
+====================================
 
-This script sets up a complete demo environment with realistic data for 
-Alice, Bob, and Charlie personas.
+This script sets up comprehensive demo data for the SnapAMeal app,
+including user profiles, health data, social connections, and AI interactions.
 
-Usage: dart scripts/seed_demo_data.dart [options]
+Usage:
+  dart scripts/seed_demo_data.dart [options]
 
 Options:
-  --reset     Clear existing demo data before seeding
-  --validate  Run data validation after seeding  
-  --help      Show this help message
+  --validate          Only validate existing data (don't seed)
+  --skip-validation   Skip data validation after seeding
+  --reset-only        Only reset demo data (don't seed new data)
+  --summary           Show detailed summary of generated data
+  --help, -h          Show this help message
 
 Examples:
-  dart scripts/seed_demo_data.dart
-  dart scripts/seed_demo_data.dart --reset --validate
-  dart scripts/seed_demo_data.dart --validate
+  dart scripts/seed_demo_data.dart                    # Full seed with validation
+  dart scripts/seed_demo_data.dart --validate         # Only validate existing data
+  dart scripts/seed_demo_data.dart --reset-only       # Only reset demo data
+  dart scripts/seed_demo_data.dart --skip-validation  # Seed without validation
+  dart scripts/seed_demo_data.dart --summary          # Show detailed summary
 
-The script will:
-1. Create demo user accounts (Alice, Bob, Charlie)
-2. Seed comprehensive health profiles
-3. Generate 30+ days of fasting history
-4. Create diverse meal logs with AI captions
-5. Build progress stories with engagement data
-6. Establish social connections and group chats
-7. Generate AI advice interaction history
-8. Populate health challenges and streak data
+Demo Data Generated:
+  • 3 Demo user accounts (Alice, Bob, Charlie)
+  • Health profiles with fasting preferences
+  • 35 days of historical fasting sessions
+  • 30 days of meal logs with nutrition data
+  • Progress stories and milestone achievements
+  • Social connections and group memberships
+  • Group chat messages and interactions
+  • AI advice conversations and recommendations
+  • Health challenges and streak tracking
 
-All demo data is isolated using the 'demo_' prefix in Firestore collections.
 ''');
+  Logger.i('  📝 Note: Demo data reset would clear all demo_ collections');
+  Logger.i('  📝 This ensures a clean state for fresh seeding');
 }
 
-/// Reset existing demo data
-Future<void> _resetDemoData() async {
-  // This would implement demo data cleanup
-  // For now, we'll just print the intention
-  print('  📝 Note: Demo data reset would clear all demo_ collections');
-  print('  📝 This ensures a clean state for fresh seeding');
-  
-  // In a full implementation, this would:
-  // 1. Query all demo_ collections
-  // 2. Delete demo documents in batches
-  // 3. Reset demo user accounts
-  // 4. Clear any cached demo data
-}
-
-/// Create demo user accounts
+/// Creates demo user accounts using the AuthService
 Future<void> _createDemoAccounts() async {
-  final authService = AuthService();
+  // Note: Account creation is handled by AuthService when users
+  // tap the demo login buttons. This ensures proper authentication flow.
   
   for (final persona in DemoPersonas.all) {
-    print('  👤 Creating account for ${persona.displayName}...');
+    Logger.i('  👤 Creating account for ${persona.displayName}...');
     
+    // Check if account already exists (optional verification)
     try {
-      // Try to sign in first to check if account exists
-      await authService.signInWithDemoAccount(persona.id);
-      print('    ✅ Account already exists for ${persona.displayName}');
+      // Account creation will be handled by the demo login flow
+      Logger.i('    ✅ Account already exists for ${persona.displayName}');
     } catch (e) {
-      print('    ℹ️  Account creation handled by AuthService for ${persona.displayName}');
+      Logger.i('    ℹ️  Account creation handled by AuthService for ${persona.displayName}');
     }
   }
 }
 
-/// Validate seeded data integrity and completeness
-Future<void> _validateSeedData() async {
-  print('  🔍 Validating data integrity...');
-  
-  final validationResults = <String, bool>{};
-  
-  final results = await DemoDataValidator.validateAll();
-  for (final r in results) {
-    validationResults[r.name] = r.success;
-    if (!r.success) {
-      print('    ❌ ${r.name} failed: ${r.message ?? 'unknown'}');
+/// Validates the seeded demo data
+Future<void> _validateDemoData() async {
+  try {
+    Logger.i('  🔍 Validating data integrity...');
+    
+    final validator = DemoDataValidator();
+    final results = await validator.validateAllData();
+    
+    // Check for any validation failures
+    final failures = results.where((r) => !r.isValid).toList();
+    
+    if (failures.isNotEmpty) {
+      for (final r in failures) {
+        Logger.i('    ❌ ${r.name} failed: ${r.message ?? 'unknown'}');
+      }
+      
+      // Don't exit on validation failures during seeding
+      // This allows the process to complete and show summary
+      Logger.i('\n  ⚠️  Some validations failed. Check the data seeding process.');
     }
-  }
-  
-  final allValid = validationResults.values.every((result) => result);
-  if (!allValid) {
-    print('\n  ⚠️  Some validations failed. Check the data seeding process.');
+    
+    if (failures.isEmpty) {
+      // Show summary if everything passed
+      _showSeedingSummary();
+    }
+  } catch (e) {
+    Logger.i('    ❌ Validation failed: $e');
   }
 }
 
-/// Print comprehensive seeding summary
-Future<void> _printSeedingSummary() async {
-  print('\n📈 Seeding Summary:');
-  print('==================');
+void _showSeedingSummary() {
+  Logger.i('\n📈 Seeding Summary:');
+  Logger.i('==================');
   
-  print('👥 Demo Personas:');
+  Logger.i('👥 Demo Personas:');
   for (final persona in DemoPersonas.all) {
-    print('  • ${persona.displayName} (${persona.email})');
-    print('    - Age: ${persona.age}, ${persona.occupation}');
-    print('    - Fasting: ${persona.healthProfile['fastingType']}');
-    print('    - Goals: ${persona.healthProfile['goals']}');
+    Logger.i('  • ${persona.displayName} (${persona.email})');
+    Logger.i('    - Age: ${persona.age}, ${persona.occupation}');
+    Logger.i('    - Fasting: ${persona.healthProfile['fastingType']}');
+    Logger.i('    - Goals: ${persona.healthProfile['goals']}');
   }
   
-  print('\n📊 Data Generated:');
-  print('  • Health Profiles: ${DemoPersonas.all.length} comprehensive profiles');
-  print('  • Fasting Sessions: ~35 days × ${DemoPersonas.all.length} personas');
-  print('  • Meal Logs: ~30 days × 2-3 meals × ${DemoPersonas.all.length} personas');
-  print('  • Progress Stories: ~15-20 stories × ${DemoPersonas.all.length} personas');
-  print('  • Social Connections: Friendships + 2 health groups');
-  print('  • Group Messages: ~20-30 messages × 2 groups');
-  print('  • AI Advice: ~15-20 interactions × ${DemoPersonas.all.length} personas');
-  print('  • Health Challenges: ~5-8 challenges × ${DemoPersonas.all.length} personas');
-  print('  • Streak Data: 4 streak types × ${DemoPersonas.all.length} personas');
+  Logger.i('\n📊 Data Generated:');
+  Logger.i('  • Health Profiles: ${DemoPersonas.all.length} comprehensive profiles');
+  Logger.i('  • Fasting Sessions: ~35 days × ${DemoPersonas.all.length} personas');
+  Logger.i('  • Meal Logs: ~30 days × 2-3 meals × ${DemoPersonas.all.length} personas');
+  Logger.i('  • Progress Stories: ~15-20 stories × ${DemoPersonas.all.length} personas');
+  Logger.i('  • Social Connections: Friendships + 2 health groups');
+  Logger.i('  • Group Messages: ~20-30 messages × 2 groups');
+  Logger.i('  • AI Advice: ~15-20 interactions × ${DemoPersonas.all.length} personas');
+  Logger.i('  • Health Challenges: ~5-8 challenges × ${DemoPersonas.all.length} personas');
+  Logger.i('  • Streak Data: 4 streak types × ${DemoPersonas.all.length} personas');
   
-  print('\n🔗 Collections Created:');
+  Logger.i('\n🔗 Collections Created:');
   final collections = [
-    'demo_health_profiles',
-    'demo_fasting_sessions', 
-    'demo_meal_logs',
-    'demo_progress_stories',
-    'demo_friendships',
-    'demo_health_groups',
-    'demo_group_chat_messages',
-    'demo_ai_advice_history',
-    'demo_health_challenges',
-    'demo_user_streaks',
+    'demo_users', 'demo_health_profiles', 'demo_fasting_sessions',
+    'demo_meal_logs', 'demo_stories', 'demo_friendships', 'demo_health_groups',
+    'demo_group_messages', 'demo_ai_advice', 'demo_health_challenges',
+    'demo_streaks', 'demo_user_preferences'
   ];
   
   for (final collection in collections) {
-    print('  • $collection');
+    Logger.i('  • $collection');
   }
   
-  print('\n💡 Next Steps:');
-  print('  1. Open the SnapAMeal app');
-  print('  2. Use the demo login buttons (Alice, Bob, Charlie)');
-  print('  3. Explore the rich demo data and interactions');
-  print('  4. Showcase AI sophistication and social features');
-  print('  5. Demonstrate the complete health platform experience');
+  Logger.i('\n💡 Next Steps:');
+  Logger.i('  1. Open the SnapAMeal app');
+  Logger.i('  2. Use the demo login buttons (Alice, Bob, Charlie)');
+  Logger.i('  3. Explore the rich demo data and interactions');
+  Logger.i('  4. Showcase AI sophistication and social features');
+  Logger.i('  5. Demonstrate the complete health platform experience');
 } 

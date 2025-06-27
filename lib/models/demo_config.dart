@@ -152,10 +152,7 @@ class DemoConfig {
     enableDataSeeding: false,
     enableAnalytics: false,
     sessionTimeout: Duration(hours: 8),
-    featureFlags: {
-      'debugMode': true,
-      'showInternalMetrics': true,
-    },
+    featureFlags: {'debugMode': true, 'showInternalMetrics': true},
   );
 
   /// Disabled configuration
@@ -346,4 +343,4 @@ class DemoAnalyticsEvent {
       properties: Map<String, dynamic>.from(json['properties'] ?? {}),
     );
   }
-} 
+}

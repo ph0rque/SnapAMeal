@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../design_system/snap_ui.dart';
 import '../services/data_export_service.dart';
+import '../utils/logger.dart';
 import '../services/auth_service.dart';
 
 class DataExportPage extends StatefulWidget {
@@ -13,7 +14,7 @@ class DataExportPage extends StatefulWidget {
 class _DataExportPageState extends State<DataExportPage> {
   final DataExportService _exportService = DataExportService();
   final AuthService _authService = AuthService();
-  
+
   // Export options
   ExportFormat _selectedFormat = ExportFormat.json;
   Set<ExportDataType> _selectedDataTypes = {ExportDataType.all};
@@ -22,7 +23,7 @@ class _DataExportPageState extends State<DataExportPage> {
   bool _includePersonalInfo = true;
   bool _includeImages = false;
   bool _anonymizeData = false;
-  
+
   // UI state
   bool _isLoading = false;
   bool _isExporting = false;
@@ -37,7 +38,7 @@ class _DataExportPageState extends State<DataExportPage> {
 
   Future<void> _loadExportStats() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final user = _authService.getCurrentUser();
       if (user != null) {
@@ -47,7 +48,7 @@ class _DataExportPageState extends State<DataExportPage> {
         });
       }
     } catch (e) {
-      debugPrint('Error loading export stats: $e');
+      Logger.d('Error loading export stats: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -75,7 +76,7 @@ class _DataExportPageState extends State<DataExportPage> {
       );
 
       final result = await _exportService.exportData(options);
-      
+
       if (mounted) {
         await _showExportSuccessDialog(result);
       }
@@ -190,10 +191,26 @@ class _DataExportPageState extends State<DataExportPage> {
               spacing: 16,
               runSpacing: 8,
               children: [
-                _buildStatChip('Meals', _exportStats['mealLogs'] ?? 0, Icons.restaurant),
-                _buildStatChip('Fasting', _exportStats['fastingSessions'] ?? 0, Icons.timer),
-                _buildStatChip('AI Advice', _exportStats['aiAdvice'] ?? 0, Icons.psychology),
-                _buildStatChip('Integrations', _exportStats['integrations'] ?? 0, Icons.link),
+                _buildStatChip(
+                  'Meals',
+                  _exportStats['mealLogs'] ?? 0,
+                  Icons.restaurant,
+                ),
+                _buildStatChip(
+                  'Fasting',
+                  _exportStats['fastingSessions'] ?? 0,
+                  Icons.timer,
+                ),
+                _buildStatChip(
+                  'AI Advice',
+                  _exportStats['aiAdvice'] ?? 0,
+                  Icons.psychology,
+                ),
+                _buildStatChip(
+                  'Integrations',
+                  _exportStats['integrations'] ?? 0,
+                  Icons.link,
+                ),
               ],
             ),
           ],
@@ -245,9 +262,14 @@ class _DataExportPageState extends State<DataExportPage> {
     );
   }
 
-  Widget _buildFormatCard(ExportFormat format, String title, String description, IconData icon) {
+  Widget _buildFormatCard(
+    ExportFormat format,
+    String title,
+    String description,
+    IconData icon,
+  ) {
     final isSelected = _selectedFormat == format;
-    
+
     return GestureDetector(
       onTap: () => setState(() => _selectedFormat = format),
       child: Container(
@@ -337,10 +359,15 @@ class _DataExportPageState extends State<DataExportPage> {
     );
   }
 
-  Widget _buildDataTypeCheckbox(ExportDataType dataType, String title, String description, IconData icon) {
+  Widget _buildDataTypeCheckbox(
+    ExportDataType dataType,
+    String title,
+    String description,
+    IconData icon,
+  ) {
     final isSelected = _selectedDataTypes.contains(dataType);
     final isAllSelected = _selectedDataTypes.contains(ExportDataType.all);
-    
+
     return CheckboxListTile(
       value: isSelected || (dataType != ExportDataType.all && isAllSelected),
       onChanged: (value) {
@@ -408,7 +435,9 @@ class _DataExportPageState extends State<DataExportPage> {
             decoration: BoxDecoration(
               color: SnapColors.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: SnapColors.primary.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: SnapColors.primary.withValues(alpha: 0.2),
+              ),
             ),
             child: Row(
               children: [
@@ -416,7 +445,9 @@ class _DataExportPageState extends State<DataExportPage> {
                 const SizedBox(width: 8),
                 Text(
                   _formatDateRange(),
-                  style: SnapTypography.caption.copyWith(color: SnapColors.primary),
+                  style: SnapTypography.caption.copyWith(
+                    color: SnapColors.primary,
+                  ),
                 ),
               ],
             ),
@@ -485,4 +516,4 @@ class _DataExportPageState extends State<DataExportPage> {
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
   }
-} 
+}

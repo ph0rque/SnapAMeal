@@ -3,14 +3,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'dart:math';
 import '../models/demo_config.dart';
+import '../utils/logger.dart';
 import 'auth_service.dart';
 import 'demo_tour_service.dart';
 
 /// Service for managing demo sessions, state, and persistence
 class DemoSessionService {
   static DemoSessionService? _instance;
-  static DemoSessionService get instance => _instance ??= DemoSessionService._();
-  
+  static DemoSessionService get instance =>
+      _instance ??= DemoSessionService._();
+
   DemoSessionService._();
 
   static const String _sessionKey = 'demo_session';
@@ -50,7 +52,7 @@ class DemoSessionService {
 
     // Determine persona ID
     personaId ??= await AuthService().getCurrentDemoPersonaId();
-    
+
     // Use provided config or current config
     final sessionConfig = config ?? _currentConfig;
 
@@ -70,17 +72,17 @@ class DemoSessionService {
     await _persistConfig();
 
     // Track analytics
-    await _trackEvent(DemoAnalyticsEvent(
-      eventType: DemoAnalyticsEvent.sessionStart,
-      timestamp: DateTime.now(),
-      personaId: personaId,
-      sessionId: session.sessionId,
-      properties: {
-        'config': sessionConfig.toJson(),
-      },
-    ));
+    await _trackEvent(
+      DemoAnalyticsEvent(
+        eventType: DemoAnalyticsEvent.sessionStart,
+        timestamp: DateTime.now(),
+        personaId: personaId,
+        sessionId: session.sessionId,
+        properties: {'config': sessionConfig.toJson()},
+      ),
+    );
 
-    debugPrint('🎬 Demo session started: ${session.sessionId}');
+    Logger.d('🎬 Demo session started: ${session.sessionId}');
     return session;
   }
 
@@ -92,27 +94,31 @@ class DemoSessionService {
     _currentSession = endedSession;
 
     // Track analytics
-    await _trackEvent(DemoAnalyticsEvent(
-      eventType: DemoAnalyticsEvent.sessionEnd,
-      timestamp: DateTime.now(),
-      personaId: endedSession.personaId,
-      sessionId: endedSession.sessionId,
-      properties: {
-        'duration': endedSession.duration.inMinutes,
-        'expired': endedSession.isExpired,
-      },
-    ));
+    await _trackEvent(
+      DemoAnalyticsEvent(
+        eventType: DemoAnalyticsEvent.sessionEnd,
+        timestamp: DateTime.now(),
+        personaId: endedSession.personaId,
+        sessionId: endedSession.sessionId,
+        properties: {
+          'duration': endedSession.duration.inMinutes,
+          'expired': endedSession.isExpired,
+        },
+      ),
+    );
 
     // Persist final session state
     await _persistSession();
 
-    debugPrint('🎬 Demo session ended: ${endedSession.sessionId} (${endedSession.duration.inMinutes}m)');
+    Logger.d(
+      '🎬 Demo session ended: ${endedSession.sessionId} (${endedSession.duration.inMinutes}m)',
+    );
   }
 
   /// Update current configuration
   Future<void> updateConfig(DemoConfig newConfig) async {
     _currentConfig = newConfig;
-    
+
     // Update current session config if active
     if (_currentSession != null && _currentSession!.isActive) {
       _currentSession = DemoSession(
@@ -127,7 +133,7 @@ class DemoSessionService {
     }
 
     await _persistConfig();
-    debugPrint('⚙️ Demo config updated: ${newConfig.toString()}');
+    Logger.d('⚙️ Demo config updated: ${newConfig.toString()}');
   }
 
   /// Add metadata to current session
@@ -143,7 +149,7 @@ class DemoSessionService {
     if (_currentSession == null || !_currentSession!.isActive) return;
 
     if (_currentSession!.isExpired) {
-      debugPrint('⏰ Demo session expired, ending session');
+      Logger.d('⏰ Demo session expired, ending session');
       await endCurrentSession();
     }
   }
@@ -152,15 +158,16 @@ class DemoSessionService {
   Future<void> resetSession() async {
     await endCurrentSession();
     await _clearPersistedData();
-    
+
     // Reset tours
     await DemoTourService.resetAllTours();
-    
-    debugPrint('🔄 Demo session reset completed');
+
+    Logger.d('🔄 Demo session reset completed');
   }
 
   /// Track demo analytics event
-  Future<void> trackEvent(String eventType, {
+  Future<void> trackEvent(
+    String eventType, {
     Map<String, dynamic>? properties,
   }) async {
     if (!_currentConfig.enableAnalytics) return;
@@ -177,14 +184,18 @@ class DemoSessionService {
   }
 
   /// Track feature interaction
-  Future<void> trackFeatureInteraction(String featureName, {
+  Future<void> trackFeatureInteraction(
+    String featureName, {
     Map<String, dynamic>? additionalData,
   }) async {
-    await trackEvent(DemoAnalyticsEvent.featureInteraction, properties: {
-      'featureName': featureName,
-      'timestamp': DateTime.now().toIso8601String(),
-      ...?additionalData,
-    });
+    await trackEvent(
+      DemoAnalyticsEvent.featureInteraction,
+      properties: {
+        'featureName': featureName,
+        'timestamp': DateTime.now().toIso8601String(),
+        ...?additionalData,
+      },
+    );
   }
 
   /// Get session statistics
@@ -211,7 +222,7 @@ class DemoSessionService {
 
     for (final event in events) {
       eventTypes[event.eventType] = (eventTypes[event.eventType] ?? 0) + 1;
-      
+
       if (event.eventType == DemoAnalyticsEvent.featureInteraction) {
         final featureName = event.properties['featureName'] as String?;
         if (featureName != null) {
@@ -250,14 +261,14 @@ class DemoSessionService {
 
   Future<void> _trackEvent(DemoAnalyticsEvent event) async {
     _analyticsBuffer.add(event);
-    
+
     // Keep buffer size manageable
     if (_analyticsBuffer.length > 1000) {
       _analyticsBuffer.removeRange(0, 100);
     }
 
     await _persistAnalytics();
-    debugPrint('📊 Analytics: ${event.eventType}');
+    Logger.d('📊 Analytics: ${event.eventType}');
   }
 
   Future<void> _persistSession() async {
@@ -268,7 +279,7 @@ class DemoSessionService {
       final sessionJson = json.encode(_currentSession!.toJson());
       await prefs.setString(_sessionKey, sessionJson);
     } catch (e) {
-      debugPrint('❌ Failed to persist demo session: $e');
+      Logger.d('❌ Failed to persist demo session: $e');
     }
   }
 
@@ -278,7 +289,7 @@ class DemoSessionService {
       final configJson = json.encode(_currentConfig.toJson());
       await prefs.setString(_configKey, configJson);
     } catch (e) {
-      debugPrint('❌ Failed to persist demo config: $e');
+      Logger.d('❌ Failed to persist demo config: $e');
     }
   }
 
@@ -290,7 +301,7 @@ class DemoSessionService {
       );
       await prefs.setString(_analyticsKey, analyticsJson);
     } catch (e) {
-      debugPrint('❌ Failed to persist demo analytics: $e');
+      Logger.d('❌ Failed to persist demo analytics: $e');
     }
   }
 
@@ -298,11 +309,11 @@ class DemoSessionService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final sessionJson = prefs.getString(_sessionKey);
-      
+
       if (sessionJson != null) {
         final sessionData = json.decode(sessionJson) as Map<String, dynamic>;
         _currentSession = DemoSession.fromJson(sessionData);
-        
+
         // Check if session is still valid
         if (_currentSession!.isExpired) {
           _currentSession = _currentSession!.end();
@@ -310,7 +321,7 @@ class DemoSessionService {
         }
       }
     } catch (e) {
-      debugPrint('❌ Failed to load persisted demo session: $e');
+      Logger.d('❌ Failed to load persisted demo session: $e');
     }
   }
 
@@ -318,13 +329,13 @@ class DemoSessionService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final configJson = prefs.getString(_configKey);
-      
+
       if (configJson != null) {
         final configData = json.decode(configJson) as Map<String, dynamic>;
         _currentConfig = DemoConfig.fromJson(configData);
       }
     } catch (e) {
-      debugPrint('❌ Failed to load persisted demo config: $e');
+      Logger.d('❌ Failed to load persisted demo config: $e');
     }
   }
 
@@ -332,7 +343,7 @@ class DemoSessionService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final analyticsJson = prefs.getString(_analyticsKey);
-      
+
       if (analyticsJson != null) {
         final analyticsList = json.decode(analyticsJson) as List<dynamic>;
         _analyticsBuffer.clear();
@@ -341,7 +352,7 @@ class DemoSessionService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Failed to load persisted demo analytics: $e');
+      Logger.d('❌ Failed to load persisted demo analytics: $e');
     }
   }
 
@@ -351,12 +362,12 @@ class DemoSessionService {
       await prefs.remove(_sessionKey);
       await prefs.remove(_configKey);
       await prefs.remove(_analyticsKey);
-      
+
       _currentSession = null;
       _currentConfig = DemoConfig.investor;
       _analyticsBuffer.clear();
     } catch (e) {
-      debugPrint('❌ Failed to clear persisted demo data: $e');
+      Logger.d('❌ Failed to clear persisted demo data: $e');
     }
   }
 }
@@ -365,14 +376,15 @@ class DemoSessionService {
 extension DemoSessionExtension on BuildContext {
   /// Get the demo session service
   DemoSessionService get demoSession => DemoSessionService.instance;
-  
+
   /// Check if currently in an active demo session
   Future<bool> get isInDemoSession async {
     return await DemoSessionService.instance.isDemoActive;
   }
-  
+
   /// Track a demo feature interaction
-  Future<void> trackDemoInteraction(String featureName, {
+  Future<void> trackDemoInteraction(
+    String featureName, {
     Map<String, dynamic>? data,
   }) async {
     await DemoSessionService.instance.trackFeatureInteraction(
@@ -380,4 +392,4 @@ extension DemoSessionExtension on BuildContext {
       additionalData: data,
     );
   }
-} 
+}

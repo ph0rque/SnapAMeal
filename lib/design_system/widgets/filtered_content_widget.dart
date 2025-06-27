@@ -27,10 +27,7 @@ class FilteredContentWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.blue.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.blue.withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.blue.withValues(alpha: 0.2), width: 1),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -44,11 +41,7 @@ class FilteredContentWidget extends StatelessWidget {
                   color: Colors.blue.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.visibility_off,
-                  color: Colors.blue,
-                  size: 24,
-                ),
+                child: Icon(Icons.visibility_off, color: Colors.blue, size: 24),
               ),
               SizedBox(width: 12),
               Expanded(
@@ -67,10 +60,7 @@ class FilteredContentWidget extends StatelessWidget {
                     ),
                     Text(
                       'Supporting your fasting journey',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -79,9 +69,9 @@ class FilteredContentWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           SizedBox(height: 16),
-          
+
           // Motivational content
           Container(
             width: double.infinity,
@@ -100,8 +90,8 @@ class FilteredContentWidget extends StatelessWidget {
             child: Column(
               children: [
                 Text(
-                  filterResult.replacementContent ?? 
-                  'Content hidden to support your fasting goals 🎯',
+                  filterResult.replacementContent ??
+                      'Content hidden to support your fasting goals 🎯',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
@@ -111,17 +101,17 @@ class FilteredContentWidget extends StatelessWidget {
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
                 ),
-                
+
                 SizedBox(height: 16),
-                
+
                 // Progress indicator
                 _buildProgressIndicator(),
               ],
             ),
           ),
-          
+
           SizedBox(height: 16),
-          
+
           // Action buttons
           Row(
             children: [
@@ -142,9 +132,9 @@ class FilteredContentWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              
+
               SizedBox(width: 12),
-              
+
               Expanded(
                 child: OutlinedButton(
                   onPressed: onShowAnyway,
@@ -164,9 +154,9 @@ class FilteredContentWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           SizedBox(height: 12),
-          
+
           // Filter details (for transparency)
           Text(
             'Filtered: ${_getCategoryDisplayName(filterResult.category)} content',
@@ -186,7 +176,7 @@ class FilteredContentWidget extends StatelessWidget {
     final progressPercentage = fastingSession.progressPercentage;
     final hoursElapsed = fastingSession.elapsedTime.inHours;
     final minutesElapsed = fastingSession.elapsedTime.inMinutes.remainder(60);
-    
+
     return Column(
       children: [
         Row(
@@ -210,31 +200,30 @@ class FilteredContentWidget extends StatelessWidget {
             ),
           ],
         ),
-        
+
         SizedBox(height: 8),
-        
+
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: progressPercentage,
             backgroundColor: Colors.grey[200],
             valueColor: AlwaysStoppedAnimation<Color>(
-              progressPercentage > 0.75 ? Colors.green :
-              progressPercentage > 0.5 ? Colors.orange :
-              Colors.blue,
+              progressPercentage > 0.75
+                  ? Colors.green
+                  : progressPercentage > 0.5
+                  ? Colors.orange
+                  : Colors.blue,
             ),
             minHeight: 8,
           ),
         ),
-        
+
         SizedBox(height: 4),
-        
+
         Text(
           '${(progressPercentage * 100).toInt()}% Complete',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
         ),
       ],
     );
@@ -286,18 +275,11 @@ class FilteredContentListItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.grey[100],
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Colors.grey[300]!,
-            width: 1,
-          ),
+          border: Border.all(color: Colors.grey[300]!, width: 1),
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.visibility_off,
-              color: Colors.grey[600],
-              size: 20,
-            ),
+            Icon(Icons.visibility_off, color: Colors.grey[600], size: 20),
             SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -314,21 +296,14 @@ class FilteredContentListItem extends StatelessWidget {
                   if (filterResult.replacementContent != null)
                     Text(
                       filterResult.replacementContent!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.grey[400],
-              size: 20,
-            ),
+            Icon(Icons.chevron_right, color: Colors.grey[400], size: 20),
           ],
         ),
       ),
@@ -340,10 +315,7 @@ class FilteredContentListItem extends StatelessWidget {
 class AlternativeContentWidget extends StatelessWidget {
   final AlternativeContent content;
 
-  const AlternativeContentWidget({
-    super.key,
-    required this.content,
-  });
+  const AlternativeContentWidget({super.key, required this.content});
 
   @override
   Widget build(BuildContext context) {
@@ -376,11 +348,7 @@ class AlternativeContentWidget extends StatelessWidget {
                   color: Colors.green.withValues(alpha: 0.2),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.lightbulb,
-                  color: Colors.green,
-                  size: 24,
-                ),
+                child: Icon(Icons.lightbulb, color: Colors.green, size: 24),
               ),
               SizedBox(width: 12),
               Expanded(
@@ -395,9 +363,9 @@ class AlternativeContentWidget extends StatelessWidget {
               ),
             ],
           ),
-          
+
           SizedBox(height: 16),
-          
+
           Text(
             content.description,
             style: TextStyle(
@@ -406,7 +374,7 @@ class AlternativeContentWidget extends StatelessWidget {
               height: 1.4,
             ),
           ),
-          
+
           if (content.actionText != null && content.onAction != null) ...[
             SizedBox(height: 16),
             SizedBox(
@@ -428,4 +396,4 @@ class AlternativeContentWidget extends StatelessWidget {
       ),
     );
   }
-} 
+}

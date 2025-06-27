@@ -3,6 +3,7 @@ import 'dart:async';
 import '../models/fasting_session.dart';
 import '../services/fasting_service.dart';
 import '../services/content_filter_service.dart';
+import '../utils/logger.dart';
 
 /// Comprehensive fasting state management for the entire app
 class FastingStateProvider extends ChangeNotifier {
@@ -42,8 +43,8 @@ class FastingStateProvider extends ChangeNotifier {
   FastingStateProvider({
     required FastingService fastingService,
     ContentFilterService? contentFilterService,
-  })  : _fastingService = fastingService,
-        _contentFilterService = contentFilterService {
+  }) : _fastingService = fastingService,
+       _contentFilterService = contentFilterService {
     _initialize();
   }
 
@@ -71,14 +72,16 @@ class FastingStateProvider extends ChangeNotifier {
   Duration get totalFastingTime => _totalFastingTime;
   DateTime? get longestStreakStart => _longestStreakStart;
   int get currentStreak => _currentStreak;
-  double get completionRate => 
-      _totalSessionsCount > 0 ? _completedSessionsCount / _totalSessionsCount : 0.0;
+  double get completionRate => _totalSessionsCount > 0
+      ? _completedSessionsCount / _totalSessionsCount
+      : 0.0;
 
   // Progress information
   double get progressPercentage => _currentSession?.progressPercentage ?? 0.0;
   Duration get elapsedTime => _currentSession?.elapsedTime ?? Duration.zero;
   Duration get remainingTime => _currentSession?.remainingTime ?? Duration.zero;
-  String get fastingTypeDisplay => _currentSession?.typeDescription ?? 'Not Fasting';
+  String get fastingTypeDisplay =>
+      _currentSession?.typeDescription ?? 'Not Fasting';
   String get sessionGoal => _currentSession?.personalGoal ?? '';
 
   /// Initialize the provider
@@ -89,16 +92,16 @@ class FastingStateProvider extends ChangeNotifier {
     try {
       // Load current session
       await _loadCurrentSession();
-      
+
       // Load app settings
       await _loadAppSettings();
-      
+
       // Load statistics
       await _loadStatistics();
-      
+
       // Set up real-time monitoring
       _setupRealtimeMonitoring();
-      
+
       // Update UI theme based on fasting state
       _updateAppTheme();
 
@@ -106,7 +109,7 @@ class FastingStateProvider extends ChangeNotifier {
       _error = null;
     } catch (e) {
       _error = 'Failed to initialize fasting state: $e';
-      debugPrint('FastingStateProvider initialization error: $e');
+      Logger.d('FastingStateProvider initialization error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -117,13 +120,13 @@ class FastingStateProvider extends ChangeNotifier {
   Future<void> _loadCurrentSession() async {
     try {
       _currentSession = await _fastingService.getCurrentSession();
-      
+
       // Enable fasting mode if there's an active session
       if (_currentSession?.isActive == true) {
         _fastingModeEnabled = true;
       }
     } catch (e) {
-      debugPrint('Error loading current session: $e');
+      Logger.d('Error loading current session: $e');
     }
   }
 
@@ -131,17 +134,17 @@ class FastingStateProvider extends ChangeNotifier {
   Future<void> _loadAppSettings() async {
     try {
       final settings = await _fastingService.getFastingSettings();
-      
+
       _filterSeverity = FilterSeverity.values.firstWhere(
         (severity) => severity.name == settings['filterSeverity'],
         orElse: () => FilterSeverity.moderate,
       );
-      
+
       _showMotivationalContent = settings['showMotivationalContent'] ?? true;
       _enableNotifications = settings['enableNotifications'] ?? true;
       _enableProgressSharing = settings['enableProgressSharing'] ?? false;
     } catch (e) {
-      debugPrint('Error loading app settings: $e');
+      Logger.d('Error loading app settings: $e');
     }
   }
 
@@ -149,17 +152,17 @@ class FastingStateProvider extends ChangeNotifier {
   Future<void> _loadStatistics() async {
     try {
       final stats = await _fastingService.getFastingStatistics();
-      
+
       _totalSessionsCount = stats['totalSessions'] ?? 0;
       _completedSessionsCount = stats['completedSessions'] ?? 0;
       _totalFastingTime = Duration(seconds: stats['totalFastingSeconds'] ?? 0);
       _currentStreak = stats['currentStreak'] ?? 0;
-      
+
       if (stats['longestStreakStart'] != null) {
         _longestStreakStart = DateTime.parse(stats['longestStreakStart']);
       }
     } catch (e) {
-      debugPrint('Error loading statistics: $e');
+      Logger.d('Error loading statistics: $e');
     }
   }
 
@@ -170,20 +173,20 @@ class FastingStateProvider extends ChangeNotifier {
       (session) {
         final wasActive = _currentSession?.isActive ?? false;
         _currentSession = session;
-        
+
         // Update fasting mode when session state changes
         _fastingModeEnabled = session?.isActive ?? false;
-        
+
         // Update app theme when fasting state changes
         if (wasActive != (session?.isActive ?? false)) {
           _updateAppTheme();
         }
-        
+
         notifyListeners();
       },
       onError: (error) {
         _error = 'Session monitoring error: $error';
-        debugPrint('Session stream error: $error');
+        Logger.d('Session stream error: $error');
         notifyListeners();
       },
     );
@@ -222,7 +225,7 @@ class FastingStateProvider extends ChangeNotifier {
   /// Get theme color based on fasting progress
   Color _getFastingThemeColor() {
     final progress = progressPercentage;
-    
+
     if (progress < 0.25) {
       return Colors.red.shade400; // Early stage - challenging
     } else if (progress < 0.5) {
@@ -237,10 +240,10 @@ class FastingStateProvider extends ChangeNotifier {
   /// Get fasting progress text for app bar
   String _getFastingProgressText() {
     if (_currentSession == null) return '';
-    
+
     final hours = elapsedTime.inHours;
     final minutes = elapsedTime.inMinutes.remainder(60);
-    
+
     return '${hours}h ${minutes}m';
   }
 
@@ -265,7 +268,7 @@ class FastingStateProvider extends ChangeNotifier {
         await _loadCurrentSession();
         await _loadStatistics();
         _updateAppTheme();
-        
+
         // Send fasting start notification
         _sendFastingStartNotification();
       }
@@ -274,7 +277,7 @@ class FastingStateProvider extends ChangeNotifier {
       return success;
     } catch (e) {
       _error = 'Failed to start fasting session: $e';
-      debugPrint('Error starting fasting session: $e');
+      Logger.d('Error starting fasting session: $e');
       return false;
     } finally {
       _isLoading = false;
@@ -297,7 +300,7 @@ class FastingStateProvider extends ChangeNotifier {
         _currentSession = null;
         await _loadStatistics();
         _updateAppTheme();
-        
+
         // Send completion notification if completed
         if (completed) {
           _sendFastingCompletionNotification();
@@ -308,7 +311,7 @@ class FastingStateProvider extends ChangeNotifier {
       return success;
     } catch (e) {
       _error = 'Failed to end fasting session: $e';
-      debugPrint('Error ending fasting session: $e');
+      Logger.d('Error ending fasting session: $e');
       return false;
     } finally {
       _isLoading = false;
@@ -327,7 +330,7 @@ class FastingStateProvider extends ChangeNotifier {
       }
       return success;
     } catch (e) {
-      debugPrint('Error pausing fasting session: $e');
+      Logger.d('Error pausing fasting session: $e');
       return false;
     }
   }
@@ -337,7 +340,7 @@ class FastingStateProvider extends ChangeNotifier {
     await pauseFastingSession();
   }
 
-  /// End fasting - alias for dashboard compatibility  
+  /// End fasting - alias for dashboard compatibility
   Future<void> endFasting() async {
     await endFastingSession(completed: false);
   }
@@ -358,7 +361,7 @@ class FastingStateProvider extends ChangeNotifier {
       }
       return success;
     } catch (e) {
-      debugPrint('Error resuming fasting session: $e');
+      Logger.d('Error resuming fasting session: $e');
       return false;
     }
   }
@@ -372,22 +375,22 @@ class FastingStateProvider extends ChangeNotifier {
   }) async {
     try {
       final settings = <String, dynamic>{};
-      
+
       if (filterSeverity != null) {
         _filterSeverity = filterSeverity;
         settings['filterSeverity'] = filterSeverity.name;
       }
-      
+
       if (showMotivationalContent != null) {
         _showMotivationalContent = showMotivationalContent;
         settings['showMotivationalContent'] = showMotivationalContent;
       }
-      
+
       if (enableNotifications != null) {
         _enableNotifications = enableNotifications;
         settings['enableNotifications'] = enableNotifications;
       }
-      
+
       if (enableProgressSharing != null) {
         _enableProgressSharing = enableProgressSharing;
         settings['enableProgressSharing'] = enableProgressSharing;
@@ -396,12 +399,15 @@ class FastingStateProvider extends ChangeNotifier {
       await _fastingService.updateFastingSettings(settings);
       notifyListeners();
     } catch (e) {
-      debugPrint('Error updating fasting settings: $e');
+      Logger.d('Error updating fasting settings: $e');
     }
   }
 
   /// Check if content should be filtered
-  Future<bool> shouldFilterContent(String content, ContentType contentType) async {
+  Future<bool> shouldFilterContent(
+    String content,
+    ContentType contentType,
+  ) async {
     if (!_fastingModeEnabled || _contentFilterService == null) {
       return false;
     }
@@ -416,15 +422,19 @@ class FastingStateProvider extends ChangeNotifier {
 
       return result.shouldFilter;
     } catch (e) {
-      debugPrint('Error checking content filter: $e');
+      Logger.d('Error checking content filter: $e');
       return false;
     }
   }
 
   /// Get alternative content for filtered item
-  Future<AlternativeContent?> getAlternativeContent(FilterCategory category) async {
+  Future<AlternativeContent?> getAlternativeContent(
+    FilterCategory category,
+  ) async {
     final currentSession = _currentSession;
-    if (!_fastingModeEnabled || _contentFilterService == null || currentSession == null) {
+    if (!_fastingModeEnabled ||
+        _contentFilterService == null ||
+        currentSession == null) {
       return null;
     }
 
@@ -434,7 +444,7 @@ class FastingStateProvider extends ChangeNotifier {
         currentSession,
       );
     } catch (e) {
-      debugPrint('Error getting alternative content: $e');
+      Logger.d('Error getting alternative content: $e');
       return null;
     }
   }
@@ -460,7 +470,7 @@ class FastingStateProvider extends ChangeNotifier {
   void _sendFastingStartNotification() {
     if (_enableNotifications && _currentSession != null) {
       // Implementation would depend on notification service
-      debugPrint('Fasting session started: ${_currentSession?.typeDescription}');
+      Logger.d('Fasting session started: ${_currentSession?.typeDescription}');
     }
   }
 
@@ -468,7 +478,7 @@ class FastingStateProvider extends ChangeNotifier {
   void _sendFastingCompletionNotification() {
     if (_enableNotifications) {
       // Implementation would depend on notification service
-      debugPrint('Fasting session completed successfully!');
+      Logger.d('Fasting session completed successfully!');
     }
   }
 
@@ -503,4 +513,4 @@ class FastingStateProvider extends ChangeNotifier {
     _progressUpdateTimer?.cancel();
     super.dispose();
   }
-} 
+}

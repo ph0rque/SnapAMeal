@@ -23,40 +23,32 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
   late AnimationController _filterDemoController;
   late Animation<double> _highlightAnimation;
   late Animation<double> _filterAnimation;
-  
+
   bool _showingARDemo = false;
   bool _showingContentFilterDemo = false;
   FastingARFilterType? _activeFilter;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _highlightController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _filterDemoController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
-    _highlightAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _highlightController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _filterAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _filterDemoController,
-      curve: Curves.elasticOut,
-    ));
+
+    _highlightAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _highlightController, curve: Curves.easeInOut),
+    );
+
+    _filterAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _filterDemoController, curve: Curves.elasticOut),
+    );
   }
 
   @override
@@ -72,14 +64,14 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
       future: AuthService().isCurrentUserDemo(),
       builder: (context, snapshot) {
         final isDemo = snapshot.data ?? false;
-        
+
         return Consumer<FastingService>(
           builder: (context, fastingService, child) {
             return StreamBuilder<FastingSession?>(
               stream: fastingService.sessionStream,
               builder: (context, snapshot) {
                 final session = snapshot.data;
-                
+
                 return Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
@@ -101,24 +93,24 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
                     children: [
                       // Demo indicator for investors
                       if (isDemo) _buildDemoIndicator(),
-                      
+
                       // Enhanced fasting timer with demo features
                       _buildEnhancedTimer(session, isDemo),
-                      
+
                       const SizedBox(height: 20),
-                      
+
                       // AR Filter showcase
                       if (isDemo && session?.isActive == true)
                         _buildARFilterShowcase(session!),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // Content filtering showcase
                       if (isDemo && session?.isActive == true)
                         _buildContentFilterShowcase(session!),
-                      
+
                       const SizedBox(height: 16),
-                      
+
                       // AI insights preview
                       if (isDemo) _buildAIInsightsPreview(session),
                     ],
@@ -142,11 +134,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.auto_awesome,
-            size: 16,
-            color: Colors.white,
-          ),
+          Icon(Icons.auto_awesome, size: 16, color: Colors.white),
           const SizedBox(width: 6),
           Text(
             'AI-Powered Fasting Demo',
@@ -175,7 +163,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
             }
           },
         ),
-        
+
         // Demo highlight effect
         if (isDemo && _showingARDemo)
           AnimatedBuilder(
@@ -196,7 +184,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
               );
             },
           ),
-        
+
         // AR filter overlay simulation
         if (isDemo && _activeFilter != null)
           _buildARFilterOverlay(_activeFilter!),
@@ -217,11 +205,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.camera_alt,
-                color: SnapColors.primaryYellow,
-                size: 20,
-              ),
+              Icon(Icons.camera_alt, color: SnapColors.primaryYellow, size: 20),
               const SizedBox(width: 8),
               Text(
                 'AR Fasting Filters',
@@ -233,7 +217,10 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
               const Spacer(),
               if (_showingARDemo)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: SnapColors.accentGreen.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -262,9 +249,18 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildFilterChip('Motivational Quotes', FastingARFilterType.motivationalText),
-              _buildFilterChip('Progress Ring', FastingARFilterType.progressRing),
-              _buildFilterChip('Strength Aura', FastingARFilterType.strengthAura),
+              _buildFilterChip(
+                'Motivational Quotes',
+                FastingARFilterType.motivationalText,
+              ),
+              _buildFilterChip(
+                'Progress Ring',
+                FastingARFilterType.progressRing,
+              ),
+              _buildFilterChip(
+                'Strength Aura',
+                FastingARFilterType.strengthAura,
+              ),
               _buildFilterChip('Zen Mode', FastingARFilterType.zenMode),
             ],
           ),
@@ -286,11 +282,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.shield,
-                color: SnapColors.primaryYellow,
-                size: 20,
-              ),
+              Icon(Icons.shield, color: SnapColors.primaryYellow, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Smart Content Filtering',
@@ -303,9 +295,12 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
               GestureDetector(
                 onTap: _toggleContentFilterDemo,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: _showingContentFilterDemo 
+                    color: _showingContentFilterDemo
                         ? SnapColors.accentBlue.withValues(alpha: 0.2)
                         : SnapColors.border.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -315,8 +310,8 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: _showingContentFilterDemo 
-                          ? SnapColors.accentBlue 
+                      color: _showingContentFilterDemo
+                          ? SnapColors.accentBlue
                           : SnapColors.textSecondaryLight,
                     ),
                   ),
@@ -352,11 +347,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.psychology,
-                color: SnapColors.primaryYellow,
-                size: 20,
-              ),
+              Icon(Icons.psychology, color: SnapColors.primaryYellow, size: 20),
               const SizedBox(width: 8),
               Text(
                 'AI Fasting Insights',
@@ -397,14 +388,14 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
 
   Widget _buildFilterChip(String label, FastingARFilterType filterType) {
     final isActive = _activeFilter == filterType;
-    
+
     return GestureDetector(
       onTap: () => _toggleARFilter(filterType),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: isActive 
+          color: isActive
               ? SnapColors.accentBlue.withValues(alpha: 0.2)
               : SnapColors.border.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(16),
@@ -417,7 +408,9 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
           style: TextStyle(
             fontSize: 12,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-            color: isActive ? SnapColors.accentBlue : SnapColors.textSecondaryLight,
+            color: isActive
+                ? SnapColors.accentBlue
+                : SnapColors.textSecondaryLight,
           ),
         ),
       ),
@@ -427,12 +420,8 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
   Widget _buildFilteringStatsRow(FastingSession session) {
     return Row(
       children: [
-        Expanded(
-          child: _buildStatItem('Content Blocked', '23', Icons.block),
-        ),
-        Expanded(
-          child: _buildStatItem('Focus Score', '94%', Icons.psychology),
-        ),
+        Expanded(child: _buildStatItem('Content Blocked', '23', Icons.block)),
+        Expanded(child: _buildStatItem('Focus Score', '94%', Icons.psychology)),
         Expanded(
           child: _buildStatItem('Filter Accuracy', '99%', Icons.verified),
         ),
@@ -455,17 +444,19 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
         ),
         Text(
           label,
-          style: TextStyle(
-            color: SnapColors.textSecondaryLight,
-            fontSize: 10,
-          ),
+          style: TextStyle(color: SnapColors.textSecondaryLight, fontSize: 10),
           textAlign: TextAlign.center,
         ),
       ],
     );
   }
 
-  Widget _buildInsightCard(String title, String description, IconData icon, Color color) {
+  Widget _buildInsightCard(
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -594,4 +585,4 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
       _showingContentFilterDemo = !_showingContentFilterDemo;
     });
   }
-} 
+}

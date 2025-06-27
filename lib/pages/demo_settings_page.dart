@@ -4,6 +4,7 @@ import '../services/demo_session_service.dart';
 import '../services/demo_tour_service.dart';
 import '../widgets/demo_mode_indicator.dart';
 import '../models/demo_config.dart';
+import '../utils/logger.dart';
 
 /// Demo settings page for managing demo features and reset functionality
 class DemoSettingsPage extends StatefulWidget {
@@ -28,13 +29,13 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
 
   Future<void> _loadStats() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final stats = await DemoResetService.getDemoDataStats();
       final sessionStats = DemoSessionService.instance.getSessionStats();
       final analyticsStats = DemoSessionService.instance.getAnalyticsSummary();
       final config = DemoSessionService.instance.currentConfig;
-      
+
       setState(() {
         _dataStats = stats;
         _sessionStats = sessionStats;
@@ -42,7 +43,7 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
         _currentConfig = config;
       });
     } catch (e) {
-      debugPrint('Error loading demo stats: $e');
+      Logger.d('Error loading demo stats: $e');
     } finally {
       setState(() => _isLoading = false);
     }
@@ -61,11 +62,11 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
     try {
       // Reset demo data
       final success = await DemoResetService.resetCurrentUserDemoData();
-      
+
       if (success) {
         // Reset session
         await DemoSessionService.instance.resetSession();
-        
+
         // Show success message
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -75,7 +76,7 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
             ),
           );
         }
-        
+
         // Reload stats
         await _loadStats();
       } else {
@@ -91,10 +92,7 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('❌ Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -108,13 +106,15 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
 
   Future<void> _exportAnalytics() async {
     final analytics = DemoSessionService.instance.exportAnalytics();
-    
+
     // In a real app, you would export this data to a file or send it somewhere
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Analytics Export'),
-        content: Text('Exported ${analytics.length} analytics events.\n\nIn a production app, this would save to a file or send to analytics service.'),
+        content: Text(
+          'Exported ${analytics.length} analytics events.\n\nIn a production app, this would save to a file or send to analytics service.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -152,10 +152,7 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Demo Settings'),
-        actions: const [
-          CompactDemoIndicator(),
-          SizedBox(width: 16),
-        ],
+        actions: const [CompactDemoIndicator(), SizedBox(width: 16)],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -165,19 +162,19 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
                 // Demo status section
                 _buildDemoStatusSection(),
                 const SizedBox(height: 24),
-                
+
                 // Session info section
                 _buildSessionInfoSection(),
                 const SizedBox(height: 24),
-                
+
                 // Data statistics section
                 _buildDataStatsSection(),
                 const SizedBox(height: 24),
-                
+
                 // Analytics section
                 _buildAnalyticsSection(),
                 const SizedBox(height: 24),
-                
+
                 // Actions section
                 _buildActionsSection(),
               ],
@@ -220,10 +217,14 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
                 spacing: 8,
                 runSpacing: 4,
                 children: [
-                  if (_currentConfig!.enableTours) const Chip(label: Text('Tours')),
-                  if (_currentConfig!.enableTooltips) const Chip(label: Text('Tooltips')),
-                  if (_currentConfig!.enableAnalytics) const Chip(label: Text('Analytics')),
-                  if (_currentConfig!.enableReset) const Chip(label: Text('Reset')),
+                  if (_currentConfig!.enableTours)
+                    const Chip(label: Text('Tours')),
+                  if (_currentConfig!.enableTooltips)
+                    const Chip(label: Text('Tooltips')),
+                  if (_currentConfig!.enableAnalytics)
+                    const Chip(label: Text('Analytics')),
+                  if (_currentConfig!.enableReset)
+                    const Chip(label: Text('Reset')),
                 ],
               ),
             ],
@@ -251,9 +252,18 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
             const SizedBox(height: 12),
             _buildInfoRow('Session ID', _sessionStats!['sessionId'] ?? 'N/A'),
             _buildInfoRow('Persona', _sessionStats!['personaId'] ?? 'N/A'),
-            _buildInfoRow('Duration', '${_sessionStats!['duration'] ?? 0} minutes'),
-            _buildInfoRow('Status', _sessionStats!['isActive'] == true ? 'Active' : 'Ended'),
-            _buildInfoRow('Events Tracked', '${_sessionStats!['analyticsEvents'] ?? 0}'),
+            _buildInfoRow(
+              'Duration',
+              '${_sessionStats!['duration'] ?? 0} minutes',
+            ),
+            _buildInfoRow(
+              'Status',
+              _sessionStats!['isActive'] == true ? 'Active' : 'Ended',
+            ),
+            _buildInfoRow(
+              'Events Tracked',
+              '${_sessionStats!['analyticsEvents'] ?? 0}',
+            ),
           ],
         ),
       ),
@@ -268,12 +278,11 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Demo Data',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text('Demo Data', style: Theme.of(context).textTheme.titleLarge),
               const SizedBox(height: 12),
-              const Text('No demo data found. This is normal if you haven\'t seeded data yet.'),
+              const Text(
+                'No demo data found. This is normal if you haven\'t seeded data yet.',
+              ),
             ],
           ),
         ),
@@ -316,8 +325,14 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 12),
-            _buildInfoRow('Total Events', '${_analyticsStats!['totalEvents'] ?? 0}'),
-            _buildInfoRow('Sessions', '${_analyticsStats!['sessionCount'] ?? 0}'),
+            _buildInfoRow(
+              'Total Events',
+              '${_analyticsStats!['totalEvents'] ?? 0}',
+            ),
+            _buildInfoRow(
+              'Sessions',
+              '${_analyticsStats!['sessionCount'] ?? 0}',
+            ),
             const SizedBox(height: 8),
             if (_analyticsStats!['featureInteractions'] != null) ...[
               Text(
@@ -325,12 +340,15 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 4),
-              ...(_analyticsStats!['featureInteractions'] as Map<String, dynamic>).entries.map((entry) {
-                return Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: _buildInfoRow(entry.key, '${entry.value}'),
-                );
-              }),
+              ...(_analyticsStats!['featureInteractions']
+                      as Map<String, dynamic>)
+                  .entries
+                  .map((entry) {
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 16),
+                      child: _buildInfoRow(entry.key, '${entry.value}'),
+                    );
+                  }),
             ],
           ],
         ),
@@ -345,12 +363,9 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Actions',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Actions', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 16),
-            
+
             // Show demo tour
             SizedBox(
               width: double.infinity,
@@ -361,7 +376,7 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
               ),
             ),
             const SizedBox(height: 8),
-            
+
             // Export analytics
             if (_currentConfig?.enableAnalytics == true) ...[
               SizedBox(
@@ -374,7 +389,7 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
               ),
               const SizedBox(height: 8),
             ],
-            
+
             // Reset demo data
             if (_currentConfig?.enableReset == true) ...[
               SizedBox(
@@ -406,16 +421,13 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
             width: 120,
             child: Text(
               '$label:',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
             ),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
           ),
         ],
       ),
@@ -429,4 +441,4 @@ class _DemoSettingsPageState extends State<DemoSettingsPage> {
     if (config == DemoConfig.disabled) return 'Disabled';
     return 'Custom';
   }
-} 
+}

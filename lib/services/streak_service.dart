@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/logger.dart';
 
 /// Types of streaks that can be tracked
 enum StreakType {
@@ -55,14 +56,16 @@ class StreakData {
       'last_updated': Timestamp.fromDate(lastUpdated),
       'start_date': Timestamp.fromDate(startDate),
       'settings': settings,
-      'completed_dates': completedDates.map((date) => Timestamp.fromDate(date)).toList(),
+      'completed_dates': completedDates
+          .map((date) => Timestamp.fromDate(date))
+          .toList(),
       'is_active': isActive,
     };
   }
 
   factory StreakData.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return StreakData(
       id: doc.id,
       userId: data['user_id'] ?? '',
@@ -77,9 +80,11 @@ class StreakData {
       lastUpdated: (data['last_updated'] as Timestamp).toDate(),
       startDate: (data['start_date'] as Timestamp).toDate(),
       settings: Map<String, dynamic>.from(data['settings'] ?? {}),
-      completedDates: (data['completed_dates'] as List<dynamic>?)
-          ?.map((timestamp) => (timestamp as Timestamp).toDate())
-          .toList() ?? [],
+      completedDates:
+          (data['completed_dates'] as List<dynamic>?)
+              ?.map((timestamp) => (timestamp as Timestamp).toDate())
+              .toList() ??
+          [],
       isActive: data['is_active'] ?? true,
     );
   }
@@ -87,24 +92,34 @@ class StreakData {
   /// Check if streak was completed today
   bool get isCompletedToday {
     final today = DateTime.now();
-    return completedDates.any((date) => 
-        date.year == today.year &&
-        date.month == today.month &&
-        date.day == today.day);
+    return completedDates.any(
+      (date) =>
+          date.year == today.year &&
+          date.month == today.month &&
+          date.day == today.day,
+    );
   }
 
   /// Get streak completion percentage for current week
   double get weeklyCompletionRate {
     final now = DateTime.now();
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final weekDates = List.generate(7, (index) => weekStart.add(Duration(days: index)));
-    
-    final completedThisWeek = completedDates.where((date) => 
-        weekDates.any((weekDate) => 
-            date.year == weekDate.year &&
-            date.month == weekDate.month &&
-            date.day == weekDate.day)).length;
-    
+    final weekDates = List.generate(
+      7,
+      (index) => weekStart.add(Duration(days: index)),
+    );
+
+    final completedThisWeek = completedDates
+        .where(
+          (date) => weekDates.any(
+            (weekDate) =>
+                date.year == weekDate.year &&
+                date.month == weekDate.month &&
+                date.day == weekDate.day,
+          ),
+        )
+        .length;
+
     return completedThisWeek / 7.0;
   }
 }
@@ -140,21 +155,27 @@ class SharedStreak {
   /// Get average streak across all members
   double get averageStreak {
     if (memberStreaks.isEmpty) return 0.0;
-    final total = memberStreaks.values.fold(0, (acc, streak) => acc + streak.currentStreak);
+    final total = memberStreaks.values.fold(
+      0,
+      (acc, streak) => acc + streak.currentStreak,
+    );
     return total / memberStreaks.length;
   }
 
   /// Get member with longest current streak
   StreakData? get topStreaker {
     if (memberStreaks.isEmpty) return null;
-    return memberStreaks.values.reduce((a, b) => 
-        a.currentStreak > b.currentStreak ? a : b);
+    return memberStreaks.values.reduce(
+      (a, b) => a.currentStreak > b.currentStreak ? a : b,
+    );
   }
 
   /// Get completion rate for today across all members
   double get todayCompletionRate {
     if (memberStreaks.isEmpty) return 0.0;
-    final completedToday = memberStreaks.values.where((streak) => streak.isCompletedToday).length;
+    final completedToday = memberStreaks.values
+        .where((streak) => streak.isCompletedToday)
+        .length;
     return completedToday / memberStreaks.length;
   }
 }
@@ -200,10 +221,10 @@ class StreakService {
       );
 
       final docRef = await _streaksCollection.add(streak.toFirestore());
-      debugPrint('Created streak: ${docRef.id}');
+      Logger.d('Created streak: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      debugPrint('Error creating streak: $e');
+      Logger.d('Error creating streak: $e');
       return null;
     }
   }
@@ -218,28 +239,31 @@ class StreakService {
       if (!streakDoc.exists) throw Exception('Streak not found');
 
       final streak = StreakData.fromFirestore(streakDoc);
-      
+
       // Check if already completed today
       if (streak.isCompletedToday) {
-        debugPrint('Streak already completed today');
+        Logger.d('Streak already completed today');
         return true;
       }
 
       final today = DateTime.now();
       final yesterday = today.subtract(const Duration(days: 1));
-      
-      // Check if streak should continue or reset
-      final wasCompletedYesterday = streak.completedDates.any((date) => 
-          date.year == yesterday.year &&
-          date.month == yesterday.month &&
-          date.day == yesterday.day);
 
-      final newCurrentStreak = wasCompletedYesterday || streak.currentStreak == 0 
-          ? streak.currentStreak + 1 
+      // Check if streak should continue or reset
+      final wasCompletedYesterday = streak.completedDates.any(
+        (date) =>
+            date.year == yesterday.year &&
+            date.month == yesterday.month &&
+            date.day == yesterday.day,
+      );
+
+      final newCurrentStreak =
+          wasCompletedYesterday || streak.currentStreak == 0
+          ? streak.currentStreak + 1
           : 1; // Reset if missed yesterday
 
-      final newBestStreak = newCurrentStreak > streak.bestStreak 
-          ? newCurrentStreak 
+      final newBestStreak = newCurrentStreak > streak.bestStreak
+          ? newCurrentStreak
           : streak.bestStreak;
 
       final updatedCompletedDates = [...streak.completedDates, today];
@@ -248,13 +272,15 @@ class StreakService {
         'current_streak': newCurrentStreak,
         'best_streak': newBestStreak,
         'last_updated': Timestamp.now(),
-        'completed_dates': updatedCompletedDates.map((date) => Timestamp.fromDate(date)).toList(),
+        'completed_dates': updatedCompletedDates
+            .map((date) => Timestamp.fromDate(date))
+            .toList(),
       });
 
-      debugPrint('Streak completed for today');
+      Logger.d('Streak completed for today');
       return true;
     } catch (e) {
-      debugPrint('Error completing streak: $e');
+      Logger.d('Error completing streak: $e');
       return false;
     }
   }
@@ -269,9 +295,11 @@ class StreakService {
         .where('is_active', isEqualTo: true)
         .orderBy('current_streak', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => StreakData.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => StreakData.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   /// Create a shared streak for a group
@@ -297,7 +325,7 @@ class StreakService {
           description: description,
           settings: {...settings, 'shared_streak': true, 'group_id': groupId},
         );
-        
+
         if (streakId != null) {
           final streakDoc = await _streaksCollection.doc(streakId).get();
           memberStreaks[memberId] = StreakData.fromFirestore(streakDoc);
@@ -310,7 +338,9 @@ class StreakService {
         'description': description,
         'type': type.name,
         'member_ids': memberIds,
-        'member_streak_ids': memberStreaks.map((key, value) => MapEntry(key, value.id)),
+        'member_streak_ids': memberStreaks.map(
+          (key, value) => MapEntry(key, value.id),
+        ),
         'start_date': Timestamp.now(),
         'end_date': endDate != null ? Timestamp.fromDate(endDate) : null,
         'settings': settings,
@@ -319,10 +349,10 @@ class StreakService {
       };
 
       final docRef = await _sharedStreaksCollection.add(sharedStreakData);
-      debugPrint('Created shared streak: ${docRef.id}');
+      Logger.d('Created shared streak: ${docRef.id}');
       return docRef.id;
     } catch (e) {
-      debugPrint('Error creating shared streak: $e');
+      Logger.d('Error creating shared streak: $e');
       return null;
     }
   }
@@ -334,12 +364,13 @@ class StreakService {
         .where('is_active', isEqualTo: true)
         .orderBy('start_date', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => {
-              'id': doc.id,
-              ...doc.data() as Map<String, dynamic>,
-            })
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => {'id': doc.id, ...doc.data() as Map<String, dynamic>},
+              )
+              .toList(),
+        );
   }
 
   /// Get shared streak details with member progress
@@ -349,8 +380,10 @@ class StreakService {
       if (!doc.exists) return null;
 
       final data = doc.data() as Map<String, dynamic>;
-      final memberStreakIds = Map<String, String>.from(data['member_streak_ids'] ?? {});
-      
+      final memberStreakIds = Map<String, String>.from(
+        data['member_streak_ids'] ?? {},
+      );
+
       // Get individual member streaks
       final memberStreaks = <String, StreakData>{};
       for (final entry in memberStreakIds.entries) {
@@ -372,18 +405,22 @@ class StreakService {
         memberIds: List<String>.from(data['member_ids'] ?? []),
         memberStreaks: memberStreaks,
         startDate: (data['start_date'] as Timestamp).toDate(),
-        endDate: data['end_date'] != null ? (data['end_date'] as Timestamp).toDate() : null,
+        endDate: data['end_date'] != null
+            ? (data['end_date'] as Timestamp).toDate()
+            : null,
         settings: Map<String, dynamic>.from(data['settings'] ?? {}),
         isActive: data['is_active'] ?? true,
       );
     } catch (e) {
-      debugPrint('Error getting shared streak details: $e');
+      Logger.d('Error getting shared streak details: $e');
       return null;
     }
   }
 
   /// Get streak leaderboard for a group
-  Future<List<Map<String, dynamic>>> getGroupStreakLeaderboard(String groupId) async {
+  Future<List<Map<String, dynamic>>> getGroupStreakLeaderboard(
+    String groupId,
+  ) async {
     try {
       final sharedStreaks = await _sharedStreaksCollection
           .where('group_id', isEqualTo: groupId)
@@ -391,7 +428,7 @@ class StreakService {
           .get();
 
       final leaderboard = <Map<String, dynamic>>[];
-      
+
       for (final doc in sharedStreaks.docs) {
         final sharedStreak = await getSharedStreakDetails(doc.id);
         if (sharedStreak != null) {
@@ -410,11 +447,14 @@ class StreakService {
       }
 
       // Sort by current streak descending
-      leaderboard.sort((a, b) => (b['current_streak'] as int).compareTo(a['current_streak'] as int));
-      
+      leaderboard.sort(
+        (a, b) =>
+            (b['current_streak'] as int).compareTo(a['current_streak'] as int),
+      );
+
       return leaderboard;
     } catch (e) {
-      debugPrint('Error getting group streak leaderboard: $e');
+      Logger.d('Error getting group streak leaderboard: $e');
       return [];
     }
   }
@@ -427,7 +467,9 @@ class StreakService {
 
       final topStreaker = leaderboard.first;
       final totalMembers = leaderboard.length;
-      final completedToday = leaderboard.where((member) => member['completed_today'] == true).length;
+      final completedToday = leaderboard
+          .where((member) => member['completed_today'] == true)
+          .length;
       final completionRate = completedToday / totalMembers;
 
       if (completionRate >= 0.8) {
@@ -440,7 +482,7 @@ class StreakService {
         return '🌟 Every journey starts with a single step. Today is a perfect day to start your streak!';
       }
     } catch (e) {
-      debugPrint('Error generating motivational message: $e');
+      Logger.d('Error generating motivational message: $e');
       return null;
     }
   }

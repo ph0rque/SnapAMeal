@@ -57,13 +57,10 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
           children: [
             const Text(
               'Pinecone Connection Test',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            
+
             ElevatedButton(
               onPressed: _isLoading ? null : _testConnection,
               child: _isLoading
@@ -74,9 +71,9 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                     )
                   : const Text('Test Connection'),
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             if (_errorMessage != null)
               Container(
                 padding: const EdgeInsets.all(12),
@@ -103,7 +100,7 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                   ],
                 ),
               ),
-            
+
             if (_testResults != null)
               Expanded(
                 child: Container(
@@ -125,12 +122,24 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
-                        _buildStatusRow('Overall Success', _testResults!['success']),
-                        _buildStatusRow('API Key Valid', _testResults!['api_key_valid']),
-                        _buildStatusRow('Index Exists', _testResults!['index_exists']),
-                        _buildStatusRow('Connection Test', _testResults!['connection_test']),
-                        
+
+                        _buildStatusRow(
+                          'Overall Success',
+                          _testResults!['success'],
+                        ),
+                        _buildStatusRow(
+                          'API Key Valid',
+                          _testResults!['api_key_valid'],
+                        ),
+                        _buildStatusRow(
+                          'Index Exists',
+                          _testResults!['index_exists'],
+                        ),
+                        _buildStatusRow(
+                          'Connection Test',
+                          _testResults!['connection_test'],
+                        ),
+
                         if (_testResults!['index_host'] != null) ...[
                           const SizedBox(height: 16),
                           Text(
@@ -149,7 +158,7 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                             ),
                           ),
                         ],
-                        
+
                         if (_testResults!['index_stats'] != null) ...[
                           const SizedBox(height: 16),
                           Text(
@@ -162,7 +171,7 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                           const SizedBox(height: 8),
                           _buildStatsInfo(_testResults!['index_stats']),
                         ],
-                        
+
                         if (_testResults!['error'] != null) ...[
                           const SizedBox(height: 16),
                           Text(
@@ -175,9 +184,7 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                           const SizedBox(height: 4),
                           Text(
                             _testResults!['error'],
-                            style: TextStyle(
-                              color: Colors.red.shade600,
-                            ),
+                            style: TextStyle(color: Colors.red.shade600),
                           ),
                         ],
                       ],
@@ -235,9 +242,11 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
           Text('Total Vectors: ${stats['totalVectorCount'] ?? 0}'),
           Text('Dimension: ${stats['dimension'] ?? 'N/A'}'),
           Text('Index Fullness: ${stats['indexFullness'] ?? 0}'),
-          Text('Namespaces: ${stats['namespaces']?.keys?.join(', ') ?? 'default'}'),
+          Text(
+            'Namespaces: ${stats['namespaces']?.keys?.join(', ') ?? 'default'}',
+          ),
         ],
       ),
     );
   }
-} 
+}

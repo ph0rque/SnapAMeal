@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:math';
+import '../utils/logger.dart';
 
 /// Anonymous identity for sensitive health sharing
 class AnonymousIdentity {
@@ -42,7 +43,7 @@ class AnonymousIdentity {
 
   factory AnonymousIdentity.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return AnonymousIdentity(
       id: doc.id,
       userId: data['user_id'] ?? '',
@@ -50,7 +51,9 @@ class AnonymousIdentity {
       anonymousName: data['anonymous_name'] ?? '',
       anonymousAvatar: data['anonymous_avatar'] ?? '',
       createdAt: (data['created_at'] as Timestamp).toDate(),
-      expiresAt: data['expires_at'] != null ? (data['expires_at'] as Timestamp).toDate() : null,
+      expiresAt: data['expires_at'] != null
+          ? (data['expires_at'] as Timestamp).toDate()
+          : null,
       isActive: data['is_active'] ?? true,
       metadata: Map<String, dynamic>.from(data['metadata'] ?? {}),
     );
@@ -68,7 +71,8 @@ class AnonymousMessage {
   final String groupId;
   final String anonymousId;
   final String content;
-  final String category; // 'weight', 'mental-health', 'addiction', 'medical', etc.
+  final String
+  category; // 'weight', 'mental-health', 'addiction', 'medical', etc.
   final int sensitivityLevel; // 1-5, higher = more sensitive
   final DateTime timestamp;
   final List<String> supportReactions;
@@ -104,7 +108,7 @@ class AnonymousMessage {
 
   factory AnonymousMessage.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return AnonymousMessage(
       id: doc.id,
       groupId: data['group_id'] ?? '',
@@ -130,29 +134,74 @@ class AnonymityService {
 
   // Predefined anonymous names for health contexts
   static const List<String> _healthyAnimalNames = [
-    'Peaceful Panda', 'Strong Elephant', 'Swift Cheetah', 'Wise Owl',
-    'Brave Lion', 'Gentle Dolphin', 'Resilient Phoenix', 'Calm Turtle',
-    'Energetic Hummingbird', 'Steady Mountain Goat', 'Graceful Swan',
-    'Determined Eagle', 'Balanced Flamingo', 'Mindful Butterfly',
-    'Courageous Bear', 'Flexible Cat', 'Enduring Camel', 'Joyful Otter',
+    'Peaceful Panda',
+    'Strong Elephant',
+    'Swift Cheetah',
+    'Wise Owl',
+    'Brave Lion',
+    'Gentle Dolphin',
+    'Resilient Phoenix',
+    'Calm Turtle',
+    'Energetic Hummingbird',
+    'Steady Mountain Goat',
+    'Graceful Swan',
+    'Determined Eagle',
+    'Balanced Flamingo',
+    'Mindful Butterfly',
+    'Courageous Bear',
+    'Flexible Cat',
+    'Enduring Camel',
+    'Joyful Otter',
   ];
 
   // ignore: unused_field
   static const List<String> _encouragingAdjectives = [
-    'Hopeful', 'Brave', 'Strong', 'Peaceful', 'Resilient', 'Gentle',
-    'Wise', 'Calm', 'Determined', 'Balanced', 'Mindful', 'Courageous',
-    'Flexible', 'Enduring', 'Joyful', 'Radiant', 'Serene', 'Vibrant',
+    'Hopeful',
+    'Brave',
+    'Strong',
+    'Peaceful',
+    'Resilient',
+    'Gentle',
+    'Wise',
+    'Calm',
+    'Determined',
+    'Balanced',
+    'Mindful',
+    'Courageous',
+    'Flexible',
+    'Enduring',
+    'Joyful',
+    'Radiant',
+    'Serene',
+    'Vibrant',
   ];
 
   // ignore: unused_field
   static const List<String> _neutralNouns = [
-    'Journey', 'Path', 'Star', 'Light', 'Wave', 'Breeze', 'Stone',
-    'River', 'Mountain', 'Garden', 'Sunrise', 'Compass', 'Bridge',
-    'Anchor', 'Horizon', 'Melody', 'Canvas', 'Sanctuary',
+    'Journey',
+    'Path',
+    'Star',
+    'Light',
+    'Wave',
+    'Breeze',
+    'Stone',
+    'River',
+    'Mountain',
+    'Garden',
+    'Sunrise',
+    'Compass',
+    'Bridge',
+    'Anchor',
+    'Horizon',
+    'Melody',
+    'Canvas',
+    'Sanctuary',
   ];
 
   AnonymityService() {
-    _anonymousIdentitiesCollection = _firestore.collection('anonymous_identities');
+    _anonymousIdentitiesCollection = _firestore.collection(
+      'anonymous_identities',
+    );
     _anonymousMessagesCollection = _firestore.collection('anonymous_messages');
   }
 
@@ -175,7 +224,9 @@ class AnonymityService {
           .get();
 
       if (existingQuery.docs.isNotEmpty) {
-        final existing = AnonymousIdentity.fromFirestore(existingQuery.docs.first);
+        final existing = AnonymousIdentity.fromFirestore(
+          existingQuery.docs.first,
+        );
         if (!existing.isExpired) {
           return existing;
         } else {
@@ -201,8 +252,10 @@ class AnonymityService {
         expiresAt: expiration != null ? now.add(expiration) : null,
       );
 
-      final docRef = await _anonymousIdentitiesCollection.add(identity.toFirestore());
-      
+      final docRef = await _anonymousIdentitiesCollection.add(
+        identity.toFirestore(),
+      );
+
       return AnonymousIdentity(
         id: docRef.id,
         userId: identity.userId,
@@ -213,7 +266,7 @@ class AnonymityService {
         expiresAt: identity.expiresAt,
       );
     } catch (e) {
-      debugPrint('Error creating anonymous identity: \$e');
+      Logger.d('Error creating anonymous identity: \$e');
       return null;
     }
   }
@@ -227,7 +280,8 @@ class AnonymityService {
   }) async {
     try {
       final identity = await getOrCreateAnonymousIdentity(groupId);
-      if (identity == null) throw Exception('Could not create anonymous identity');
+      if (identity == null)
+        throw Exception('Could not create anonymous identity');
 
       final message = AnonymousMessage(
         id: '',
@@ -239,11 +293,13 @@ class AnonymityService {
         timestamp: DateTime.now(),
       );
 
-      final docRef = await _anonymousMessagesCollection.add(message.toFirestore());
-      debugPrint('Posted anonymous message: \${docRef.id}');
+      final docRef = await _anonymousMessagesCollection.add(
+        message.toFirestore(),
+      );
+      Logger.d('Posted anonymous message: \${docRef.id}');
       return docRef.id;
     } catch (e) {
-      debugPrint('Error posting anonymous message: \$e');
+      Logger.d('Error posting anonymous message: \$e');
       return null;
     }
   }
@@ -255,9 +311,11 @@ class AnonymityService {
         .where('is_moderated', isEqualTo: false)
         .orderBy('timestamp', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => AnonymousMessage.fromFirestore(doc))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => AnonymousMessage.fromFirestore(doc))
+              .toList(),
+        );
   }
 
   /// Add support reaction to anonymous message
@@ -283,19 +341,21 @@ class AnonymityService {
 
       return true;
     } catch (e) {
-      debugPrint('Error adding support reaction: \$e');
+      Logger.d('Error adding support reaction: \$e');
       return false;
     }
   }
 
   /// Get anonymous identity for display (without revealing user)
-  Future<Map<String, dynamic>?> getAnonymousDisplayInfo(String anonymousId) async {
+  Future<Map<String, dynamic>?> getAnonymousDisplayInfo(
+    String anonymousId,
+  ) async {
     try {
       final doc = await _anonymousIdentitiesCollection.doc(anonymousId).get();
       if (!doc.exists) return null;
 
       final identity = AnonymousIdentity.fromFirestore(doc);
-      
+
       return {
         'name': identity.anonymousName,
         'avatar': identity.anonymousAvatar,
@@ -303,7 +363,7 @@ class AnonymityService {
         'is_active': identity.isActive && !identity.isExpired,
       };
     } catch (e) {
-      debugPrint('Error getting anonymous display info: \$e');
+      Logger.d('Error getting anonymous display info: \$e');
       return null;
     }
   }
@@ -315,13 +375,16 @@ class AnonymityService {
       if (userId == null) return false;
 
       // Check if group allows anonymous sharing
-      final groupDoc = await _firestore.collection('health_groups').doc(groupId).get();
+      final groupDoc = await _firestore
+          .collection('health_groups')
+          .doc(groupId)
+          .get();
       if (!groupDoc.exists) return false;
 
       final groupData = groupDoc.data() as Map<String, dynamic>;
       return groupData['allow_anonymous'] == true;
     } catch (e) {
-      debugPrint('Error checking anonymous access: \$e');
+      Logger.d('Error checking anonymous access: \$e');
       return false;
     }
   }
@@ -332,7 +395,8 @@ class AnonymityService {
       {
         'id': 'weight',
         'name': 'Weight & Body Image',
-        'description': 'Struggles with weight, body dysmorphia, eating patterns',
+        'description':
+            'Struggles with weight, body dysmorphia, eating patterns',
         'icon': '⚖️',
         'sensitivity': 3,
       },
@@ -360,7 +424,8 @@ class AnonymityService {
       {
         'id': 'relationships',
         'name': 'Relationships & Support',
-        'description': 'Family dynamics, social pressure, relationship with food',
+        'description':
+            'Family dynamics, social pressure, relationship with food',
         'icon': '👥',
         'sensitivity': 2,
       },
@@ -384,29 +449,52 @@ class AnonymityService {
   /// Generate encouraging anonymous name
   String _generateAnonymousName() {
     final random = Random();
-    
+
     // Use different patterns for variety
     final patterns = [
-      () => '\${_encouragingAdjectives[random.nextInt(_encouragingAdjectives.length)]} \${_neutralNouns[random.nextInt(_neutralNouns.length)]}',
+      () =>
+          '\${_encouragingAdjectives[random.nextInt(_encouragingAdjectives.length)]} \${_neutralNouns[random.nextInt(_neutralNouns.length)]}',
       () => _healthyAnimalNames[random.nextInt(_healthyAnimalNames.length)],
-      () => '\${_encouragingAdjectives[random.nextInt(_encouragingAdjectives.length)]} Warrior',
+      () =>
+          '\${_encouragingAdjectives[random.nextInt(_encouragingAdjectives.length)]} Warrior',
       () => '\${_neutralNouns[random.nextInt(_neutralNouns.length)]} Seeker',
     ];
-    
+
     return patterns[random.nextInt(patterns.length)]();
   }
 
   /// Generate anonymous avatar (emoji or color combination)
   String _generateAnonymousAvatar() {
     final random = Random();
-    
+
     // Calming, positive emojis for health contexts
     final avatars = [
-      '🌟', '🌸', '🍃', '🌊', '🦋', '🌺', '🌙', '☀️',
-      '🌈', '🕊️', '🌿', '🪴', '🌻', '🌷', '🌹', '💫',
-      '🔮', '��', '🍀', '🌾', '🐝', '🦋', '🌼', '🌵',
+      '🌟',
+      '🌸',
+      '🍃',
+      '🌊',
+      '🦋',
+      '🌺',
+      '🌙',
+      '☀️',
+      '🌈',
+      '🕊️',
+      '🌿',
+      '🪴',
+      '🌻',
+      '🌷',
+      '🌹',
+      '💫',
+      '🔮',
+      '��',
+      '🍀',
+      '🌾',
+      '🐝',
+      '🦋',
+      '🌼',
+      '🌵',
     ];
-    
+
     return avatars[random.nextInt(avatars.length)];
   }
 
@@ -423,11 +511,11 @@ class AnonymityService {
       for (final doc in expiredQuery.docs) {
         batch.update(doc.reference, {'is_active': false});
       }
-      
+
       await batch.commit();
-      debugPrint('Cleaned up \${expiredQuery.docs.length} expired identities');
+      Logger.d('Cleaned up \${expiredQuery.docs.length} expired identities');
     } catch (e) {
-      debugPrint('Error cleaning up expired identities: \$e');
+      Logger.d('Error cleaning up expired identities: \$e');
     }
   }
 

@@ -65,9 +65,7 @@ class MealCardWidget extends StatelessWidget {
               fit: BoxFit.cover,
               placeholder: (context, url) => Container(
                 color: Colors.grey[300],
-                child: const Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: const Center(child: CircularProgressIndicator()),
               ),
               errorWidget: (context, url, error) => Container(
                 color: Colors.grey[300],
@@ -78,7 +76,7 @@ class MealCardWidget extends StatelessWidget {
             ),
           ),
         ),
-        
+
         // Timestamp Overlay
         Positioned(
           top: 8,
@@ -98,7 +96,7 @@ class MealCardWidget extends StatelessWidget {
             ),
           ),
         ),
-        
+
         // Confidence Badge
         if (mealLog.recognitionResult.confidenceScore > 0.8)
           Positioned(
@@ -141,11 +139,7 @@ class MealCardWidget extends StatelessWidget {
           if (mealLog.recognitionResult.detectedFoods.isNotEmpty) ...[
             Row(
               children: [
-                Icon(
-                  Icons.local_dining,
-                  size: 16,
-                  color: SnapColors.primary,
-                ),
+                Icon(Icons.local_dining, size: 16, color: SnapColors.primary),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -163,7 +157,7 @@ class MealCardWidget extends StatelessWidget {
             ),
             const SizedBox(height: SnapDimensions.spacingS),
           ],
-          
+
           // AI Caption
           if (mealLog.aiCaption != null) ...[
             Container(
@@ -186,44 +180,49 @@ class MealCardWidget extends StatelessWidget {
             ),
             const SizedBox(height: SnapDimensions.spacingS),
           ],
-          
+
           // User Caption
           if (mealLog.userCaption != null) ...[
-            Text(
-              mealLog.userCaption!,
-              style: SnapTypography.body,
-            ),
+            Text(mealLog.userCaption!, style: SnapTypography.body),
             const SizedBox(height: SnapDimensions.spacingS),
           ],
-          
+
           // Tags
           if (mealLog.tags.isNotEmpty) ...[
             Wrap(
               spacing: 6,
               runSpacing: 4,
-              children: mealLog.tags.map((tag) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: SnapColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: SnapColors.primary.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Text(
-                  '#$tag',
-                  style: SnapTypography.caption.copyWith(
-                    color: SnapColors.primary,
-                    fontSize: 11,
-                  ),
-                ),
-              )).toList(),
+              children: mealLog.tags
+                  .map(
+                    (tag) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: SnapColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: SnapColors.primary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        '#$tag',
+                        style: SnapTypography.caption.copyWith(
+                          color: SnapColors.primary,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
             const SizedBox(height: SnapDimensions.spacingS),
           ],
-          
+
           // Mood and Hunger (if not compact)
-          if (!isCompact && (mealLog.moodRating != null || mealLog.hungerLevel != null)) ...[
+          if (!isCompact &&
+              (mealLog.moodRating != null || mealLog.hungerLevel != null)) ...[
             Row(
               children: [
                 if (mealLog.moodRating != null) ...[
@@ -241,11 +240,7 @@ class MealCardWidget extends StatelessWidget {
                 if (mealLog.moodRating != null && mealLog.hungerLevel != null)
                   const SizedBox(width: 16),
                 if (mealLog.hungerLevel != null) ...[
-                  const Icon(
-                    Icons.restaurant,
-                    size: 16,
-                    color: Colors.green,
-                  ),
+                  const Icon(Icons.restaurant, size: 16, color: Colors.green),
                   const SizedBox(width: 4),
                   Text(
                     'Hunger: ${mealLog.hungerLevel!.level}/5',
@@ -262,27 +257,21 @@ class MealCardWidget extends StatelessWidget {
 
   Widget _buildNutritionSection() {
     final nutrition = mealLog.recognitionResult.totalNutrition;
-    
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: SnapColors.greyBackground,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: SnapColors.primary.withValues(alpha: 0.2),
-        ),
+        border: Border.all(color: SnapColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.analytics,
-                size: 16,
-                color: SnapColors.primary,
-              ),
+              Icon(Icons.analytics, size: 16, color: SnapColors.primary),
               const SizedBox(width: 4),
               Text(
                 'Nutrition Facts',
@@ -297,13 +286,37 @@ class MealCardWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Flexible(child: _buildNutritionItem('Calories', '${nutrition.calories.round()}', 'kcal')),
-              Flexible(child: _buildNutritionItem('Protein', '${nutrition.protein.round()}', 'g')),
-              Flexible(child: _buildNutritionItem('Carbs', '${nutrition.carbs.round()}', 'g')),
-              Flexible(child: _buildNutritionItem('Fat', '${nutrition.fat.round()}', 'g')),
+              Flexible(
+                child: _buildNutritionItem(
+                  'Calories',
+                  '${nutrition.calories.round()}',
+                  'kcal',
+                ),
+              ),
+              Flexible(
+                child: _buildNutritionItem(
+                  'Protein',
+                  '${nutrition.protein.round()}',
+                  'g',
+                ),
+              ),
+              Flexible(
+                child: _buildNutritionItem(
+                  'Carbs',
+                  '${nutrition.carbs.round()}',
+                  'g',
+                ),
+              ),
+              Flexible(
+                child: _buildNutritionItem(
+                  'Fat',
+                  '${nutrition.fat.round()}',
+                  'g',
+                ),
+              ),
             ],
           ),
-          
+
           // Allergen Warnings
           if (mealLog.recognitionResult.allergenWarnings.isNotEmpty) ...[
             const SizedBox(height: SnapDimensions.spacingS),
@@ -381,11 +394,7 @@ class MealCardWidget extends StatelessWidget {
               onTap: onShare!,
             ),
           if (onEdit != null)
-            _buildActionButton(
-              icon: Icons.edit,
-              label: 'Edit',
-              onTap: onEdit!,
-            ),
+            _buildActionButton(icon: Icons.edit, label: 'Edit', onTap: onEdit!),
           if (onDelete != null)
             _buildActionButton(
               icon: Icons.delete,
@@ -412,11 +421,7 @@ class MealCardWidget extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 20,
-              color: color ?? SnapColors.textSecondary,
-            ),
+            Icon(icon, size: 20, color: color ?? SnapColors.textSecondary),
             const SizedBox(height: 2),
             Text(
               label,
@@ -437,11 +442,7 @@ class CompactMealCard extends StatelessWidget {
   final MealLog mealLog;
   final VoidCallback? onTap;
 
-  const CompactMealCard({
-    super.key,
-    required this.mealLog,
-    this.onTap,
-  });
+  const CompactMealCard({super.key, required this.mealLog, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -468,7 +469,7 @@ class MealStatsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalNutrition = _calculateTotalNutrition();
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -480,21 +481,15 @@ class MealStatsWidget extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-                  borderRadius: BorderRadius.circular(SnapDimensions.borderRadius),
-        border: Border.all(
-          color: SnapColors.primary.withValues(alpha: 0.2),
-        ),
+        borderRadius: BorderRadius.circular(SnapDimensions.borderRadius),
+        border: Border.all(color: SnapColors.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.analytics,
-                color: SnapColors.primary,
-                size: 24,
-              ),
+              Icon(Icons.analytics, color: SnapColors.primary, size: 24),
               const SizedBox(width: 8),
               Text(
                 'Nutrition Summary - ${period.toUpperCase()}',
@@ -509,9 +504,21 @@ class MealStatsWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildStatItem('Meals', '${mealLogs.length}', Icons.restaurant),
-              _buildStatItem('Calories', '${totalNutrition.calories.round()}', Icons.local_fire_department),
-              _buildStatItem('Protein', '${totalNutrition.protein.round()}g', Icons.fitness_center),
-              _buildStatItem('Avg Score', '${_calculateAvgConfidence().toStringAsFixed(1)}%', Icons.star),
+              _buildStatItem(
+                'Calories',
+                '${totalNutrition.calories.round()}',
+                Icons.local_fire_department,
+              ),
+              _buildStatItem(
+                'Protein',
+                '${totalNutrition.protein.round()}g',
+                Icons.fitness_center,
+              ),
+              _buildStatItem(
+                'Avg Score',
+                '${_calculateAvgConfidence().toStringAsFixed(1)}%',
+                Icons.star,
+              ),
             ],
           ),
         ],
@@ -547,7 +554,10 @@ class MealStatsWidget extends StatelessWidget {
       fiber: totalFiber,
       sugar: totalSugar,
       sodium: totalSodium,
-      servingSize: mealLogs.fold(0.0, (sum, meal) => sum + meal.recognitionResult.totalNutrition.servingSize),
+      servingSize: mealLogs.fold(
+        0.0,
+        (sum, meal) => sum + meal.recognitionResult.totalNutrition.servingSize,
+      ),
       vitamins: {},
       minerals: {},
     );
@@ -555,23 +565,19 @@ class MealStatsWidget extends StatelessWidget {
 
   double _calculateAvgConfidence() {
     if (mealLogs.isEmpty) return 0.0;
-    
+
     double totalConfidence = 0;
     for (final meal in mealLogs) {
       totalConfidence += meal.recognitionResult.confidenceScore;
     }
-    
+
     return (totalConfidence / mealLogs.length) * 100;
   }
 
   Widget _buildStatItem(String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(
-          icon,
-          color: SnapColors.primary,
-          size: 20,
-        ),
+        Icon(icon, color: SnapColors.primary, size: 20),
         const SizedBox(height: 4),
         Text(
           value,
@@ -580,11 +586,8 @@ class MealStatsWidget extends StatelessWidget {
             color: SnapColors.primary,
           ),
         ),
-        Text(
-          label,
-          style: SnapTypography.caption,
-        ),
+        Text(label, style: SnapTypography.caption),
       ],
     );
   }
-} 
+}

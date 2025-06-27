@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'dart:math';
 import '../config/demo_personas.dart';
+import '../utils/logger.dart';
 
 class DemoDataService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -9,22 +10,22 @@ class DemoDataService {
 
   // Demo data collection prefixes for isolation
   static const String _demoPrefix = 'demo_';
-  
+
   /// Seed all demo data for Alice, Bob, and Charlie
   static Future<void> seedAllDemoData() async {
     try {
-      debugPrint('🌱 Starting comprehensive demo data seeding...');
-      
+      Logger.d('🌱 Starting comprehensive demo data seeding...');
+
       for (final persona in DemoPersonas.all) {
         await _seedPersonaData(persona);
       }
-      
+
       // Create social connections between personas
       await _createSocialConnections();
-      
-      debugPrint('✅ Demo data seeding completed successfully');
+
+      Logger.d('✅ Demo data seeding completed successfully');
     } catch (e) {
-      debugPrint('❌ Demo data seeding failed: $e');
+      Logger.d('❌ Demo data seeding failed: $e');
       rethrow;
     }
   }
@@ -37,10 +38,10 @@ class DemoDataService {
           .collection('${_demoPrefix}health_profiles')
           .doc(userId)
           .get();
-      
+
       return healthDoc.exists;
     } catch (e) {
-      debugPrint('Error checking demo data for user $userId: $e');
+      Logger.d('Error checking demo data for user $userId: $e');
       return false;
     }
   }
@@ -49,62 +50,62 @@ class DemoDataService {
   static Future<void> seedPersonaData(String personaId, String userId) async {
     final persona = DemoPersonas.getById(personaId);
     if (persona == null) {
-      debugPrint('❌ Persona not found: $personaId');
+      Logger.d('❌ Persona not found: $personaId');
       return;
     }
 
-    debugPrint('🔄 Seeding data for ${persona.displayName} (userId: $userId)...');
-    
+    Logger.d('🔄 Seeding data for ${persona.displayName} (userId: $userId)...');
+
     // Seed health profile enhancements
     await _seedHealthProfile(userId, persona);
-    
+
     // Generate 30+ days of fasting history
     await _seedFastingHistory(userId, persona);
-    
+
     // Create diverse meal logs
     await _seedMealLogs(userId, persona);
-    
+
     // Generate progress stories
     await _seedProgressStories(userId, persona);
-    
+
     // Create AI advice history
     await _seedAIAdviceHistory(userId, persona);
-    
+
     // Generate health challenges and streaks
     await _seedHealthChallenges(userId, persona);
-    
-    debugPrint('✅ Completed seeding for ${persona.displayName}');
+
+    Logger.d('✅ Completed seeding for ${persona.displayName}');
   }
 
   /// Seed comprehensive data for a single persona
   static Future<void> _seedPersonaData(DemoPersona persona) async {
-    debugPrint('🔄 Seeding data for ${persona.displayName}...');
-    
+    Logger.d('🔄 Seeding data for ${persona.displayName}...');
+
     final userId = await _getUserIdForPersona(persona);
     if (userId == null) {
-      debugPrint('❌ User not found for persona: ${persona.id}');
+      Logger.d('❌ User not found for persona: ${persona.id}');
       return;
     }
 
     // Seed health profile enhancements
     await _seedHealthProfile(userId, persona);
-    
+
     // Generate 30+ days of fasting history
     await _seedFastingHistory(userId, persona);
-    
+
     // Create diverse meal logs
     await _seedMealLogs(userId, persona);
-    
+
     // Generate progress stories
     await _seedProgressStories(userId, persona);
-    
+
     // Create AI advice history
     await _seedAIAdviceHistory(userId, persona);
-    
+
     // Generate health challenges and streaks
     await _seedHealthChallenges(userId, persona);
-    
-    debugPrint('✅ Completed seeding for ${persona.displayName}');
+
+    Logger.d('✅ Completed seeding for ${persona.displayName}');
   }
 
   /// Get Firebase user ID for a demo persona
@@ -116,19 +117,22 @@ class DemoDataService {
           .where('isDemo', isEqualTo: true)
           .limit(1)
           .get();
-      
+
       if (querySnapshot.docs.isNotEmpty) {
         return querySnapshot.docs.first.id;
       }
       return null;
     } catch (e) {
-      debugPrint('❌ Error getting user ID for ${persona.id}: $e');
+      Logger.d('❌ Error getting user ID for ${persona.id}: $e');
       return null;
     }
   }
 
   /// Seed enhanced health profile data
-  static Future<void> _seedHealthProfile(String userId, DemoPersona persona) async {
+  static Future<void> _seedHealthProfile(
+    String userId,
+    DemoPersona persona,
+  ) async {
     final healthData = {
       ...persona.healthProfile,
       'profileCompleteness': 95,
@@ -215,11 +219,15 @@ class DemoDataService {
 
   /// Generate activity tracking data
   static Map<String, dynamic> _generateActivityTracking(DemoPersona persona) {
-    final baseSteps = persona.id == 'bob' ? 12000 : (persona.id == 'alice' ? 8000 : 6000);
-    
+    final baseSteps = persona.id == 'bob'
+        ? 12000
+        : (persona.id == 'alice' ? 8000 : 6000);
+
     return {
       'averageDailySteps': baseSteps,
-      'weeklyActiveMinutes': persona.healthProfile['activityLevel'] == 'active' ? 300 : 150,
+      'weeklyActiveMinutes': persona.healthProfile['activityLevel'] == 'active'
+          ? 300
+          : 150,
       'favoriteActivities': _getFavoriteActivities(persona),
       'fitnessLevel': _getFitnessLevel(persona),
     };
@@ -254,7 +262,9 @@ class DemoDataService {
   }
 
   /// Generate nutrition preferences
-  static Map<String, dynamic> _generateNutritionPreferences(DemoPersona persona) {
+  static Map<String, dynamic> _generateNutritionPreferences(
+    DemoPersona persona,
+  ) {
     return {
       'dietaryRestrictions': persona.healthProfile['dietaryRestrictions'] ?? [],
       'allergies': _generateAllergies(persona),
@@ -281,7 +291,7 @@ class DemoDataService {
   /// Generate macro targets based on goals
   static Map<String, int> _generateMacroTargets(DemoPersona persona) {
     final calorieTarget = persona.healthProfile['calorieTarget'] as int;
-    
+
     switch (persona.id) {
       case 'alice': // Weight loss focus
         return {
@@ -309,7 +319,7 @@ class DemoDataService {
   /// Generate meal timing preferences
   static Map<String, dynamic> _generateMealTiming(DemoPersona persona) {
     final fastingType = persona.healthProfile['fastingType'] as String;
-    
+
     switch (fastingType) {
       case '16:8':
         return {
@@ -342,22 +352,22 @@ class DemoDataService {
   static int _generateHydrationGoal(DemoPersona persona) {
     final weight = persona.healthProfile['weight'] as double;
     final activityLevel = persona.healthProfile['activityLevel'] as String;
-    
+
     int baseWater = (weight * 35).round(); // 35ml per kg
-    
+
     if (activityLevel == 'active') {
       baseWater += 500; // Extra for active people
     } else if (activityLevel == 'moderate') {
       baseWater += 250;
     }
-    
+
     return baseWater;
   }
 
   /// Create social connections between demo users
   static Future<void> _createSocialConnections() async {
-    debugPrint('🔄 Creating social connections between demo users...');
-    
+    Logger.d('🔄 Creating social connections between demo users...');
+
     // Get all demo user IDs
     final userIds = <String, String>{};
     for (final persona in DemoPersonas.all) {
@@ -366,22 +376,22 @@ class DemoDataService {
         userIds[persona.id] = userId;
       }
     }
-    
+
     if (userIds.length < 2) {
-      debugPrint('❌ Not enough demo users found for social connections');
+      Logger.d('❌ Not enough demo users found for social connections');
       return;
     }
-    
+
     // Create friendships
     await _createFriendships(userIds);
-    
+
     // Create health groups
     await _createHealthGroups(userIds);
-    
+
     // Create group chat histories
     await _createGroupChatHistories(userIds);
-    
-    debugPrint('✅ Social connections created successfully');
+
+    Logger.d('✅ Social connections created successfully');
   }
 
   /// Create friendships between demo users
@@ -391,27 +401,27 @@ class DemoDataService {
       {'user1': 'alice', 'user2': 'charlie', 'since': 8}, // 8 days ago
       {'user1': 'bob', 'user2': 'charlie', 'since': 12}, // 12 days ago
     ];
-    
+
     for (final friendship in friendships) {
       final user1Id = userIds[friendship['user1']];
       final user2Id = userIds[friendship['user2']];
-      
+
       if (user1Id != null && user2Id != null) {
         final friendshipData = {
           'userId': user2Id,
           'status': 'accepted',
           'createdAt': Timestamp.fromDate(
-            DateTime.now().subtract(Duration(days: friendship['since'] as int))
+            DateTime.now().subtract(Duration(days: friendship['since'] as int)),
           ),
           'isDemo': true,
         };
-        
+
         // Add friendship in both directions
         await _firestore
             .collection('${_demoPrefix}friendships')
             .doc('${user1Id}_$user2Id')
             .set({...friendshipData, 'userId': user2Id});
-            
+
         await _firestore
             .collection('${_demoPrefix}friendships')
             .doc('${user2Id}_$user1Id')
@@ -438,24 +448,28 @@ class DemoDataService {
         'isPrivate': true,
       },
     ];
-    
+
     for (final group in groups) {
-      final groupRef = _firestore.collection('${_demoPrefix}health_groups').doc();
-      
+      final groupRef = _firestore
+          .collection('${_demoPrefix}health_groups')
+          .doc();
+
       final groupData = {
         'name': group['name'],
         'description': group['description'],
         'createdAt': Timestamp.fromDate(
-          DateTime.now().subtract(Duration(days: group['createdDaysAgo'] as int))
+          DateTime.now().subtract(
+            Duration(days: group['createdDaysAgo'] as int),
+          ),
         ),
         'isPrivate': group['isPrivate'],
         'memberCount': (group['members'] as List).length,
         'isDemo': true,
         'createdBy': userIds['alice'], // Alice creates groups
       };
-      
+
       await groupRef.set(groupData);
-      
+
       // Add members to group
       for (final memberPersonaId in group['members'] as List<String>) {
         final memberId = userIds[memberPersonaId];
@@ -469,7 +483,9 @@ class DemoDataService {
                 'userId': memberId,
                 'role': memberPersonaId == 'alice' ? 'admin' : 'member',
                 'joinedAt': Timestamp.fromDate(
-                  DateTime.now().subtract(Duration(days: group['createdDaysAgo'] as int))
+                  DateTime.now().subtract(
+                    Duration(days: group['createdDaysAgo'] as int),
+                  ),
                 ),
                 'isDemo': true,
               });
@@ -479,60 +495,81 @@ class DemoDataService {
   }
 
   /// Create group chat histories with authentic health discussions
-  static Future<void> _createGroupChatHistories(Map<String, String> userIds) async {
-    debugPrint('🔄 Creating group chat histories...');
-    
+  static Future<void> _createGroupChatHistories(
+    Map<String, String> userIds,
+  ) async {
+    Logger.d('🔄 Creating group chat histories...');
+
     // Get group IDs that were created
     final groupsSnapshot = await _firestore
         .collection('${_demoPrefix}health_groups')
         .where('isDemo', isEqualTo: true)
         .get();
-    
+
     for (final groupDoc in groupsSnapshot.docs) {
       await _createChatHistoryForGroup(groupDoc.id, userIds);
     }
-    
-    debugPrint('✅ Group chat histories created');
+
+    Logger.d('✅ Group chat histories created');
   }
 
   /// Create chat history for a specific group
-  static Future<void> _createChatHistoryForGroup(String groupId, Map<String, String> userIds) async {
+  static Future<void> _createChatHistoryForGroup(
+    String groupId,
+    Map<String, String> userIds,
+  ) async {
     final now = DateTime.now();
     final batch = _firestore.batch();
-    
+
     // Generate 20-30 messages over the past 2 weeks
     final messageCount = 20 + _random.nextInt(11); // 20-30 messages
-    
+
     for (int i = 0; i < messageCount; i++) {
       final daysAgo = _random.nextInt(14); // 0-14 days ago
       final hoursAgo = _random.nextInt(24);
-      final messageDate = now.subtract(Duration(days: daysAgo, hours: hoursAgo));
-      
+      final messageDate = now.subtract(
+        Duration(days: daysAgo, hours: hoursAgo),
+      );
+
       // Pick random sender from group members
       final senderPersonaId = ['alice', 'bob', 'charlie'][_random.nextInt(3)];
       final senderId = userIds[senderPersonaId];
-      
+
       if (senderId != null) {
-        final message = _generateGroupChatMessage(senderPersonaId, messageDate, i);
+        final message = _generateGroupChatMessage(
+          senderPersonaId,
+          messageDate,
+          i,
+        );
         message['senderId'] = senderId;
         message['groupId'] = groupId;
-        
+
         final messageRef = _firestore
             .collection('${_demoPrefix}group_chat_messages')
             .doc('${groupId}_${messageDate.millisecondsSinceEpoch}_$i');
-        
+
         batch.set(messageRef, message);
       }
     }
-    
+
     await batch.commit();
   }
 
   /// Generate authentic group chat message
-  static Map<String, dynamic> _generateGroupChatMessage(String senderPersonaId, DateTime timestamp, int index) {
-    final messageTypes = ['encouragement', 'question', 'tip_sharing', 'progress_update', 'challenge'];
+  static Map<String, dynamic> _generateGroupChatMessage(
+    String senderPersonaId,
+    DateTime timestamp,
+    int index,
+  ) {
+    final messageTypes = [
+      'encouragement',
+      'question',
+      'tip_sharing',
+      'progress_update',
+      'challenge',
+    ];
     final messageType = messageTypes[_random.nextInt(messageTypes.length)];
-    
+
     return {
       'senderId': '', // Will be set by caller
       'groupId': '', // Will be set by caller
@@ -592,7 +629,7 @@ class DemoDataService {
             'Mindfulness challenge: Practice gratitude before each meal',
           ],
         };
-      
+
       case 'bob':
         return {
           'encouragement': [
@@ -625,7 +662,7 @@ class DemoDataService {
             'Challenge: No processed foods for 3 days',
           ],
         };
-      
+
       case 'charlie':
         return {
           'encouragement': [
@@ -658,7 +695,7 @@ class DemoDataService {
             'Challenge: 5 minutes of meditation before breaking fast',
           ],
         };
-      
+
       default:
         return {
           'encouragement': ['Great job everyone!'],
@@ -674,63 +711,75 @@ class DemoDataService {
   static Map<String, int> _generateMessageReactions() {
     final reactions = ['👍', '❤️', '💪', '🔥', '👏'];
     final messageReactions = <String, int>{};
-    
+
     // Randomly add 0-3 different reaction types
     final reactionCount = _random.nextInt(4);
     final selectedReactions = reactions..shuffle();
-    
+
     for (int i = 0; i < reactionCount; i++) {
-      messageReactions[selectedReactions[i]] = _random.nextInt(3) + 1; // 1-3 of each reaction
+      messageReactions[selectedReactions[i]] =
+          _random.nextInt(3) + 1; // 1-3 of each reaction
     }
-    
+
     return messageReactions;
   }
 
   /// Generate 30+ days of realistic fasting session history
-  static Future<void> _seedFastingHistory(String userId, DemoPersona persona) async {
-    debugPrint('🔄 Generating fasting history for ${persona.displayName}...');
-    
+  static Future<void> _seedFastingHistory(
+    String userId,
+    DemoPersona persona,
+  ) async {
+    Logger.d('🔄 Generating fasting history for ${persona.displayName}...');
+
     final fastingType = persona.healthProfile['fastingType'] as String;
     final now = DateTime.now();
     final batch = _firestore.batch();
-    
+
     // Generate 35 days of history for comprehensive demo
     for (int daysAgo = 35; daysAgo >= 0; daysAgo--) {
       final sessionDate = now.subtract(Duration(days: daysAgo));
-      
+
       // Skip some days based on persona consistency
       if (_shouldSkipFastingDay(persona, sessionDate, daysAgo)) {
         continue;
       }
-      
-      final fastingSession = _generateFastingSession(persona, sessionDate, fastingType);
+
+      final fastingSession = _generateFastingSession(
+        persona,
+        sessionDate,
+        fastingType,
+      );
       fastingSession['userId'] = userId;
-      
+
       final sessionRef = _firestore
           .collection('${_demoPrefix}fasting_sessions')
           .doc('${userId}_${sessionDate.millisecondsSinceEpoch}');
-      
+
       batch.set(sessionRef, fastingSession);
     }
-    
+
     await batch.commit();
-    debugPrint('✅ Fasting history generated for ${persona.displayName}');
+    Logger.d('✅ Fasting history generated for ${persona.displayName}');
   }
 
   /// Determine if persona should skip fasting on this day
-  static bool _shouldSkipFastingDay(DemoPersona persona, DateTime date, int daysAgo) {
+  static bool _shouldSkipFastingDay(
+    DemoPersona persona,
+    DateTime date,
+    int daysAgo,
+  ) {
     // Weekend patterns and persona-specific behaviors
     final weekday = date.weekday;
-    
+
     switch (persona.id) {
       case 'alice':
         // Alice is consistent but occasionally skips weekends (10% chance)
         return weekday >= 6 && _random.nextDouble() < 0.1;
-      
+
       case 'bob':
         // Bob is less consistent, skips 15% of days randomly
         return _random.nextDouble() < 0.15;
-      
+
       case 'charlie':
         // Charlie follows 5:2, only fasts specific days
         if (persona.healthProfile['fastingType'] == '5:2') {
@@ -738,7 +787,7 @@ class DemoDataService {
         }
         // Otherwise very consistent (5% skip rate)
         return _random.nextDouble() < 0.05;
-      
+
       default:
         return false;
     }
@@ -746,9 +795,9 @@ class DemoDataService {
 
   /// Generate a realistic fasting session for the persona
   static Map<String, dynamic> _generateFastingSession(
-    DemoPersona persona, 
-    DateTime sessionDate, 
-    String fastingType
+    DemoPersona persona,
+    DateTime sessionDate,
+    String fastingType,
   ) {
     final baseData = {
       'userId': '', // Will be set by caller
@@ -760,38 +809,33 @@ class DemoDataService {
 
     switch (fastingType) {
       case '16:8':
-        return {
-          ...baseData,
-          ...generate16_8Session(persona, sessionDate),
-        };
+        return {...baseData, ...generate16_8Session(persona, sessionDate)};
       case '14:10':
-        return {
-          ...baseData,
-          ...generate14_10Session(persona, sessionDate),
-        };
+        return {...baseData, ...generate14_10Session(persona, sessionDate)};
       case '5:2':
-        return {
-          ...baseData,
-          ...generate5_2Session(persona, sessionDate),
-        };
+        return {...baseData, ...generate5_2Session(persona, sessionDate)};
       default:
         return baseData;
     }
   }
 
   /// Generate 16:8 fasting session data
-  static Map<String, dynamic> generate16_8Session(DemoPersona persona, DateTime date) {
+  static Map<String, dynamic> generate16_8Session(
+    DemoPersona persona,
+    DateTime date,
+  ) {
     // Typical 16:8: fast 20:00 - 12:00 next day (16 hours)
     final fastStart = DateTime(date.year, date.month, date.day, 20, 0);
     final plannedEnd = fastStart.add(const Duration(hours: 16));
-    
+
     // Add some realistic variation
     final actualVariation = _getPersonaVariation(persona);
     final actualEnd = plannedEnd.add(Duration(minutes: actualVariation));
-    
+
     final actualDuration = actualEnd.difference(fastStart);
-    final success = actualDuration.inMinutes >= 14 * 60; // At least 14 hours = success
-    
+    final success =
+        actualDuration.inMinutes >= 14 * 60; // At least 14 hours = success
+
     return {
       'fastStartTime': Timestamp.fromDate(fastStart),
       'plannedEndTime': Timestamp.fromDate(plannedEnd),
@@ -808,17 +852,21 @@ class DemoDataService {
   }
 
   /// Generate 14:10 fasting session data
-  static Map<String, dynamic> generate14_10Session(DemoPersona persona, DateTime date) {
+  static Map<String, dynamic> generate14_10Session(
+    DemoPersona persona,
+    DateTime date,
+  ) {
     // Typical 14:10: fast 20:00 - 10:00 next day (14 hours)
     final fastStart = DateTime(date.year, date.month, date.day, 20, 0);
     final plannedEnd = fastStart.add(const Duration(hours: 14));
-    
+
     final actualVariation = _getPersonaVariation(persona);
     final actualEnd = plannedEnd.add(Duration(minutes: actualVariation));
-    
+
     final actualDuration = actualEnd.difference(fastStart);
-    final success = actualDuration.inMinutes >= 12 * 60; // At least 12 hours = success
-    
+    final success =
+        actualDuration.inMinutes >= 12 * 60; // At least 12 hours = success
+
     return {
       'fastStartTime': Timestamp.fromDate(fastStart),
       'plannedEndTime': Timestamp.fromDate(plannedEnd),
@@ -835,11 +883,14 @@ class DemoDataService {
   }
 
   /// Generate 5:2 fasting session data
-  static Map<String, dynamic> generate5_2Session(DemoPersona persona, DateTime date) {
+  static Map<String, dynamic> generate5_2Session(
+    DemoPersona persona,
+    DateTime date,
+  ) {
     // 5:2 fasting day: limit to 500 calories
     final weekday = date.weekday;
     final isFastingDay = weekday == 2 || weekday == 4; // Tuesday or Thursday
-    
+
     if (!isFastingDay) {
       return {
         'type': 'normal_eating_day',
@@ -850,12 +901,13 @@ class DemoDataService {
         'notes': 'Normal eating day - maintained healthy choices',
       };
     }
-    
+
     // Fasting day (500 calories max)
     final targetCalories = 500;
-    final actualCalories = targetCalories + _random.nextInt(100) - 50; // ±50 calories
+    final actualCalories =
+        targetCalories + _random.nextInt(100) - 50; // ±50 calories
     final success = actualCalories <= 600; // Some flexibility
-    
+
     return {
       'type': 'fasting_day',
       'targetCalories': targetCalories,
@@ -890,7 +942,7 @@ class DemoDataService {
   /// Get difficulty rating based on performance
   static String _getDifficulty(DemoPersona persona, int actual, int target) {
     final performance = actual / target;
-    
+
     switch (persona.id) {
       case 'alice':
         if (performance >= 0.95) return 'easy';
@@ -923,7 +975,7 @@ class DemoDataService {
           return 'neutral';
       }
     }
-    
+
     // Success moods
     switch (persona.id) {
       case 'alice':
@@ -938,9 +990,13 @@ class DemoDataService {
   }
 
   /// Generate fasting notes based on persona and performance
-  static String _getFastingNotes(DemoPersona persona, bool success, int actualMinutes) {
+  static String _getFastingNotes(
+    DemoPersona persona,
+    bool success,
+    int actualMinutes,
+  ) {
     final notes = <String>[];
-    
+
     if (success) {
       switch (persona.id) {
         case 'alice':
@@ -993,7 +1049,7 @@ class DemoDataService {
           break;
       }
     }
-    
+
     return notes[_random.nextInt(notes.length)];
   }
 
@@ -1009,7 +1065,7 @@ class DemoDataService {
     if (!success) {
       return _random.nextBool() ? 'low' : 'tired';
     }
-    
+
     final levels = ['high', 'good', 'stable', 'energized'];
     return levels[_random.nextInt(levels.length)];
   }
@@ -1032,39 +1088,44 @@ class DemoDataService {
 
   /// Create diverse meal logs with AI captions and nutrition data
   static Future<void> _seedMealLogs(String userId, DemoPersona persona) async {
-    debugPrint('🔄 Generating meal logs for ${persona.displayName}...');
-    
+    Logger.d('🔄 Generating meal logs for ${persona.displayName}...');
+
     final now = DateTime.now();
     final batch = _firestore.batch();
-    
+
     // Generate 30 days of meal logs
     for (int daysAgo = 30; daysAgo >= 0; daysAgo--) {
       final mealDate = now.subtract(Duration(days: daysAgo));
-      
+
       // Generate 2-4 meals per day based on persona and fasting schedule
       final mealsPerDay = _getMealsPerDay(persona, mealDate);
-      
+
       for (int mealIndex = 0; mealIndex < mealsPerDay; mealIndex++) {
-        final meal = _generateMealLog(persona, mealDate, mealIndex, mealsPerDay);
+        final meal = _generateMealLog(
+          persona,
+          mealDate,
+          mealIndex,
+          mealsPerDay,
+        );
         meal['userId'] = userId;
-        
+
         final mealRef = _firestore
             .collection('${_demoPrefix}meal_logs')
             .doc('${userId}_${mealDate.millisecondsSinceEpoch}_$mealIndex');
-        
+
         batch.set(mealRef, meal);
       }
     }
-    
+
     await batch.commit();
-    debugPrint('✅ Meal logs generated for ${persona.displayName}');
+    Logger.d('✅ Meal logs generated for ${persona.displayName}');
   }
 
   /// Get number of meals per day based on persona and fasting schedule
   static int _getMealsPerDay(DemoPersona persona, DateTime date) {
     final fastingType = persona.healthProfile['fastingType'] as String;
     final weekday = date.weekday;
-    
+
     switch (fastingType) {
       case '16:8':
         return 2; // Lunch and dinner
@@ -1083,20 +1144,20 @@ class DemoDataService {
 
   /// Generate a realistic meal log entry
   static Map<String, dynamic> _generateMealLog(
-    DemoPersona persona, 
-    DateTime date, 
-    int mealIndex, 
-    int totalMeals
+    DemoPersona persona,
+    DateTime date,
+    int mealIndex,
+    int totalMeals,
   ) {
     final mealType = _getMealType(mealIndex, totalMeals, persona);
     final mealData = _generateMealData(persona, mealType, date);
-    
+
     return {
       'userId': '', // Will be set by caller
       'date': Timestamp.fromDate(date),
       'mealType': mealType,
       'timestamp': Timestamp.fromDate(
-        date.add(Duration(hours: _getMealHour(mealType, persona)))
+        date.add(Duration(hours: _getMealHour(mealType, persona))),
       ),
       'isDemo': true,
       'createdAt': Timestamp.fromDate(date),
@@ -1105,15 +1166,23 @@ class DemoDataService {
   }
 
   /// Get meal type based on index and persona
-  static String _getMealType(int mealIndex, int totalMeals, DemoPersona persona) {
+  static String _getMealType(
+    int mealIndex,
+    int totalMeals,
+    DemoPersona persona,
+  ) {
     if (totalMeals == 2) {
       return mealIndex == 0 ? 'lunch' : 'dinner';
     } else if (totalMeals == 3) {
       switch (mealIndex) {
-        case 0: return 'breakfast';
-        case 1: return 'lunch';
-        case 2: return 'dinner';
-        default: return 'snack';
+        case 0:
+          return 'breakfast';
+        case 1:
+          return 'lunch';
+        case 2:
+          return 'dinner';
+        default:
+          return 'snack';
       }
     }
     return 'meal';
@@ -1122,7 +1191,7 @@ class DemoDataService {
   /// Get typical hour for meal type based on persona
   static int _getMealHour(String mealType, DemoPersona persona) {
     final fastingType = persona.healthProfile['fastingType'] as String;
-    
+
     switch (mealType) {
       case 'breakfast':
         return fastingType == '14:10' ? 10 : 8;
@@ -1138,10 +1207,14 @@ class DemoDataService {
   }
 
   /// Generate comprehensive meal data with AI captions
-  static Map<String, dynamic> _generateMealData(DemoPersona persona, String mealType, DateTime date) {
+  static Map<String, dynamic> _generateMealData(
+    DemoPersona persona,
+    String mealType,
+    DateTime date,
+  ) {
     final mealOptions = _getMealOptions(persona, mealType);
     final selectedMeal = mealOptions[_random.nextInt(mealOptions.length)];
-    
+
     return {
       'foodName': selectedMeal['name'],
       'description': selectedMeal['description'],
@@ -1160,10 +1233,14 @@ class DemoDataService {
   }
 
   /// Get meal options for persona and meal type
-  static List<Map<String, dynamic>> _getMealOptions(DemoPersona persona, String mealType) {
-    final dietaryRestrictions = persona.healthProfile['dietaryRestrictions'] as List;
+  static List<Map<String, dynamic>> _getMealOptions(
+    DemoPersona persona,
+    String mealType,
+  ) {
+    final dietaryRestrictions =
+        persona.healthProfile['dietaryRestrictions'] as List;
     final isVegetarian = dietaryRestrictions.contains('vegetarian');
-    
+
     switch (mealType) {
       case 'breakfast':
         return _getBreakfastOptions(persona, isVegetarian);
@@ -1179,11 +1256,15 @@ class DemoDataService {
   }
 
   /// Get breakfast options
-  static List<Map<String, dynamic>> _getBreakfastOptions(DemoPersona persona, bool isVegetarian) {
+  static List<Map<String, dynamic>> _getBreakfastOptions(
+    DemoPersona persona,
+    bool isVegetarian,
+  ) {
     final options = [
       {
         'name': 'Avocado Toast',
-        'description': 'Whole grain bread with mashed avocado, cherry tomatoes, and hemp seeds',
+        'description':
+            'Whole grain bread with mashed avocado, cherry tomatoes, and hemp seeds',
         'calories': 320,
         'protein': 12,
         'carbs': 35,
@@ -1195,7 +1276,8 @@ class DemoDataService {
       },
       {
         'name': 'Greek Yogurt Bowl',
-        'description': 'Plain Greek yogurt with mixed berries, granola, and honey',
+        'description':
+            'Plain Greek yogurt with mixed berries, granola, and honey',
         'calories': 280,
         'protein': 20,
         'carbs': 35,
@@ -1207,7 +1289,8 @@ class DemoDataService {
       },
       {
         'name': 'Veggie Scramble',
-        'description': 'Scrambled eggs with spinach, bell peppers, and mushrooms',
+        'description':
+            'Scrambled eggs with spinach, bell peppers, and mushrooms',
         'calories': 250,
         'protein': 18,
         'carbs': 8,
@@ -1223,7 +1306,8 @@ class DemoDataService {
       options.addAll([
         {
           'name': 'Protein Smoothie',
-          'description': 'Whey protein, banana, spinach, almond milk, and peanut butter',
+          'description':
+              'Whey protein, banana, spinach, almond milk, and peanut butter',
           'calories': 350,
           'protein': 25,
           'carbs': 30,
@@ -1240,11 +1324,15 @@ class DemoDataService {
   }
 
   /// Get lunch options
-  static List<Map<String, dynamic>> _getLunchOptions(DemoPersona persona, bool isVegetarian) {
+  static List<Map<String, dynamic>> _getLunchOptions(
+    DemoPersona persona,
+    bool isVegetarian,
+  ) {
     final options = [
       {
         'name': 'Quinoa Buddha Bowl',
-        'description': 'Quinoa with roasted vegetables, chickpeas, and tahini dressing',
+        'description':
+            'Quinoa with roasted vegetables, chickpeas, and tahini dressing',
         'calories': 420,
         'protein': 16,
         'carbs': 55,
@@ -1256,7 +1344,8 @@ class DemoDataService {
       },
       {
         'name': 'Mediterranean Salad',
-        'description': 'Mixed greens, cucumber, tomatoes, olives, feta, and olive oil',
+        'description':
+            'Mixed greens, cucumber, tomatoes, olives, feta, and olive oil',
         'calories': 280,
         'protein': 12,
         'carbs': 15,
@@ -1284,7 +1373,8 @@ class DemoDataService {
       options.addAll([
         {
           'name': 'Grilled Chicken Salad',
-          'description': 'Grilled chicken breast over mixed greens with balsamic vinaigrette',
+          'description':
+              'Grilled chicken breast over mixed greens with balsamic vinaigrette',
           'calories': 380,
           'protein': 35,
           'carbs': 12,
@@ -1313,11 +1403,15 @@ class DemoDataService {
   }
 
   /// Get dinner options
-  static List<Map<String, dynamic>> _getDinnerOptions(DemoPersona persona, bool isVegetarian) {
+  static List<Map<String, dynamic>> _getDinnerOptions(
+    DemoPersona persona,
+    bool isVegetarian,
+  ) {
     final options = [
       {
         'name': 'Stuffed Bell Peppers',
-        'description': 'Bell peppers stuffed with quinoa, black beans, and vegetables',
+        'description':
+            'Bell peppers stuffed with quinoa, black beans, and vegetables',
         'calories': 350,
         'protein': 14,
         'carbs': 50,
@@ -1345,7 +1439,8 @@ class DemoDataService {
       options.addAll([
         {
           'name': 'Herb-Crusted Chicken',
-          'description': 'Baked chicken thigh with herbs, sweet potato, and green beans',
+          'description':
+              'Baked chicken thigh with herbs, sweet potato, and green beans',
           'calories': 480,
           'protein': 38,
           'carbs': 35,
@@ -1357,7 +1452,8 @@ class DemoDataService {
         },
         {
           'name': 'Fish Tacos',
-          'description': 'Grilled white fish in corn tortillas with cabbage slaw',
+          'description':
+              'Grilled white fish in corn tortillas with cabbage slaw',
           'calories': 420,
           'protein': 28,
           'carbs': 40,
@@ -1374,7 +1470,10 @@ class DemoDataService {
   }
 
   /// Get snack options
-  static List<Map<String, dynamic>> _getSnackOptions(DemoPersona persona, bool isVegetarian) {
+  static List<Map<String, dynamic>> _getSnackOptions(
+    DemoPersona persona,
+    bool isVegetarian,
+  ) {
     return [
       {
         'name': 'Apple with Almond Butter',
@@ -1416,26 +1515,32 @@ class DemoDataService {
   }
 
   /// Generate AI caption for meal recognition
-  static String _generateAICaption(Map<String, dynamic> meal, DemoPersona persona) {
+  static String _generateAICaption(
+    Map<String, dynamic> meal,
+    DemoPersona persona,
+  ) {
     final foodName = meal['name'] as String;
     final description = meal['description'] as String;
     final tags = meal['tags'] as List<String>;
-    
+
     final captions = [
       'I can see this is $foodName! $description. This looks like a ${tags.contains('healthy') ? 'nutritious' : 'delicious'} choice.',
       'Great choice! This $foodName contains approximately ${meal['calories']} calories and ${meal['protein']}g of protein.',
       'I recognize this as $foodName. ${_getAIHealthComment(meal, persona)}',
       'This $foodName looks perfectly prepared! ${_getAINutritionInsight(meal)}',
     ];
-    
+
     return captions[_random.nextInt(captions.length)];
   }
 
   /// Generate AI health comment based on persona goals
-  static String _getAIHealthComment(Map<String, dynamic> meal, DemoPersona persona) {
+  static String _getAIHealthComment(
+    Map<String, dynamic> meal,
+    DemoPersona persona,
+  ) {
     final goals = persona.healthProfile['goals'] as List;
     final tags = meal['tags'] as List<String>;
-    
+
     if (goals.contains('weight_loss') && tags.contains('low_carb')) {
       return 'This aligns well with your weight loss goals - low in carbs and satisfying!';
     } else if (goals.contains('muscle_gain') && tags.contains('protein_rich')) {
@@ -1443,7 +1548,7 @@ class DemoDataService {
     } else if (goals.contains('health') && tags.contains('nutrient_dense')) {
       return 'Excellent choice for overall health - packed with nutrients!';
     }
-    
+
     return 'This fits nicely into your balanced eating plan.';
   }
 
@@ -1451,7 +1556,7 @@ class DemoDataService {
   static String _getAINutritionInsight(Map<String, dynamic> meal) {
     final protein = meal['protein'] as int;
     final fiber = meal['fiber'] as int;
-    
+
     if (protein > 20) {
       return 'High in protein to help keep you satisfied longer.';
     } else if (fiber > 8) {
@@ -1462,7 +1567,10 @@ class DemoDataService {
   }
 
   /// Generate nutrition data
-  static Map<String, dynamic> _generateNutritionData(Map<String, dynamic> meal, DemoPersona persona) {
+  static Map<String, dynamic> _generateNutritionData(
+    Map<String, dynamic> meal,
+    DemoPersona persona,
+  ) {
     return {
       'calories': meal['calories'],
       'macros': {
@@ -1478,10 +1586,12 @@ class DemoDataService {
   }
 
   /// Generate micronutrients based on meal
-  static Map<String, dynamic> _generateMicronutrients(Map<String, dynamic> meal) {
+  static Map<String, dynamic> _generateMicronutrients(
+    Map<String, dynamic> meal,
+  ) {
     final tags = meal['tags'] as List<String>;
     final micronutrients = <String, dynamic>{};
-    
+
     if (tags.contains('antioxidants')) {
       micronutrients['vitaminC'] = 'high';
       micronutrients['vitaminE'] = 'moderate';
@@ -1493,7 +1603,7 @@ class DemoDataService {
       micronutrients['vitaminB12'] = 'high';
       micronutrients['folate'] = 'moderate';
     }
-    
+
     return micronutrients;
   }
 
@@ -1501,7 +1611,7 @@ class DemoDataService {
   static String _estimateGlycemicIndex(Map<String, dynamic> meal) {
     final carbs = meal['carbs'] as int;
     final fiber = meal['fiber'] as int;
-    
+
     if (fiber > carbs * 0.3) return 'low';
     if (fiber > carbs * 0.15) return 'moderate';
     return 'moderate-high';
@@ -1510,13 +1620,13 @@ class DemoDataService {
   /// Calculate nutrition score
   static int _calculateNutritionScore(Map<String, dynamic> meal) {
     int score = 50; // Base score
-    
+
     final tags = meal['tags'] as List<String>;
     if (tags.contains('nutrient_dense')) score += 20;
     if (tags.contains('healthy')) score += 15;
     if (tags.contains('protein_rich')) score += 10;
     if (tags.contains('fiber_rich')) score += 10;
-    
+
     return score.clamp(0, 100);
   }
 
@@ -1533,27 +1643,33 @@ class DemoDataService {
   }
 
   /// Get satisfaction rating
-  static int _getSatisfactionRating(DemoPersona persona, Map<String, dynamic> meal) {
+  static int _getSatisfactionRating(
+    DemoPersona persona,
+    Map<String, dynamic> meal,
+  ) {
     int baseRating = 4; // Generally satisfied
-    
+
     final tags = meal['tags'] as List<String>;
     final goals = persona.healthProfile['goals'] as List;
-    
+
     // Boost rating if meal aligns with goals
-    if (goals.contains('weight_loss') && tags.contains('low_carb')) baseRating++;
-    if (goals.contains('muscle_gain') && tags.contains('protein_rich')) baseRating++;
-    if (goals.contains('health') && tags.contains('nutrient_dense')) baseRating++;
-    
+    if (goals.contains('weight_loss') && tags.contains('low_carb'))
+      baseRating++;
+    if (goals.contains('muscle_gain') && tags.contains('protein_rich'))
+      baseRating++;
+    if (goals.contains('health') && tags.contains('nutrient_dense'))
+      baseRating++;
+
     // Add some randomness
     baseRating += _random.nextInt(2) - 1; // ±1
-    
+
     return baseRating.clamp(1, 5);
   }
 
   /// Get meal notes
   static String _getMealNotes(DemoPersona persona, Map<String, dynamic> meal) {
     final notes = <String>[];
-    
+
     switch (persona.id) {
       case 'alice':
         notes.addAll([
@@ -1580,85 +1696,107 @@ class DemoDataService {
         ]);
         break;
     }
-    
+
     return notes[_random.nextInt(notes.length)];
   }
 
   /// Get meal location
   static String _getMealLocation(DemoPersona persona) {
     final locations = ['home', 'office', 'restaurant', 'cafe'];
-    final weights = persona.id == 'alice' ? [0.7, 0.2, 0.05, 0.05] : 
-                   persona.id == 'bob' ? [0.5, 0.3, 0.15, 0.05] :
-                   [0.8, 0.1, 0.05, 0.05]; // Charlie prefers home
-    
+    final weights = persona.id == 'alice'
+        ? [0.7, 0.2, 0.05, 0.05]
+        : persona.id == 'bob'
+        ? [0.5, 0.3, 0.15, 0.05]
+        : [0.8, 0.1, 0.05, 0.05]; // Charlie prefers home
+
     final random = _random.nextDouble();
     double cumulative = 0.0;
-    
+
     for (int i = 0; i < weights.length; i++) {
       cumulative += weights[i];
       if (random <= cumulative) {
         return locations[i];
       }
     }
-    
+
     return 'home';
   }
 
   /// Get social context
   static String _getSocialContext(DemoPersona persona, String mealType) {
     if (mealType == 'breakfast') return 'alone';
-    
-    final contexts = ['alone', 'with_family', 'with_friends', 'with_colleagues'];
-    final weights = persona.id == 'alice' ? [0.6, 0.2, 0.15, 0.05] :
-                   persona.id == 'bob' ? [0.4, 0.3, 0.25, 0.05] :
-                   [0.7, 0.25, 0.03, 0.02]; // Charlie is more private
-    
+
+    final contexts = [
+      'alone',
+      'with_family',
+      'with_friends',
+      'with_colleagues',
+    ];
+    final weights = persona.id == 'alice'
+        ? [0.6, 0.2, 0.15, 0.05]
+        : persona.id == 'bob'
+        ? [0.4, 0.3, 0.25, 0.05]
+        : [0.7, 0.25, 0.03, 0.02]; // Charlie is more private
+
     final random = _random.nextDouble();
     double cumulative = 0.0;
-    
+
     for (int i = 0; i < weights.length; i++) {
       cumulative += weights[i];
       if (random <= cumulative) {
         return contexts[i];
       }
     }
-    
+
     return 'alone';
   }
 
   /// Build progress stories with varied engagement levels and retention
-  static Future<void> _seedProgressStories(String userId, DemoPersona persona) async {
-    debugPrint('🔄 Generating progress stories for ${persona.displayName}...');
-    
+  static Future<void> _seedProgressStories(
+    String userId,
+    DemoPersona persona,
+  ) async {
+    Logger.d('🔄 Generating progress stories for ${persona.displayName}...');
+
     final now = DateTime.now();
     final batch = _firestore.batch();
-    
+
     // Generate 15-20 stories over the past 30 days
     final storyCount = 15 + _random.nextInt(6); // 15-20 stories
-    
+
     for (int i = 0; i < storyCount; i++) {
       final daysAgo = _random.nextInt(30) + 1; // 1-30 days ago
       final storyDate = now.subtract(Duration(days: daysAgo));
-      
+
       final story = _generateProgressStory(persona, storyDate, i);
       story['userId'] = userId;
-      
+
       final storyRef = _firestore
           .collection('${_demoPrefix}progress_stories')
           .doc('${userId}_${storyDate.millisecondsSinceEpoch}_$i');
-      
+
       batch.set(storyRef, story);
     }
-    
+
     await batch.commit();
-    debugPrint('✅ Progress stories generated for ${persona.displayName}');
+    Logger.d('✅ Progress stories generated for ${persona.displayName}');
   }
 
   /// Generate a progress story with engagement data
-  static Map<String, dynamic> _generateProgressStory(DemoPersona persona, DateTime date, int index) {
-    final storyTypes = ['milestone', 'daily_progress', 'challenge_completion', 'meal_highlight', 'workout_achievement'];
+  static Map<String, dynamic> _generateProgressStory(
+    DemoPersona persona,
+    DateTime date,
+    int index,
+  ) {
+    final storyTypes = [
+      'milestone',
+      'daily_progress',
+      'challenge_completion',
+      'meal_highlight',
+      'workout_achievement',
+    ];
     final storyType = storyTypes[_random.nextInt(storyTypes.length)];
-    
+
     final baseStory = {
       'userId': '', // Will be set by caller
       'type': storyType,
@@ -1691,15 +1829,19 @@ class DemoDataService {
   }
 
   /// Generate milestone story content
-  static Map<String, dynamic> _generateMilestoneStory(DemoPersona persona, DateTime date) {
+  static Map<String, dynamic> _generateMilestoneStory(
+    DemoPersona persona,
+    DateTime date,
+  ) {
     final milestones = _getMilestones(persona);
     final milestone = milestones[_random.nextInt(milestones.length)];
-    
+
     return {
       'title': milestone['title'],
       'description': milestone['description'],
       'achievement': milestone['achievement'],
-      'imageUrl': 'https://demo.snapameal.com/images/milestones/${milestone['image']}',
+      'imageUrl':
+          'https://demo.snapameal.com/images/milestones/${milestone['image']}',
       'celebrationLevel': milestone['level'], // bronze, silver, gold
       'metadata': {
         'category': 'milestone',
@@ -1723,7 +1865,8 @@ class DemoDataService {
       },
       {
         'title': 'First Month Complete',
-        'description': 'Successfully completed your first month of intermittent fasting',
+        'description':
+            'Successfully completed your first month of intermittent fasting',
         'achievement': 'first_month',
         'level': 'silver',
         'difficulty': 'intermediate',
@@ -1747,7 +1890,8 @@ class DemoDataService {
         commonMilestones.addAll([
           {
             'title': 'Weight Loss Goal',
-            'description': 'Lost 5 pounds through consistent fasting and healthy eating',
+            'description':
+                'Lost 5 pounds through consistent fasting and healthy eating',
             'achievement': 'weight_loss_5lb',
             'level': 'gold',
             'difficulty': 'advanced',
@@ -1756,7 +1900,8 @@ class DemoDataService {
           },
           {
             'title': 'Energy Boost',
-            'description': 'Reported increased energy levels for 2 weeks straight',
+            'description':
+                'Reported increased energy levels for 2 weeks straight',
             'achievement': 'energy_improvement',
             'level': 'silver',
             'difficulty': 'intermediate',
@@ -1769,7 +1914,8 @@ class DemoDataService {
         commonMilestones.addAll([
           {
             'title': 'Strength Gains',
-            'description': 'Increased workout intensity while maintaining fasting schedule',
+            'description':
+                'Increased workout intensity while maintaining fasting schedule',
             'achievement': 'strength_fasting',
             'level': 'gold',
             'difficulty': 'advanced',
@@ -1800,7 +1946,8 @@ class DemoDataService {
           },
           {
             'title': 'Stress Reduction',
-            'description': 'Reported lower stress levels through fasting meditation',
+            'description':
+                'Reported lower stress levels through fasting meditation',
             'achievement': 'stress_relief',
             'level': 'silver',
             'difficulty': 'intermediate',
@@ -1815,16 +1962,25 @@ class DemoDataService {
   }
 
   /// Generate daily progress story
-  static Map<String, dynamic> _generateDailyProgressStory(DemoPersona persona, DateTime date) {
-    final progressTypes = ['fasting_success', 'energy_level', 'mood_improvement', 'sleep_quality'];
+  static Map<String, dynamic> _generateDailyProgressStory(
+    DemoPersona persona,
+    DateTime date,
+  ) {
+    final progressTypes = [
+      'fasting_success',
+      'energy_level',
+      'mood_improvement',
+      'sleep_quality',
+    ];
     final progressType = progressTypes[_random.nextInt(progressTypes.length)];
-    
+
     return {
       'title': _getProgressTitle(progressType, persona),
       'description': _getProgressDescription(progressType, persona),
       'progressType': progressType,
       'rating': _random.nextInt(3) + 3, // 3-5 rating
-      'imageUrl': 'https://demo.snapameal.com/images/progress/$progressType.jpg',
+      'imageUrl':
+          'https://demo.snapameal.com/images/progress/$progressType.jpg',
       'metadata': {
         'category': 'daily_progress',
         'mood': _getMoodAfterFast(persona, true),
@@ -1850,7 +2006,10 @@ class DemoDataService {
   }
 
   /// Get progress description
-  static String _getProgressDescription(String progressType, DemoPersona persona) {
+  static String _getProgressDescription(
+    String progressType,
+    DemoPersona persona,
+  ) {
     final descriptions = {
       'fasting_success': [
         'Completed my fast without any cravings. Feeling accomplished!',
@@ -1873,13 +2032,17 @@ class DemoDataService {
         'Best sleep quality since starting my fasting routine.',
       ],
     };
-    
-    final options = descriptions[progressType] ?? ['Making good progress today!'];
+
+    final options =
+        descriptions[progressType] ?? ['Making good progress today!'];
     return options[_random.nextInt(options.length)];
   }
 
   /// Generate challenge completion story
-  static Map<String, dynamic> _generateChallengeStory(DemoPersona persona, DateTime date) {
+  static Map<String, dynamic> _generateChallengeStory(
+    DemoPersona persona,
+    DateTime date,
+  ) {
     final challenges = [
       {
         'name': '7-Day Hydration Challenge',
@@ -1900,9 +2063,9 @@ class DemoDataService {
         'difficulty': 'moderate',
       },
     ];
-    
+
     final challenge = challenges[_random.nextInt(challenges.length)];
-    
+
     return {
       'title': 'Challenge Complete: ${challenge['name']}',
       'description': challenge['description'],
@@ -1910,17 +2073,23 @@ class DemoDataService {
       'reward': challenge['reward'],
       'difficulty': challenge['difficulty'],
       'completionRate': 100,
-      'imageUrl': 'https://demo.snapameal.com/images/challenges/${(challenge['name'] as String).toLowerCase().replaceAll(' ', '_')}.jpg',
+      'imageUrl':
+          'https://demo.snapameal.com/images/challenges/${(challenge['name'] as String).toLowerCase().replaceAll(' ', '_')}.jpg',
       'metadata': {
         'category': 'challenge',
         'type': 'completion',
-        'duration': (challenge['name'] as String).contains('7-Day') ? '7 days' : '14 days',
+        'duration': (challenge['name'] as String).contains('7-Day')
+            ? '7 days'
+            : '14 days',
       },
     };
   }
 
   /// Generate meal highlight story
-  static Map<String, dynamic> _generateMealHighlightStory(DemoPersona persona, DateTime date) {
+  static Map<String, dynamic> _generateMealHighlightStory(
+    DemoPersona persona,
+    DateTime date,
+  ) {
     final highlights = [
       {
         'meal': 'Quinoa Buddha Bowl',
@@ -1941,16 +2110,17 @@ class DemoDataService {
         'highlight': 'So many nutrients in one bowl',
       },
     ];
-    
+
     final highlight = highlights[_random.nextInt(highlights.length)];
-    
+
     return {
       'title': 'Meal Highlight: ${highlight['meal']}',
       'description': highlight['highlight'],
       'mealName': highlight['meal'],
       'reason': highlight['reason'],
       'calories': highlight['calories'],
-      'imageUrl': 'https://demo.snapameal.com/images/meals/${(highlight['meal'] as String).toLowerCase().replaceAll(' ', '_')}.jpg',
+      'imageUrl':
+          'https://demo.snapameal.com/images/meals/${(highlight['meal'] as String).toLowerCase().replaceAll(' ', '_')}.jpg',
       'metadata': {
         'category': 'meal',
         'type': 'highlight',
@@ -1960,44 +2130,50 @@ class DemoDataService {
   }
 
   /// Generate workout achievement story
-  static Map<String, dynamic> _generateWorkoutStory(DemoPersona persona, DateTime date) {
-    final workouts = persona.id == 'bob' ? [
-      {
-        'type': 'Strength Training',
-        'achievement': 'New personal record on deadlifts',
-        'details': 'Lifted 20 lbs more than last month',
-        'duration': '45 minutes',
-      },
-      {
-        'type': 'HIIT Session',
-        'achievement': 'Completed full workout without breaks',
-        'details': 'Endurance is really improving',
-        'duration': '30 minutes',
-      },
-    ] : [
-      {
-        'type': 'Yoga Flow',
-        'achievement': 'Held crow pose for 30 seconds',
-        'details': 'Balance and strength getting better',
-        'duration': '60 minutes',
-      },
-      {
-        'type': 'Morning Walk',
-        'achievement': 'Walked 5 miles without fatigue',
-        'details': 'Energy levels are amazing',
-        'duration': '75 minutes',
-      },
-    ];
-    
+  static Map<String, dynamic> _generateWorkoutStory(
+    DemoPersona persona,
+    DateTime date,
+  ) {
+    final workouts = persona.id == 'bob'
+        ? [
+            {
+              'type': 'Strength Training',
+              'achievement': 'New personal record on deadlifts',
+              'details': 'Lifted 20 lbs more than last month',
+              'duration': '45 minutes',
+            },
+            {
+              'type': 'HIIT Session',
+              'achievement': 'Completed full workout without breaks',
+              'details': 'Endurance is really improving',
+              'duration': '30 minutes',
+            },
+          ]
+        : [
+            {
+              'type': 'Yoga Flow',
+              'achievement': 'Held crow pose for 30 seconds',
+              'details': 'Balance and strength getting better',
+              'duration': '60 minutes',
+            },
+            {
+              'type': 'Morning Walk',
+              'achievement': 'Walked 5 miles without fatigue',
+              'details': 'Energy levels are amazing',
+              'duration': '75 minutes',
+            },
+          ];
+
     final workout = workouts[_random.nextInt(workouts.length)];
-    
+
     return {
       'title': 'Workout Win: ${workout['achievement']}',
       'description': workout['details'],
       'workoutType': workout['type'],
       'achievement': workout['achievement'],
       'duration': workout['duration'],
-      'imageUrl': 'https://demo.snapameal.com/images/workouts/${(workout['type'] as String).toLowerCase().replaceAll(' ', '_')}.jpg',
+      'imageUrl':
+          'https://demo.snapameal.com/images/workouts/${(workout['type'] as String).toLowerCase().replaceAll(' ', '_')}.jpg',
       'metadata': {
         'category': 'fitness',
         'type': 'achievement',
@@ -2008,7 +2184,9 @@ class DemoDataService {
 
   /// Generate view count based on persona social activity
   static int _generateViewCount(DemoPersona persona) {
-    final baseViews = persona.id == 'alice' ? 25 : (persona.id == 'bob' ? 15 : 8);
+    final baseViews = persona.id == 'alice'
+        ? 25
+        : (persona.id == 'bob' ? 15 : 8);
     return baseViews + _random.nextInt(20);
   }
 
@@ -2020,13 +2198,17 @@ class DemoDataService {
 
   /// Generate comment count
   static int _generateCommentCount(DemoPersona persona) {
-    final baseComments = persona.id == 'alice' ? 3 : (persona.id == 'bob' ? 2 : 1);
+    final baseComments = persona.id == 'alice'
+        ? 3
+        : (persona.id == 'bob' ? 2 : 1);
     return baseComments + _random.nextInt(5);
   }
 
   /// Generate share count
   static int _generateShareCount(DemoPersona persona) {
-    final baseShares = persona.id == 'alice' ? 2 : (persona.id == 'bob' ? 1 : 0);
+    final baseShares = persona.id == 'alice'
+        ? 2
+        : (persona.id == 'bob' ? 1 : 0);
     return baseShares + _random.nextInt(3);
   }
 
@@ -2034,7 +2216,7 @@ class DemoDataService {
   static Map<String, dynamic> _generateEngagementMetrics(DemoPersona persona) {
     final viewCount = _generateViewCount(persona);
     final likeCount = _generateLikeCount(persona);
-    
+
     return {
       'engagementRate': ((likeCount / viewCount) * 100).round(),
       'retentionTime': _random.nextInt(15) + 5, // 5-20 seconds
@@ -2044,42 +2226,62 @@ class DemoDataService {
   }
 
   /// Generate AI advice interaction history showing personalization evolution
-  static Future<void> _seedAIAdviceHistory(String userId, DemoPersona persona) async {
-    debugPrint('🔄 Generating AI advice history for ${persona.displayName}...');
-    
+  static Future<void> _seedAIAdviceHistory(
+    String userId,
+    DemoPersona persona,
+  ) async {
+    Logger.d('🔄 Generating AI advice history for ${persona.displayName}...');
+
     final now = DateTime.now();
     final batch = _firestore.batch();
-    
+
     // Generate 15-20 AI advice interactions over 30 days
     final adviceCount = 15 + _random.nextInt(6); // 15-20 interactions
-    
+
     for (int i = 0; i < adviceCount; i++) {
       final daysAgo = _random.nextInt(30) + 1; // 1-30 days ago
       final adviceDate = now.subtract(Duration(days: daysAgo));
-      
+
       final advice = _generateAIAdviceInteraction(persona, adviceDate, i);
       advice['userId'] = userId;
-      
+
       final adviceRef = _firestore
           .collection('${_demoPrefix}ai_advice_history')
           .doc('${userId}_${adviceDate.millisecondsSinceEpoch}_$i');
-      
+
       batch.set(adviceRef, advice);
     }
-    
+
     await batch.commit();
-    debugPrint('✅ AI advice history generated for ${persona.displayName}');
+    Logger.d('✅ AI advice history generated for ${persona.displayName}');
   }
 
   /// Generate AI advice interaction with personalization evolution
-  static Map<String, dynamic> _generateAIAdviceInteraction(DemoPersona persona, DateTime date, int index) {
-    final adviceTypes = ['fasting_guidance', 'nutrition_tips', 'motivation', 'health_insights', 'goal_adjustment'];
+  static Map<String, dynamic> _generateAIAdviceInteraction(
+    DemoPersona persona,
+    DateTime date,
+    int index,
+  ) {
+    final adviceTypes = [
+      'fasting_guidance',
+      'nutrition_tips',
+      'motivation',
+      'health_insights',
+      'goal_adjustment',
+    ];
     final adviceType = adviceTypes[_random.nextInt(adviceTypes.length)];
-    
+
     // Show evolution: earlier advice is more generic, later is more personalized
-    final daysSinceStart = 30 - (date.difference(DateTime.now().subtract(const Duration(days: 30))).inDays);
-    final personalizationLevel = (daysSinceStart / 30 * 100).round().clamp(20, 95);
-    
+    final daysSinceStart =
+        30 -
+        (date
+            .difference(DateTime.now().subtract(const Duration(days: 30)))
+            .inDays);
+    final personalizationLevel = (daysSinceStart / 30 * 100).round().clamp(
+      20,
+      95,
+    );
+
     return {
       'userId': '', // Will be set by caller
       'type': adviceType,
@@ -2087,10 +2289,17 @@ class DemoDataService {
       'isDemo': true,
       'createdAt': Timestamp.fromDate(date),
       'question': _generateUserQuestion(persona, adviceType),
-      'aiResponse': _generateAIResponse(persona, adviceType, personalizationLevel),
+      'aiResponse': _generateAIResponse(
+        persona,
+        adviceType,
+        personalizationLevel,
+      ),
       'personalizationLevel': personalizationLevel,
       'confidence': _generateAIConfidenceScore(personalizationLevel),
-      'helpfulnessRating': _generateHelpfulnessRating(persona, personalizationLevel),
+      'helpfulnessRating': _generateHelpfulnessRating(
+        persona,
+        personalizationLevel,
+      ),
       'followUpQuestions': _generateFollowUpQuestions(adviceType),
       'sources': _generateAdviceSources(adviceType),
       'metadata': {
@@ -2109,7 +2318,10 @@ class DemoDataService {
   }
 
   /// Get questions for each persona and advice type
-  static List<String> _getQuestionsForPersona(DemoPersona persona, String adviceType) {
+  static List<String> _getQuestionsForPersona(
+    DemoPersona persona,
+    String adviceType,
+  ) {
     final personaQuestions = {
       'alice': {
         'fasting_guidance': [
@@ -2209,11 +2421,16 @@ class DemoDataService {
       },
     };
 
-    return personaQuestions[persona.id]?[adviceType] ?? ['How can I improve my health journey?'];
+    return personaQuestions[persona.id]?[adviceType] ??
+        ['How can I improve my health journey?'];
   }
 
   /// Generate AI response with personalization level
-  static String _generateAIResponse(DemoPersona persona, String adviceType, int personalizationLevel) {
+  static String _generateAIResponse(
+    DemoPersona persona,
+    String adviceType,
+    int personalizationLevel,
+  ) {
     if (personalizationLevel < 40) {
       return _getGenericResponse(adviceType);
     } else if (personalizationLevel < 70) {
@@ -2253,12 +2470,16 @@ class DemoDataService {
       ],
     };
 
-    final typeResponses = responses[adviceType] ?? ['Here\'s some general health advice.'];
+    final typeResponses =
+        responses[adviceType] ?? ['Here\'s some general health advice.'];
     return typeResponses[_random.nextInt(typeResponses.length)];
   }
 
   /// Generate personalized responses (mid stage)
-  static String _getPersonalizedResponse(DemoPersona persona, String adviceType) {
+  static String _getPersonalizedResponse(
+    DemoPersona persona,
+    String adviceType,
+  ) {
     switch (persona.id) {
       case 'alice':
         return _getAlicePersonalizedResponse(adviceType);
@@ -2296,7 +2517,9 @@ class DemoDataService {
       ],
     };
 
-    final typeResponses = responses[adviceType] ?? ['Keep up the great work with your health journey!'];
+    final typeResponses =
+        responses[adviceType] ??
+        ['Keep up the great work with your health journey!'];
     return typeResponses[_random.nextInt(typeResponses.length)];
   }
 
@@ -2325,7 +2548,9 @@ class DemoDataService {
       ],
     };
 
-    final typeResponses = responses[adviceType] ?? ['Your strength-focused approach to IF is impressive!'];
+    final typeResponses =
+        responses[adviceType] ??
+        ['Your strength-focused approach to IF is impressive!'];
     return typeResponses[_random.nextInt(typeResponses.length)];
   }
 
@@ -2354,12 +2579,17 @@ class DemoDataService {
       ],
     };
 
-    final typeResponses = responses[adviceType] ?? ['Your mindful approach to health is truly inspiring!'];
+    final typeResponses =
+        responses[adviceType] ??
+        ['Your mindful approach to health is truly inspiring!'];
     return typeResponses[_random.nextInt(typeResponses.length)];
   }
 
   /// Generate highly personalized responses (advanced stage)
-  static String _getHighlyPersonalizedResponse(DemoPersona persona, String adviceType) {
+  static String _getHighlyPersonalizedResponse(
+    DemoPersona persona,
+    String adviceType,
+  ) {
     // These would incorporate specific data points from the user's history
     switch (persona.id) {
       case 'alice':
@@ -2379,9 +2609,13 @@ class DemoDataService {
   }
 
   /// Generate helpfulness rating from user
-  static int _generateHelpfulnessRating(DemoPersona persona, int personalizationLevel) {
-    int baseRating = (personalizationLevel / 20).round(); // 1-5 based on personalization
-    
+  static int _generateHelpfulnessRating(
+    DemoPersona persona,
+    int personalizationLevel,
+  ) {
+    int baseRating = (personalizationLevel / 20)
+        .round(); // 1-5 based on personalization
+
     // Add persona-specific tendencies
     switch (persona.id) {
       case 'alice':
@@ -2391,10 +2625,12 @@ class DemoDataService {
         baseRating += _random.nextInt(2) - 1; // Bob is more variable
         break;
       case 'charlie':
-        baseRating += _random.nextBool() ? 0 : 1; // Charlie is thoughtful but positive
+        baseRating += _random.nextBool()
+            ? 0
+            : 1; // Charlie is thoughtful but positive
         break;
     }
-    
+
     return baseRating.clamp(1, 5);
   }
 
@@ -2428,7 +2664,8 @@ class DemoDataService {
       ],
     };
 
-    return followUps[adviceType] ?? ['Would you like more information on this topic?'];
+    return followUps[adviceType] ??
+        ['Would you like more information on this topic?'];
   }
 
   /// Generate advice sources
@@ -2450,9 +2687,12 @@ class DemoDataService {
   }
 
   /// Generate context data for AI personalization
-  static Map<String, dynamic> _generateContextData(DemoPersona persona, DateTime date) {
+  static Map<String, dynamic> _generateContextData(
+    DemoPersona persona,
+    DateTime date,
+  ) {
     final daysSinceStart = DateTime.now().difference(date).inDays;
-    
+
     return {
       'daysSinceStart': daysSinceStart,
       'recentFastingSuccess': _random.nextBool(),
@@ -2463,45 +2703,54 @@ class DemoDataService {
   }
 
   /// Populate health challenges and streak data between users
-  static Future<void> _seedHealthChallenges(String userId, DemoPersona persona) async {
-    debugPrint('🔄 Generating health challenges for ${persona.displayName}...');
-    
+  static Future<void> _seedHealthChallenges(
+    String userId,
+    DemoPersona persona,
+  ) async {
+    Logger.d('🔄 Generating health challenges for ${persona.displayName}...');
+
     final now = DateTime.now();
     final batch = _firestore.batch();
-    
+
     // Generate 5-8 challenges over the past 30 days
     final challengeCount = 5 + _random.nextInt(4); // 5-8 challenges
-    
+
     for (int i = 0; i < challengeCount; i++) {
       final challenge = _generateHealthChallenge(persona, now, i);
       challenge['userId'] = userId;
-      
+
       final challengeRef = _firestore
           .collection('${_demoPrefix}health_challenges')
           .doc('${userId}_challenge_$i');
-      
+
       batch.set(challengeRef, challenge);
     }
-    
+
     // Generate streak data
     await _generateStreakData(userId, persona, batch);
-    
+
     await batch.commit();
-    debugPrint('✅ Health challenges generated for ${persona.displayName}');
+    Logger.d('✅ Health challenges generated for ${persona.displayName}');
   }
 
   /// Generate a health challenge
-  static Map<String, dynamic> _generateHealthChallenge(DemoPersona persona, DateTime now, int index) {
+  static Map<String, dynamic> _generateHealthChallenge(
+    DemoPersona persona,
+    DateTime now,
+    int index,
+  ) {
     final challenges = _getChallengesForPersona(persona);
     final challenge = challenges[_random.nextInt(challenges.length)];
-    
+
     final startDate = now.subtract(Duration(days: _random.nextInt(25) + 5));
     final duration = challenge['duration'] as int;
     final endDate = startDate.add(Duration(days: duration));
-    
+
     final isCompleted = now.isAfter(endDate);
-    final progress = isCompleted ? 100 : _generateChallengeProgress(persona, now, startDate, duration);
-    
+    final progress = isCompleted
+        ? 100
+        : _generateChallengeProgress(persona, now, startDate, duration);
+
     return {
       'userId': '', // Will be set by caller
       'challengeId': 'challenge_${challenge['id']}_$index',
@@ -2528,7 +2777,9 @@ class DemoDataService {
   }
 
   /// Get challenges for each persona
-  static List<Map<String, dynamic>> _getChallengesForPersona(DemoPersona persona) {
+  static List<Map<String, dynamic>> _getChallengesForPersona(
+    DemoPersona persona,
+  ) {
     final commonChallenges = [
       {
         'id': 'hydration_7day',
@@ -2569,7 +2820,11 @@ class DemoDataService {
         'difficulty': 'moderate',
         'difficultyScore': 3,
         'duration': 7,
-        'rewards': ['Better digestion', 'Increased satisfaction', 'Food awareness'],
+        'rewards': [
+          'Better digestion',
+          'Increased satisfaction',
+          'Food awareness',
+        ],
         'milestones': [
           {'day': 3, 'reward': 'Mindfulness novice badge'},
           {'day': 7, 'reward': 'Mindful eater badge'},
@@ -2590,7 +2845,11 @@ class DemoDataService {
             'difficulty': 'challenging',
             'difficultyScore': 5,
             'duration': 21,
-            'rewards': ['Visible results', 'Increased confidence', 'Habit stack'],
+            'rewards': [
+              'Visible results',
+              'Increased confidence',
+              'Habit stack',
+            ],
             'milestones': [
               {'day': 7, 'reward': 'First week champion'},
               {'day': 14, 'reward': 'Halfway hero'},
@@ -2600,13 +2859,18 @@ class DemoDataService {
           {
             'id': 'energy_optimization',
             'name': 'Energy Optimization Challenge',
-            'description': 'Track energy levels and optimize meal timing for 10 days',
+            'description':
+                'Track energy levels and optimize meal timing for 10 days',
             'type': 'energy',
             'category': 'optimization',
             'difficulty': 'moderate',
             'difficultyScore': 3,
             'duration': 10,
-            'rewards': ['Better energy', 'Optimized schedule', 'Productivity boost'],
+            'rewards': [
+              'Better energy',
+              'Optimized schedule',
+              'Productivity boost',
+            ],
             'milestones': [
               {'day': 5, 'reward': 'Energy tracker badge'},
               {'day': 10, 'reward': 'Energy optimizer badge'},
@@ -2614,19 +2878,24 @@ class DemoDataService {
           },
         ]);
         break;
-      
+
       case 'bob':
         commonChallenges.addAll([
           {
             'id': 'strength_fasting',
             'name': 'Strength & Fasting Challenge',
-            'description': 'Maintain workout intensity while following IF for 2 weeks',
+            'description':
+                'Maintain workout intensity while following IF for 2 weeks',
             'type': 'fitness',
             'category': 'strength',
             'difficulty': 'challenging',
             'difficultyScore': 5,
             'duration': 14,
-            'rewards': ['Improved performance', 'Better recovery', 'Discipline'],
+            'rewards': [
+              'Improved performance',
+              'Better recovery',
+              'Discipline',
+            ],
             'milestones': [
               {'day': 7, 'reward': 'Fasted warrior badge'},
               {'day': 14, 'reward': 'Strength master badge'},
@@ -2635,13 +2904,18 @@ class DemoDataService {
           {
             'id': 'protein_power',
             'name': 'Protein Power Week',
-            'description': 'Hit protein targets every day for optimal muscle building',
+            'description':
+                'Hit protein targets every day for optimal muscle building',
             'type': 'nutrition',
             'category': 'muscle_building',
             'difficulty': 'moderate',
             'difficultyScore': 3,
             'duration': 7,
-            'rewards': ['Better gains', 'Nutrition awareness', 'Meal planning skills'],
+            'rewards': [
+              'Better gains',
+              'Nutrition awareness',
+              'Meal planning skills',
+            ],
             'milestones': [
               {'day': 3, 'reward': 'Protein tracker badge'},
               {'day': 7, 'reward': 'Protein pro badge'},
@@ -2649,19 +2923,24 @@ class DemoDataService {
           },
         ]);
         break;
-      
+
       case 'charlie':
         commonChallenges.addAll([
           {
             'id': 'mindful_movement',
             'name': 'Mindful Movement Challenge',
-            'description': 'Practice gentle movement and meditation daily for 2 weeks',
+            'description':
+                'Practice gentle movement and meditation daily for 2 weeks',
             'type': 'mindfulness',
             'category': 'mental_health',
             'difficulty': 'easy',
             'difficultyScore': 2,
             'duration': 14,
-            'rewards': ['Inner peace', 'Better flexibility', 'Stress reduction'],
+            'rewards': [
+              'Inner peace',
+              'Better flexibility',
+              'Stress reduction',
+            ],
             'milestones': [
               {'day': 7, 'reward': 'Mindful mover badge'},
               {'day': 14, 'reward': 'Zen master badge'},
@@ -2670,7 +2949,8 @@ class DemoDataService {
           {
             'id': 'stress_reduction',
             'name': 'Stress Reduction Sprint',
-            'description': 'Practice stress-reduction techniques alongside gentle fasting',
+            'description':
+                'Practice stress-reduction techniques alongside gentle fasting',
             'type': 'stress_management',
             'category': 'mental_health',
             'difficulty': 'moderate',
@@ -2690,15 +2970,21 @@ class DemoDataService {
   }
 
   /// Generate challenge progress based on persona and timing
-  static int _generateChallengeProgress(DemoPersona persona, DateTime now, DateTime startDate, int duration) {
+  static int _generateChallengeProgress(
+    DemoPersona persona,
+    DateTime now,
+    DateTime startDate,
+    int duration,
+  ) {
     final daysSinceStart = now.difference(startDate).inDays;
     final expectedProgress = (daysSinceStart / duration * 100).round();
-    
+
     // Add persona-specific variation
     int variation = 0;
     switch (persona.id) {
       case 'alice':
-        variation = _random.nextInt(10) + 5; // Alice tends to exceed expectations
+        variation =
+            _random.nextInt(10) + 5; // Alice tends to exceed expectations
         break;
       case 'bob':
         variation = _random.nextInt(20) - 10; // Bob is more variable
@@ -2707,7 +2993,7 @@ class DemoDataService {
         variation = _random.nextInt(8) - 2; // Charlie is steady
         break;
     }
-    
+
     return (expectedProgress + variation).clamp(0, 100);
   }
 
@@ -2715,46 +3001,55 @@ class DemoDataService {
   static List<String> _generateChallengeParticipants(DemoPersona persona) {
     final allPersonas = ['alice', 'bob', 'charlie'];
     final participants = <String>[persona.id];
-    
+
     // Add 1-2 other participants randomly
     final otherPersonas = allPersonas.where((p) => p != persona.id).toList();
-    final participantCount = _random.nextInt(2) + 1; // 1-2 additional participants
-    
+    final participantCount =
+        _random.nextInt(2) + 1; // 1-2 additional participants
+
     for (int i = 0; i < participantCount && i < otherPersonas.length; i++) {
       participants.add(otherPersonas[i]);
     }
-    
+
     return participants;
   }
 
   /// Generate streak data for persona
-  static Future<void> _generateStreakData(String userId, DemoPersona persona, WriteBatch batch) async {
+  static Future<void> _generateStreakData(
+    String userId,
+    DemoPersona persona,
+    WriteBatch batch,
+  ) async {
     final streakTypes = ['fasting', 'hydration', 'exercise', 'meal_logging'];
-    
+
     for (final streakType in streakTypes) {
       final streakData = _generateStreakForType(persona, streakType);
       streakData['userId'] = userId;
-      
+
       final streakRef = _firestore
           .collection('${_demoPrefix}user_streaks')
           .doc('${userId}_${streakType}_streak');
-      
+
       batch.set(streakRef, streakData);
     }
   }
 
   /// Generate streak data for specific type
-  static Map<String, dynamic> _generateStreakForType(DemoPersona persona, String streakType) {
+  static Map<String, dynamic> _generateStreakForType(
+    DemoPersona persona,
+    String streakType,
+  ) {
     final now = DateTime.now();
-    
+
     // Generate realistic streak lengths based on persona consistency
     int currentStreak = 0;
     int longestStreak = 0;
-    
+
     switch (persona.id) {
       case 'alice':
         currentStreak = _random.nextInt(15) + 10; // 10-24 days
-        longestStreak = currentStreak + _random.nextInt(20) + 5; // Longer historical streak
+        longestStreak =
+            currentStreak + _random.nextInt(20) + 5; // Longer historical streak
         break;
       case 'bob':
         currentStreak = _random.nextInt(12) + 5; // 5-16 days
@@ -2765,14 +3060,18 @@ class DemoDataService {
         longestStreak = currentStreak + _random.nextInt(10) + 2;
         break;
     }
-    
+
     return {
       'userId': '', // Will be set by caller
       'streakType': streakType,
       'currentStreak': currentStreak,
       'longestStreak': longestStreak,
-      'lastActivityDate': Timestamp.fromDate(now.subtract(const Duration(days: 1))),
-      'startDate': Timestamp.fromDate(now.subtract(Duration(days: currentStreak))),
+      'lastActivityDate': Timestamp.fromDate(
+        now.subtract(const Duration(days: 1)),
+      ),
+      'startDate': Timestamp.fromDate(
+        now.subtract(Duration(days: currentStreak)),
+      ),
       'isActive': true,
       'milestones': _generateStreakMilestones(currentStreak, longestStreak),
       'isDemo': true,
@@ -2785,17 +3084,22 @@ class DemoDataService {
   }
 
   /// Generate streak milestones
-  static List<Map<String, dynamic>> _generateStreakMilestones(int currentStreak, int longestStreak) {
+  static List<Map<String, dynamic>> _generateStreakMilestones(
+    int currentStreak,
+    int longestStreak,
+  ) {
     final milestones = <Map<String, dynamic>>[];
-    
+
     final milestoneTargets = [7, 14, 21, 30, 60, 90];
-    
+
     for (final target in milestoneTargets) {
       if (longestStreak >= target) {
         milestones.add({
           'target': target,
           'achieved': true,
-          'achievedDate': Timestamp.fromDate(DateTime.now().subtract(Duration(days: longestStreak - target))),
+          'achievedDate': Timestamp.fromDate(
+            DateTime.now().subtract(Duration(days: longestStreak - target)),
+          ),
           'reward': '$target-day streak badge',
         });
       } else if (currentStreak < target) {
@@ -2808,7 +3112,7 @@ class DemoDataService {
         break; // Only show next unachieved milestone
       }
     }
-    
+
     return milestones;
   }
 
@@ -2816,13 +3120,19 @@ class DemoDataService {
   static String _getConsistencyRating(DemoPersona persona, int currentStreak) {
     switch (persona.id) {
       case 'alice':
-        return currentStreak > 15 ? 'excellent' : (currentStreak > 10 ? 'very_good' : 'good');
+        return currentStreak > 15
+            ? 'excellent'
+            : (currentStreak > 10 ? 'very_good' : 'good');
       case 'bob':
-        return currentStreak > 12 ? 'excellent' : (currentStreak > 7 ? 'good' : 'improving');
+        return currentStreak > 12
+            ? 'excellent'
+            : (currentStreak > 7 ? 'good' : 'improving');
       case 'charlie':
-        return currentStreak > 20 ? 'exceptional' : (currentStreak > 15 ? 'excellent' : 'very_good');
+        return currentStreak > 20
+            ? 'exceptional'
+            : (currentStreak > 15 ? 'excellent' : 'very_good');
       default:
         return 'good';
     }
   }
-} 
+}

@@ -22,15 +22,17 @@ class FastingAwareNavigation extends StatelessWidget {
     return Consumer<FastingStateProvider>(
       builder: (context, fastingState, _) {
         return Theme(
-          data: adaptiveTheme ? _buildAdaptiveTheme(context, fastingState) : Theme.of(context),
+          data: adaptiveTheme
+              ? _buildAdaptiveTheme(context, fastingState)
+              : Theme.of(context),
           child: Stack(
             children: [
               child,
-              
+
               // Floating fasting timer when active
               if (showFloatingTimer && fastingState.isActiveFasting)
                 _buildFloatingTimer(fastingState),
-              
+
               // Fasting mode overlay indicator
               if (fastingState.fastingModeEnabled)
                 _buildFastingModeIndicator(fastingState),
@@ -42,9 +44,12 @@ class FastingAwareNavigation extends StatelessWidget {
   }
 
   /// Build adaptive theme based on fasting state
-  ThemeData _buildAdaptiveTheme(BuildContext context, FastingStateProvider fastingState) {
+  ThemeData _buildAdaptiveTheme(
+    BuildContext context,
+    FastingStateProvider fastingState,
+  ) {
     final baseTheme = Theme.of(context);
-    
+
     if (!fastingState.fastingModeEnabled) {
       return baseTheme;
     }
@@ -96,13 +101,10 @@ class FastingAwareNavigation extends StatelessWidget {
                 ),
               ],
             ),
-            child:             FastingProgressRing(
+            child: FastingProgressRing(
               fastingState: fastingState,
               strokeWidth: 3,
-              child: FastingTimerWidget(
-                size: 60,
-                showControls: false,
-              ),
+              child: FastingTimerWidget(size: 60, showControls: false),
             ),
           ),
         ),
@@ -130,7 +132,9 @@ class FastingAwareNavigation extends StatelessWidget {
         child: LinearProgressIndicator(
           value: fastingState.progressPercentage,
           backgroundColor: Colors.transparent,
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withValues(alpha: 0.5)),
+          valueColor: AlwaysStoppedAnimation<Color>(
+            Colors.white.withValues(alpha: 0.5),
+          ),
         ),
       ),
     );
@@ -138,7 +142,8 @@ class FastingAwareNavigation extends StatelessWidget {
 }
 
 /// Fasting-aware app bar that adapts title and actions
-class FastingAwareAppBar extends StatelessWidget implements PreferredSizeWidget {
+class FastingAwareAppBar extends StatelessWidget
+    implements PreferredSizeWidget {
   final String? title;
   final List<Widget>? actions;
   final bool automaticallyImplyLeading;
@@ -171,7 +176,10 @@ class FastingAwareAppBar extends StatelessWidget implements PreferredSizeWidget 
   }
 
   /// Build actions with fasting context
-  List<Widget> _buildActions(BuildContext context, FastingStateProvider fastingState) {
+  List<Widget> _buildActions(
+    BuildContext context,
+    FastingStateProvider fastingState,
+  ) {
     final List<Widget> adaptedActions = [...(actions ?? [])];
 
     if (fastingState.isActiveFasting) {
@@ -233,7 +241,7 @@ class FastingAwareBottomNavigation extends StatelessWidget {
     return Consumer<FastingStateProvider>(
       builder: (context, fastingState, _) {
         final filteredItems = _filterNavigationItems(items, fastingState);
-        
+
         return Container(
           decoration: fastingState.fastingModeEnabled
               ? BoxDecoration(
@@ -273,10 +281,10 @@ class FastingAwareBottomNavigation extends StatelessWidget {
 
     // Filter out items that should be hidden during fasting
     final filteredItems = <BottomNavigationBarItem>[];
-    
+
     for (int i = 0; i < items.length; i++) {
       final item = items[i];
-      
+
       // Check if this item should be hidden (based on label or custom logic)
       if (!_shouldHideNavigationItem(item, fastingState)) {
         // Add visual indicators to relevant items
@@ -294,9 +302,10 @@ class FastingAwareBottomNavigation extends StatelessWidget {
     FastingStateProvider fastingState,
   ) {
     final label = item.label?.toLowerCase() ?? '';
-    
+
     // Add badge to camera/snap tab during fasting
-    if ((label.contains('camera') || label.contains('snap')) && fastingState.isActiveFasting) {
+    if ((label.contains('camera') || label.contains('snap')) &&
+        fastingState.isActiveFasting) {
       return BottomNavigationBarItem(
         icon: Stack(
           children: [
@@ -319,7 +328,7 @@ class FastingAwareBottomNavigation extends StatelessWidget {
         tooltip: item.tooltip,
       );
     }
-    
+
     return item;
   }
 
@@ -330,9 +339,10 @@ class FastingAwareBottomNavigation extends StatelessWidget {
   ) {
     // Hide items based on their labels or custom keys
     final label = item.label?.toLowerCase() ?? '';
-    
-    return fastingState.hiddenNavigationItems.any((hiddenItem) => 
-        label.contains(hiddenItem.toLowerCase()));
+
+    return fastingState.hiddenNavigationItems.any(
+      (hiddenItem) => label.contains(hiddenItem.toLowerCase()),
+    );
   }
 }
 
@@ -357,11 +367,11 @@ class FastingAwareDrawer extends StatelessWidget {
           child: Column(
             children: [
               _buildDrawerHeader(context, fastingState),
-              
+
               // Fasting status section
               if (fastingState.isActiveFasting)
                 _buildFastingStatusSection(fastingState),
-              
+
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
@@ -376,7 +386,10 @@ class FastingAwareDrawer extends StatelessWidget {
   }
 
   /// Build drawer header with fasting context
-  Widget _buildDrawerHeader(BuildContext context, FastingStateProvider fastingState) {
+  Widget _buildDrawerHeader(
+    BuildContext context,
+    FastingStateProvider fastingState,
+  ) {
     return DrawerHeader(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -402,9 +415,10 @@ class FastingAwareDrawer extends StatelessWidget {
           ),
           SizedBox(height: 8),
           Text(
-            headerSubtitle ?? (fastingState.isActiveFasting
-                ? 'Fasting: ${fastingState.fastingTypeDisplay}'
-                : 'Health & Wellness'),
+            headerSubtitle ??
+                (fastingState.isActiveFasting
+                    ? 'Fasting: ${fastingState.fastingTypeDisplay}'
+                    : 'Health & Wellness'),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.9),
               fontSize: 16,
@@ -434,11 +448,7 @@ class FastingAwareDrawer extends StatelessWidget {
         ),
         child: Row(
           children: [
-            FastingBadge(
-              fastingState: fastingState,
-              size: 32,
-              animate: true,
-            ),
+            FastingBadge(fastingState: fastingState, size: 32, animate: true),
             SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -456,10 +466,7 @@ class FastingAwareDrawer extends StatelessWidget {
                   ),
                   Text(
                     '${fastingState.elapsedTime.inHours}h ${fastingState.elapsedTime.inMinutes.remainder(60)}m elapsed',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
                 ],
               ),
@@ -467,7 +474,9 @@ class FastingAwareDrawer extends StatelessWidget {
             CircularProgressIndicator(
               value: fastingState.progressPercentage,
               backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation<Color>(fastingState.appThemeColor),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                fastingState.appThemeColor,
+              ),
             ),
           ],
         ),
@@ -476,18 +485,21 @@ class FastingAwareDrawer extends StatelessWidget {
   }
 
   /// Filter drawer items based on fasting state
-  List<Widget> _filterDrawerItems(List<Widget> items, FastingStateProvider fastingState) {
+  List<Widget> _filterDrawerItems(
+    List<Widget> items,
+    FastingStateProvider fastingState,
+  ) {
     if (!fastingState.fastingModeEnabled) {
       return items;
     }
 
     // Add fasting-specific items and filter out inappropriate ones
     final filteredItems = <Widget>[];
-    
+
     // Add fasting controls
     filteredItems.add(_buildFastingControlsTile(fastingState));
     filteredItems.add(Divider());
-    
+
     // Filter existing items
     for (final item in items) {
       if (!_shouldHideDrawerItem(item, fastingState)) {

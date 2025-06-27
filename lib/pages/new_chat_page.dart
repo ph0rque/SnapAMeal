@@ -31,13 +31,16 @@ class _NewChatPageState extends State<NewChatPage> {
       // One-on-one chat
       final otherUserId = _selectedFriendIds.first;
       final currentUser = _auth.currentUser!;
-      
+
       List<String> ids = [currentUser.uid, otherUserId];
       ids.sort();
       String potentialChatRoomId = ids.join('_');
 
       // Check if a chat room already exists
-      final chatRoomDoc = await FirebaseFirestore.instance.collection('chat_rooms').doc(potentialChatRoomId).get();
+      final chatRoomDoc = await FirebaseFirestore.instance
+          .collection('chat_rooms')
+          .doc(potentialChatRoomId)
+          .get();
 
       if (chatRoomDoc.exists) {
         chatRoomId = potentialChatRoomId;
@@ -48,7 +51,6 @@ class _NewChatPageState extends State<NewChatPage> {
 
       final friendData = await _friendService.getUserData(otherUserId);
       (friendData.data() as Map<String, dynamic>)['username'] ?? 'Friend';
-
     } else {
       // Group chat
       chatRoomId = await _chatService.createGroupChat(_selectedFriendIds);
@@ -58,19 +60,14 @@ class _NewChatPageState extends State<NewChatPage> {
     Navigator.pop(context); // Pop this page
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) =>
-            ChatPage(chatRoomId: chatRoomId),
-      ),
+      MaterialPageRoute(builder: (context) => ChatPage(chatRoomId: chatRoomId)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("New Chat"),
-      ),
+      appBar: AppBar(title: const Text("New Chat")),
       body: StreamBuilder<List<String>>(
         stream: _friendService.getFriendsStream(),
         builder: (context, snapshot) {
@@ -81,7 +78,9 @@ class _NewChatPageState extends State<NewChatPage> {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('You have no friends to chat with.'));
+            return const Center(
+              child: Text('You have no friends to chat with.'),
+            );
           }
 
           final friendIds = snapshot.data!;
@@ -132,4 +131,4 @@ class _NewChatPageState extends State<NewChatPage> {
           : null,
     );
   }
-} 
+}

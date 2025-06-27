@@ -39,7 +39,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
             const DemoBannerIndicator(
               message: 'Welcome to SnapAMeal Demo Experience',
             ),
-            
+
             // Main onboarding content
             Expanded(
               child: PageView(
@@ -52,7 +52,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
                 children: _buildOnboardingPages(),
               ),
             ),
-            
+
             // Navigation controls
             _buildNavigationControls(),
           ],
@@ -62,7 +62,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
   }
 
   List<Widget> _buildOnboardingPages() {
-    final persona = _currentPersona != null 
+    final persona = _currentPersona != null
         ? DemoPersonas.getById(_currentPersona!)
         : null;
 
@@ -82,26 +82,19 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.waving_hand,
-            size: 80,
-            color: Colors.orange,
-          ),
+          const Icon(Icons.waving_hand, size: 80, color: Colors.orange),
           const SizedBox(height: 24),
           const Text(
             'Welcome to SnapAMeal',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
             'The AI-powered health & fitness social platform',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: Colors.grey[600],
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -154,26 +147,20 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             child: Text(
               persona.displayName[0],
-              style: const TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
             ),
           ),
           const SizedBox(height: 24),
           Text(
             'Meet ${persona.displayName}',
-            style: const TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Text(
             '${persona.age} years old • ${persona.occupation}',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 24),
           _buildPersonaDetails(persona),
@@ -184,11 +171,13 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
 
   Widget _buildPersonaDetails(DemoPersona persona) {
     final details = _getPersonaDetails(persona);
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -218,18 +207,36 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
     switch (persona.id) {
       case 'alice':
         return {
-          'description': 'Alice is a disciplined freelancer focused on weight loss and energy optimization through intermittent fasting.',
-          'highlights': ['14:10 Fasting', 'Social Sharer', 'Goal-Oriented', 'Tech-Savvy'],
+          'description':
+              'Alice is a disciplined freelancer focused on weight loss and energy optimization through intermittent fasting.',
+          'highlights': [
+            '14:10 Fasting',
+            'Social Sharer',
+            'Goal-Oriented',
+            'Tech-Savvy',
+          ],
         };
       case 'bob':
         return {
-          'description': 'Bob is an active retail worker building muscle and strength while maintaining a social fitness lifestyle.',
-          'highlights': ['16:8 Fasting', 'Fitness Enthusiast', 'Social Connector', 'Simple Approach'],
+          'description':
+              'Bob is an active retail worker building muscle and strength while maintaining a social fitness lifestyle.',
+          'highlights': [
+            '16:8 Fasting',
+            'Fitness Enthusiast',
+            'Social Connector',
+            'Simple Approach',
+          ],
         };
       case 'charlie':
         return {
-          'description': 'Charlie is a mindful teacher prioritizing overall health and stress reduction with a holistic approach.',
-          'highlights': ['5:2 Fasting', 'Privacy-Focused', 'Mindful Eating', 'Vegetarian'],
+          'description':
+              'Charlie is a mindful teacher prioritizing overall health and stress reduction with a holistic approach.',
+          'highlights': [
+            '5:2 Fasting',
+            'Privacy-Focused',
+            'Mindful Eating',
+            'Vegetarian',
+          ],
         };
       default:
         return {
@@ -246,10 +253,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
         children: [
           const Text(
             'Core Features',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 32),
           Expanded(
@@ -290,7 +294,12 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
     );
   }
 
-  Widget _buildFeatureCard(IconData icon, String title, String description, Color color) {
+  Widget _buildFeatureCard(
+    IconData icon,
+    String title,
+    String description,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -305,10 +314,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
           const SizedBox(height: 12),
           Text(
             title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
@@ -329,18 +335,11 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [
-          const Icon(
-            Icons.auto_awesome,
-            size: 80,
-            color: Colors.amber,
-          ),
+          const Icon(Icons.auto_awesome, size: 80, color: Colors.amber),
           const SizedBox(height: 24),
           const Text(
             'AI-Powered Intelligence',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -380,7 +379,9 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        color: Theme.of(
+          context,
+        ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -388,13 +389,12 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              color: Theme.of(context).colorScheme.primary,
-            ),
+            child: Icon(icon, color: Theme.of(context).colorScheme.primary),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -409,10 +409,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                Text(description, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),
@@ -426,26 +423,19 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
       padding: const EdgeInsets.all(24.0),
       child: Column(
         children: [
-          const Icon(
-            Icons.people_outline,
-            size: 80,
-            color: Colors.green,
-          ),
+          const Icon(Icons.people_outline, size: 80, color: Colors.green),
           const SizedBox(height: 24),
           const Text(
             'Social & Community',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
             'Connect, share, and grow together',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -505,10 +495,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                Text(description, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),
@@ -523,26 +510,19 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
-            Icons.rocket_launch,
-            size: 80,
-            color: Colors.purple,
-          ),
+          const Icon(Icons.rocket_launch, size: 80, color: Colors.purple),
           const SizedBox(height: 24),
           const Text(
             'Ready to Explore!',
-            style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           Text(
             'Your demo environment is fully populated with realistic data showcasing 30+ days of health tracking.',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Colors.grey[600],
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
@@ -556,10 +536,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
               children: [
                 const Text(
                   'Demo Features Available:',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 12),
                 const Wrap(
@@ -580,10 +557,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
           const SizedBox(height: 32),
           const Text(
             '💡 Tip: Look for the demo indicator throughout the app',
-            style: TextStyle(
-              fontStyle: FontStyle.italic,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
         ],
@@ -615,7 +589,7 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Navigation buttons
           Row(
             children: [
@@ -660,4 +634,4 @@ class _DemoOnboardingPageState extends State<DemoOnboardingPage> {
     _pageController.dispose();
     super.dispose();
   }
-} 
+}

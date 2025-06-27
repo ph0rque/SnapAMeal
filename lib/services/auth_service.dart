@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:snapameal/config/demo_personas.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../utils/logger.dart';
 
 class AuthService {
   // auth & firestore instance
@@ -29,7 +30,10 @@ class AuthService {
   }
 
   // sign in with email and password (preserved existing functionality)
-  Future<UserCredential> signInWithEmailPassword(String email, String password) async {
+  Future<UserCredential> signInWithEmailPassword(
+    String email,
+    String password,
+  ) async {
     try {
       // Validate inputs
       if (email.trim().isEmpty || password.trim().isEmpty) {
@@ -40,10 +44,10 @@ class AuthService {
         email: email.trim(),
         password: password,
       );
-      
+
       // Clear demo cache when regular user signs in
       _demoAccountCache.clear();
-      
+
       return userCredential;
     } on FirebaseAuthException catch (e) {
       // Provide user-friendly error messages while preserving existing behavior
@@ -86,12 +90,12 @@ class AuthService {
           email: persona.email,
           password: persona.password,
         );
-        
+
         // Cache successful login for future reference
         if (userCredential.user != null) {
           _demoAccountCache[personaId] = userCredential.user!.uid;
         }
-        
+
         return userCredential;
       } on FirebaseAuthException catch (e) {
         if (e.code == 'user-not-found') {
@@ -103,7 +107,9 @@ class AuthService {
           return newUserCredential;
         } else if (e.code == 'wrong-password') {
           // This shouldn't happen with demo accounts, but handle gracefully
-          throw Exception('Demo account authentication failed. Please try again.');
+          throw Exception(
+            'Demo account authentication failed. Please try again.',
+          );
         } else {
           throw Exception('Authentication error: ${e.message ?? e.code}');
         }
@@ -118,7 +124,9 @@ class AuthService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('last_demo_persona', personaId);
-    } catch (_) {/* ignore cache errors */}
+    } catch (_) {
+      /* ignore cache errors */
+    }
   }
 
   /// Retrieve the last-used demo persona ID (or null).
@@ -140,45 +148,55 @@ class AuthService {
       }
 
       // create user (Firebase handles duplicate email protection)
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: persona.email,
-        password: persona.password,
-      );
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(
+            email: persona.email,
+            password: persona.password,
+          );
 
       // save user info in a separate doc with demo flag
-      await _firestore
-          .collection("users")
-          .doc(userCredential.user!.uid)
-          .set({
-            'uid': userCredential.user!.uid,
-            'email': persona.email,
-            'username': persona.username,
-            'displayName': persona.displayName,
-            'isDemo': true,
-            'demoPersonaId': persona.id,
-            'age': persona.age,
-            'occupation': persona.occupation,
-            'healthProfile': persona.healthProfile,
-            'lastReplayTimestamp': null,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+      await _firestore.collection("users").doc(userCredential.user!.uid).set({
+        'uid': userCredential.user!.uid,
+        'email': persona.email,
+        'username': persona.username,
+        'displayName': persona.displayName,
+        'isDemo': true,
+        'demoPersonaId': persona.id,
+        'age': persona.age,
+        'occupation': persona.occupation,
+        'healthProfile': persona.healthProfile,
+        'lastReplayTimestamp': null,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
-      debugPrint('✅ Demo account created successfully: ${persona.displayName} (${persona.email})');
+      Logger.d(
+        '✅ Demo account created successfully: ${persona.displayName} (${persona.email})',
+      );
       return userCredential;
     } on FirebaseAuthException catch (e) {
-      debugPrint('❌ Firebase error creating demo account: ${e.code} - ${e.message}');
+      Logger.d(
+        '❌ Firebase error creating demo account: ${e.code} - ${e.message}',
+      );
       switch (e.code) {
         case 'email-already-in-use':
-          throw Exception('Demo account already exists. Please contact support.');
+          throw Exception(
+            'Demo account already exists. Please contact support.',
+          );
         case 'weak-password':
-          throw Exception('Demo account configuration error. Please try again.');
+          throw Exception(
+            'Demo account configuration error. Please try again.',
+          );
         case 'invalid-email':
-          throw Exception('Demo account email configuration error. Please contact support.');
+          throw Exception(
+            'Demo account email configuration error. Please contact support.',
+          );
         default:
-          throw Exception('Failed to create demo account: ${e.message ?? e.code}');
+          throw Exception(
+            'Failed to create demo account: ${e.message ?? e.code}',
+          );
       }
     } catch (e) {
-      debugPrint('❌ General error creating demo account: $e');
+      Logger.d('❌ General error creating demo account: $e');
       throw Exception('Demo account creation failed: $e');
     }
   }
@@ -187,69 +205,71 @@ class AuthService {
   bool _validateDemoPersona(DemoPersona persona) {
     try {
       // Check required fields
-      if (persona.id.isEmpty || 
-          persona.email.isEmpty || 
+      if (persona.id.isEmpty ||
+          persona.email.isEmpty ||
           persona.password.isEmpty ||
           persona.username.isEmpty ||
           persona.displayName.isEmpty) {
-        debugPrint('❌ Demo persona validation failed: Missing required fields');
+        Logger.d('❌ Demo persona validation failed: Missing required fields');
         return false;
       }
 
       // Validate email format
       final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
       if (!emailRegex.hasMatch(persona.email)) {
-        debugPrint('❌ Demo persona validation failed: Invalid email format');
+        Logger.d('❌ Demo persona validation failed: Invalid email format');
         return false;
       }
 
       // Validate password strength
       if (persona.password.length < 8) {
-        debugPrint('❌ Demo persona validation failed: Password too short');
+        Logger.d('❌ Demo persona validation failed: Password too short');
         return false;
       }
 
       // Validate health profile structure
       if (persona.healthProfile.isEmpty) {
-        debugPrint('❌ Demo persona validation failed: Missing health profile');
+        Logger.d('❌ Demo persona validation failed: Missing health profile');
         return false;
       }
 
       return true;
     } catch (e) {
-      debugPrint('❌ Demo persona validation error: $e');
+      Logger.d('❌ Demo persona validation error: $e');
       return false;
     }
   }
 
   // sign up with email and password (preserved existing functionality)
   Future<UserCredential> signUpWithEmailPassword(
-      String email, String password, String username) async {
+    String email,
+    String password,
+    String username,
+  ) async {
     try {
       // Validate inputs
-      if (email.trim().isEmpty || password.trim().isEmpty || username.trim().isEmpty) {
+      if (email.trim().isEmpty ||
+          password.trim().isEmpty ||
+          username.trim().isEmpty) {
         throw Exception('Email, password, and username are required');
       }
 
       // create user
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email.trim(),
-        password: password,
-      );
+      UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(
+            email: email.trim(),
+            password: password,
+          );
 
       // save user info in a separate doc (preserved existing structure)
-      await _firestore
-          .collection("users")
-          .doc(userCredential.user!.uid)
-          .set({
-            'uid': userCredential.user!.uid,
-            'email': email.trim(),
-            'username': username.trim(),
-            'isDemo': false, // Explicitly mark as non-demo
-            'lastReplayTimestamp': null,
-            'createdAt': FieldValue.serverTimestamp(),
-          });
+      await _firestore.collection("users").doc(userCredential.user!.uid).set({
+        'uid': userCredential.user!.uid,
+        'email': email.trim(),
+        'username': username.trim(),
+        'isDemo': false, // Explicitly mark as non-demo
+        'lastReplayTimestamp': null,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       // Clear demo cache when new user registers
       _demoAccountCache.clear();
@@ -259,7 +279,9 @@ class AuthService {
       // Provide user-friendly error messages while preserving existing behavior
       switch (e.code) {
         case 'weak-password':
-          throw Exception('Password is too weak. Please choose a stronger password');
+          throw Exception(
+            'Password is too weak. Please choose a stronger password',
+          );
         case 'email-already-in-use':
           throw Exception('An account already exists with this email address');
         case 'invalid-email':
@@ -279,7 +301,7 @@ class AuthService {
   Future<bool> isCurrentUserDemo() async {
     final user = _auth.currentUser;
     if (user == null) return false;
-    
+
     final doc = await getUserData(user.uid);
     final data = doc.data() as Map<String, dynamic>?;
     return data?['isDemo'] ?? false;
@@ -289,7 +311,7 @@ class AuthService {
   Future<String?> getCurrentDemoPersonaId() async {
     final user = _auth.currentUser;
     if (user == null) return null;
-    
+
     final doc = await getUserData(user.uid);
     final data = doc.data() as Map<String, dynamic>?;
     return data?['demoPersonaId'];
@@ -314,10 +336,9 @@ class AuthService {
   Future<void> useReplayCredit() async {
     final user = _auth.currentUser;
     if (user == null) return;
-    await _firestore
-        .collection('users')
-        .doc(user.uid)
-        .update({'lastReplayTimestamp': FieldValue.serverTimestamp()});
+    await _firestore.collection('users').doc(user.uid).update({
+      'lastReplayTimestamp': FieldValue.serverTimestamp(),
+    });
   }
 
   // get user doc stream
@@ -332,4 +353,4 @@ class AuthService {
 
   // auth state changes
   Stream<User?> get authStateChanges => _auth.authStateChanges();
-} 
+}

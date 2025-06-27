@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../design_system/snap_ui.dart';
 import '../services/health_community_service.dart';
 import '../services/friend_service.dart';
+import '../utils/logger.dart';
 import '../services/rag_service.dart';
 import '../services/openai_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,11 +15,12 @@ class HealthFriendsPage extends StatefulWidget {
   State<HealthFriendsPage> createState() => _HealthFriendsPageState();
 }
 
-class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProviderStateMixin {
+class _HealthFriendsPageState extends State<HealthFriendsPage>
+    with TickerProviderStateMixin {
   late TabController _tabController;
   late HealthCommunityService _healthCommunityService;
   late FriendService _friendService;
-  
+
   List<Map<String, dynamic>> _healthSuggestions = [];
   bool _isLoading = false;
   String? _currentUserId;
@@ -27,12 +29,15 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    
+
     // Initialize services
     _friendService = FriendService();
     final ragService = RAGService(OpenAIService());
-    _healthCommunityService = HealthCommunityService(ragService, _friendService);
-    
+    _healthCommunityService = HealthCommunityService(
+      ragService,
+      _friendService,
+    );
+
     _getCurrentUser();
     _loadHealthSuggestions();
   }
@@ -54,18 +59,19 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
 
   Future<void> _loadHealthSuggestions() async {
     if (_currentUserId == null) return;
-    
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final suggestions = await _healthCommunityService.getHealthBasedFriendSuggestions();
+      final suggestions = await _healthCommunityService
+          .getHealthBasedFriendSuggestions();
       setState(() {
         _healthSuggestions = suggestions;
       });
     } catch (e) {
-      debugPrint('Error loading health suggestions: $e');
+      Logger.d('Error loading health suggestions: $e');
     } finally {
       setState(() {
         _isLoading = false;
@@ -81,7 +87,9 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
         backgroundColor: SnapColors.backgroundDark,
         title: Text(
           'Health Friends',
-          style: SnapTypography.heading2.copyWith(color: SnapColors.primaryYellow),
+          style: SnapTypography.heading2.copyWith(
+            color: SnapColors.primaryYellow,
+          ),
         ),
         centerTitle: true,
         bottom: TabBar(
@@ -103,10 +111,7 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          _buildAIMatchesTab(),
-          _buildDiscoverTab(),
-        ],
+        children: [_buildAIMatchesTab(), _buildDiscoverTab()],
       ),
     );
   }
@@ -155,7 +160,9 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
           return Center(
             child: Text(
               'Error loading users: \${snapshot.error}',
-              style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
             ),
           );
         }
@@ -177,7 +184,8 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
     final userId = suggestion['user_id'] as String;
     final healthGoals = List<String>.from(suggestion['health_goals'] ?? []);
     final similarityScore = suggestion['similarity_score'] as double? ?? 0.0;
-    final suggestionReason = suggestion['suggestion_reason'] as String? ?? 
+    final suggestionReason =
+        suggestion['suggestion_reason'] as String? ??
         'You share similar health goals and could motivate each other!';
 
     return Container(
@@ -186,17 +194,16 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.primaryYellow.withValues(alpha: 0.3)),
+        border: Border.all(
+          color: SnapColors.primaryYellow.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              SnapAvatar(
-                name: 'User',
-                radius: 25,
-              ),
+              SnapAvatar(name: 'User', radius: 25),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -205,15 +212,22 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
                     FutureBuilder<DocumentSnapshot>(
                       future: _friendService.getUserData(userId),
                       builder: (context, snapshot) {
-                        final userData = snapshot.data?.data() as Map<String, dynamic>? ?? {};
+                        final userData =
+                            snapshot.data?.data() as Map<String, dynamic>? ??
+                            {};
                         return Text(
                           userData['display_name'] ?? 'Loading...',
-                          style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+                          style: SnapTypography.heading3.copyWith(
+                            color: SnapColors.textPrimary,
+                          ),
                         );
                       },
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: _getMatchQualityColor(similarityScore),
                         borderRadius: BorderRadius.circular(12),
@@ -254,7 +268,9 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
                 Expanded(
                   child: Text(
                     suggestionReason,
-                    style: SnapTypography.caption.copyWith(color: SnapColors.textPrimary),
+                    style: SnapTypography.caption.copyWith(
+                      color: SnapColors.textPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -273,17 +289,27 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
             Wrap(
               spacing: 8,
               runSpacing: 4,
-              children: healthGoals.take(3).map((goal) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: SnapColors.backgroundDark,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  goal,
-                  style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
-                ),
-              )).toList(),
+              children: healthGoals
+                  .take(3)
+                  .map(
+                    (goal) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: SnapColors.backgroundDark,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        goal,
+                        style: SnapTypography.caption.copyWith(
+                          color: SnapColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                  )
+                  .toList(),
             ),
           ],
           const SizedBox(height: 16),
@@ -297,7 +323,10 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
               ),
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.info_outline, color: SnapColors.textSecondary),
+                icon: const Icon(
+                  Icons.info_outline,
+                  color: SnapColors.textSecondary,
+                ),
                 onPressed: () => _showUserProfile(userId),
               ),
             ],
@@ -325,10 +354,7 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
         children: [
           Row(
             children: [
-              SnapAvatar(
-                name: 'User',
-                radius: 25,
-              ),
+              SnapAvatar(name: 'User', radius: 25),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -336,12 +362,16 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
                   children: [
                     Text(
                       displayName,
-                      style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+                      style: SnapTypography.heading3.copyWith(
+                        color: SnapColors.textPrimary,
+                      ),
                     ),
                     if (bio.isNotEmpty)
                       Text(
                         bio,
-                        style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+                        style: SnapTypography.caption.copyWith(
+                          color: SnapColors.textSecondary,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -361,7 +391,10 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
               ),
               const SizedBox(width: 8),
               IconButton(
-                icon: const Icon(Icons.info_outline, color: SnapColors.textSecondary),
+                icon: const Icon(
+                  Icons.info_outline,
+                  color: SnapColors.textSecondary,
+                ),
                 onPressed: () => _showUserProfile(userId),
               ),
             ],
@@ -392,19 +425,20 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
           const SizedBox(height: 16),
           Text(
             'No AI Matches Yet',
-            style: SnapTypography.heading3.copyWith(color: SnapColors.textPrimary),
+            style: SnapTypography.heading3.copyWith(
+              color: SnapColors.textPrimary,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
             'Complete your health profile to get\npersonalized friend suggestions',
-            style: SnapTypography.caption.copyWith(color: SnapColors.textSecondary),
+            style: SnapTypography.caption.copyWith(
+              color: SnapColors.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          SnapButton(
-            text: 'Complete Profile',
-            onTap: _showHealthProfileSetup,
-          ),
+          SnapButton(text: 'Complete Profile', onTap: _showHealthProfileSetup),
         ],
       ),
     );
@@ -420,7 +454,7 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
   void _sendFriendRequest(String userId) async {
     try {
       await _friendService.sendFriendRequest(userId);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -478,17 +512,23 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
               const SizedBox(height: 16),
               Text(
                 'Complete Your Health Profile',
-                style: SnapTypography.heading2.copyWith(color: SnapColors.textPrimary),
+                style: SnapTypography.heading2.copyWith(
+                  color: SnapColors.textPrimary,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Help us find the perfect health buddies for you by sharing your goals and interests.',
-                style: SnapTypography.body.copyWith(color: SnapColors.textSecondary),
+                style: SnapTypography.body.copyWith(
+                  color: SnapColors.textSecondary,
+                ),
               ),
               const SizedBox(height: 24),
               Text(
                 'Health Goals',
-                style: SnapTypography.heading3.copyWith(color: SnapColors.primaryYellow),
+                style: SnapTypography.heading3.copyWith(
+                  color: SnapColors.primaryYellow,
+                ),
               ),
               const SizedBox(height: 8),
               Wrap(
@@ -507,22 +547,29 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
               const SizedBox(height: 24),
               Text(
                 'Interests',
-                style: SnapTypography.heading3.copyWith(color: SnapColors.primaryYellow),
+                style: SnapTypography.heading3.copyWith(
+                  color: SnapColors.primaryYellow,
+                ),
               ),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: [
-                  'Running',
-                  'Yoga',
-                  'Weightlifting',
-                  'Cycling',
-                  'Swimming',
-                  'Hiking',
-                  'Dancing',
-                  'Martial Arts',
-                ].map((interest) => _buildSelectableChip(interest, false)).toList(),
+                children:
+                    [
+                          'Running',
+                          'Yoga',
+                          'Weightlifting',
+                          'Cycling',
+                          'Swimming',
+                          'Hiking',
+                          'Dancing',
+                          'Martial Arts',
+                        ]
+                        .map(
+                          (interest) => _buildSelectableChip(interest, false),
+                        )
+                        .toList(),
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -553,14 +600,18 @@ class _HealthFriendsPageState extends State<HealthFriendsPage> with TickerProvid
         decoration: BoxDecoration(
           color: isSelected ? SnapColors.primaryYellow : Colors.transparent,
           border: Border.all(
-            color: isSelected ? SnapColors.primaryYellow : SnapColors.textSecondary,
+            color: isSelected
+                ? SnapColors.primaryYellow
+                : SnapColors.textSecondary,
           ),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Text(
           label,
           style: SnapTypography.caption.copyWith(
-            color: isSelected ? SnapColors.backgroundDark : SnapColors.textSecondary,
+            color: isSelected
+                ? SnapColors.backgroundDark
+                : SnapColors.textSecondary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),

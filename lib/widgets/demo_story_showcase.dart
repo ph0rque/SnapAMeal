@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../design_system/snap_ui.dart';
 
-
 /// Enhanced story sharing showcase for investor demos
 /// Highlights engagement metrics, retention features, and story permanence
 class DemoStoryShowcase extends StatefulWidget {
@@ -18,11 +17,11 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
   late AnimationController _metricsController;
   late Animation<double> _storyAnimation;
   late Animation<double> _metricsAnimation;
-  
+
   bool _showStoryDetails = false;
   bool _showEngagementMetrics = false;
   int _currentStoryIndex = 0;
-  
+
   final List<Map<String, dynamic>> _demoStories = [
     {
       'user': 'Alice',
@@ -46,7 +45,8 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
       'avatar': '🧑‍💼',
       'title': 'Morning Routine',
       'type': 'daily',
-      'content': 'Day 12 of my new morning routine. Feeling more energized than ever! ☀️',
+      'content':
+          'Day 12 of my new morning routine. Feeling more energized than ever! ☀️',
       'timestamp': '5h ago',
       'views': 156,
       'likes': 42,
@@ -63,7 +63,8 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
       'avatar': '👨‍🍳',
       'title': 'Recipe Discovery',
       'type': 'tip',
-      'content': 'Found an amazing keto-friendly breakfast recipe! Game changer 🍳',
+      'content':
+          'Found an amazing keto-friendly breakfast recipe! Game changer 🍳',
       'timestamp': '1d ago',
       'views': 312,
       'likes': 67,
@@ -76,37 +77,29 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
       'icon': Icons.restaurant_menu,
     },
   ];
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _storyController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
+
     _metricsController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
-    _storyAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _storyController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _metricsAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _metricsController,
-      curve: Curves.elasticOut,
-    ));
-    
+
+    _storyAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _storyController, curve: Curves.easeInOut),
+    );
+
+    _metricsAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _metricsController, curve: Curves.elasticOut),
+    );
+
     // Auto-cycle through stories
     _startStoryCycle();
   }
@@ -136,7 +129,7 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
       builder: (context, snapshot) {
         final isDemo = snapshot.data ?? false;
         if (!isDemo) return const SizedBox.shrink();
-        
+
         return Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(20),
@@ -160,24 +153,24 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
             children: [
               // Demo indicator
               _buildDemoIndicator(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Story overview
               _buildStoryOverview(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Featured story showcase
               _buildFeaturedStory(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Engagement metrics
               _buildEngagementMetricsSection(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Logarithmic permanence explanation
               _buildPermanenceSection(),
             ],
@@ -197,11 +190,7 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.auto_stories,
-            size: 16,
-            color: Colors.white,
-          ),
+          const Icon(Icons.auto_stories, size: 16, color: Colors.white),
           const SizedBox(width: 6),
           const Text(
             'Story Sharing & Engagement Demo',
@@ -266,7 +255,13 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
     );
   }
 
-  Widget _buildOverviewCard(String title, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildOverviewCard(
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -311,13 +306,15 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
 
   Widget _buildFeaturedStory() {
     final currentStory = _demoStories[_currentStoryIndex];
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,9 +353,9 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Story card
           Container(
             padding: const EdgeInsets.all(16),
@@ -418,9 +415,9 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // Story content
                 Text(
                   currentStory['content'] as String,
@@ -430,24 +427,38 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
                     height: 1.4,
                   ),
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // Quick engagement metrics
                 Row(
                   children: [
-                    _buildQuickMetric(Icons.visibility, '${currentStory['views']}'),
+                    _buildQuickMetric(
+                      Icons.visibility,
+                      '${currentStory['views']}',
+                    ),
                     const SizedBox(width: 16),
-                    _buildQuickMetric(Icons.favorite, '${currentStory['likes']}'),
+                    _buildQuickMetric(
+                      Icons.favorite,
+                      '${currentStory['likes']}',
+                    ),
                     const SizedBox(width: 16),
-                    _buildQuickMetric(Icons.comment, '${currentStory['comments']}'),
+                    _buildQuickMetric(
+                      Icons.comment,
+                      '${currentStory['comments']}',
+                    ),
                     const SizedBox(width: 16),
                     _buildQuickMetric(Icons.share, '${currentStory['shares']}'),
                     const Spacer(),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: (currentStory['color'] as Color).withValues(alpha: 0.2),
+                        color: (currentStory['color'] as Color).withValues(
+                          alpha: 0.2,
+                        ),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -464,7 +475,7 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
               ],
             ),
           ),
-          
+
           if (_showStoryDetails) ...[
             const SizedBox(height: 16),
             AnimatedBuilder(
@@ -477,7 +488,7 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
                       // Retention visualization
                       _buildRetentionVisualization(currentStory),
                       const SizedBox(height: 12),
-                      
+
                       // Permanence indicator
                       _buildPermanenceIndicator(currentStory),
                     ],
@@ -511,7 +522,7 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
 
   Widget _buildRetentionVisualization(Map<String, dynamic> story) {
     final retention = story['retention'] as int;
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -523,11 +534,7 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
         children: [
           Row(
             children: [
-              Icon(
-                Icons.timeline,
-                color: SnapColors.accentBlue,
-                size: 16,
-              ),
+              Icon(Icons.timeline, color: SnapColors.accentBlue, size: 16),
               const SizedBox(width: 6),
               Text(
                 'Viewer Retention: $retention%',
@@ -540,7 +547,7 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
             ],
           ),
           const SizedBox(height: 8),
-          
+
           // Retention bar
           Container(
             height: 6,
@@ -553,11 +560,11 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
               widthFactor: retention / 100,
               child: Container(
                 decoration: BoxDecoration(
-                  color: retention > 80 
-                      ? SnapColors.accentGreen 
-                      : retention > 60 
-                          ? SnapColors.primaryYellow 
-                          : SnapColors.accentRed,
+                  color: retention > 80
+                      ? SnapColors.accentGreen
+                      : retention > 60
+                      ? SnapColors.primaryYellow
+                      : SnapColors.accentRed,
                   borderRadius: BorderRadius.circular(3),
                 ),
               ),
@@ -570,16 +577,16 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
 
   Widget _buildPermanenceIndicator(Map<String, dynamic> story) {
     final isPermanent = story['type'] == 'milestone';
-    
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isPermanent 
+        color: isPermanent
             ? SnapColors.accentGreen.withValues(alpha: 0.1)
             : SnapColors.primaryYellow.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isPermanent 
+          color: isPermanent
               ? SnapColors.accentGreen.withValues(alpha: 0.3)
               : SnapColors.primaryYellow.withValues(alpha: 0.3),
         ),
@@ -588,7 +595,9 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
         children: [
           Icon(
             isPermanent ? Icons.bookmark : Icons.schedule,
-            color: isPermanent ? SnapColors.accentGreen : SnapColors.primaryYellow,
+            color: isPermanent
+                ? SnapColors.accentGreen
+                : SnapColors.primaryYellow,
             size: 16,
           ),
           const SizedBox(width: 8),
@@ -629,18 +638,16 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.analytics,
-                color: SnapColors.accentGreen,
-                size: 20,
-              ),
+              Icon(Icons.analytics, color: SnapColors.accentGreen, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Real-Time Engagement Analytics',
@@ -652,7 +659,9 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
               const Spacer(),
               IconButton(
                 icon: Icon(
-                  _showEngagementMetrics ? Icons.expand_less : Icons.expand_more,
+                  _showEngagementMetrics
+                      ? Icons.expand_less
+                      : Icons.expand_more,
                   size: 20,
                 ),
                 onPressed: () {
@@ -668,7 +677,7 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
               ),
             ],
           ),
-          
+
           if (_showEngagementMetrics) ...[
             const SizedBox(height: 16),
             AnimatedBuilder(
@@ -737,7 +746,14 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
     );
   }
 
-  Widget _buildEngagementCard(String title, String value, String subtitle, IconData icon, Color color, double progress) {
+  Widget _buildEngagementCard(
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+    double progress,
+  ) {
     return Transform.scale(
       scale: 0.8 + (0.2 * progress),
       child: Opacity(
@@ -792,18 +808,16 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.auto_graph,
-                color: SnapColors.accentPurple,
-                size: 20,
-              ),
+              Icon(Icons.auto_graph, color: SnapColors.accentPurple, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Logarithmic Story Permanence',
@@ -814,9 +828,9 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Text(
             'Stories fade gradually based on engagement and importance. Milestone achievements become permanent, while daily updates follow a smart decay algorithm.',
             style: TextStyle(
@@ -825,9 +839,9 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
               height: 1.3,
             ),
           ),
-          
+
           const SizedBox(height: 12),
-          
+
           Row(
             children: [
               Expanded(
@@ -866,7 +880,13 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
     );
   }
 
-  Widget _buildPermanenceExample(String title, String duration, String description, IconData icon, Color color) {
+  Widget _buildPermanenceExample(
+    String title,
+    String duration,
+    String description,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -908,4 +928,4 @@ class _DemoStoryShowcaseState extends State<DemoStoryShowcase>
       ),
     );
   }
-} 
+}

@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:snapameal/pages/preview_page.dart';
+import '../utils/logger.dart';
 
 class ARCameraPage extends StatefulWidget {
   const ARCameraPage({super.key});
@@ -29,7 +30,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
 
   final List<String> _filters = ['None', '😎', '🤡', '👹', '👻', '👽'];
   int _selectedFilterIndex = 0;
-  
+
   // Video recording state
   bool _isVideoMode = false;
   bool _isRecording = false;
@@ -51,11 +52,10 @@ class _ARCameraPageState extends State<ARCameraPage> {
 
   Future<void> _initializeFaceDetector() async {
     // Only initialize face detector after camera is working and in photo mode
-    if (_cameraController != null && 
-        _cameraController!.value.isInitialized && 
-        !_isVideoMode && 
+    if (_cameraController != null &&
+        _cameraController!.value.isInitialized &&
+        !_isVideoMode &&
         _faceDetector == null) {
-      
       try {
         _faceDetector = FaceDetector(
           options: FaceDetectorOptions(
@@ -63,24 +63,24 @@ class _ARCameraPageState extends State<ARCameraPage> {
             performanceMode: FaceDetectorMode.fast,
           ),
         );
-        
+
         // Wait before starting image stream
         await Future.delayed(const Duration(milliseconds: 2000));
-        
-        if (mounted && 
-            _cameraController != null && 
+
+        if (mounted &&
+            _cameraController != null &&
             _cameraController!.value.isInitialized &&
             !_isVideoMode &&
             _cameraController!.value.isStreamingImages == false) {
           try {
             await _cameraController!.startImageStream(_processImage);
           } catch (e) {
-            debugPrint('Error starting image stream: $e');
+            Logger.d('Error starting image stream: $e');
             // Continue without face detection if it fails
           }
         }
       } catch (e) {
-        debugPrint('Error initializing face detector: $e');
+        Logger.d('Error initializing face detector: $e');
       }
     }
   }
@@ -89,13 +89,14 @@ class _ARCameraPageState extends State<ARCameraPage> {
     try {
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
-        debugPrint('No cameras available');
+        Logger.d('No cameras available');
         return;
       }
 
       final frontCamera = cameras.firstWhere(
-          (camera) => camera.lensDirection == CameraLensDirection.front,
-          orElse: () => cameras.first);
+        (camera) => camera.lensDirection == CameraLensDirection.front,
+        orElse: () => cameras.first,
+      );
 
       // Use better camera configuration for improved quality and stability
       _cameraController = CameraController(
@@ -107,9 +108,11 @@ class _ARCameraPageState extends State<ARCameraPage> {
 
       await _cameraController!.initialize();
 
-      if (mounted && _cameraController != null && _cameraController!.value.isInitialized) {
+      if (mounted &&
+          _cameraController != null &&
+          _cameraController!.value.isInitialized) {
         setState(() {});
-        
+
         // Initialize face detection after camera is stable
         await Future.delayed(const Duration(milliseconds: 1000));
         if (mounted) {
@@ -117,7 +120,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
         }
       }
     } catch (e) {
-      debugPrint('Error initializing camera: $e');
+      Logger.d('Error initializing camera: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -130,39 +133,47 @@ class _ARCameraPageState extends State<ARCameraPage> {
   }
 
   void _processImage(CameraImage image) {
-    if (!mounted || _cameraController == null || !_cameraController!.value.isInitialized) return;
+    if (!mounted ||
+        _cameraController == null ||
+        !_cameraController!.value.isInitialized)
+      return;
     if (_isDetecting || _faceDetector == null) return;
-    
+
     _isDetecting = true;
 
     try {
       final inputImage = _inputImageFromCameraImage(image);
       if (inputImage != null && mounted && _faceDetector != null) {
-        _faceDetector!.processImage(inputImage).then((faces) {
-          if (!mounted) {
-            _isDetecting = false;
-            return;
-          }
-          setState(() {
-            _faces = faces;
-            _imageSize = Size(
-              image.width.toDouble(),
-              image.height.toDouble(),
-            );
-            _rotation = inputImage.metadata?.rotation ?? InputImageRotation.rotation270deg;
-          });
-          _isDetecting = false;
-        }).catchError((e) {
-          if (mounted) {
-            debugPrint("Error processing image: $e");
-          }
-          _isDetecting = false;
-        });
+        _faceDetector!
+            .processImage(inputImage)
+            .then((faces) {
+              if (!mounted) {
+                _isDetecting = false;
+                return;
+              }
+              setState(() {
+                _faces = faces;
+                _imageSize = Size(
+                  image.width.toDouble(),
+                  image.height.toDouble(),
+                );
+                _rotation =
+                    inputImage.metadata?.rotation ??
+                    InputImageRotation.rotation270deg;
+              });
+              _isDetecting = false;
+            })
+            .catchError((e) {
+              if (mounted) {
+                Logger.d("Error processing image: $e");
+              }
+              _isDetecting = false;
+            });
       } else {
         _isDetecting = false;
       }
     } catch (e) {
-      debugPrint("Error in _processImage: $e");
+      Logger.d("Error in _processImage: $e");
       _isDetecting = false;
     }
   }
@@ -171,7 +182,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
     final camera = _cameraController!.description;
     final sensorOrientation = camera.sensorOrientation;
     InputImageRotation? rotation;
-    
+
     // Handle rotation based on platform and camera orientation
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       // For iOS front camera, use proper rotation
@@ -188,7 +199,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
       }
       rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
     }
-    
+
     if (rotation == null) return null;
 
     final format = InputImageFormatValue.fromRawValue(image.format.raw);
@@ -209,24 +220,24 @@ class _ARCameraPageState extends State<ARCameraPage> {
   void dispose() {
     _recordingTimer?.cancel();
     _recordingTimer = null;
-    
+
     // Stop image stream first
     _cameraController?.stopImageStream().catchError((e) {
-      debugPrint('Error stopping image stream: $e');
+      Logger.d('Error stopping image stream: $e');
     });
-    
+
     // Dispose camera controller
     _cameraController?.dispose().catchError((e) {
-      debugPrint('Error disposing camera controller: $e');
+      Logger.d('Error disposing camera controller: $e');
     });
     _cameraController = null;
-    
+
     // Close face detector
     _faceDetector?.close().catchError((e) {
-      debugPrint('Error closing face detector: $e');
+      Logger.d('Error closing face detector: $e');
     });
     _faceDetector = null;
-    
+
     super.dispose();
   }
 
@@ -235,28 +246,28 @@ class _ARCameraPageState extends State<ARCameraPage> {
       if (_selectedFilterIndex == 0) {
         // No filter - take a direct camera picture for better quality
         final XFile picture = await _cameraController!.takePicture();
-        
+
         if (!mounted) return;
 
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => PreviewPage(
-              picture: picture,
-              isVideo: false,
-            ),
+            builder: (context) => PreviewPage(picture: picture, isVideo: false),
           ),
         );
       } else {
         // Filter applied - capture the rendered view
         RenderRepaintBoundary boundary =
-            _globalKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+            _globalKey.currentContext!.findRenderObject()
+                as RenderRepaintBoundary;
         ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-        ByteData? byteData =
-            await image.toByteData(format: ui.ImageByteFormat.png);
+        ByteData? byteData = await image.toByteData(
+          format: ui.ImageByteFormat.png,
+        );
         Uint8List pngBytes = byteData!.buffer.asUint8List();
 
         final String dir = (await getTemporaryDirectory()).path;
-        final String filePath = '$dir/${DateTime.now().millisecondsSinceEpoch}.png';
+        final String filePath =
+            '$dir/${DateTime.now().millisecondsSinceEpoch}.png';
         final File file = File(filePath);
         await file.writeAsBytes(pngBytes);
 
@@ -264,26 +275,20 @@ class _ARCameraPageState extends State<ARCameraPage> {
 
         await Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => PreviewPage(
-              picture: XFile(file.path),
-              isVideo: false,
-            ),
+            builder: (context) =>
+                PreviewPage(picture: XFile(file.path), isVideo: false),
           ),
         );
       }
     } catch (e) {
-      debugPrint("Error taking picture: $e");
+      Logger.d("Error taking picture: $e");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_cameraController == null || !_cameraController!.value.isInitialized) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -295,12 +300,13 @@ class _ARCameraPageState extends State<ARCameraPage> {
             // Full screen camera preview without distortion
             Transform.scale(
               scale: 1.0,
-              child: Center(
-                child: CameraPreview(_cameraController!),
-              ),
+              child: Center(child: CameraPreview(_cameraController!)),
             ),
             // Only show face filters when not recording video and a filter is selected
-            if (!_isRecording && _selectedFilterIndex > 0 && _faces.isNotEmpty && _imageSize != null)
+            if (!_isRecording &&
+                _selectedFilterIndex > 0 &&
+                _faces.isNotEmpty &&
+                _imageSize != null)
               CustomPaint(
                 size: Size.infinite,
                 painter: FacePainter(
@@ -320,11 +326,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
               ),
             ),
             // Photo/Video Toggle Button
-            Positioned(
-              top: 40,
-              right: 10,
-              child: _buildModeToggle(),
-            ),
+            Positioned(top: 40, right: 10, child: _buildModeToggle()),
             // Recording Duration Indicator
             if (_isRecording)
               Positioned(
@@ -335,11 +337,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
               ),
             // Red recording indicator dot
             if (_isRecording)
-              Positioned(
-                top: 50,
-                left: 20,
-                child: _buildRecordingDot(),
-              ),
+              Positioned(top: 50, left: 20, child: _buildRecordingDot()),
             Positioned(
               bottom: 20,
               left: 0,
@@ -354,7 +352,9 @@ class _ARCameraPageState extends State<ARCameraPage> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: _isRecording ? Colors.red : Colors.white,
-                        border: _isVideoMode ? Border.all(color: Colors.red, width: 3) : null,
+                        border: _isVideoMode
+                            ? Border.all(color: Colors.red, width: 3)
+                            : null,
                       ),
                       child: _isVideoMode
                           ? Icon(
@@ -369,7 +369,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
                   _buildFilterSelector(),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -397,9 +397,12 @@ class _ARCameraPageState extends State<ARCameraPage> {
               decoration: BoxDecoration(
                 border: _selectedFilterIndex == index
                     ? Border.all(color: Colors.yellow, width: 3)
-                    : Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+                    : Border.all(
+                        color: Colors.white.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
                 borderRadius: BorderRadius.circular(30),
-                color: _selectedFilterIndex == index 
+                color: _selectedFilterIndex == index
                     ? Colors.yellow.withValues(alpha: 0.2)
                     : Colors.transparent,
               ),
@@ -413,10 +416,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     )
-                  : Text(
-                      _filters[index],
-                      style: const TextStyle(fontSize: 30),
-                    ),
+                  : Text(_filters[index], style: const TextStyle(fontSize: 30)),
             ),
           );
         },
@@ -476,7 +476,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
 
   void _setMode(bool isVideoMode) async {
     if (_isRecording) return; // Don't allow mode change while recording
-    
+
     try {
       if (isVideoMode) {
         // Stop image stream when switching to video mode to prevent conflicts
@@ -485,20 +485,20 @@ class _ARCameraPageState extends State<ARCameraPage> {
         }
       } else {
         // Restart image stream when switching back to photo mode
-        if (_cameraController?.value.isInitialized == true && 
+        if (_cameraController?.value.isInitialized == true &&
             _cameraController?.value.isStreamingImages == false &&
             _faceDetector != null) {
           try {
             await _cameraController!.startImageStream(_processImage);
           } catch (e) {
-            debugPrint('Error restarting image stream: $e');
+            Logger.d('Error restarting image stream: $e');
           }
         }
       }
     } catch (e) {
-      debugPrint('Error switching camera mode: $e');
+      Logger.d('Error switching camera mode: $e');
     }
-    
+
     setState(() {
       _isVideoMode = isVideoMode;
     });
@@ -516,7 +516,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
         _startRecording();
       }
     } catch (e) {
-      debugPrint("Error during video recording: $e");
+      Logger.d("Error during video recording: $e");
       _resetRecordingState();
     }
   }
@@ -524,21 +524,23 @@ class _ARCameraPageState extends State<ARCameraPage> {
   Future<void> _startRecording() async {
     // Haptic feedback for start
     HapticFeedback.lightImpact();
-    
+
     await _cameraController!.startVideoRecording();
-    
+
     setState(() {
       _isRecording = true;
       _recordingDuration = Duration.zero;
     });
 
     // Start the recording timer
-    _recordingTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+    _recordingTimer = Timer.periodic(const Duration(milliseconds: 100), (
+      timer,
+    ) {
       if (!mounted) {
         timer.cancel();
         return;
       }
-      
+
       setState(() {
         _recordingDuration = Duration(milliseconds: timer.tick * 100);
       });
@@ -553,22 +555,19 @@ class _ARCameraPageState extends State<ARCameraPage> {
   Future<void> _stopRecording() async {
     // Haptic feedback for stop
     HapticFeedback.mediumImpact();
-    
+
     _recordingTimer?.cancel();
-    
+
     if (_cameraController!.value.isRecordingVideo) {
       final XFile videoFile = await _cameraController!.stopVideoRecording();
-      
+
       _resetRecordingState();
 
       if (!mounted) return;
 
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => PreviewPage(
-            picture: videoFile,
-            isVideo: true,
-          ),
+          builder: (context) => PreviewPage(picture: videoFile, isVideo: true),
         ),
       );
     } else {
@@ -587,7 +586,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
   Widget _buildRecordingIndicator() {
     final seconds = _recordingDuration.inMilliseconds / 1000.0;
     final progress = seconds / _maxRecordingDuration.inSeconds;
-    
+
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -683,7 +682,7 @@ class FacePainter extends CustomPainter {
   void _paintFilter(Canvas canvas, Face face, Rect rect) {
     // Skip painting if filter is 'None'
     if (filter == 'None') return;
-    
+
     final fontSize = rect.width * 0.95; // Fine-tuned for optimal proportion
 
     final textSpan = TextSpan(
@@ -704,10 +703,7 @@ class FacePainter extends CustomPainter {
       text: textSpan,
       textDirection: TextDirection.ltr,
     );
-    textPainter.layout(
-      minWidth: 0,
-      maxWidth: rect.width,
-    );
+    textPainter.layout(minWidth: 0, maxWidth: rect.width);
 
     final offset = Offset(
       rect.center.dx - (textPainter.width / 2),
@@ -743,4 +739,4 @@ class FacePainter extends CustomPainter {
         oldDelegate.filter != filter ||
         oldDelegate.rotation != rotation;
   }
-} 
+}

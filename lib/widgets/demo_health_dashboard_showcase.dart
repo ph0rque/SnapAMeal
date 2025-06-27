@@ -9,48 +9,42 @@ class DemoHealthDashboardShowcase extends StatefulWidget {
   const DemoHealthDashboardShowcase({super.key});
 
   @override
-  State<DemoHealthDashboardShowcase> createState() => _DemoHealthDashboardShowcaseState();
+  State<DemoHealthDashboardShowcase> createState() =>
+      _DemoHealthDashboardShowcaseState();
 }
 
-class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcase>
+class _DemoHealthDashboardShowcaseState
+    extends State<DemoHealthDashboardShowcase>
     with TickerProviderStateMixin {
   late AnimationController _progressController;
   late AnimationController _pulseController;
   late Animation<double> _progressAnimation;
   late Animation<double> _pulseAnimation;
-  
+
   // Demo data - keeping for reference but not using to avoid unused field warning
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _progressController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _pulseController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
-    _progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _progressController,
-      curve: Curves.easeOutCubic,
-    ));
-    
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.1,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-    
+
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _progressController, curve: Curves.easeOutCubic),
+    );
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+
     // Start animations
     _progressController.forward();
     _pulseController.repeat(reverse: true);
@@ -70,7 +64,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
       builder: (context, snapshot) {
         final isDemo = snapshot.data ?? false;
         if (!isDemo) return const SizedBox.shrink();
-        
+
         return Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -93,24 +87,24 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
             children: [
               // Demo indicator
               _buildDemoIndicator(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Health overview cards
               _buildHealthOverviewCards(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Progress visualization
               _buildProgressVisualization(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Imperial units showcase
               _buildImperialUnitsShowcase(),
-              
+
               const SizedBox(height: 20),
-              
+
               // AI insights and recommendations
               _buildAIInsightsSection(),
             ],
@@ -130,11 +124,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            Icons.dashboard,
-            size: 16,
-            color: Colors.white,
-          ),
+          Icon(Icons.dashboard, size: 16, color: Colors.white),
           const SizedBox(width: 6),
           Text(
             'Health Dashboard Demo',
@@ -266,10 +256,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
               ),
               Text(
                 secondaryValue,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: SnapColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 12, color: SnapColors.textSecondary),
               ),
               if (showProgress && progress != null) ...[
                 const SizedBox(height: 8),
@@ -292,18 +279,16 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.trending_up,
-                color: SnapColors.primary,
-                size: 20,
-              ),
+              Icon(Icons.trending_up, color: SnapColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Progress Visualization',
@@ -315,12 +300,12 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
             ],
           ),
           const SizedBox(height: 16),
-          
+
           // Weight loss progress chart
           _buildWeightProgressChart(),
-          
+
           const SizedBox(height: 16),
-          
+
           // Weekly stats
           _buildWeeklyStats(),
         ],
@@ -372,7 +357,13 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
     );
   }
 
-  Widget _buildStatItem(String title, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildStatItem(
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return AnimatedBuilder(
       animation: _pulseAnimation,
       builder: (context, child) {
@@ -429,18 +420,16 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.straighten,
-                color: SnapColors.primary,
-                size: 20,
-              ),
+              Icon(Icons.straighten, color: SnapColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Imperial Units Display',
@@ -470,13 +459,10 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
           const SizedBox(height: 12),
           Text(
             'Automatic conversion to familiar US imperial units for better user experience',
-            style: TextStyle(
-              color: SnapColors.textSecondary,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: SnapColors.textSecondary, fontSize: 14),
           ),
           const SizedBox(height: 16),
-          
+
           // Imperial conversion examples
           _buildConversionExample('Height', '165 cm', '5 feet 5 inches'),
           const SizedBox(height: 8),
@@ -522,10 +508,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
           ),
           Text(
             '($metric)',
-            style: TextStyle(
-              color: SnapColors.textSecondary,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: SnapColors.textSecondary, fontSize: 12),
           ),
         ],
       ),
@@ -538,18 +521,16 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.psychology,
-                color: SnapColors.primary,
-                size: 20,
-              ),
+              Icon(Icons.psychology, color: SnapColors.primary, size: 20),
               const SizedBox(width: 8),
               Text(
                 'AI Health Insights',
@@ -586,7 +567,12 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
     );
   }
 
-  Widget _buildInsightCard(String title, String description, IconData icon, Color color) {
+  Widget _buildInsightCard(
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -630,7 +616,7 @@ class _DemoHealthDashboardShowcaseState extends State<DemoHealthDashboardShowcas
 /// Custom painter for weight progress chart
 class WeightProgressPainter extends CustomPainter {
   final Animation<double> animation;
-  
+
   WeightProgressPainter(this.animation) : super(repaint: animation);
 
   @override
@@ -639,26 +625,22 @@ class WeightProgressPainter extends CustomPainter {
       ..color = SnapColors.textSecondary.withValues(alpha: 0.3)
       ..strokeWidth = 1
       ..style = PaintingStyle.stroke;
-    
+
     final progressPaint = Paint()
       ..color = SnapColors.accentGreen
       ..strokeWidth = 2
       ..style = PaintingStyle.stroke;
-    
+
     final pointPaint = Paint()
       ..color = SnapColors.primary
       ..style = PaintingStyle.fill;
-    
+
     // Draw background grid
     for (int i = 0; i <= 4; i++) {
       final y = size.height * i / 4;
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(size.width, y),
-        backgroundPaint,
-      );
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), backgroundPaint);
     }
-    
+
     // Sample weight data points (in descending order - weight loss)
     final dataPoints = [
       Offset(0, size.height * 0.8), // 155 lbs
@@ -668,7 +650,7 @@ class WeightProgressPainter extends CustomPainter {
       Offset(size.width * 0.8, size.height * 0.6), // 150 lbs (current)
       Offset(size.width, size.height * 0.4), // 140 lbs (target)
     ];
-    
+
     // Draw the weight loss line with animation
     final path = Path();
     for (int i = 0; i < dataPoints.length; i++) {
@@ -689,22 +671,27 @@ class WeightProgressPainter extends CustomPainter {
         }
       }
     }
-    
+
     canvas.drawPath(path, progressPaint);
-    
+
     // Draw data points
     for (int i = 0; i < dataPoints.length; i++) {
       final progress = math.min(animation.value * dataPoints.length, i + 1);
       if (progress > i) {
         final point = dataPoints[i];
         canvas.drawCircle(point, 4, pointPaint);
-        
+
         // Draw current weight indicator
-        if (i == 4) { // Current weight point
-          canvas.drawCircle(point, 6, Paint()
-            ..color = SnapColors.accentBlue
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = 2);
+        if (i == 4) {
+          // Current weight point
+          canvas.drawCircle(
+            point,
+            6,
+            Paint()
+              ..color = SnapColors.accentBlue
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = 2,
+          );
         }
       }
     }
@@ -712,4 +699,4 @@ class WeightProgressPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-} 
+}

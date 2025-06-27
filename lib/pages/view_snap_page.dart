@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:snapameal/utils/screenshot_callback.dart';
 import 'package:snapameal/services/snap_service.dart';
 import 'package:video_player/video_player.dart';
+import '../utils/logger.dart';
 
 class ViewSnapPage extends StatefulWidget {
   final DocumentSnapshot snap;
@@ -16,7 +17,8 @@ class ViewSnapPage extends StatefulWidget {
   State<ViewSnapPage> createState() => _ViewSnapPageState();
 }
 
-class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMixin {
+class _ViewSnapPageState extends State<ViewSnapPage>
+    with TickerProviderStateMixin {
   late Timer _timer;
   final SnapService _snapService = SnapService();
   VideoPlayerController? _videoController;
@@ -26,13 +28,13 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
   String _errorMessage = '';
   bool _isLoading = true;
   final ScreenshotCallback _screenshotCallback = ScreenshotCallback();
-  
+
   // Animation controllers for UI feedback
   late AnimationController _playPauseAnimationController;
   late AnimationController _progressAnimationController;
   late Animation<double> _playPauseAnimation;
   late Animation<double> _progressAnimation;
-  
+
   // Progress tracking
   Duration _currentPosition = Duration.zero;
   Duration _totalDuration = Duration.zero;
@@ -42,7 +44,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animation controllers
     _playPauseAnimationController = AnimationController(
       duration: const Duration(milliseconds: 300),
@@ -52,22 +54,20 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
       duration: const Duration(milliseconds: 200),
       vsync: this,
     );
-    
-    _playPauseAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _playPauseAnimationController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _progressAnimationController,
-      curve: Curves.easeOut,
-    ));
+
+    _playPauseAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _playPauseAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _progressAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _progressAnimationController,
+        curve: Curves.easeOut,
+      ),
+    );
 
     _initializeSnap();
   }
@@ -91,10 +91,9 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
           Navigator.of(context).pop();
         }
       });
-      
+
       _markSnapAsViewed();
       _setupScreenshotDetection();
-      
     } catch (e) {
       _handleError('Failed to initialize snap: $e');
     }
@@ -104,26 +103,25 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
     try {
       // Use mediaUrl if available, fallback to imageUrl for backward compatibility
       final videoUrl = data['mediaUrl'] ?? data['imageUrl'] as String;
-      
-      debugPrint('ViewSnapPage: Initializing video from URL: $videoUrl');
-      
+
+      Logger.d('ViewSnapPage: Initializing video from URL: $videoUrl');
+
       _videoController = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
-      
+
       await _videoController!.initialize();
-      
+
       if (!mounted) return;
-      
+
       _totalDuration = _videoController!.value.duration;
       _isLoading = false;
-      
+
       // Set up video player listeners
       _videoController!.addListener(_videoListener);
-      
+
       // Start autoplay
       await _startAutoplay();
-      
+
       setState(() {});
-      
     } catch (e) {
       _handleError('Failed to load video: $e');
     }
@@ -134,33 +132,33 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
       await _videoController!.play();
       _isPlaying = true;
       _playPauseAnimationController.forward();
-      
+
       // Start progress animation
       _progressAnimationController.forward();
-      
+
       setState(() {});
-      debugPrint('ViewSnapPage: Video autoplay started');
+      Logger.d('ViewSnapPage: Video autoplay started');
     }
   }
 
   void _videoListener() {
     if (!mounted || _videoController == null) return;
-    
+
     final value = _videoController!.value;
-    
+
     // Update position tracking
     _currentPosition = value.position;
-    
+
     // Handle video completion
     if (value.position >= value.duration && value.duration.inMilliseconds > 0) {
       _onVideoCompleted();
     }
-    
+
     // Handle errors
     if (value.hasError) {
       _handleError('Video playback error: ${value.errorDescription}');
     }
-    
+
     // Update playing state
     if (_isPlaying != value.isPlaying) {
       _isPlaying = value.isPlaying;
@@ -170,22 +168,22 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
         _playPauseAnimationController.reverse();
       }
     }
-    
+
     setState(() {});
   }
 
   void _onVideoCompleted() {
-    debugPrint('ViewSnapPage: Video playback completed');
+    Logger.d('ViewSnapPage: Video playback completed');
     _isPlaying = false;
     _playPauseAnimationController.reverse();
-    
+
     // Reset video to beginning for potential replay
     _videoController?.seekTo(Duration.zero);
     setState(() {});
   }
 
   void _handleError(String error) {
-    debugPrint('ViewSnapPage: Error - $error');
+    Logger.d('ViewSnapPage: Error - $error');
     _hasError = true;
     _errorMessage = error;
     _isLoading = false;
@@ -193,8 +191,9 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
   }
 
   Future<void> _togglePlayPause() async {
-    if (_videoController == null || !_videoController!.value.isInitialized) return;
-    
+    if (_videoController == null || !_videoController!.value.isInitialized)
+      return;
+
     try {
       if (_isPlaying) {
         await _videoController!.pause();
@@ -203,13 +202,12 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
         await _videoController!.play();
         _progressAnimationController.forward();
       }
-      
+
       // Show play/pause feedback
       _showPlayPauseFeedback();
-      
+
       // Haptic feedback
       HapticFeedback.lightImpact();
-      
     } catch (e) {
       _handleError('Failed to toggle play/pause: $e');
     }
@@ -218,7 +216,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
   void _showPlayPauseFeedback() {
     _showPlayPauseIcon = true;
     setState(() {});
-    
+
     _hideIconTimer?.cancel();
     _hideIconTimer = Timer(const Duration(milliseconds: 800), () {
       if (mounted) {
@@ -236,7 +234,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
         await widget.snap.reference.update({'isViewed': true});
       }
     } catch (e) {
-      debugPrint('ViewSnapPage: Error marking snap as viewed: $e');
+      Logger.d('ViewSnapPage: Error marking snap as viewed: $e');
     }
   }
 
@@ -269,7 +267,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final data = widget.snap.data() as Map<String, dynamic>;
-    
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: GestureDetector(
@@ -277,19 +275,17 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
         child: Stack(
           children: [
             // Main content
-            Center(
-              child: _buildMainContent(data),
-            ),
-            
+            Center(child: _buildMainContent(data)),
+
             // Video controls overlay
             if (_isVideo && !_hasError) ...[
               _buildProgressIndicator(),
               _buildPlayPauseOverlay(),
             ],
-            
+
             // Error overlay
             if (_hasError) _buildErrorOverlay(),
-            
+
             // Loading overlay
             if (_isLoading) _buildLoadingOverlay(),
           ],
@@ -303,14 +299,14 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
       if (_hasError) {
         return _buildErrorContent();
       }
-      
+
       if (_videoController?.value.isInitialized ?? false) {
         return AspectRatio(
           aspectRatio: _videoController!.value.aspectRatio,
           child: VideoPlayer(_videoController!),
         );
       }
-      
+
       return const SizedBox.shrink();
     } else {
       // Photo content
@@ -323,7 +319,8 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
           return Center(
             child: CircularProgressIndicator(
               value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  ? loadingProgress.cumulativeBytesLoaded /
+                        loadingProgress.expectedTotalBytes!
                   : null,
               color: Colors.white,
             ),
@@ -338,9 +335,10 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
 
   Widget _buildProgressIndicator() {
     if (_totalDuration.inMilliseconds == 0) return const SizedBox.shrink();
-    
-    final progress = _currentPosition.inMilliseconds / _totalDuration.inMilliseconds;
-    
+
+    final progress =
+        _currentPosition.inMilliseconds / _totalDuration.inMilliseconds;
+
     return Positioned(
       top: 60,
       left: 20,
@@ -372,7 +370,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
 
   Widget _buildPlayPauseOverlay() {
     if (!_showPlayPauseIcon) return const SizedBox.shrink();
-    
+
     return Positioned.fill(
       child: Center(
         child: AnimatedBuilder(
@@ -405,11 +403,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
-                Icons.error_outline,
-                color: Colors.red,
-                size: 48,
-              ),
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
               const SizedBox(height: 16),
               const Text(
                 'Unable to load content',
@@ -424,10 +418,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
                 padding: const EdgeInsets.symmetric(horizontal: 40),
                 child: Text(
                   _errorMessage,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
-                  ),
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -446,16 +437,11 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(
-                color: Colors.white,
-              ),
+              CircularProgressIndicator(color: Colors.white),
               SizedBox(height: 16),
               Text(
                 'Loading...',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                ),
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ],
           ),
@@ -468,20 +454,13 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
     return const Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(
-          Icons.broken_image,
-          color: Colors.white54,
-          size: 64,
-        ),
+        Icon(Icons.broken_image, color: Colors.white54, size: 64),
         SizedBox(height: 16),
         Text(
           'Content unavailable',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-          ),
+          style: TextStyle(color: Colors.white, fontSize: 18),
         ),
       ],
     );
   }
-} 
+}

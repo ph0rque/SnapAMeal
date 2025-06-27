@@ -2,29 +2,29 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Types of health-focused groups available in the app
 enum HealthGroupType {
-  fasting,        // Intermittent fasting support groups
-  calorieGoals,   // Calorie tracking and weight management
+  fasting, // Intermittent fasting support groups
+  calorieGoals, // Calorie tracking and weight management
   workoutBuddies, // Exercise and fitness accountability
-  nutrition,      // Healthy eating and meal planning
-  wellness,       // General wellness and mental health
-  challenges,     // Fitness challenges and competitions
-  support,        // General health support and motivation
-  recipes,        // Healthy recipe sharing
+  nutrition, // Healthy eating and meal planning
+  wellness, // General wellness and mental health
+  challenges, // Fitness challenges and competitions
+  support, // General health support and motivation
+  recipes, // Healthy recipe sharing
 }
 
 /// Privacy levels for health groups
 enum HealthGroupPrivacy {
-  public,    // Anyone can join and see content
-  private,   // Invite-only, content visible to members
+  public, // Anyone can join and see content
+  private, // Invite-only, content visible to members
   anonymous, // Members can share anonymously
 }
 
 /// Activity levels for health groups
 enum HealthGroupActivity {
-  high,      // Very active (multiple posts daily)
-  medium,    // Moderately active (few posts daily)
-  low,       // Less active (few posts weekly)
-  inactive,  // No recent activity
+  high, // Very active (multiple posts daily)
+  medium, // Moderately active (few posts daily)
+  low, // Less active (few posts weekly)
+  inactive, // No recent activity
 }
 
 /// Data model for health-focused groups
@@ -98,7 +98,7 @@ class HealthGroup {
   /// Create from Firestore document
   factory HealthGroup.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return HealthGroup(
       id: doc.id,
       name: data['name'] ?? '',
@@ -231,4 +231,4 @@ class HealthGroup {
 
   /// Get member count
   int get memberCount => memberIds.length;
-} 
+}

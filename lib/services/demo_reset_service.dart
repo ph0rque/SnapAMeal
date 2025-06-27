@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/logger.dart';
 import 'auth_service.dart';
 import 'demo_data_service.dart';
 
@@ -25,43 +26,47 @@ class DemoResetService {
     try {
       final authService = AuthService();
       final isDemo = await authService.isCurrentUserDemo();
-      
+
       if (!isDemo) {
-        debugPrint('❌ Reset failed: Current user is not a demo user');
+        Logger.d('❌ Reset failed: Current user is not a demo user');
         return false;
       }
 
       final currentUser = authService.getCurrentUser();
       if (currentUser == null) {
-        debugPrint('❌ Reset failed: No current user');
+        Logger.d('❌ Reset failed: No current user');
         return false;
       }
 
       final personaId = await authService.getCurrentDemoPersonaId();
       if (personaId == null) {
-        debugPrint('❌ Reset failed: Could not determine demo persona');
+        Logger.d('❌ Reset failed: Could not determine demo persona');
         return false;
       }
 
-      debugPrint('🔄 Starting demo reset for user: ${currentUser.uid} (persona: $personaId)');
+      Logger.d(
+        '🔄 Starting demo reset for user: ${currentUser.uid} (persona: $personaId)',
+      );
 
       final baseline = await _captureBaselineHashes();
 
       // Reset user-specific demo data
       await _resetUserGeneratedData(currentUser.uid);
-      
+
       // Re-seed the persona's base data
       await _reseedPersonaData(currentUser.uid, personaId);
 
       final ok = await _compareHashes(baseline);
       if (!ok) {
-        debugPrint('⚠️ Hash mismatch after reset – seeded data may be inconsistent');
+        Logger.d(
+          '⚠️ Hash mismatch after reset – seeded data may be inconsistent',
+        );
       }
 
-      debugPrint('✅ Demo reset completed successfully');
+      Logger.d('✅ Demo reset completed successfully');
       return true;
     } catch (e) {
-      debugPrint('❌ Demo reset failed: $e');
+      Logger.d('❌ Demo reset failed: $e');
       return false;
     }
   }
@@ -69,7 +74,7 @@ class DemoResetService {
   /// Reset demo data for all demo users (admin function)
   static Future<bool> resetAllDemoData() async {
     try {
-      debugPrint('🔄 Starting full demo reset...');
+      Logger.d('🔄 Starting full demo reset...');
 
       // Get all demo collections
       final demoCollections = [
@@ -93,10 +98,10 @@ class DemoResetService {
       // Re-seed all demo data
       await DemoDataService.seedAllDemoData();
 
-      debugPrint('✅ Full demo reset completed successfully');
+      Logger.d('✅ Full demo reset completed successfully');
       return true;
     } catch (e) {
-      debugPrint('❌ Full demo reset failed: $e');
+      Logger.d('❌ Full demo reset failed: $e');
       return false;
     }
   }
@@ -108,22 +113,26 @@ class DemoResetService {
     // Collections that contain user-generated content to reset
     final userDataQueries = [
       // Reset user's meal logs (keep structure, reset to seeded state)
-      _firestore.collection('${_demoPrefix}meal_logs')
+      _firestore
+          .collection('${_demoPrefix}meal_logs')
           .where('userId', isEqualTo: userId)
           .where('isUserGenerated', isEqualTo: true),
-      
+
       // Reset user's progress stories (keep seeded ones)
-      _firestore.collection('${_demoPrefix}progress_stories')
+      _firestore
+          .collection('${_demoPrefix}progress_stories')
           .where('userId', isEqualTo: userId)
           .where('isUserGenerated', isEqualTo: true),
-      
+
       // Reset user's group messages (keep seeded conversation)
-      _firestore.collection('${_demoPrefix}group_chat_messages')
+      _firestore
+          .collection('${_demoPrefix}group_chat_messages')
           .where('senderId', isEqualTo: userId)
           .where('isUserGenerated', isEqualTo: true),
-      
+
       // Reset user's AI advice interactions (keep seeded history)
-      _firestore.collection('${_demoPrefix}ai_advice_history')
+      _firestore
+          .collection('${_demoPrefix}ai_advice_history')
           .where('userId', isEqualTo: userId)
           .where('isUserGenerated', isEqualTo: true),
     ];
@@ -137,31 +146,36 @@ class DemoResetService {
     }
 
     await batch.commit();
-    debugPrint('🗑️ User-generated content cleared for user: $userId');
+    Logger.d('🗑️ User-generated content cleared for user: $userId');
   }
 
   /// Re-seed persona-specific data after reset
-  static Future<void> _reseedPersonaData(String userId, String personaId) async {
-    debugPrint('🌱 Re-seeding data for persona: $personaId');
-    
+  static Future<void> _reseedPersonaData(
+    String userId,
+    String personaId,
+  ) async {
+    Logger.d('🌱 Re-seeding data for persona: $personaId');
+
     // Re-seed this specific persona's data
     await DemoDataService.seedPersonaData(personaId, userId);
   }
 
   /// Clear an entire Firestore collection
   static Future<void> _clearCollection(String collectionName) async {
-    debugPrint('🗑️ Clearing collection: $collectionName');
-    
+    Logger.d('🗑️ Clearing collection: $collectionName');
+
     final collection = _firestore.collection(collectionName);
     final snapshot = await collection.get();
-    
+
     final batch = _firestore.batch();
     for (final doc in snapshot.docs) {
       batch.delete(doc.reference);
     }
-    
+
     await batch.commit();
-    debugPrint('✅ Collection cleared: $collectionName (${snapshot.docs.length} documents)');
+    Logger.d(
+      '✅ Collection cleared: $collectionName (${snapshot.docs.length} documents)',
+    );
   }
 
   /// Get reset statistics for the current demo user
@@ -169,7 +183,7 @@ class DemoResetService {
     try {
       final authService = AuthService();
       final currentUser = authService.getCurrentUser();
-      
+
       if (currentUser == null) {
         return {};
       }
@@ -204,7 +218,7 @@ class DemoResetService {
 
       return stats;
     } catch (e) {
-      debugPrint('❌ Failed to get demo data stats: $e');
+      Logger.d('❌ Failed to get demo data stats: $e');
       return {};
     }
   }
@@ -220,7 +234,7 @@ class DemoResetService {
     try {
       final authService = AuthService();
       final currentUser = authService.getCurrentUser();
-      
+
       if (currentUser == null) return null;
 
       final doc = await _firestore
@@ -236,7 +250,7 @@ class DemoResetService {
 
       return null;
     } catch (e) {
-      debugPrint('❌ Failed to get last reset time: $e');
+      Logger.d('❌ Failed to get last reset time: $e');
       return null;
     }
   }
@@ -246,18 +260,20 @@ class DemoResetService {
     try {
       final authService = AuthService();
       final currentUser = authService.getCurrentUser();
-      
+
       if (currentUser == null) return false;
 
       final userId = currentUser.uid;
-      
+
       // Check that essential collections have data
       final essentialChecks = [
         _firestore.collection('${_demoPrefix}health_profiles').doc(userId),
-        _firestore.collection('${_demoPrefix}fasting_sessions')
+        _firestore
+            .collection('${_demoPrefix}fasting_sessions')
             .where('userId', isEqualTo: userId)
             .limit(1),
-        _firestore.collection('${_demoPrefix}meal_logs')
+        _firestore
+            .collection('${_demoPrefix}meal_logs')
             .where('userId', isEqualTo: userId)
             .limit(1),
       ];
@@ -274,7 +290,7 @@ class DemoResetService {
 
       return true;
     } catch (e) {
-      debugPrint('❌ Demo data integrity validation failed: $e');
+      Logger.d('❌ Demo data integrity validation failed: $e');
       return false;
     }
   }
@@ -315,4 +331,4 @@ class DemoResetService {
     }
     return true;
   }
-} 
+}

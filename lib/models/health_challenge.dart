@@ -2,40 +2,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// Types of health challenges available
 enum ChallengeType {
-  fasting,        // Fasting streak challenges
-  steps,          // Daily step count challenges
-  calories,       // Calorie tracking challenges
-  workouts,       // Exercise frequency challenges
-  water,          // Water intake challenges
-  weight,         // Weight loss/maintenance challenges
-  meditation,     // Mindfulness and wellness challenges
-  custom,         // User-defined challenges
+  fasting, // Fasting streak challenges
+  steps, // Daily step count challenges
+  calories, // Calorie tracking challenges
+  workouts, // Exercise frequency challenges
+  water, // Water intake challenges
+  weight, // Weight loss/maintenance challenges
+  meditation, // Mindfulness and wellness challenges
+  custom, // User-defined challenges
 }
 
 /// Challenge difficulty levels
-enum ChallengeDifficulty {
-  beginner,
-  intermediate,
-  advanced,
-  expert,
-}
+enum ChallengeDifficulty { beginner, intermediate, advanced, expert }
 
 /// Challenge frequency patterns
-enum ChallengeFrequency {
-  daily,
-  weekly,
-  monthly,
-  oneTime,
-}
+enum ChallengeFrequency { daily, weekly, monthly, oneTime }
 
 /// Challenge participation status
-enum ParticipationStatus {
-  pending,
-  active,
-  completed,
-  failed,
-  withdrawn,
-}
+enum ParticipationStatus { pending, active, completed, failed, withdrawn }
 
 /// Individual participant data
 class ChallengeParticipant {
@@ -166,7 +150,7 @@ class HealthChallenge {
   /// Create from Firestore document
   factory HealthChallenge.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
-    
+
     return HealthChallenge(
       id: doc.id,
       title: data['title'] ?? '',
@@ -184,9 +168,11 @@ class HealthChallenge {
         orElse: () => ChallengeFrequency.daily,
       ),
       creatorId: data['creator_id'] ?? '',
-      participants: (data['participants'] as List<dynamic>?)
-          ?.map((p) => ChallengeParticipant.fromMap(p))
-          .toList() ?? [],
+      participants:
+          (data['participants'] as List<dynamic>?)
+              ?.map((p) => ChallengeParticipant.fromMap(p))
+              .toList() ??
+          [],
       goals: Map<String, dynamic>.from(data['goals'] ?? {}),
       rules: Map<String, dynamic>.from(data['rules'] ?? {}),
       rewards: Map<String, dynamic>.from(data['rewards'] ?? {}),
@@ -286,7 +272,9 @@ class HealthChallenge {
 
   /// Get active participant count
   int get activeParticipantCount {
-    return participants.where((p) => p.status == ParticipationStatus.active).length;
+    return participants
+        .where((p) => p.status == ParticipationStatus.active)
+        .length;
   }
 
   /// Get challenge duration in days
@@ -302,9 +290,9 @@ class HealthChallenge {
   double get progressPercentage {
     if (!hasStarted) return 0.0;
     if (hasEnded) return 1.0;
-    
+
     final totalDuration = endDate.difference(startDate).inMilliseconds;
     final elapsed = DateTime.now().difference(startDate).inMilliseconds;
     return (elapsed / totalDuration).clamp(0.0, 1.0);
   }
-} 
+}

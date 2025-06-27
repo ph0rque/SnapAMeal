@@ -3,34 +3,29 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/fasting_session.dart';
 import '../services/openai_service.dart';
 import '../services/rag_service.dart';
+import '../utils/logger.dart';
 
 /// Types of content that can be filtered
-enum ContentType {
-  image,
-  text,
-  story,
-  snap,
-  chat,
-}
+enum ContentType { image, text, story, snap, chat }
 
 /// Content filtering categories
 enum FilterCategory {
-  food,              // All food-related content
-  restaurant,        // Restaurant/dining content
-  cooking,           // Cooking/recipe content
-  drinks,            // Beverage content (except water)
-  snacks,            // Snack/junk food content
-  diet,              // Diet/weight loss content (may be allowed)
-  fitness,           // Fitness content (usually allowed)
-  health,            // General health content (usually allowed)
+  food, // All food-related content
+  restaurant, // Restaurant/dining content
+  cooking, // Cooking/recipe content
+  drinks, // Beverage content (except water)
+  snacks, // Snack/junk food content
+  diet, // Diet/weight loss content (may be allowed)
+  fitness, // Fitness content (usually allowed)
+  health, // General health content (usually allowed)
 }
 
 /// Content filtering severity levels
 enum FilterSeverity {
-  lenient,    // Filter obvious food content only
-  moderate,   // Filter most food-related content
-  strict,     // Filter all food-related and tempting content
-  extreme,    // Filter everything except health/fitness motivation
+  lenient, // Filter obvious food content only
+  moderate, // Filter most food-related content
+  strict, // Filter all food-related and tempting content
+  extreme, // Filter everything except health/fitness motivation
 }
 
 /// Content filtering result
@@ -89,49 +84,62 @@ class ContentFilterService {
 
   // Content filtering cache
   final Map<String, ContentFilterResult> _filterCache = {};
-  
+
   // Food-related keywords for quick detection
   static const List<String> _foodKeywords = [
     // Basic food terms
     'food', 'eat', 'eating', 'meal', 'dinner', 'lunch', 'breakfast',
     'snack', 'hungry', 'appetite', 'delicious', 'tasty', 'yummy',
-    
+
     // Cooking terms
     'cooking', 'recipe', 'chef', 'kitchen', 'restaurant', 'menu',
     'order', 'delivery', 'takeout', 'dine', 'dining',
-    
+
     // Food categories
     'pizza', 'burger', 'pasta', 'bread', 'cake', 'cookie', 'candy',
     'chocolate', 'ice cream', 'dessert', 'sweet', 'savory',
     'meat', 'chicken', 'beef', 'pork', 'fish', 'seafood',
     'vegetable', 'fruit', 'salad', 'soup', 'sandwich',
-    
+
     // Drinks
     'drink', 'beverage', 'coffee', 'tea', 'soda', 'juice', 'alcohol',
     'beer', 'wine', 'cocktail', 'smoothie', 'shake',
-    
+
     // Food actions
     'bite', 'chew', 'swallow', 'taste', 'flavor', 'spicy', 'sweet',
     'salty', 'bitter', 'sour', 'fresh', 'crispy', 'creamy',
-    
+
     // Restaurant/ordering
     'uber eats', 'doordash', 'grubhub', 'postmates', 'foodpanda',
     'delivery', 'order food', 'restaurant', 'cafe', 'bar', 'pub',
   ];
 
   static const List<String> _healthyKeywords = [
-    'water', 'hydration', 'fasting', 'meditation', 'exercise', 'workout',
-    'fitness', 'health', 'wellness', 'mindfulness', 'discipline',
-    'motivation', 'strength', 'energy', 'focus', 'goals',
+    'water',
+    'hydration',
+    'fasting',
+    'meditation',
+    'exercise',
+    'workout',
+    'fitness',
+    'health',
+    'wellness',
+    'mindfulness',
+    'discipline',
+    'motivation',
+    'strength',
+    'energy',
+    'focus',
+    'goals',
   ];
 
   ContentFilterService({
     required OpenAIService openAIService,
     required RAGService ragService,
     FirebaseFirestore? firestore,
-  })  : _openAIService = openAIService,
-        _ragService = ragService,
-        _firestore = firestore ?? FirebaseFirestore.instance;
+  }) : _openAIService = openAIService,
+       _ragService = ragService,
+       _firestore = firestore ?? FirebaseFirestore.instance;
 
   /// Check if content should be filtered based on fasting session
   Future<ContentFilterResult> shouldFilterContent({
@@ -151,8 +159,9 @@ class ContentFilterService {
     }
 
     // Determine filter severity based on session progress and user preferences
-    final severity = customSeverity ?? _determineFilterSeverity(fastingSession!);
-    
+    final severity =
+        customSeverity ?? _determineFilterSeverity(fastingSession!);
+
     // Check cache first
     final cacheKey = _generateCacheKey(content, contentType, severity);
     if (_filterCache.containsKey(cacheKey)) {
@@ -173,12 +182,11 @@ class ContentFilterService {
 
       // Cache the result
       _filterCache[cacheKey] = result;
-      
+
       // Log filter decision for analytics
       await _logFilterDecision(result, fastingSession);
-      
     } catch (e) {
-      debugPrint('Error in content filtering: $e');
+      Logger.d('Error in content filtering: $e');
       // Fallback to keyword-based filtering
       result = _performKeywordFiltering(content, severity);
     }
@@ -193,8 +201,8 @@ class ContentFilterService {
     final progressPercentage = session.progressPercentage;
 
     // Extended fasts need stricter filtering
-    if (session.type == FastingType.extended24 || 
-        session.type == FastingType.extended36 || 
+    if (session.type == FastingType.extended24 ||
+        session.type == FastingType.extended36 ||
         session.type == FastingType.extended48) {
       if (progressPercentage < 0.25) return FilterSeverity.extreme;
       if (progressPercentage < 0.5) return FilterSeverity.strict;
@@ -229,7 +237,7 @@ class ContentFilterService {
         severity: severity,
         fastingSession: fastingSession,
       );
-      
+
       // Combine keyword and AI results
       return _combineResults(keywordResult, aiResult);
     }
@@ -238,7 +246,10 @@ class ContentFilterService {
   }
 
   /// Perform keyword-based filtering
-  ContentFilterResult _performKeywordFiltering(String content, FilterSeverity severity) {
+  ContentFilterResult _performKeywordFiltering(
+    String content,
+    FilterSeverity severity,
+  ) {
     final lowercaseContent = content.toLowerCase();
     final detectedKeywords = <String>[];
     double confidence = 0.0;
@@ -250,7 +261,7 @@ class ContentFilterService {
       if (lowercaseContent.contains(keyword)) {
         detectedKeywords.add(keyword);
         confidence += 0.1;
-        
+
         // Categorize the content
         if (_isFoodCategory(keyword)) {
           category = FilterCategory.food;
@@ -277,7 +288,8 @@ class ContentFilterService {
 
     String? reason;
     if (shouldFilter) {
-      reason = 'Content contains food-related keywords: ${detectedKeywords.take(3).join(", ")}';
+      reason =
+          'Content contains food-related keywords: ${detectedKeywords.take(3).join(", ")}';
     }
 
     return ContentFilterResult(
@@ -286,7 +298,9 @@ class ContentFilterService {
       confidence: confidence,
       reason: reason,
       detectedKeywords: detectedKeywords,
-      replacementContent: shouldFilter ? _generateReplacementContent(category) : null,
+      replacementContent: shouldFilter
+          ? _generateReplacementContent(category)
+          : null,
     );
   }
 
@@ -298,11 +312,20 @@ class ContentFilterService {
     FastingSession? fastingSession,
   }) async {
     try {
-      final prompt = _buildAnalysisPrompt(content, contentType, severity, fastingSession);
-      
+      final prompt = _buildAnalysisPrompt(
+        content,
+        contentType,
+        severity,
+        fastingSession,
+      );
+
       final response = await _openAIService.getChatCompletionWithMessages(
         messages: [
-          {'role': 'system', 'content': 'You are a content filtering expert for a health and fasting app.'},
+          {
+            'role': 'system',
+            'content':
+                'You are a content filtering expert for a health and fasting app.',
+          },
           {'role': 'user', 'content': prompt},
         ],
         maxTokens: 200,
@@ -311,7 +334,7 @@ class ContentFilterService {
 
       return _parseAIResponse(response ?? '');
     } catch (e) {
-      debugPrint('AI analysis failed: $e');
+      Logger.d('AI analysis failed: $e');
       // Fallback to conservative filtering
       return ContentFilterResult(
         shouldFilter: true,
@@ -371,7 +394,7 @@ Respond in JSON format:
         reason: reason,
       );
     } catch (e) {
-      debugPrint('Failed to parse AI response: $e');
+      Logger.d('Failed to parse AI response: $e');
       return ContentFilterResult(
         shouldFilter: true,
         confidence: 0.5,
@@ -413,9 +436,11 @@ Respond in JSON format:
     ContentFilterResult aiResult,
   ) {
     // Weight AI result more heavily but consider keyword detection
-    final combinedConfidence = (aiResult.confidence * 0.7) + (keywordResult.confidence * 0.3);
-    final shouldFilter = aiResult.shouldFilter || 
-                        (keywordResult.shouldFilter && combinedConfidence > 0.6);
+    final combinedConfidence =
+        (aiResult.confidence * 0.7) + (keywordResult.confidence * 0.3);
+    final shouldFilter =
+        aiResult.shouldFilter ||
+        (keywordResult.shouldFilter && combinedConfidence > 0.6);
 
     return ContentFilterResult(
       shouldFilter: shouldFilter,
@@ -423,7 +448,11 @@ Respond in JSON format:
       category: aiResult.category ?? keywordResult.category,
       reason: aiResult.reason ?? keywordResult.reason,
       detectedKeywords: keywordResult.detectedKeywords,
-      replacementContent: shouldFilter ? _generateReplacementContent(aiResult.category ?? keywordResult.category) : null,
+      replacementContent: shouldFilter
+          ? _generateReplacementContent(
+              aiResult.category ?? keywordResult.category,
+            )
+          : null,
     );
   }
 
@@ -437,28 +466,46 @@ Respond in JSON format:
       case FilterSeverity.lenient:
         return confidence > 0.8 && category == FilterCategory.food;
       case FilterSeverity.moderate:
-        return confidence > 0.6 && (category == FilterCategory.food || 
-                                   category == FilterCategory.restaurant ||
-                                   category == FilterCategory.snacks);
+        return confidence > 0.6 &&
+            (category == FilterCategory.food ||
+                category == FilterCategory.restaurant ||
+                category == FilterCategory.snacks);
       case FilterSeverity.strict:
-        return confidence > 0.4 && (category == FilterCategory.food || 
-                                   category == FilterCategory.restaurant ||
-                                   category == FilterCategory.cooking ||
-                                   category == FilterCategory.snacks ||
-                                   category == FilterCategory.drinks);
+        return confidence > 0.4 &&
+            (category == FilterCategory.food ||
+                category == FilterCategory.restaurant ||
+                category == FilterCategory.cooking ||
+                category == FilterCategory.snacks ||
+                category == FilterCategory.drinks);
       case FilterSeverity.extreme:
-        return confidence > 0.3; // Filter almost everything except health content
+        return confidence >
+            0.3; // Filter almost everything except health content
     }
   }
 
   /// Check if keyword belongs to food category
   bool _isFoodCategory(String keyword) {
-    return ['food', 'eat', 'meal', 'snack', 'pizza', 'burger', 'pasta', 'bread'].contains(keyword);
+    return [
+      'food',
+      'eat',
+      'meal',
+      'snack',
+      'pizza',
+      'burger',
+      'pasta',
+      'bread',
+    ].contains(keyword);
   }
 
   /// Check if keyword belongs to restaurant category
   bool _isRestaurantCategory(String keyword) {
-    return ['restaurant', 'delivery', 'order', 'menu', 'dine'].contains(keyword);
+    return [
+      'restaurant',
+      'delivery',
+      'order',
+      'menu',
+      'dine',
+    ].contains(keyword);
   }
 
   /// Check if keyword belongs to cooking category
@@ -468,7 +515,14 @@ Respond in JSON format:
 
   /// Check if keyword belongs to drink category
   bool _isDrinkCategory(String keyword) {
-    return ['drink', 'coffee', 'soda', 'juice', 'alcohol', 'beer'].contains(keyword);
+    return [
+      'drink',
+      'coffee',
+      'soda',
+      'juice',
+      'alcohol',
+      'beer',
+    ].contains(keyword);
   }
 
   /// Generate replacement content for filtered items
@@ -514,21 +568,27 @@ Respond in JSON format:
       );
 
       final motivationalText = await _ragService.generateContextualizedResponse(
-        userQuery: 'Generate motivational content to replace filtered ${category.name} content during my ${fastingSession.typeDescription} session.',
+        userQuery:
+            'Generate motivational content to replace filtered ${category.name} content during my ${fastingSession.typeDescription} session.',
         healthContext: healthContext,
         maxContextLength: 300,
       );
 
       return AlternativeContent(
         title: 'Stay Focused! 🎯',
-        description: motivationalText ?? _generateReplacementContent(category) ?? 'Keep going with your fasting journey!',
+        description:
+            motivationalText ??
+            _generateReplacementContent(category) ??
+            'Keep going with your fasting journey!',
         actionText: 'View Progress',
       );
     } catch (e) {
-      debugPrint('Error generating alternative content: $e');
+      Logger.d('Error generating alternative content: $e');
       return AlternativeContent(
         title: 'Content Filtered',
-        description: _generateReplacementContent(category) ?? 'Content filtered to support your goals',
+        description:
+            _generateReplacementContent(category) ??
+            'Content filtered to support your goals',
       );
     }
   }
@@ -541,7 +601,7 @@ Respond in JSON format:
     if (fastingSession?.isActive != true) return stories;
 
     final filteredStories = <DocumentSnapshot>[];
-    
+
     for (final story in stories) {
       final data = story.data() as Map<String, dynamic>?;
       if (data == null) continue;
@@ -569,7 +629,7 @@ Respond in JSON format:
     if (fastingSession?.isActive != true) return messages;
 
     final filteredMessages = <DocumentSnapshot>[];
-    
+
     for (final message in messages) {
       final data = message.data() as Map<String, dynamic>?;
       if (data == null) continue;
@@ -590,12 +650,19 @@ Respond in JSON format:
   }
 
   /// Generate cache key
-  String _generateCacheKey(String content, ContentType type, FilterSeverity severity) {
+  String _generateCacheKey(
+    String content,
+    ContentType type,
+    FilterSeverity severity,
+  ) {
     return '${content.hashCode}_${type.name}_${severity.name}';
   }
 
   /// Log filter decision for analytics
-  Future<void> _logFilterDecision(ContentFilterResult result, FastingSession? session) async {
+  Future<void> _logFilterDecision(
+    ContentFilterResult result,
+    FastingSession? session,
+  ) async {
     try {
       if (session != null) {
         await _firestore.collection('filter_analytics').add({
@@ -606,7 +673,7 @@ Respond in JSON format:
         });
       }
     } catch (e) {
-      debugPrint('Failed to log filter decision: $e');
+      Logger.d('Failed to log filter decision: $e');
     }
   }
 

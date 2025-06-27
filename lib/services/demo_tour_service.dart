@@ -34,9 +34,10 @@ class DemoTourService {
   /// Reset all tour progress (for demo reset)
   static Future<void> resetAllTours() async {
     final prefs = await SharedPreferences.getInstance();
-    final keys = prefs.getKeys().where((key) => 
-        key == _tourCompletedKey || key.startsWith(_featureTourPrefix));
-    
+    final keys = prefs.getKeys().where(
+      (key) => key == _tourCompletedKey || key.startsWith(_featureTourPrefix),
+    );
+
     for (final key in keys) {
       await prefs.remove(key);
     }
@@ -81,10 +82,8 @@ class DemoTourService {
     if (context.mounted) {
       await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => FeatureTourOverlay(
-            featureId: featureId,
-            steps: steps,
-          ),
+          builder: (context) =>
+              FeatureTourOverlay(featureId: featureId, steps: steps),
           fullscreenDialog: true,
         ),
       );
@@ -127,32 +126,38 @@ class _DemoTourOverlayState extends State<DemoTourOverlay> {
   final List<TourStep> _mainTourSteps = [
     TourStep(
       title: 'Welcome to SnapAMeal Demo',
-      description: 'This guided tour will showcase our key features and AI capabilities. Let\'s explore what makes SnapAMeal special!',
+      description:
+          'This guided tour will showcase our key features and AI capabilities. Let\'s explore what makes SnapAMeal special!',
       icon: Icons.waving_hand,
     ),
     TourStep(
       title: 'AI-Powered Insights',
-      description: 'Our RAG-enhanced AI provides personalized health advice based on your unique profile and the latest research.',
+      description:
+          'Our RAG-enhanced AI provides personalized health advice based on your unique profile and the latest research.',
       icon: Icons.psychology_outlined,
     ),
     TourStep(
       title: 'Smart Fasting Timer',
-      description: 'Intelligent fasting tracking that learns your patterns and provides optimal timing recommendations.',
+      description:
+          'Intelligent fasting tracking that learns your patterns and provides optimal timing recommendations.',
       icon: Icons.timer_outlined,
     ),
     TourStep(
       title: 'Meal Recognition',
-      description: 'Advanced computer vision instantly identifies your food and calculates nutrition data automatically.',
+      description:
+          'Advanced computer vision instantly identifies your food and calculates nutrition data automatically.',
       icon: Icons.camera_alt_outlined,
     ),
     TourStep(
       title: 'Social Features',
-      description: 'Connect with health communities, share progress stories, and get motivated by friends with similar goals.',
+      description:
+          'Connect with health communities, share progress stories, and get motivated by friends with similar goals.',
       icon: Icons.people_outline,
     ),
     TourStep(
       title: 'Ready to Explore!',
-      description: 'Your demo environment is fully populated with 30+ days of realistic data. Explore and discover!',
+      description:
+          'Your demo environment is fully populated with 30+ days of realistic data. Explore and discover!',
       icon: Icons.rocket_launch,
     ),
   ];
@@ -166,7 +171,7 @@ class _DemoTourOverlayState extends State<DemoTourOverlay> {
           children: [
             // Progress indicator
             _buildProgressIndicator(),
-            
+
             // Tour content
             Expanded(
               child: PageView.builder(
@@ -182,7 +187,7 @@ class _DemoTourOverlayState extends State<DemoTourOverlay> {
                 },
               ),
             ),
-            
+
             // Navigation controls
             _buildNavigationControls(),
           ],
@@ -206,9 +211,9 @@ class _DemoTourOverlayState extends State<DemoTourOverlay> {
           const Spacer(),
           Text(
             '${_currentStep + 1} of ${_mainTourSteps.length}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white70,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
           ),
         ],
       ),
@@ -225,7 +230,9 @@ class _DemoTourOverlayState extends State<DemoTourOverlay> {
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.2),
               shape: BoxShape.circle,
               border: Border.all(
                 color: Theme.of(context).colorScheme.primary,
@@ -301,7 +308,11 @@ class _DemoTourOverlayState extends State<DemoTourOverlay> {
                 Navigator.of(context).pop();
               }
             },
-            child: Text(_currentStep < _mainTourSteps.length - 1 ? 'Next' : 'Start Exploring'),
+            child: Text(
+              _currentStep < _mainTourSteps.length - 1
+                  ? 'Next'
+                  : 'Start Exploring',
+            ),
           ),
         ],
       ),
@@ -355,7 +366,7 @@ class _FeatureTourOverlayState extends State<FeatureTourOverlay> {
                 ],
               ),
             ),
-            
+
             // Tour content
             Expanded(
               child: PageView.builder(
@@ -371,7 +382,7 @@ class _FeatureTourOverlayState extends State<FeatureTourOverlay> {
                 },
               ),
             ),
-            
+
             // Navigation
             Container(
               padding: const EdgeInsets.all(24),
@@ -402,7 +413,11 @@ class _FeatureTourOverlayState extends State<FeatureTourOverlay> {
                         Navigator.of(context).pop();
                       }
                     },
-                    child: Text(_currentStep < widget.steps.length - 1 ? 'Next' : 'Got it!'),
+                    child: Text(
+                      _currentStep < widget.steps.length - 1
+                          ? 'Next'
+                          : 'Got it!',
+                    ),
                   ),
                 ],
               ),
@@ -456,17 +471,20 @@ class SnapAMealTours {
   static List<TourStep> get fastingTour => [
     const TourStep(
       title: 'Smart Fasting Timer',
-      description: 'Your intelligent fasting companion that learns your patterns and optimizes your fasting windows.',
+      description:
+          'Your intelligent fasting companion that learns your patterns and optimizes your fasting windows.',
       icon: Icons.timer_outlined,
     ),
     const TourStep(
       title: 'Personalized Insights',
-      description: 'Get AI-powered recommendations for optimal fasting duration based on your goals and past performance.',
+      description:
+          'Get AI-powered recommendations for optimal fasting duration based on your goals and past performance.',
       icon: Icons.insights_outlined,
     ),
     const TourStep(
       title: 'Progress Tracking',
-      description: 'Monitor your fasting streaks, mood changes, and energy levels to understand what works best for you.',
+      description:
+          'Monitor your fasting streaks, mood changes, and energy levels to understand what works best for you.',
       icon: Icons.trending_up_outlined,
     ),
   ];
@@ -475,17 +493,20 @@ class SnapAMealTours {
   static List<TourStep> get mealLoggingTour => [
     const TourStep(
       title: 'AI Meal Recognition',
-      description: 'Simply take a photo of your meal and our AI will instantly identify the food and calculate nutrition.',
+      description:
+          'Simply take a photo of your meal and our AI will instantly identify the food and calculate nutrition.',
       icon: Icons.camera_alt_outlined,
     ),
     const TourStep(
       title: 'Nutrition Analysis',
-      description: 'Get detailed breakdown of calories, macros, and micronutrients with suggestions for improvement.',
+      description:
+          'Get detailed breakdown of calories, macros, and micronutrients with suggestions for improvement.',
       icon: Icons.analytics_outlined,
     ),
     const TourStep(
       title: 'Pattern Learning',
-      description: 'The AI learns your eating patterns and provides personalized meal timing and portion recommendations.',
+      description:
+          'The AI learns your eating patterns and provides personalized meal timing and portion recommendations.',
       icon: Icons.psychology_outlined,
     ),
   ];
@@ -494,17 +515,20 @@ class SnapAMealTours {
   static List<TourStep> get socialTour => [
     const TourStep(
       title: 'Health Communities',
-      description: 'Join groups focused on your specific health goals and connect with like-minded individuals.',
+      description:
+          'Join groups focused on your specific health goals and connect with like-minded individuals.',
       icon: Icons.groups_outlined,
     ),
     const TourStep(
       title: 'Progress Stories',
-      description: 'Share your journey with photos and milestones. Popular stories become more permanent.',
+      description:
+          'Share your journey with photos and milestones. Popular stories become more permanent.',
       icon: Icons.auto_stories_outlined,
     ),
     const TourStep(
       title: 'Friend Challenges',
-      description: 'Compete and support each other with shared health challenges and streak tracking.',
+      description:
+          'Compete and support each other with shared health challenges and streak tracking.',
       icon: Icons.emoji_events_outlined,
     ),
   ];
@@ -513,18 +537,21 @@ class SnapAMealTours {
   static List<TourStep> get aiInsightsTour => [
     const TourStep(
       title: 'RAG-Powered Advice',
-      description: 'Our AI combines your personal data with the latest health research to provide personalized insights.',
+      description:
+          'Our AI combines your personal data with the latest health research to provide personalized insights.',
       icon: Icons.psychology_outlined,
     ),
     const TourStep(
       title: 'Contextual Recommendations',
-      description: 'Get advice that considers your current health status, goals, and preferences.',
+      description:
+          'Get advice that considers your current health status, goals, and preferences.',
       icon: Icons.lightbulb_outlined,
     ),
     const TourStep(
       title: 'Learning & Adaptation',
-      description: 'The AI continuously learns from your feedback and adjusts recommendations over time.',
+      description:
+          'The AI continuously learns from your feedback and adjusts recommendations over time.',
       icon: Icons.auto_awesome_outlined,
     ),
   ];
-} 
+}

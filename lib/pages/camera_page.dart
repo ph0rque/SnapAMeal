@@ -16,6 +16,7 @@ import '../providers/fasting_state_provider.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
 import '../design_system/widgets/ar_filter_selector.dart';
 import '../design_system/widgets/fasting_status_indicators.dart';
+import '../utils/logger.dart';
 
 class CameraPage extends StatefulWidget {
   const CameraPage({super.key, required this.cameras, this.onStoryPosted});
@@ -93,11 +94,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     if (_noCamerasAvailable) {
-      return const Scaffold(
-        body: Center(
-          child: Text("No cameras available."),
-        ),
-      );
+      return const Scaffold(body: Center(child: Text("No cameras available.")));
     }
     return Scaffold(
       body: FutureBuilder<void>(
@@ -110,18 +107,18 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                   stream: fastingService.sessionStream,
                   builder: (context, snapshot) {
                     _currentFastingSession = snapshot.data;
-                    
+
                     return Stack(
                       children: [
                         CameraPreview(_controller),
-                        
+
                         // AR Filter Overlays
                         if (_activeAROverlays.isNotEmpty)
                           ARFilterOverlayWidget(
                             activeOverlays: _activeAROverlays,
                             screenSize: MediaQuery.of(context).size,
                           ),
-                        
+
                         // Top controls
                         Positioned(
                           top: 40,
@@ -135,7 +132,9 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                                   // Fasting timer toggle
                                   IconButton(
                                     icon: Icon(
-                                      _showFastingTimer ? Icons.timer_off : Icons.timer,
+                                      _showFastingTimer
+                                          ? Icons.timer_off
+                                          : Icons.timer,
                                       color: SnapUIColors.white,
                                     ),
                                     onPressed: () {
@@ -144,13 +143,17 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                                       });
                                     },
                                   ),
-                                  
+
                                   // AR Filters toggle (only show if fasting)
                                   if (_currentFastingSession?.isActive == true)
                                     IconButton(
                                       icon: Icon(
-                                        _showARFilters ? Icons.auto_awesome_outlined : Icons.auto_awesome,
-                                        color: _showARFilters ? Colors.yellow : SnapUIColors.white,
+                                        _showARFilters
+                                            ? Icons.auto_awesome_outlined
+                                            : Icons.auto_awesome,
+                                        color: _showARFilters
+                                            ? Colors.yellow
+                                            : SnapUIColors.white,
                                       ),
                                       onPressed: () {
                                         setState(() {
@@ -163,7 +166,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                                     ),
                                 ],
                               ),
-                              
+
                               // Flash toggle
                               IconButton(
                                 icon: Icon(
@@ -175,7 +178,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                             ],
                           ),
                         ),
-                        
+
                         // Fasting timer overlay
                         if (_showFastingTimer)
                           Positioned(
@@ -193,27 +196,33 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                               ),
                             ),
                           ),
-                        
+
                         // Fasting status indicator
                         if (_currentFastingSession != null)
                           Positioned(
                             top: 100,
                             left: 20,
-                            child: _buildFastingStatusIndicator(_currentFastingSession!),
+                            child: _buildFastingStatusIndicator(
+                              _currentFastingSession!,
+                            ),
                           ),
-                        
+
                         // Camera switch button
                         Positioned(
                           bottom: 20,
                           left: 20,
                           child: IconButton(
-                            icon: const Icon(EvaIcons.flip2, color: SnapUIColors.white),
+                            icon: const Icon(
+                              EvaIcons.flip2,
+                              color: SnapUIColors.white,
+                            ),
                             onPressed: _switchCamera,
                           ),
                         ),
-                        
+
                         // AR Filter Selector
-                        if (_showARFilters && _currentFastingSession?.isActive == true)
+                        if (_showARFilters &&
+                            _currentFastingSession?.isActive == true)
                           Positioned(
                             bottom: 140,
                             left: 0,
@@ -226,7 +235,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                               isVisible: _showARFilters,
                             ),
                           ),
-                        
+
                         // Main camera controls
                         Positioned(
                           bottom: 0,
@@ -241,28 +250,41 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                                 // Fasting snap button (if fasting is active)
                                 if (_currentFastingSession?.isActive == true)
                                   _buildFastingSnapButton(fastingService),
-                                
+
                                 // Main camera button
                                 GestureDetector(
                                   onTap: () => _takePicture(fastingService),
-                                  onLongPressStart: (_) => _startVideoRecording(),
+                                  onLongPressStart: (_) =>
+                                      _startVideoRecording(),
                                   onLongPressEnd: (_) => _stopVideoRecording(),
                                   child: Container(
                                     width: 70,
                                     height: 70,
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
-                                      color: _isRecording ? SnapUIColors.accentRed : SnapUIColors.white,
-                                      border: _currentFastingSession?.isActive == true
-                                          ? Border.all(color: Colors.green, width: 3)
+                                      color: _isRecording
+                                          ? SnapUIColors.accentRed
+                                          : SnapUIColors.white,
+                                      border:
+                                          _currentFastingSession?.isActive ==
+                                              true
+                                          ? Border.all(
+                                              color: Colors.green,
+                                              width: 3,
+                                            )
                                           : null,
                                     ),
-                                    child: _currentFastingSession?.isActive == true
-                                        ? Icon(Icons.restaurant_menu, color: Colors.green, size: 30)
+                                    child:
+                                        _currentFastingSession?.isActive == true
+                                        ? Icon(
+                                            Icons.restaurant_menu,
+                                            color: Colors.green,
+                                            size: 30,
+                                          )
                                         : null,
                                   ),
                                 ),
-                                
+
                                 // End fasting snap button (if fasting is active)
                                 if (_currentFastingSession?.isActive == true)
                                   _buildEndFastingSnapButton(fastingService),
@@ -287,7 +309,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   Future<XFile> _saveFilePermanently(XFile file) async {
     final Directory appDir = await getApplicationDocumentsDirectory();
     final String newPath = p.join(appDir.path, p.basename(file.path));
-            debugPrint("Saving file to permanent path: $newPath");
+    Logger.d("Saving file to permanent path: $newPath");
     await file.saveTo(newPath);
     return XFile(newPath);
   }
@@ -299,17 +321,17 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
       if (!mounted) return;
 
       final savedImage = await _saveFilePermanently(image);
-      
+
       // Record snap engagement if fasting is active
       if (_currentFastingSession?.isActive == true) {
         await fastingService.recordEngagement(snapTaken: true);
       }
-      
+
       if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PreviewPage(
-            picture: savedImage, 
+            picture: savedImage,
             isVideo: false,
             onStoryPosted: widget.onStoryPosted,
             fastingSession: _currentFastingSession,
@@ -317,7 +339,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
         ),
       );
     } catch (e) {
-      debugPrint("Error taking picture: $e");
+      Logger.d("Error taking picture: $e");
     }
   }
 
@@ -331,7 +353,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
     try {
       await _controller.startVideoRecording();
     } catch (e) {
-      debugPrint("Error starting video recording: $e");
+      Logger.d("Error starting video recording: $e");
       return;
     }
   }
@@ -354,14 +376,14 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PreviewPage(
-            picture: savedFile, 
+            picture: savedFile,
             isVideo: true,
             onStoryPosted: widget.onStoryPosted,
           ),
         ),
       );
     } catch (e) {
-      debugPrint("Error stopping video recording: $e");
+      Logger.d("Error stopping video recording: $e");
       return;
     }
   }
@@ -397,25 +419,28 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
       builder: (context, fastingService, _) {
         final progress = session.progressPercentage;
         final statusColor = FastingStatusIndicators.getStatusColor(progress);
-        
+
         return FastingColorShift(
-          fastingState: Provider.of<FastingStateProvider>(context, listen: false),
+          fastingState: Provider.of<FastingStateProvider>(
+            context,
+            listen: false,
+          ),
           applyToBackground: true,
           child: Container(
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: Colors.black.withValues(alpha: 0.8),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: statusColor,
-                width: 2,
-              ),
+              border: Border.all(color: statusColor, width: 2),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 FastingBadge(
-                  fastingState: Provider.of<FastingStateProvider>(context, listen: false),
+                  fastingState: Provider.of<FastingStateProvider>(
+                    context,
+                    listen: false,
+                  ),
                   size: 32,
                   animate: true,
                 ),
@@ -458,11 +483,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
           color: Colors.green.withValues(alpha: 0.8),
           border: Border.all(color: Colors.white, width: 2),
         ),
-        child: Icon(
-          Icons.favorite,
-          color: Colors.white,
-          size: 24,
-        ),
+        child: Icon(Icons.favorite, color: Colors.white, size: 24),
       ),
     );
   }
@@ -481,11 +502,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
           color: Colors.red.withValues(alpha: 0.8),
           border: Border.all(color: Colors.white, width: 2),
         ),
-        child: Icon(
-          Icons.stop,
-          color: Colors.white,
-          size: 24,
-        ),
+        child: Icon(Icons.stop, color: Colors.white, size: 24),
       ),
     );
   }
@@ -498,10 +515,10 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
       if (!mounted) return;
 
       final savedImage = await _saveFilePermanently(image);
-      
+
       // Record engagement and add snap to session
       await fastingService.recordEngagement(snapTaken: true);
-      
+
       if (!mounted) return;
       // Show quick success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -511,12 +528,12 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
           backgroundColor: Colors.green,
         ),
       );
-      
+
       if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PreviewPage(
-            picture: savedImage, 
+            picture: savedImage,
             isVideo: false,
             onStoryPosted: widget.onStoryPosted,
             fastingSession: _currentFastingSession,
@@ -525,7 +542,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
         ),
       );
     } catch (e) {
-      debugPrint("Error taking fasting progress snap: $e");
+      Logger.d("Error taking fasting progress snap: $e");
     }
   }
 
@@ -538,7 +555,9 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Would you like to take a completion snap before ending your fasting session?'),
+            Text(
+              'Would you like to take a completion snap before ending your fasting session?',
+            ),
             SizedBox(height: 16),
             Row(
               children: [
@@ -565,9 +584,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
             child: Text('Take Completion Snap'),
           ),
         ],
@@ -589,10 +606,10 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
       if (!mounted) return;
 
       final savedImage = await _saveFilePermanently(image);
-      
+
       // End the fasting session
       await fastingService.endFastingSession(FastingEndReason.completed);
-      
+
       if (!mounted) return;
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -602,12 +619,12 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
           backgroundColor: Colors.green,
         ),
       );
-      
+
       if (!mounted) return;
       await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (context) => PreviewPage(
-            picture: savedImage, 
+            picture: savedImage,
             isVideo: false,
             onStoryPosted: widget.onStoryPosted,
             fastingSession: _currentFastingSession,
@@ -616,7 +633,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
         ),
       );
     } catch (e) {
-      debugPrint("Error taking completion snap: $e");
+      Logger.d("Error taking completion snap: $e");
       // Fallback: just end the session
       await fastingService.endFastingSession(FastingEndReason.completed);
     }
@@ -670,6 +687,4 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
     });
     _arFilterService.clearAllOverlays();
   }
-
-
-} 
+}

@@ -18,17 +18,22 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
   late AnimationController _personalizationController;
   late Animation<double> _ragAnimation;
   late Animation<double> _personalizationAnimation;
-  
+
   int _currentAdviceIndex = 0;
   bool _showRAGProcess = false;
   bool _showPersonalization = false;
-  
+
   final List<Map<String, dynamic>> _aiAdviceExamples = [
     {
       'title': 'Optimal Fasting Window',
-      'advice': 'Based on your sleep patterns and cortisol levels, extending your fast to 18 hours on Tuesdays and Thursdays could improve fat oxidation by 23%.',
+      'advice':
+          'Based on your sleep patterns and cortisol levels, extending your fast to 18 hours on Tuesdays and Thursdays could improve fat oxidation by 23%.',
       'confidence': 94,
-      'ragSources': ['Sleep study data', 'Metabolic research', 'Personal patterns'],
+      'ragSources': [
+        'Sleep study data',
+        'Metabolic research',
+        'Personal patterns',
+      ],
       'personalization': 'Tailored to your 11pm-7am sleep schedule',
       'category': 'Fasting Optimization',
       'icon': Icons.schedule,
@@ -36,9 +41,14 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
     },
     {
       'title': 'Meal Timing Strategy',
-      'advice': 'Your glucose response shows better insulin sensitivity between 12-2pm. Consider your largest meal during this window for optimal metabolic benefits.',
+      'advice':
+          'Your glucose response shows better insulin sensitivity between 12-2pm. Consider your largest meal during this window for optimal metabolic benefits.',
       'confidence': 89,
-      'ragSources': ['CGM data analysis', 'Circadian research', 'User meal logs'],
+      'ragSources': [
+        'CGM data analysis',
+        'Circadian research',
+        'User meal logs',
+      ],
       'personalization': 'Based on 30 days of glucose monitoring',
       'category': 'Metabolic Health',
       'icon': Icons.restaurant,
@@ -46,46 +56,47 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
     },
     {
       'title': 'Exercise Timing',
-      'advice': 'Your energy levels peak at 4pm based on activity tracking. Scheduling workouts then could increase performance by 15% and improve sleep quality.',
+      'advice':
+          'Your energy levels peak at 4pm based on activity tracking. Scheduling workouts then could increase performance by 15% and improve sleep quality.',
       'confidence': 91,
-      'ragSources': ['Activity tracker data', 'Performance studies', 'Sleep correlation'],
+      'ragSources': [
+        'Activity tracker data',
+        'Performance studies',
+        'Sleep correlation',
+      ],
       'personalization': 'Analyzed from 45 days of activity patterns',
       'category': 'Performance',
       'icon': Icons.fitness_center,
       'color': SnapColors.accentPurple,
     },
   ];
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _ragController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     );
-    
+
     _personalizationController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
-    
+
     _ragAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _ragController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _personalizationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _personalizationController,
-      curve: Curves.elasticOut,
-    ));
-    
+    ).animate(CurvedAnimation(parent: _ragController, curve: Curves.easeInOut));
+
+    _personalizationAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _personalizationController,
+        curve: Curves.elasticOut,
+      ),
+    );
+
     // Auto-cycle through advice examples
     _startAdviceCycle();
   }
@@ -94,7 +105,8 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
     Future.delayed(const Duration(seconds: 4), () {
       if (mounted) {
         setState(() {
-          _currentAdviceIndex = (_currentAdviceIndex + 1) % _aiAdviceExamples.length;
+          _currentAdviceIndex =
+              (_currentAdviceIndex + 1) % _aiAdviceExamples.length;
         });
         _startAdviceCycle();
       }
@@ -115,7 +127,7 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
       builder: (context, snapshot) {
         final isDemo = snapshot.data ?? false;
         if (!isDemo) return const SizedBox.shrink();
-        
+
         return Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(20),
@@ -139,24 +151,24 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
             children: [
               // Demo indicator
               _buildDemoIndicator(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Current AI advice showcase
               _buildCurrentAdviceCard(),
-              
+
               const SizedBox(height: 20),
-              
+
               // RAG process visualization
               _buildRAGProcessSection(),
-              
+
               const SizedBox(height: 20),
-              
+
               // Personalization showcase
               _buildPersonalizationSection(),
-              
+
               const SizedBox(height: 20),
-              
+
               // AI capabilities metrics
               _buildAICapabilitiesMetrics(),
             ],
@@ -176,11 +188,7 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(
-            Icons.psychology,
-            size: 16,
-            color: Colors.white,
-          ),
+          const Icon(Icons.psychology, size: 16, color: Colors.white),
           const SizedBox(width: 6),
           const Text(
             'RAG-Powered AI Advice Demo',
@@ -197,7 +205,7 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
 
   Widget _buildCurrentAdviceCard() {
     final currentAdvice = _aiAdviceExamples[_currentAdviceIndex];
-    
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -267,9 +275,9 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // AI advice content
           Text(
             currentAdvice['advice'] as String,
@@ -279,9 +287,9 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
               height: 1.4,
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Personalization note
           Container(
             padding: const EdgeInsets.all(12),
@@ -294,11 +302,7 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
             ),
             child: Row(
               children: [
-                Icon(
-                  Icons.person,
-                  size: 16,
-                  color: SnapColors.accentBlue,
-                ),
+                Icon(Icons.person, size: 16, color: SnapColors.accentBlue),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -324,18 +328,16 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.hub,
-                color: SnapColors.accentBlue,
-                size: 20,
-              ),
+              Icon(Icons.hub, color: SnapColors.accentBlue, size: 20),
               const SizedBox(width: 8),
               Text(
                 'RAG Process Visualization',
@@ -363,7 +365,7 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
               ),
             ],
           ),
-          
+
           if (_showRAGProcess) ...[
             const SizedBox(height: 16),
             AnimatedBuilder(
@@ -377,27 +379,33 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
                       'Accessing medical research, user data, and health patterns',
                       Icons.library_books,
                       SnapColors.accentBlue,
-                      _ragAnimation.value >= 0.3 ? 1.0 : _ragAnimation.value / 0.3,
+                      _ragAnimation.value >= 0.3
+                          ? 1.0
+                          : _ragAnimation.value / 0.3,
                     ),
                     const SizedBox(height: 8),
-                    
+
                     // Context analysis
                     _buildRAGStep(
                       'Context Analysis',
                       'Analyzing user-specific patterns and correlations',
                       Icons.analytics,
                       SnapColors.accentPurple,
-                      _ragAnimation.value >= 0.6 ? 1.0 : math.max(0, (_ragAnimation.value - 0.3) / 0.3),
+                      _ragAnimation.value >= 0.6
+                          ? 1.0
+                          : math.max(0, (_ragAnimation.value - 0.3) / 0.3),
                     ),
                     const SizedBox(height: 8),
-                    
+
                     // Generation
                     _buildRAGStep(
                       'Advice Generation',
                       'Creating personalized, evidence-based recommendations',
                       Icons.auto_awesome,
                       SnapColors.accentGreen,
-                      _ragAnimation.value >= 0.9 ? 1.0 : math.max(0, (_ragAnimation.value - 0.6) / 0.3),
+                      _ragAnimation.value >= 0.9
+                          ? 1.0
+                          : math.max(0, (_ragAnimation.value - 0.6) / 0.3),
                     ),
                   ],
                 );
@@ -409,7 +417,13 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
     );
   }
 
-  Widget _buildRAGStep(String title, String description, IconData icon, Color color, double progress) {
+  Widget _buildRAGStep(
+    String title,
+    String description,
+    IconData icon,
+    Color color,
+    double progress,
+  ) {
     return Opacity(
       opacity: progress,
       child: Transform.translate(
@@ -462,24 +476,22 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
   Widget _buildPersonalizationSection() {
     final currentAdvice = _aiAdviceExamples[_currentAdviceIndex];
     final ragSources = currentAdvice['ragSources'] as List<String>;
-    
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: SnapColors.backgroundLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: SnapColors.textSecondary.withValues(alpha: 0.2)),
+        border: Border.all(
+          color: SnapColors.textSecondary.withValues(alpha: 0.2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.person_pin,
-                color: SnapColors.accentGreen,
-                size: 20,
-              ),
+              Icon(Icons.person_pin, color: SnapColors.accentGreen, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Personalization Sources',
@@ -507,7 +519,7 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
               ),
             ],
           ),
-          
+
           if (_showPersonalization) ...[
             const SizedBox(height: 12),
             AnimatedBuilder(
@@ -518,8 +530,14 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
                     final index = entry.key;
                     final source = entry.value;
                     final delay = index * 0.3;
-                    final progress = math.max(0.0, math.min(1.0, (_personalizationAnimation.value - delay) / 0.3));
-                    
+                    final progress = math.max(
+                      0.0,
+                      math.min(
+                        1.0,
+                        (_personalizationAnimation.value - delay) / 0.3,
+                      ),
+                    );
+
                     return Transform.scale(
                       scale: 0.8 + (0.2 * progress),
                       child: Opacity(
@@ -528,10 +546,14 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
                           margin: const EdgeInsets.only(bottom: 8),
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: SnapColors.accentGreen.withValues(alpha: 0.1),
+                            color: SnapColors.accentGreen.withValues(
+                              alpha: 0.1,
+                            ),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: SnapColors.accentGreen.withValues(alpha: 0.3),
+                              color: SnapColors.accentGreen.withValues(
+                                alpha: 0.3,
+                              ),
                             ),
                           ),
                           child: Row(
@@ -608,7 +630,13 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
     );
   }
 
-  Widget _buildMetricCard(String title, String value, String subtitle, IconData icon, Color color) {
+  Widget _buildMetricCard(
+    String title,
+    String value,
+    String subtitle,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -650,4 +678,4 @@ class _DemoAIAdviceShowcaseState extends State<DemoAIAdviceShowcase>
       ),
     );
   }
-} 
+}
