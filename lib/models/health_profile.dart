@@ -296,8 +296,9 @@ class HealthProfile {
 
   // Calculate BMR using Mifflin-St Jeor Equation
   double? calculateBMR() {
-    if (weightKg == null || heightCm == null || age == null || gender == null)
+    if (weightKg == null || heightCm == null || age == null || gender == null) {
       return null;
+    }
 
     if (gender!.toLowerCase() == 'male') {
       return (10 * weightKg!) + (6.25 * heightCm!) - (5 * age!) + 5;

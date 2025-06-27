@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import '../models/health_group.dart';
 import '../models/health_challenge.dart';
 import '../utils/logger.dart';
@@ -430,8 +429,9 @@ class HealthCommunityService {
       if (healthGoals != null) updates['health_goals'] = healthGoals;
       if (interests != null) updates['interests'] = interests;
       if (preferences != null) updates['preferences'] = preferences;
-      if (activityPatterns != null)
+      if (activityPatterns != null) {
         updates['activity_patterns'] = activityPatterns;
+      }
       updates['updated_at'] = Timestamp.now();
 
       await _userHealthProfilesCollection

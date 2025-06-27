@@ -50,7 +50,7 @@ class DemoBackupService {
         for (final doc in snapshot.docs) {
           // ignore: unnecessary_cast
           documents[doc.id] = _sanitizeDocumentData(
-            doc.data() as Map<String, dynamic>,
+            doc.data(),
           );
         }
 

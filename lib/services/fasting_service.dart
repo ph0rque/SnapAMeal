@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -627,12 +626,13 @@ class FastingService {
   Future<Map<String, dynamic>> _updateStreakData(bool sessionCompleted) async {
     try {
       final user = _auth.currentUser;
-      if (user == null)
+      if (user == null) {
         return {
           'currentStreak': 0,
           'longestStreak': 0,
           'isPersonalBest': false,
         };
+      }
 
       // Get recent sessions to calculate streak
       final recentSessions = await _firestore
@@ -816,8 +816,9 @@ class FastingService {
           tempStreak++;
           longestStreak = max(longestStreak, tempStreak);
         } else {
-          if (currentStreak == 0)
+          if (currentStreak == 0) {
             break; // Only count from most recent completed
+          }
           tempStreak = 0;
         }
       }

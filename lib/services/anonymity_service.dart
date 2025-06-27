@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:math';
 import '../utils/logger.dart';
 
@@ -280,8 +279,9 @@ class AnonymityService {
   }) async {
     try {
       final identity = await getOrCreateAnonymousIdentity(groupId);
-      if (identity == null)
+      if (identity == null) {
         throw Exception('Could not create anonymous identity');
+      }
 
       final message = AnonymousMessage(
         id: '',

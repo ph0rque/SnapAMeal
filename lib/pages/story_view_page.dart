@@ -486,8 +486,9 @@ class _StoryViewPageState extends State<StoryViewPage>
   }
 
   Widget _buildUserHeader() {
-    if (_stories.isEmpty || _currentIndex >= _stories.length)
+    if (_stories.isEmpty || _currentIndex >= _stories.length) {
       return const SizedBox.shrink();
+    }
 
     final story = _stories[_currentIndex].data() as Map<String, dynamic>?;
     if (story == null) return const SizedBox.shrink();

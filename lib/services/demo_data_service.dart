@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:math';
 import '../config/demo_personas.dart';
 import '../utils/logger.dart';
@@ -1653,12 +1652,15 @@ class DemoDataService {
     final goals = persona.healthProfile['goals'] as List;
 
     // Boost rating if meal aligns with goals
-    if (goals.contains('weight_loss') && tags.contains('low_carb'))
+    if (goals.contains('weight_loss') && tags.contains('low_carb')) {
       baseRating++;
-    if (goals.contains('muscle_gain') && tags.contains('protein_rich'))
+    }
+    if (goals.contains('muscle_gain') && tags.contains('protein_rich')) {
       baseRating++;
-    if (goals.contains('health') && tags.contains('nutrient_dense'))
+    }
+    if (goals.contains('health') && tags.contains('nutrient_dense')) {
       baseRating++;
+    }
 
     // Add some randomness
     baseRating += _random.nextInt(2) - 1; // ±1

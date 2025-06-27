@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import '../models/ai_advice.dart';
 import '../models/health_profile.dart';
 import '../models/meal_log.dart';

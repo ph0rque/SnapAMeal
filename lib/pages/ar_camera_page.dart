@@ -135,8 +135,9 @@ class _ARCameraPageState extends State<ARCameraPage> {
   void _processImage(CameraImage image) {
     if (!mounted ||
         _cameraController == null ||
-        !_cameraController!.value.isInitialized)
+        !_cameraController!.value.isInitialized) {
       return;
+    }
     if (_isDetecting || _faceDetector == null) return;
 
     _isDetecting = true;

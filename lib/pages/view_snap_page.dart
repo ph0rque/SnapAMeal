@@ -191,8 +191,9 @@ class _ViewSnapPageState extends State<ViewSnapPage>
   }
 
   Future<void> _togglePlayPause() async {
-    if (_videoController == null || !_videoController!.value.isInitialized)
+    if (_videoController == null || !_videoController!.value.isInitialized) {
       return;
+    }
 
     try {
       if (_isPlaying) {

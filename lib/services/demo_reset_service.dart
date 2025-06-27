@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import '../utils/logger.dart';
 import 'auth_service.dart';
 import 'demo_data_service.dart';

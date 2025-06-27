@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import '../services/content_filter_service.dart';
 import '../utils/logger.dart';
 import '../services/fasting_service.dart';

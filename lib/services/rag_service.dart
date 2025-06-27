@@ -4,7 +4,6 @@ library;
 
 import 'dart:convert';
 import 'dart:developer' as developer;
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../config/ai_config.dart';
 import '../utils/logger.dart';

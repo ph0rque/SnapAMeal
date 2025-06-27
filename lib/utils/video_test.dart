@@ -1,5 +1,4 @@
 import 'package:camera/camera.dart';
-import 'package:flutter/foundation.dart';
 import 'logger.dart';
 
 /// Basic utility to test video recording capabilities
