@@ -62,12 +62,14 @@ class FriendService {
       }
     }
 
+    print('DEBUG: Creating friend request with data: {senderId: $currentUserId, receiverId: $receiverId}');
     await _firestore.collection('friend_requests').doc(chatRoomId).set({
       'senderId': currentUserId,
       'receiverId': receiverId,
       'status': 'pending',
       'timestamp': FieldValue.serverTimestamp(),
     });
+    print('DEBUG: Friend request document created successfully');
   }
 
   // Get friend requests for the current user

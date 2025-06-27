@@ -51,13 +51,13 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: SnapColors.backgroundDark,
+      backgroundColor: SnapColors.backgroundLight,
       appBar: AppBar(
-        backgroundColor: SnapColors.backgroundDark,
+        backgroundColor: SnapColors.backgroundLight,
         title: Text(
           'Community',
           style: SnapTypography.heading2.copyWith(
-            color: SnapColors.primaryYellow,
+            color: SnapColors.textPrimary,
           ),
         ),
         centerTitle: true,
@@ -184,9 +184,12 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
   }
 
   Widget _buildFriendsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
+    print('DEBUG: Building Friends tab');
+    return Container(
+      color: SnapColors.backgroundLight,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -197,7 +200,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
             ),
           ),
           const SizedBox(height: 10),
-          Container(
+          SizedBox(
             height: 250, // Reduced height to prevent overflow
             child: SnapUserSearch(),
           ),
@@ -227,6 +230,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
           ),
           const SizedBox(height: 20), // Bottom padding
         ],
+      ),
       ),
     );
   }
