@@ -12,7 +12,8 @@ service cloud.firestore {
     // - Any authenticated user can read public user data (for searching).
     // - A user can only create, update, or delete their own user document.
     match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null; // Allow reading any user for search
+      allow write: if request.auth != null && request.auth.uid == userId;
 
       // A user can only manage their own friends list.
       // Also allow updating friend data for streak tracking when snaps are sent
