@@ -2,6 +2,7 @@ import 'package:snapameal/pages/ar_camera_page.dart';
 
 import 'package:snapameal/pages/meal_logging_page.dart';
 import 'package:snapameal/pages/milestone_stories_page.dart';
+import 'package:snapameal/pages/weekly_review_page.dart';
 import 'package:snapameal/services/auth_service.dart';
 import 'package:flutter/material.dart';
 
@@ -152,12 +153,30 @@ class _HomePageState extends State<HomePage> {
                 icon: const Icon(Icons.account_circle_outlined),
                 onSelected: (value) {
                   switch (value) {
+                    case 'reviews':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const WeeklyReviewPage(),
+                        ),
+                      );
+                      break;
                     case 'logout':
                       _showLogoutDialog();
                       break;
                   }
                 },
                 itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'reviews',
+                    child: Row(
+                      children: [
+                        Icon(Icons.assessment),
+                        SizedBox(width: 8),
+                        Text('My Reviews'),
+                      ],
+                    ),
+                  ),
                   const PopupMenuItem(
                     value: 'logout',
                     child: Row(

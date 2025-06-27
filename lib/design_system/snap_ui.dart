@@ -230,6 +230,9 @@ class SnapColors {
   // Missing properties referenced in data_conflicts_page.dart
   static const backgroundPrimary = backgroundLight;
   static const backgroundSecondary = greyBackground;
+  
+  // Additional aliases for weekly review system
+  static const background = backgroundLight;
 }
 
 class SnapTypography {
@@ -253,6 +256,21 @@ class SnapTypography {
   static final heading4 = titleLarge;
   static final headingSmall = titleLarge;
   static final bodySmall = bodyMedium;
+}
+
+// Additional text styles class for weekly review system
+class SnapTextStyles {
+  static final displayLarge = SnapUITypography.lightTextTheme.displayLarge!;
+  static final displayMedium = SnapUITypography.lightTextTheme.displayMedium!;
+  static final headlineLarge = SnapUITypography.lightTextTheme.displayLarge!;
+  static final headlineMedium = SnapUITypography.lightTextTheme.displayMedium!;
+  static final headlineSmall = SnapUITypography.lightTextTheme.headlineMedium!;
+  static final titleLarge = SnapUITypography.lightTextTheme.titleLarge!;
+  static final titleMedium = SnapUITypography.lightTextTheme.titleLarge!;
+  static final bodyLarge = SnapUITypography.lightTextTheme.bodyLarge!;
+  static final bodyMedium = SnapUITypography.lightTextTheme.bodyMedium!;
+  static final bodySmall = SnapUITypography.lightTextTheme.bodyMedium!;
+  static final labelLarge = SnapUITypography.lightTextTheme.labelLarge!;
 }
 
 class SnapDimensions {
@@ -285,4 +303,12 @@ class SnapDimensions {
   static const radiusMedium = radiusM;
   static const borderRadiusSmall = radiusS;
   static const borderRadiusMedium = radiusM;
+  
+  // Additional aliases for weekly review system
+  static const spacingXSmall = spacingXXS;
+  static const spacingSmall = spacingS;
+  static const spacingMedium = spacingM;
+  static const spacingLarge = spacingL;
+  static const radiusSmall = radiusS;
+  static const radiusLarge = radiusL;
 }

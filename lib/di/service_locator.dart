@@ -5,6 +5,7 @@ import '../services/openai_service.dart';
 import '../services/rag_service.dart';
 import '../services/friend_service.dart';
 import '../services/health_community_service.dart';
+import '../services/weekly_review_service.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -23,6 +24,9 @@ void setupServiceLocator() {
   // Social services
   sl.registerLazySingleton<FriendService>(() => FriendService(ragService: sl<RAGService>()));
   sl.registerLazySingleton<HealthCommunityService>(() => HealthCommunityService(sl<RAGService>(), sl<FriendService>()));
+  
+  // Review services
+  sl.registerLazySingleton<WeeklyReviewService>(() => WeeklyReviewService(ragService: sl<RAGService>()));
   
   // Note: DemoResetService uses static methods, so no registration needed
   // Note: DemoDataValidator uses static methods, so no registration needed

@@ -142,7 +142,7 @@
 
 ## Phase 3: RAG-Infused Social Features
 
-### Task 3.1: AI-Powered Conversation Starters for Groups
+### Task 3.1: AI-Powered Conversation Starters for Groups ✅
 **Priority**: Low  
 **Estimated Time**: 3-4 days  
 
@@ -152,11 +152,11 @@
 - Ensure topics are relevant to group themes and current trends
 
 **Acceptance Criteria**:
-- [ ] Groups receive relevant discussion prompts based on their focus area
-- [ ] Conversation starters are posted at appropriate intervals (not spam)
-- [ ] Topics are engaging and encourage user participation
-- [ ] Group admins can control frequency of AI-generated prompts
-- [ ] Fallback topics exist for common group types
+- [x] Groups receive relevant discussion prompts based on their focus area
+- [x] Conversation starters are posted at appropriate intervals (not spam)
+- [x] Topics are engaging and encourage user participation
+- [x] Group admins can control frequency of AI-generated prompts
+- [x] Fallback topics exist for common group types
 
 **Technical Notes**:
 - Extend `health_community_service.dart` with conversation generation
@@ -166,7 +166,7 @@
 
 ---
 
-### Task 3.2: Enhanced Friend Matching with AI Justifications
+### Task 3.2: Enhanced Friend Matching with AI Justifications ✅
 **Priority**: Low  
 **Estimated Time**: 2-3 days  
 
@@ -176,11 +176,11 @@
 - Use health profiles and goals to find meaningful connections
 
 **Acceptance Criteria**:
-- [ ] Friend suggestions include specific reasons for the match
-- [ ] Reasons are personalized and mention common goals/interests
-- [ ] Explanations are natural and encouraging
-- [ ] System handles cases where no good matches are found
-- [ ] Fallback explanations exist for generic matches
+- [x] Friend suggestions include specific reasons for the match
+- [x] Reasons are personalized and mention common goals/interests
+- [x] Explanations are natural and encouraging
+- [x] System handles cases where no good matches are found
+- [x] Fallback explanations exist for generic matches
 
 **Technical Notes**:
 - Modify `friend_service.dart` to include justification generation
@@ -192,7 +192,7 @@
 
 ## Phase 4: Personalized Weekly & Monthly Reviews
 
-### Task 4.1: Weekly Review Data Collection and Analysis
+### Task 4.1: Weekly Review Data Collection and Analysis ✅
 **Priority**: Medium  
 **Estimated Time**: 3-4 days  
 
@@ -203,12 +203,12 @@
 - Handle users with minimal activity gracefully
 
 **Acceptance Criteria**:
-- [ ] System collects relevant user activity data (stories, meals, fasting, etc.)
-- [ ] Weekly analysis runs automatically for all users
-- [ ] Reviews are generated using existing RAGService functions
-- [ ] Historical reviews are stored and accessible
-- [ ] System handles edge cases (new users, inactive users)
-- [ ] Reviews include actionable insights and encouragement
+- [x] System collects relevant user activity data (stories, meals, fasting, etc.)
+- [x] Weekly analysis runs automatically for all users
+- [x] Reviews are generated using existing RAGService functions
+- [x] Historical reviews are stored and accessible
+- [x] System handles edge cases (new users, inactive users)
+- [x] Reviews include actionable insights and encouragement
 
 **Technical Notes**:
 - Create scheduled job to run weekly review generation
@@ -218,7 +218,7 @@
 
 ---
 
-### Task 4.2: Weekly Review UI and Navigation
+### Task 4.2: Weekly Review UI and Navigation ✅
 **Priority**: Medium  
 **Estimated Time**: 2-3 days  
 
@@ -229,12 +229,12 @@
 - Allow users to share or save favorite reviews
 
 **Acceptance Criteria**:
-- [ ] Users can access weekly reviews from main menu
-- [ ] Review page displays current and historical reviews
-- [ ] Reviews are presented in visually appealing format
-- [ ] Users can navigate between different weeks
-- [ ] Loading states and empty states are handled properly
-- [ ] Reviews are readable and well-formatted
+- [x] Users can access weekly reviews from main menu
+- [x] Review page displays current and historical reviews
+- [x] Reviews are presented in visually appealing format
+- [x] Users can navigate between different weeks
+- [x] Loading states and empty states are handled properly
+- [x] Reviews are readable and well-formatted
 
 **Technical Notes**:
 - Create `WeeklyReviewPage` in `lib/pages/`
