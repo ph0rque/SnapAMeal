@@ -6,6 +6,7 @@ import 'package:snapameal/services/story_service.dart';
 import 'package:video_player/video_player.dart';
 import 'package:eva_icons_flutter/eva_icons_flutter.dart';
 import 'package:snapameal/design_system/snap_ui.dart';
+import '../models/fasting_session.dart';
 
 class PreviewPage extends StatefulWidget {
   const PreviewPage({
@@ -13,11 +14,17 @@ class PreviewPage extends StatefulWidget {
     required this.picture,
     this.isVideo = false,
     this.onStoryPosted,
+    this.fastingSession,
+    this.isFastingProgressSnap = false,
+    this.isFastingCompletionSnap = false,
   });
 
   final XFile picture;
   final bool isVideo;
   final VoidCallback? onStoryPosted;
+  final FastingSession? fastingSession;
+  final bool isFastingProgressSnap;
+  final bool isFastingCompletionSnap;
 
   @override
   State<PreviewPage> createState() => _PreviewPageState();
@@ -55,24 +62,34 @@ class _PreviewPageState extends State<PreviewPage> {
           Positioned.fill(
             child: widget.isVideo
                 ? (_videoController?.value.isInitialized ?? false)
-                    ? AspectRatio(
-                        aspectRatio: _videoController!.value.aspectRatio,
-                        child: VideoPlayer(_videoController!),
-                      )
-                    : const Center(child: CircularProgressIndicator())
-                : Image.file(
-                    File(widget.picture.path),
-                    fit: BoxFit.cover,
-                  ),
+                      ? AspectRatio(
+                          aspectRatio: _videoController!.value.aspectRatio,
+                          child: VideoPlayer(_videoController!),
+                        )
+                      : const Center(child: CircularProgressIndicator())
+                : Image.file(File(widget.picture.path), fit: BoxFit.cover),
           ),
           Positioned(
             top: 40,
             left: 10,
             child: IconButton(
-              icon: const Icon(EvaIcons.close, color: SnapUIColors.white, size: 30),
+              icon: const Icon(
+                EvaIcons.close,
+                color: SnapUIColors.white,
+                size: 30,
+              ),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ),
+          // Fasting context overlay
+          if (widget.fastingSession != null)
+            Positioned(
+              top: 80,
+              left: 20,
+              right: 20,
+              child: _buildFastingContextOverlay(),
+            ),
+
           Positioned(
             bottom: 0,
             left: 0,
@@ -80,7 +97,7 @@ class _PreviewPageState extends State<PreviewPage> {
             child: widget.onStoryPosted != null
                 ? _buildStoryPostButton()
                 : _buildSnapOptions(),
-          )
+          ),
         ],
       ),
     );
@@ -98,7 +115,11 @@ class _PreviewPageState extends State<PreviewPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(EvaIcons.clockOutline, color: Colors.white, size: 20),
+                const Icon(
+                  EvaIcons.clockOutline,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 const SizedBox(width: 8),
                 const Text(
                   'Duration:',
@@ -108,7 +129,10 @@ class _PreviewPageState extends State<PreviewPage> {
                 GestureDetector(
                   onTap: () => _showTimerSelectionDialog(context),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.white),
                       borderRadius: BorderRadius.circular(20),
@@ -127,7 +151,7 @@ class _PreviewPageState extends State<PreviewPage> {
             ),
             const SizedBox(height: 16),
           ],
-          
+
           // Post button
           SizedBox(
             width: double.infinity,
@@ -149,31 +173,39 @@ class _PreviewPageState extends State<PreviewPage> {
                     child: CircularProgressIndicator(color: Colors.white),
                   ),
                 );
-                
+
                 try {
-                  final duration = widget.isVideo ? 5 : _durationInSeconds; // Video stories are always 5 seconds
-                  await _storyService.postStory(widget.picture.path, widget.isVideo, duration: duration);
-                  
+                  final duration = widget.isVideo
+                      ? 5
+                      : _durationInSeconds; // Video stories are always 5 seconds
+                  await _storyService.postStory(
+                    widget.picture.path,
+                    widget.isVideo,
+                    duration: duration,
+                  );
+
                   if (!mounted) return;
                   Navigator.of(context).pop(); // Close loading dialog
-                  
+
                   if (widget.onStoryPosted != null) {
                     widget.onStoryPosted!();
                   }
-                  
+
                   Navigator.of(context).popUntil((route) => route.isFirst);
-                  
+
                   // Show success message
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${widget.isVideo ? "Video" : "Photo"} story posted successfully!'),
+                      content: Text(
+                        '${widget.isVideo ? "Video" : "Photo"} story posted successfully!',
+                      ),
                       backgroundColor: SnapUIColors.accentPurple,
                     ),
                   );
                 } catch (e) {
                   if (!mounted) return;
                   Navigator.of(context).pop(); // Close loading dialog
-                  
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Failed to post story. Please try again.'),
@@ -213,9 +245,10 @@ class _PreviewPageState extends State<PreviewPage> {
             icon: Text(
               '$_durationInSeconds',
               style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold),
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             onPressed: () => _showTimerSelectionDialog(context),
           ),
@@ -226,7 +259,10 @@ class _PreviewPageState extends State<PreviewPage> {
             },
           ),
           IconButton(
-            icon: const Icon(EvaIcons.paperPlaneOutline, color: SnapUIColors.white),
+            icon: const Icon(
+              EvaIcons.paperPlaneOutline,
+              color: SnapUIColors.white,
+            ),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -267,4 +303,77 @@ class _PreviewPageState extends State<PreviewPage> {
       });
     }
   }
-} 
+
+  /// Build fasting context overlay
+  Widget _buildFastingContextOverlay() {
+    if (widget.fastingSession == null) return SizedBox.shrink();
+
+    String title;
+    String subtitle;
+    Color backgroundColor;
+    IconData icon;
+
+    if (widget.isFastingCompletionSnap) {
+      title = 'Fasting Completed! 🎉';
+      subtitle = 'Celebrate your achievement!';
+      backgroundColor = Colors.green;
+      icon = Icons.celebration;
+    } else if (widget.isFastingProgressSnap) {
+      final progress = (widget.fastingSession!.progressPercentage * 100)
+          .toInt();
+      title = 'Fasting Progress: $progress%';
+      subtitle = 'Keep going strong! 💪';
+      backgroundColor = Colors.blue;
+      icon = Icons.trending_up;
+    } else {
+      title = 'Fasting Session Active';
+      subtitle = widget.fastingSession!.typeDescription;
+      backgroundColor = Colors.orange;
+      icon = Icons.timer;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: backgroundColor.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.3),
+            blurRadius: 8,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.white, size: 24),
+          SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.9),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

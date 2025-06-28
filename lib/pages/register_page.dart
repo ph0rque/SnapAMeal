@@ -21,9 +21,7 @@ class RegisterPage extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     // password match -> create user
@@ -37,21 +35,17 @@ class RegisterPage extends StatelessWidget {
 
         // pop loading circle
         if (context.mounted) Navigator.pop(context);
-
       } catch (e) {
         // pop loading circle
         if (context.mounted) Navigator.pop(context);
         if (context.mounted) {
           showDialog(
             context: context,
-            builder: (context) => AlertDialog(
-              title: Text(e.toString()),
-            ),
+            builder: (context) => AlertDialog(title: Text(e.toString())),
           );
         }
       }
     }
-
     // passwords don't match -> tell user to fix
     else {
       // pop loading circle
@@ -59,9 +53,8 @@ class RegisterPage extends StatelessWidget {
       if (context.mounted) {
         showDialog(
           context: context,
-          builder: (context) => const AlertDialog(
-            title: Text("Passwords don't match!"),
-          ),
+          builder: (context) =>
+              const AlertDialog(title: Text("Passwords don't match!")),
         );
       }
     }
@@ -77,10 +70,7 @@ class RegisterPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // logo
-              const Icon(
-                EvaIcons.messageSquare,
-                size: 60,
-              ),
+              const Icon(EvaIcons.messageSquare, size: 60),
 
               const SizedBox(height: 50),
 
@@ -129,10 +119,7 @@ class RegisterPage extends StatelessWidget {
               const SizedBox(height: 25),
 
               // register button
-              SnapButton(
-                onTap: () => register(context),
-                text: "Register",
-              ),
+              SnapButton(onTap: () => register(context), text: "Register"),
 
               const SizedBox(height: 25),
 
@@ -149,8 +136,8 @@ class RegisterPage extends StatelessWidget {
                     child: Text(
                       "Login now",
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
@@ -161,4 +148,4 @@ class RegisterPage extends StatelessWidget {
       ),
     );
   }
-} 
+}

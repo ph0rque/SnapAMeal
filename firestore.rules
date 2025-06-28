@@ -8,87 +8,201 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Users
-    // - Any authenticated user can read public user data (for searching).
-    // - A user can only create, update, or delete their own user document.
-    match /users/{userId} {
-      allow read: if request.auth != null;
-      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
+    // Demo user function for enhanced access
+    function isDemoUser() {
+      return request.auth != null && (
+        request.auth.token.email == 'alice.demo@example.com' ||
+        request.auth.token.email == 'bob.demo@example.com' ||
+        request.auth.token.email == 'charlie.demo@example.com'
+      );
+    }
 
-      // A user can only manage their own friends list.
-      // Also allow updating friend data for streak tracking when snaps are sent
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function isDocumentOwner(fieldName) {
+      return request.auth != null && 
+        (resource == null || request.auth.uid == resource.data[fieldName]);
+    }
+
+    function isRequestDocumentOwner(fieldName) {
+      return request.auth != null && 
+        request.auth.uid == request.resource.data[fieldName];
+    }
+
+    // ===== CORE USER COLLECTIONS =====
+
+    // Users - core user documents
+    match /users/{userId} {
+      allow read: if request.auth != null; // Allow reading any user for search
+      allow write: if isOwner(userId);
+      allow update: if request.auth != null && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friends']);
+
+      // User subcollections
       match /friends/{friendId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow create, delete: if request.auth != null && request.auth.uid == userId;
-        allow update: if request.auth != null && (
-          request.auth.uid == userId || // Owner can update their own friends
-          (request.auth.uid == friendId && 'streakCount' in request.resource.data) // Friend can update streak data when sending snaps
-        );
+        allow read, write: if isOwner(userId);
+        allow create: if request.auth != null && 
+          (request.auth.uid == userId || request.auth.uid == friendId);
       }
 
-      // User snaps subcollection
-      // - Any authenticated user can create a snap for any user (sending snaps)
-      // - Only the owner can read and update their own snaps
       match /snaps/{snapId} {
         allow create: if request.auth != null && 
                          request.resource.data.senderId is string &&
                          request.resource.data.receiverId is string &&
                          request.resource.data.receiverId == userId;
-        allow read, update: if request.auth != null && request.auth.uid == userId;
+        allow read, update: if isOwner(userId);
         allow delete: if false; // Handled by backend
       }
     }
 
-    // Chat Rooms
-    // - A user can only read/write a chat room if they are a member or potential member.
-    match /chat_rooms/{chatRoomId} {
-      allow read: if request.auth != null && (
-        // User is a member of existing chat room
-        (resource != null && request.auth.uid in resource.data.members) ||
-        // For one-on-one chats, allow if user ID is in the chat room ID (format: uid1_uid2)
-        request.auth.uid in chatRoomId.split('_')
-      );
-      allow create: if request.auth != null && request.auth.uid in request.resource.data.members;
-      allow update, delete: if request.auth != null && request.auth.uid in resource.data.members;
+    // User health profiles - users can only access their own
+    match /user_health_profiles/{userId} {
+      allow read, write: if isOwner(userId);
+      allow create: if isOwner(userId);
+    }
 
-      // Messages
-      // - A user can only read/write messages in a chat they are a member of.
-      match /messages/{messageId} {
-        allow read, write: if request.auth != null && request.auth.uid in get(/databases/$(database)/documents/chat_rooms/$(chatRoomId)).data.members;
+    // Health profiles (alternative structure)
+    match /health_profiles/{userId} {
+      allow read, write: if isOwner(userId);
+      allow create: if isOwner(userId);
+    }
+
+    // User reviews - users can only access their own reviews
+    match /user_reviews/{reviewId} {
+      allow read, write: if isDocumentOwner('user_id');
+      allow create: if isRequestDocumentOwner('user_id');
+      allow list: if request.auth != null;
+    }
+
+    // Weekly reviews - users can only access their own reviews  
+    match /weekly_reviews/{reviewId} {
+      allow read, write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+      allow list: if request.auth != null;
+    }
+
+    // Monthly reviews - users can only access their own reviews
+    match /monthly_reviews/{reviewId} {
+      allow read, write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+      allow list: if request.auth != null;
+    }
+
+    // Progress stories - users can only access their own stories
+    match /progress_stories/{storyId} {
+      allow read, write: if isDocumentOwner('user_id');
+      allow create: if isRequestDocumentOwner('user_id');
+      allow list: if request.auth != null;
+    }
+
+    // Behavior patterns - users can only access their own behavior data
+    match /behavior_patterns/{patternId} {
+      allow read, write: if isDocumentOwner('user_id');
+      allow create: if isRequestDocumentOwner('user_id');
+      allow list: if request.auth != null;
+    }
+
+    // ===== MEAL AND FASTING COLLECTIONS =====
+
+    // Meal logs - users can only access their own meal logs
+    match /meal_logs/{logId} {
+      allow read, write: if isDocumentOwner('user_id');
+      allow create: if isRequestDocumentOwner('user_id');
+      allow list: if request.auth != null;
+    }
+
+    // Meal logs (alternative structure)
+    match /mealLogs/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /logs/{logId} {
+        allow read, write: if isOwner(userId);
+        allow create: if isOwner(userId);
       }
     }
 
-    // Snaps
-    // - Sender must be the authenticated user.
-    // - Only the receiver can read or update (to mark as viewed).
-    // - No one can delete a snap (handled by backend).
+    // Fasting sessions - multiple structures
+    match /fasting_sessions/{sessionId} {
+      allow read, write: if isDocumentOwner('user_id');
+      allow create: if isRequestDocumentOwner('user_id');
+      allow list: if request.auth != null;
+    }
+
+    match /fastingSessions/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /sessions/{sessionId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /history/{historyId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ===== AI AND CONTENT COLLECTIONS =====
+
+    // AI advice - users can only access their own AI advice
+    match /ai_advice/{adviceId} {
+      allow read, write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+      allow list: if request.auth != null;
+    }
+
+    // AI advice history
+    match /ai_advice_history/{adviceId} {
+      allow read, write: if isDocumentOwner('user_id');
+      allow create: if isRequestDocumentOwner('user_id');
+      allow list: if request.auth != null;
+    }
+
+    // AI content feed - users can only access their own AI content
+    match /ai_content_feed/{contentId} {
+      allow read, write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+      allow list: if request.auth != null;
+    }
+
+    // Daily insights - users can only access their own daily insights
+    match /daily_insights/{insightId} {
+      allow read, write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+      allow list: if request.auth != null;
+    }
+
+    // User missions - users can only access their own missions
+    match /user_missions/{missionId} {
+      allow read, write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+      allow list: if request.auth != null;
+    }
+
+    // ===== SOCIAL AND COMMUNITY COLLECTIONS =====
+
+    // Stories - users can create their own, others can read
+    match /stories/{storyId} {
+      allow read: if request.auth != null;
+      allow write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+    }
+
+    // Snaps - sender/receiver access
     match /snaps/{snapId} {
-      allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
-      allow read, update: if request.auth != null && request.auth.uid == resource.data.receiverId;
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == resource.data.senderId || 
+         request.auth.uid == resource.data.receiverId);
       allow delete: if false;
     }
 
-    // Stories
-    // - A user can only create a story for themself.
-    // - Only friends of the user can read the stories.
-    // - No one can update or delete (handled by backend).
-    function isFriend(userId) {
-      return exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(userId));
-    }
-
-    match /stories/{storyId} {
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow read: if request.auth != null && (isFriend(resource.data.userId) || request.auth.uid == resource.data.userId);
-      allow update, delete: if false;
-    }
-
-    // Friend Requests
-    // - A user can send a friend request to anyone (create)
-    // - A user can only read friend requests where they are the sender or receiver
-    // - A user can update a friend request to accept/decline it if they are the receiver
-    // - A user can delete a friend request if they are the sender or receiver
+    // Friend requests
     match /friend_requests/{requestId} {
-      allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
+      allow create: if request.auth != null && 
+        request.resource.data.keys().hasAll(['senderId', 'receiverId', 'status']) &&
+        request.resource.data.senderId == request.auth.uid &&
+        request.resource.data.status == 'pending';
       allow read: if request.auth != null && (
         request.auth.uid == resource.data.senderId || 
         request.auth.uid == resource.data.receiverId
@@ -100,5 +214,333 @@ service cloud.firestore {
       );
     }
 
+    // Friend suggestions - users can only access their own suggestions
+    match /friend_suggestions/{suggestionId} {
+      allow read, write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+    }
+
+    // Friend suggestion interactions
+    match /friend_suggestion_interactions/{interactionId} {
+      allow read, write: if isDocumentOwner('user_id');
+      allow create: if isRequestDocumentOwner('user_id');
+    }
+
+    // Health groups - users can read groups they're members of and create new groups
+    match /health_groups/{groupId} {
+      allow read: if request.auth != null && 
+        (resource == null || 
+         request.auth.uid in resource.data.member_ids ||
+         resource.data.privacy == 'public');
+      allow write: if request.auth != null && 
+        (resource == null || 
+         request.auth.uid in resource.data.member_ids || 
+         request.auth.uid == resource.data.creator_id);
+      allow create: if request.auth != null;
+      allow list: if request.auth != null;
+    }
+
+    // Chat rooms - users can read/write chat rooms they're members of
+    match /chat_rooms/{chatRoomId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid in resource.data.members;
+      allow create: if request.auth != null && 
+        request.auth.uid in request.resource.data.members;
+
+      match /messages/{messageId} {
+        allow read, write: if request.auth != null && 
+          request.auth.uid in get(/databases/$(database)/documents/chat_rooms/$(chatRoomId)).data.members;
+      }
+    }
+
+    // ===== USER SETTINGS AND PREFERENCES =====
+
+    // User preferences and settings
+    match /userPreferences/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // User settings (including fasting settings)
+    match /user_settings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Privacy settings - users can only access their own privacy settings
+    match /privacy_settings/{userId} {
+      allow read, write: if isOwner(userId);
+      allow create: if isOwner(userId);
+    }
+
+    // ===== ANALYTICS AND TRACKING =====
+
+    // User streaks - users can only access their own streaks
+    match /user_streaks/{streakId} {
+      allow read, write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+    }
+
+    // Shared streaks - users can read shared streaks and create their own
+    match /shared_streaks/{sharedStreakId} {
+      allow read: if request.auth != null;
+      allow write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+    }
+
+    // Story engagement tracking
+    match /story_engagement/{engagementId} {
+      allow create: if isRequestDocumentOwner('userId');
+      allow read: if isDocumentOwner('userId');
+    }
+
+    // Analytics and usage data (anonymized)
+    match /analytics/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Filter analytics - anonymous data collection
+    match /filter_analytics/{documentId} {
+      allow create: if request.auth != null;
+      allow read: if false; // Only admin access
+    }
+
+    // ===== HEALTH AND NUTRITION =====
+
+    // Health integrations - users can only access their own integrations
+    match /health_integrations/{integrationId} {
+      allow read, write: if isDocumentOwner('user_id');
+      allow create: if isRequestDocumentOwner('user_id');
+    }
+
+    // Health challenges - users can read all, write their own
+    match /health_challenges/{challengeId} {
+      allow read: if request.auth != null;
+      allow write: if isDocumentOwner('creator_id');
+      allow create: if isRequestDocumentOwner('creator_id');
+    }
+
+    // Nutrition data - users can only access their own nutrition data
+    match /nutritionData/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /daily/{date} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /weekly/{weekId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /monthly/{monthId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Health insights and AI-generated content
+    match /healthInsights/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /insights/{insightId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // ===== DATA MANAGEMENT =====
+
+    // Data conflicts - users can only access their own conflicts
+    match /data_conflicts/{conflictId} {
+      allow read, write: if isDocumentOwner('userId');
+      allow create: if isRequestDocumentOwner('userId');
+    }
+
+    // Conflict resolutions - users can only access their own conflict resolutions
+    match /conflict_resolutions/{resolutionId} {
+      allow read, write: if isDocumentOwner('resolvedBy');
+      allow create: if isRequestDocumentOwner('resolvedBy');
+    }
+
+    // ===== RECIPES AND CONTENT =====
+
+    // Recipe suggestions - users can access their own and public recipes
+    match /recipes/{recipeId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+        (request.auth.uid == resource.data.createdBy || 
+         resource.data.isPublic == true);
+    }
+
+    // User recipe collections - private to each user
+    match /userRecipes/{userId} {
+      allow read, write: if isOwner(userId);
+      
+      match /saved/{recipeId} {
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /created/{recipeId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Conversation starters - users can read all but only write their own
+    match /conversation_starters/{starterId} {
+      allow read: if request.auth != null;
+      allow write: if isDocumentOwner('createdBy');
+      allow create: if isRequestDocumentOwner('createdBy');
+    }
+
+    // Knowledge base documents - read-only for authenticated users
+    match /knowledgeBase/{documentId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Only admin can write (via server-side)
+    }
+
+    // ===== DEMO COLLECTIONS =====
+
+    // Demo data collections - isolated from production data
+    match /demo_users/{userId} {
+      allow read, write: if isDemoUser() && request.auth.uid == userId;
+      allow read: if isDemoUser(); // Allow demo users to read other demo users
+    }
+
+    match /demo_meal_logs/{logId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.user_id;
+      allow read: if isDemoUser(); // Allow demo users to read other demo meal logs
+    }
+
+    match /demo_fasting_sessions/{sessionId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.user_id;
+      allow read: if isDemoUser(); // Allow demo users to read other demo sessions
+    }
+
+    match /demo_health_groups/{groupId} {
+      allow read: if isDemoUser();
+      allow write: if isDemoUser() && 
+        (resource == null || 
+         request.auth.uid in resource.data.member_ids || 
+         request.auth.uid == resource.data.creator_id);
+      allow create: if isDemoUser();
+    }
+
+    match /demo_ai_advice/{adviceId} {
+      allow read: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_ai_advice_history/{adviceId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.user_id;
+    }
+
+    match /demo_progress_stories/{storyId} {
+      allow read: if isDemoUser();
+      allow write: if isDemoUser() && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.user_id;
+    }
+
+    match /demo_stories/{storyId} {
+      allow read: if isDemoUser();
+      allow write: if isDemoUser() && 
+        request.auth.uid == resource.data.userId;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_chat_rooms/{chatRoomId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid in resource.data.members;
+      allow create: if isDemoUser() && 
+        request.auth.uid in request.resource.data.members;
+
+      match /messages/{messageId} {
+        allow read, write: if isDemoUser() && 
+          request.auth.uid in get(/databases/$(database)/documents/demo_chat_rooms/$(chatRoomId)).data.members;
+      }
+    }
+
+    match /demo_analytics/{documentId} {
+      allow create: if isDemoUser();
+      allow read: if false; // Only admin access for analytics
+    }
+
+    match /demo_session_data/{sessionId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid == resource.data.userId;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_reset_history/{resetId} {
+      allow create: if isDemoUser();
+      allow read: if isDemoUser() && 
+        request.auth.uid == resource.data.userId;
+    }
+
+    match /demo_daily_insights/{insightId} {
+      allow read: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_user_missions/{missionId} {
+      allow read: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_ai_content_feed/{contentId} {
+      allow read: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow write: if isDemoUser() && 
+        (resource == null || request.auth.uid == resource.data.userId);
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.userId;
+    }
+
+    match /demo_privacy_settings/{userId} {
+      allow read: if isDemoUser() && request.auth.uid == userId;
+      allow write: if isDemoUser() && request.auth.uid == userId;
+      allow create: if isDemoUser() && request.auth.uid == userId;
+    }
+
+    match /demo_health_challenges/{challengeId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.user_id;
+    }
+
+    match /demo_user_streaks/{streakId} {
+      allow read, write: if isDemoUser() && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if isDemoUser() && 
+        request.auth.uid == request.resource.data.user_id;
+    }
+
+    // ===== ADMIN COLLECTIONS =====
+
+    // Admin-only collections
+    match /admin/{document=**} {
+      allow read, write: if false; // Only server-side admin operations
+    }
   }
 } 

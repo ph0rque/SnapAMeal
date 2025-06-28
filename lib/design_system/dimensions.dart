@@ -1,6 +1,6 @@
 class SnapUIDimensions {
   // Prevent instantiation
-  SnapUIDimensions._();
+  const SnapUIDimensions._();
 
   // Spacing
   static const double spacingXXS = 2.0;
@@ -25,4 +25,7 @@ class SnapUIDimensions {
   // Border Width
   static const double borderWidthS = 1.0;
   static const double borderWidthM = 2.0;
-} 
+
+  // Commonly used border radius (alias for radiusM)
+  static const double borderRadius = radiusM;
+}

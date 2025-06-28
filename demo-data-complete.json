@@ -1,0 +1,4080 @@
+{
+  "userProfiles": {
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1": {
+      "username": "alice_freelancer",
+      "age": 34,
+      "occupation": "Freelancer",
+      "isDemo": true,
+      "demoPersonaId": "alice",
+      "healthProfile": {
+        "height": 168,
+        "weight": 63.5,
+        "gender": "female",
+        "fastingType": "14:10",
+        "calorieTarget": 1600,
+        "activityLevel": "moderate",
+        "goals": [
+          "weight_loss",
+          "energy"
+        ],
+        "dietaryRestrictions": []
+      },
+      "uid": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "email": "alice.demo@example.com",
+      "displayName": "Alice",
+      "lastReplayTimestamp": null,
+      "createdAt": "2025-06-27T15:39:25.447Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2": {
+      "username": "bob_retail",
+      "age": 25,
+      "occupation": "Retail Worker",
+      "isDemo": true,
+      "demoPersonaId": "bob",
+      "healthProfile": {
+        "height": 178,
+        "weight": 81.6,
+        "gender": "male",
+        "fastingType": "16:8",
+        "calorieTarget": 1800,
+        "activityLevel": "active",
+        "goals": [
+          "muscle_gain",
+          "strength"
+        ],
+        "dietaryRestrictions": []
+      },
+      "uid": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "email": "bob.demo@example.com",
+      "displayName": "Bob",
+      "lastReplayTimestamp": null,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2": {
+      "username": "charlie_teacher",
+      "age": 41,
+      "occupation": "Teacher",
+      "isDemo": true,
+      "demoPersonaId": "charlie",
+      "healthProfile": {
+        "height": 163,
+        "weight": 72.6,
+        "gender": "female",
+        "fastingType": "5:2",
+        "calorieTarget": 1400,
+        "activityLevel": "light",
+        "goals": [
+          "weight_loss",
+          "health"
+        ],
+        "dietaryRestrictions": [
+          "vegetarian"
+        ]
+      },
+      "uid": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "email": "charlie.demo@example.com",
+      "displayName": "Charlie",
+      "lastReplayTimestamp": null,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    }
+  },
+  "mealLogs": {
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_0": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-27T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 333,
+      "nutrition": {
+        "protein": 14,
+        "carbs": 58,
+        "fat": 22,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_1": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-27T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 447,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 55,
+        "fat": 20,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_2": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-26T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 372,
+      "nutrition": {
+        "protein": 34,
+        "carbs": 61,
+        "fat": 7,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_3": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-26T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Grilled chicken wrap",
+      "calories": 453,
+      "nutrition": {
+        "protein": 35,
+        "carbs": 29,
+        "fat": 11,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_4": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-26T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Stir-fry with tofu",
+      "calories": 508,
+      "nutrition": {
+        "protein": 13,
+        "carbs": 50,
+        "fat": 20,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_5": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-25T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Overnight oats with berries",
+      "calories": 382,
+      "nutrition": {
+        "protein": 36,
+        "carbs": 24,
+        "fat": 9,
+        "fiber": 15
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_6": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-25T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 415,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 51,
+        "fat": 19,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_7": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-25T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Salmon with vegetables",
+      "calories": 580,
+      "nutrition": {
+        "protein": 15,
+        "carbs": 42,
+        "fat": 17,
+        "fiber": 15
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_8": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-24T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 364,
+      "nutrition": {
+        "protein": 16,
+        "carbs": 37,
+        "fat": 18,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_9": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-24T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 443,
+      "nutrition": {
+        "protein": 29,
+        "carbs": 21,
+        "fat": 5,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_10": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-23T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 396,
+      "nutrition": {
+        "protein": 29,
+        "carbs": 36,
+        "fat": 17,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_11": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-23T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 431,
+      "nutrition": {
+        "protein": 34,
+        "carbs": 44,
+        "fat": 6,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_12": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-22T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 376,
+      "nutrition": {
+        "protein": 10,
+        "carbs": 49,
+        "fat": 21,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_13": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-22T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Grilled chicken wrap",
+      "calories": 424,
+      "nutrition": {
+        "protein": 31,
+        "carbs": 36,
+        "fat": 19,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_14": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-21T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 382,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 61,
+        "fat": 16,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_15": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-21T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 489,
+      "nutrition": {
+        "protein": 10,
+        "carbs": 22,
+        "fat": 18,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_16": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-20T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 358,
+      "nutrition": {
+        "protein": 33,
+        "carbs": 50,
+        "fat": 11,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_17": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-20T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 410,
+      "nutrition": {
+        "protein": 27,
+        "carbs": 37,
+        "fat": 11,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_18": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-20T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Zucchini noodles",
+      "calories": 554,
+      "nutrition": {
+        "protein": 14,
+        "carbs": 23,
+        "fat": 10,
+        "fiber": 15
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_19": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-19T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Overnight oats with berries",
+      "calories": 376,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 28,
+        "fat": 23,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_20": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-19T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 473,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 35,
+        "fat": 21,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_21": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-19T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Salmon with vegetables",
+      "calories": 523,
+      "nutrition": {
+        "protein": 32,
+        "carbs": 55,
+        "fat": 5,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_22": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-18T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 366,
+      "nutrition": {
+        "protein": 13,
+        "carbs": 55,
+        "fat": 7,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_23": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-18T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 444,
+      "nutrition": {
+        "protein": 25,
+        "carbs": 40,
+        "fat": 23,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_24": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-18T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Salmon with vegetables",
+      "calories": 544,
+      "nutrition": {
+        "protein": 31,
+        "carbs": 68,
+        "fat": 8,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_25": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-17T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 323,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 36,
+        "fat": 14,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_26": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-17T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Grilled chicken wrap",
+      "calories": 417,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 48,
+        "fat": 17,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_27": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-17T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Stir-fry with tofu",
+      "calories": 554,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 68,
+        "fat": 6,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_28": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-16T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 370,
+      "nutrition": {
+        "protein": 14,
+        "carbs": 54,
+        "fat": 15,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_29": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-16T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 411,
+      "nutrition": {
+        "protein": 32,
+        "carbs": 30,
+        "fat": 12,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_30": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-15T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 345,
+      "nutrition": {
+        "protein": 10,
+        "carbs": 64,
+        "fat": 24,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_31": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-15T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Grilled chicken wrap",
+      "calories": 454,
+      "nutrition": {
+        "protein": 13,
+        "carbs": 52,
+        "fat": 5,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_32": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-14T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Overnight oats with berries",
+      "calories": 362,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 56,
+        "fat": 22,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_33": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-14T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 469,
+      "nutrition": {
+        "protein": 11,
+        "carbs": 34,
+        "fat": 24,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_34": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-14T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Stir-fry with tofu",
+      "calories": 569,
+      "nutrition": {
+        "protein": 29,
+        "carbs": 48,
+        "fat": 5,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_35": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-13T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 344,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 37,
+        "fat": 12,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_36": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-13T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 457,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 63,
+        "fat": 9,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_37": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-13T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Zucchini noodles",
+      "calories": 542,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 40,
+        "fat": 6,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_38": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-12T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Overnight oats with berries",
+      "calories": 366,
+      "nutrition": {
+        "protein": 37,
+        "carbs": 29,
+        "fat": 15,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_39": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-12T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 498,
+      "nutrition": {
+        "protein": 10,
+        "carbs": 44,
+        "fat": 8,
+        "fiber": 15
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_40": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-12T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Stir-fry with tofu",
+      "calories": 598,
+      "nutrition": {
+        "protein": 37,
+        "carbs": 64,
+        "fat": 11,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_41": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-11T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 371,
+      "nutrition": {
+        "protein": 29,
+        "carbs": 52,
+        "fat": 23,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_42": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-11T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 471,
+      "nutrition": {
+        "protein": 24,
+        "carbs": 39,
+        "fat": 8,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_43": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-10T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 370,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 30,
+        "fat": 18,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_44": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-10T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 419,
+      "nutrition": {
+        "protein": 31,
+        "carbs": 51,
+        "fat": 6,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_45": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-09T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 309,
+      "nutrition": {
+        "protein": 38,
+        "carbs": 32,
+        "fat": 6,
+        "fiber": 15
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_46": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-09T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 406,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 21,
+        "fat": 20,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_47": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-09T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Zucchini noodles",
+      "calories": 541,
+      "nutrition": {
+        "protein": 34,
+        "carbs": 69,
+        "fat": 20,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_48": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-08T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 325,
+      "nutrition": {
+        "protein": 33,
+        "carbs": 36,
+        "fat": 23,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_49": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-08T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 421,
+      "nutrition": {
+        "protein": 35,
+        "carbs": 59,
+        "fat": 17,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_50": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-07T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 304,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 53,
+        "fat": 23,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_51": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-07T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 433,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 68,
+        "fat": 13,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_52": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-06T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Overnight oats with berries",
+      "calories": 387,
+      "nutrition": {
+        "protein": 32,
+        "carbs": 29,
+        "fat": 17,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_53": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-06T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 443,
+      "nutrition": {
+        "protein": 14,
+        "carbs": 27,
+        "fat": 17,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_54": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-05T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Avocado toast",
+      "calories": 300,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 28,
+        "fat": 17,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_55": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-05T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Grilled chicken wrap",
+      "calories": 457,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 60,
+        "fat": 11,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_56": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-04T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 377,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 36,
+        "fat": 22,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_57": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-04T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 456,
+      "nutrition": {
+        "protein": 11,
+        "carbs": 53,
+        "fat": 24,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_58": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-04T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Stir-fry with tofu",
+      "calories": 550,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 29,
+        "fat": 18,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_59": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-03T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 392,
+      "nutrition": {
+        "protein": 28,
+        "carbs": 33,
+        "fat": 22,
+        "fiber": 15
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_60": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-03T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 476,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 38,
+        "fat": 6,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_61": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-02T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Overnight oats with berries",
+      "calories": 334,
+      "nutrition": {
+        "protein": 11,
+        "carbs": 68,
+        "fat": 13,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_62": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-02T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 497,
+      "nutrition": {
+        "protein": 39,
+        "carbs": 27,
+        "fat": 13,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_63": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-01T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Overnight oats with berries",
+      "calories": 381,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 31,
+        "fat": 10,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_64": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-01T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Grilled chicken wrap",
+      "calories": 441,
+      "nutrition": {
+        "protein": 10,
+        "carbs": 53,
+        "fat": 12,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_65": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-06-01T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Zucchini noodles",
+      "calories": 579,
+      "nutrition": {
+        "protein": 11,
+        "carbs": 28,
+        "fat": 12,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_66": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-05-31T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Overnight oats with berries",
+      "calories": 350,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 42,
+        "fat": 19,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_67": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-05-31T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 445,
+      "nutrition": {
+        "protein": 11,
+        "carbs": 54,
+        "fat": 13,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_68": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-05-31T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Zucchini noodles",
+      "calories": 502,
+      "nutrition": {
+        "protein": 24,
+        "carbs": 38,
+        "fat": 22,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_69": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-05-30T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Green smoothie bowl",
+      "calories": 341,
+      "nutrition": {
+        "protein": 18,
+        "carbs": 25,
+        "fat": 12,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_70": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-05-30T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Buddha bowl",
+      "calories": 485,
+      "nutrition": {
+        "protein": 34,
+        "carbs": 27,
+        "fat": 12,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_71": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-05-30T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Salmon with vegetables",
+      "calories": 514,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 53,
+        "fat": 11,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_72": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-05-29T15:39:25.451Z",
+      "mealType": "breakfast",
+      "description": "Overnight oats with berries",
+      "calories": 395,
+      "nutrition": {
+        "protein": 33,
+        "carbs": 64,
+        "fat": 11,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_73": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-05-29T15:39:25.451Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 441,
+      "nutrition": {
+        "protein": 29,
+        "carbs": 47,
+        "fat": 17,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_meal_74": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "timestamp": "2025-05-29T15:39:25.451Z",
+      "mealType": "dinner",
+      "description": "Stir-fry with tofu",
+      "calories": 574,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 40,
+        "fat": 13,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_0": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-27T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 580,
+      "nutrition": {
+        "protein": 35,
+        "carbs": 35,
+        "fat": 18,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_1": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-27T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 656,
+      "nutrition": {
+        "protein": 35,
+        "carbs": 44,
+        "fat": 21,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_2": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-27T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Grilled fish",
+      "calories": 706,
+      "nutrition": {
+        "protein": 31,
+        "carbs": 45,
+        "fat": 12,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_3": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-26T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 592,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 23,
+        "fat": 9,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_4": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-26T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 609,
+      "nutrition": {
+        "protein": 39,
+        "carbs": 67,
+        "fat": 14,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_5": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-25T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 558,
+      "nutrition": {
+        "protein": 16,
+        "carbs": 49,
+        "fat": 14,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_6": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-25T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 629,
+      "nutrition": {
+        "protein": 25,
+        "carbs": 69,
+        "fat": 9,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_7": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-25T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Chicken stir-fry",
+      "calories": 742,
+      "nutrition": {
+        "protein": 38,
+        "carbs": 25,
+        "fat": 6,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_8": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-24T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 516,
+      "nutrition": {
+        "protein": 16,
+        "carbs": 48,
+        "fat": 16,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_9": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-24T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 649,
+      "nutrition": {
+        "protein": 34,
+        "carbs": 42,
+        "fat": 19,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_10": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-23T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 563,
+      "nutrition": {
+        "protein": 26,
+        "carbs": 52,
+        "fat": 24,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_11": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-23T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 699,
+      "nutrition": {
+        "protein": 25,
+        "carbs": 20,
+        "fat": 21,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_12": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-22T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 515,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 50,
+        "fat": 19,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_13": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-22T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 638,
+      "nutrition": {
+        "protein": 11,
+        "carbs": 48,
+        "fat": 13,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_14": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-22T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Lean beef with quinoa",
+      "calories": 791,
+      "nutrition": {
+        "protein": 13,
+        "carbs": 25,
+        "fat": 5,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_15": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-21T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 598,
+      "nutrition": {
+        "protein": 12,
+        "carbs": 65,
+        "fat": 8,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_16": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-21T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 623,
+      "nutrition": {
+        "protein": 29,
+        "carbs": 56,
+        "fat": 13,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_17": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-20T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 570,
+      "nutrition": {
+        "protein": 36,
+        "carbs": 25,
+        "fat": 23,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_18": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-20T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Chicken and rice",
+      "calories": 652,
+      "nutrition": {
+        "protein": 34,
+        "carbs": 39,
+        "fat": 5,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_19": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-19T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Eggs and oatmeal",
+      "calories": 529,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 35,
+        "fat": 14,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_20": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-19T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 643,
+      "nutrition": {
+        "protein": 15,
+        "carbs": 64,
+        "fat": 11,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_21": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-18T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Eggs and oatmeal",
+      "calories": 545,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 64,
+        "fat": 15,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_22": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-18T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Chicken and rice",
+      "calories": 685,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 50,
+        "fat": 23,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_23": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-18T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Grilled fish",
+      "calories": 752,
+      "nutrition": {
+        "protein": 17,
+        "carbs": 41,
+        "fat": 19,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_24": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-17T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 599,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 54,
+        "fat": 11,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_25": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-17T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 638,
+      "nutrition": {
+        "protein": 31,
+        "carbs": 64,
+        "fat": 15,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_26": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-16T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 515,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 45,
+        "fat": 22,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_27": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-16T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Chicken and rice",
+      "calories": 624,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 39,
+        "fat": 16,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_28": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-15T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 547,
+      "nutrition": {
+        "protein": 10,
+        "carbs": 68,
+        "fat": 15,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_29": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-15T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Chicken and rice",
+      "calories": 669,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 45,
+        "fat": 16,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_30": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-15T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Grilled fish",
+      "calories": 743,
+      "nutrition": {
+        "protein": 34,
+        "carbs": 31,
+        "fat": 14,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_31": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-14T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 546,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 50,
+        "fat": 18,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_32": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-14T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 647,
+      "nutrition": {
+        "protein": 27,
+        "carbs": 26,
+        "fat": 24,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_33": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-14T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Chicken stir-fry",
+      "calories": 712,
+      "nutrition": {
+        "protein": 15,
+        "carbs": 27,
+        "fat": 11,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_34": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-13T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 537,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 33,
+        "fat": 10,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_35": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-13T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 650,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 50,
+        "fat": 16,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_36": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-13T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Chicken stir-fry",
+      "calories": 771,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 24,
+        "fat": 17,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_37": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-12T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 590,
+      "nutrition": {
+        "protein": 17,
+        "carbs": 59,
+        "fat": 7,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_38": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-12T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 641,
+      "nutrition": {
+        "protein": 32,
+        "carbs": 55,
+        "fat": 11,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_39": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-11T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 520,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 29,
+        "fat": 19,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_40": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-11T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 617,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 64,
+        "fat": 12,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_41": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-11T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Grilled fish",
+      "calories": 761,
+      "nutrition": {
+        "protein": 28,
+        "carbs": 63,
+        "fat": 13,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_42": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-10T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Eggs and oatmeal",
+      "calories": 561,
+      "nutrition": {
+        "protein": 38,
+        "carbs": 65,
+        "fat": 10,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_43": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-10T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 629,
+      "nutrition": {
+        "protein": 36,
+        "carbs": 69,
+        "fat": 6,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_44": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-10T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Chicken stir-fry",
+      "calories": 708,
+      "nutrition": {
+        "protein": 18,
+        "carbs": 25,
+        "fat": 8,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_45": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-09T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 528,
+      "nutrition": {
+        "protein": 28,
+        "carbs": 55,
+        "fat": 18,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_46": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-09T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 673,
+      "nutrition": {
+        "protein": 10,
+        "carbs": 33,
+        "fat": 8,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_47": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-08T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 585,
+      "nutrition": {
+        "protein": 37,
+        "carbs": 59,
+        "fat": 17,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_48": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-08T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 663,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 58,
+        "fat": 16,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_49": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-08T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Lean beef with quinoa",
+      "calories": 717,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 30,
+        "fat": 8,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_50": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-07T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 552,
+      "nutrition": {
+        "protein": 32,
+        "carbs": 55,
+        "fat": 21,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_51": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-07T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Chicken and rice",
+      "calories": 605,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 47,
+        "fat": 5,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_52": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-07T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Chicken stir-fry",
+      "calories": 733,
+      "nutrition": {
+        "protein": 29,
+        "carbs": 49,
+        "fat": 23,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_53": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-06T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 516,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 51,
+        "fat": 18,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_54": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-06T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 686,
+      "nutrition": {
+        "protein": 25,
+        "carbs": 21,
+        "fat": 13,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_55": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-05T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 587,
+      "nutrition": {
+        "protein": 33,
+        "carbs": 22,
+        "fat": 14,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_56": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-05T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Chicken and rice",
+      "calories": 667,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 38,
+        "fat": 22,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_57": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-04T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 587,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 47,
+        "fat": 15,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_58": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-04T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 694,
+      "nutrition": {
+        "protein": 16,
+        "carbs": 57,
+        "fat": 10,
+        "fiber": 15
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_59": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-04T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Grilled fish",
+      "calories": 723,
+      "nutrition": {
+        "protein": 39,
+        "carbs": 49,
+        "fat": 14,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_60": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-03T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 599,
+      "nutrition": {
+        "protein": 27,
+        "carbs": 47,
+        "fat": 13,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_61": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-03T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 660,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 45,
+        "fat": 23,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_62": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-03T15:39:25.452Z",
+      "mealType": "dinner",
+      "description": "Chicken stir-fry",
+      "calories": 786,
+      "nutrition": {
+        "protein": 27,
+        "carbs": 34,
+        "fat": 22,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_63": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-02T15:39:25.452Z",
+      "mealType": "breakfast",
+      "description": "Eggs and oatmeal",
+      "calories": 549,
+      "nutrition": {
+        "protein": 21,
+        "carbs": 54,
+        "fat": 18,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_64": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-02T15:39:25.452Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 623,
+      "nutrition": {
+        "protein": 39,
+        "carbs": 46,
+        "fat": 5,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_65": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-01T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 585,
+      "nutrition": {
+        "protein": 24,
+        "carbs": 44,
+        "fat": 21,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_66": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-06-01T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 623,
+      "nutrition": {
+        "protein": 35,
+        "carbs": 23,
+        "fat": 19,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_67": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-05-31T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Protein smoothie",
+      "calories": 556,
+      "nutrition": {
+        "protein": 38,
+        "carbs": 56,
+        "fat": 21,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_68": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-05-31T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Protein bowl",
+      "calories": 682,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 60,
+        "fat": 11,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_69": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-05-30T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Eggs and oatmeal",
+      "calories": 540,
+      "nutrition": {
+        "protein": 34,
+        "carbs": 34,
+        "fat": 18,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_70": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-05-30T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Chicken and rice",
+      "calories": 649,
+      "nutrition": {
+        "protein": 12,
+        "carbs": 65,
+        "fat": 19,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_71": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-05-29T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Protein pancakes",
+      "calories": 576,
+      "nutrition": {
+        "protein": 14,
+        "carbs": 66,
+        "fat": 12,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_72": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-05-29T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Turkey sandwich",
+      "calories": 651,
+      "nutrition": {
+        "protein": 34,
+        "carbs": 21,
+        "fat": 19,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_meal_73": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "timestamp": "2025-05-29T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Chicken stir-fry",
+      "calories": 717,
+      "nutrition": {
+        "protein": 25,
+        "carbs": 62,
+        "fat": 24,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_0": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-27T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 303,
+      "nutrition": {
+        "protein": 15,
+        "carbs": 23,
+        "fat": 19,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_1": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-27T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 435,
+      "nutrition": {
+        "protein": 18,
+        "carbs": 43,
+        "fat": 10,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_2": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-27T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Pasta primavera",
+      "calories": 434,
+      "nutrition": {
+        "protein": 12,
+        "carbs": 61,
+        "fat": 18,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_3": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-26T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Vegetarian omelet",
+      "calories": 348,
+      "nutrition": {
+        "protein": 25,
+        "carbs": 63,
+        "fat": 20,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_4": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-26T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 375,
+      "nutrition": {
+        "protein": 36,
+        "carbs": 32,
+        "fat": 14,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_5": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-25T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Vegetarian omelet",
+      "calories": 286,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 31,
+        "fat": 20,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_6": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-25T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 378,
+      "nutrition": {
+        "protein": 39,
+        "carbs": 22,
+        "fat": 8,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_7": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-25T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Pasta primavera",
+      "calories": 418,
+      "nutrition": {
+        "protein": 25,
+        "carbs": 23,
+        "fat": 24,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_8": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-24T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 266,
+      "nutrition": {
+        "protein": 16,
+        "carbs": 28,
+        "fat": 21,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_9": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-24T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 442,
+      "nutrition": {
+        "protein": 36,
+        "carbs": 35,
+        "fat": 12,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_10": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-23T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 280,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 34,
+        "fat": 8,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_11": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-23T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 370,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 24,
+        "fat": 18,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_12": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-22T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 274,
+      "nutrition": {
+        "protein": 24,
+        "carbs": 36,
+        "fat": 15,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_13": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-22T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 406,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 24,
+        "fat": 15,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_14": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-21T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Vegetarian omelet",
+      "calories": 324,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 65,
+        "fat": 23,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_15": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-21T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 431,
+      "nutrition": {
+        "protein": 25,
+        "carbs": 40,
+        "fat": 16,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_16": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-21T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Pasta primavera",
+      "calories": 492,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 41,
+        "fat": 11,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_17": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-20T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 343,
+      "nutrition": {
+        "protein": 36,
+        "carbs": 57,
+        "fat": 22,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_18": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-20T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 432,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 24,
+        "fat": 17,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_19": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-19T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 329,
+      "nutrition": {
+        "protein": 16,
+        "carbs": 61,
+        "fat": 19,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_20": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-19T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 438,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 25,
+        "fat": 18,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_21": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-19T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Vegetable curry",
+      "calories": 493,
+      "nutrition": {
+        "protein": 14,
+        "carbs": 32,
+        "fat": 15,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_22": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-18T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 281,
+      "nutrition": {
+        "protein": 18,
+        "carbs": 63,
+        "fat": 15,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_23": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-18T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 427,
+      "nutrition": {
+        "protein": 26,
+        "carbs": 63,
+        "fat": 24,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_24": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-18T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Vegetable curry",
+      "calories": 431,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 59,
+        "fat": 9,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_25": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-17T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 343,
+      "nutrition": {
+        "protein": 17,
+        "carbs": 39,
+        "fat": 15,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_26": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-17T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 443,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 61,
+        "fat": 14,
+        "fiber": 15
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_27": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-17T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Pasta primavera",
+      "calories": 467,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 64,
+        "fat": 7,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_28": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-16T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Vegetarian omelet",
+      "calories": 296,
+      "nutrition": {
+        "protein": 12,
+        "carbs": 21,
+        "fat": 9,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_29": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-16T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 357,
+      "nutrition": {
+        "protein": 16,
+        "carbs": 38,
+        "fat": 23,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_30": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-16T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Stuffed bell peppers",
+      "calories": 404,
+      "nutrition": {
+        "protein": 12,
+        "carbs": 67,
+        "fat": 12,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_31": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-15T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 284,
+      "nutrition": {
+        "protein": 28,
+        "carbs": 58,
+        "fat": 10,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_32": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-15T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 360,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 28,
+        "fat": 17,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_33": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-14T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 334,
+      "nutrition": {
+        "protein": 27,
+        "carbs": 32,
+        "fat": 14,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_34": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-14T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 434,
+      "nutrition": {
+        "protein": 13,
+        "carbs": 25,
+        "fat": 5,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_35": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-14T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Stuffed bell peppers",
+      "calories": 435,
+      "nutrition": {
+        "protein": 26,
+        "carbs": 53,
+        "fat": 18,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_36": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-13T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Vegetarian omelet",
+      "calories": 319,
+      "nutrition": {
+        "protein": 32,
+        "carbs": 49,
+        "fat": 12,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_37": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-13T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 375,
+      "nutrition": {
+        "protein": 38,
+        "carbs": 61,
+        "fat": 23,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_38": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-12T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 279,
+      "nutrition": {
+        "protein": 36,
+        "carbs": 60,
+        "fat": 17,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_39": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-12T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 370,
+      "nutrition": {
+        "protein": 22,
+        "carbs": 43,
+        "fat": 12,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_40": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-11T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 335,
+      "nutrition": {
+        "protein": 17,
+        "carbs": 64,
+        "fat": 6,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_41": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-11T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 353,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 44,
+        "fat": 19,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_42": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-11T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Stuffed bell peppers",
+      "calories": 456,
+      "nutrition": {
+        "protein": 12,
+        "carbs": 68,
+        "fat": 7,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_43": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-10T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 279,
+      "nutrition": {
+        "protein": 16,
+        "carbs": 52,
+        "fat": 11,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_44": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-10T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 376,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 56,
+        "fat": 20,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_45": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-09T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Vegetarian omelet",
+      "calories": 264,
+      "nutrition": {
+        "protein": 10,
+        "carbs": 62,
+        "fat": 16,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_46": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-09T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 372,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 44,
+        "fat": 9,
+        "fiber": 12
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_47": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-08T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Vegetarian omelet",
+      "calories": 253,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 54,
+        "fat": 13,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_48": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-08T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 380,
+      "nutrition": {
+        "protein": 16,
+        "carbs": 26,
+        "fat": 16,
+        "fiber": 14
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_49": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-08T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Vegetable curry",
+      "calories": 412,
+      "nutrition": {
+        "protein": 37,
+        "carbs": 29,
+        "fat": 21,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_50": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-07T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Vegetarian omelet",
+      "calories": 268,
+      "nutrition": {
+        "protein": 29,
+        "carbs": 56,
+        "fat": 16,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_51": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-07T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 400,
+      "nutrition": {
+        "protein": 13,
+        "carbs": 61,
+        "fat": 12,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_52": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-07T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Pasta primavera",
+      "calories": 413,
+      "nutrition": {
+        "protein": 17,
+        "carbs": 57,
+        "fat": 11,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_53": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-06T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 332,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 45,
+        "fat": 5,
+        "fiber": 6
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_54": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-06T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 408,
+      "nutrition": {
+        "protein": 24,
+        "carbs": 36,
+        "fat": 23,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_55": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-06T15:39:25.453Z",
+      "mealType": "dinner",
+      "description": "Vegetable curry",
+      "calories": 404,
+      "nutrition": {
+        "protein": 32,
+        "carbs": 53,
+        "fat": 20,
+        "fiber": 9
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_56": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-05T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 315,
+      "nutrition": {
+        "protein": 31,
+        "carbs": 63,
+        "fat": 5,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_57": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-05T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 403,
+      "nutrition": {
+        "protein": 37,
+        "carbs": 36,
+        "fat": 22,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_58": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-04T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 339,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 53,
+        "fat": 21,
+        "fiber": 13
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_59": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-04T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 409,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 30,
+        "fat": 20,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_60": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-03T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 323,
+      "nutrition": {
+        "protein": 39,
+        "carbs": 26,
+        "fat": 23,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_61": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-03T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 360,
+      "nutrition": {
+        "protein": 11,
+        "carbs": 32,
+        "fat": 15,
+        "fiber": 17
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_62": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-02T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Chia pudding",
+      "calories": 345,
+      "nutrition": {
+        "protein": 20,
+        "carbs": 55,
+        "fat": 9,
+        "fiber": 5
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_63": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-02T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 369,
+      "nutrition": {
+        "protein": 14,
+        "carbs": 23,
+        "fat": 11,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_64": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-01T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 343,
+      "nutrition": {
+        "protein": 17,
+        "carbs": 64,
+        "fat": 5,
+        "fiber": 16
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_65": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-06-01T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Quinoa salad",
+      "calories": 402,
+      "nutrition": {
+        "protein": 19,
+        "carbs": 51,
+        "fat": 18,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_66": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-05-31T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Vegetarian omelet",
+      "calories": 268,
+      "nutrition": {
+        "protein": 12,
+        "carbs": 43,
+        "fat": 15,
+        "fiber": 3
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_67": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-05-31T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 362,
+      "nutrition": {
+        "protein": 38,
+        "carbs": 40,
+        "fat": 19,
+        "fiber": 10
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_68": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-05-30T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 297,
+      "nutrition": {
+        "protein": 36,
+        "carbs": 41,
+        "fat": 12,
+        "fiber": 11
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_69": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-05-30T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Veggie wrap",
+      "calories": 384,
+      "nutrition": {
+        "protein": 23,
+        "carbs": 49,
+        "fat": 6,
+        "fiber": 7
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_70": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-05-29T15:39:25.453Z",
+      "mealType": "breakfast",
+      "description": "Whole grain toast",
+      "calories": 343,
+      "nutrition": {
+        "protein": 30,
+        "carbs": 36,
+        "fat": 18,
+        "fiber": 8
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_meal_71": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "timestamp": "2025-05-29T15:39:25.453Z",
+      "mealType": "lunch",
+      "description": "Lentil soup",
+      "calories": 384,
+      "nutrition": {
+        "protein": 26,
+        "carbs": 31,
+        "fat": 15,
+        "fiber": 4
+      },
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    }
+  },
+  "fastingSessions": {
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_0": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-27T00:00:00.000Z",
+      "endTime": "2025-06-27T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_1": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-26T00:00:00.000Z",
+      "endTime": "2025-06-26T14:00:00.000Z",
+      "duration": 14,
+      "completed": false,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_2": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-23T00:00:00.000Z",
+      "endTime": "2025-06-23T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_3": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-22T00:00:00.000Z",
+      "endTime": "2025-06-22T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_4": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-21T00:00:00.000Z",
+      "endTime": "2025-06-21T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_5": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-20T00:00:00.000Z",
+      "endTime": "2025-06-20T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_6": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-19T00:00:00.000Z",
+      "endTime": "2025-06-19T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_7": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-18T00:00:00.000Z",
+      "endTime": "2025-06-18T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_8": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-17T00:00:00.000Z",
+      "endTime": "2025-06-17T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.451Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_9": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-16T00:00:00.000Z",
+      "endTime": "2025-06-16T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_10": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-15T00:00:00.000Z",
+      "endTime": "2025-06-15T14:00:00.000Z",
+      "duration": 14,
+      "completed": false,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_11": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-14T00:00:00.000Z",
+      "endTime": "2025-06-14T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_12": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-13T00:00:00.000Z",
+      "endTime": "2025-06-13T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_13": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-11T00:00:00.000Z",
+      "endTime": "2025-06-11T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_14": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-09T00:00:00.000Z",
+      "endTime": "2025-06-09T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_15": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-08T00:00:00.000Z",
+      "endTime": "2025-06-08T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_16": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-07T00:00:00.000Z",
+      "endTime": "2025-06-07T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_17": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-06T00:00:00.000Z",
+      "endTime": "2025-06-06T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_18": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-04T00:00:00.000Z",
+      "endTime": "2025-06-04T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_19": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-03T00:00:00.000Z",
+      "endTime": "2025-06-03T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_20": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-02T00:00:00.000Z",
+      "endTime": "2025-06-02T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_21": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-06-01T00:00:00.000Z",
+      "endTime": "2025-06-01T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_22": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-05-31T00:00:00.000Z",
+      "endTime": "2025-05-31T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_23": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-05-29T00:00:00.000Z",
+      "endTime": "2025-05-29T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_24": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-05-28T00:00:00.000Z",
+      "endTime": "2025-05-28T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_25": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-05-27T00:00:00.000Z",
+      "endTime": "2025-05-27T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_26": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-05-26T00:00:00.000Z",
+      "endTime": "2025-05-26T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "V6zg9AM2t3VykqTbV3zAnA2Ogjr1_fast_27": {
+      "userId": "V6zg9AM2t3VykqTbV3zAnA2Ogjr1",
+      "startTime": "2025-05-25T00:00:00.000Z",
+      "endTime": "2025-05-25T14:00:00.000Z",
+      "duration": 14,
+      "completed": true,
+      "type": "14:10",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.452Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_0": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-28T00:00:00.000Z",
+      "endTime": "2025-06-28T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_1": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-27T00:00:00.000Z",
+      "endTime": "2025-06-27T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_2": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-26T00:00:00.000Z",
+      "endTime": "2025-06-26T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_3": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-25T00:00:00.000Z",
+      "endTime": "2025-06-25T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_4": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-24T00:00:00.000Z",
+      "endTime": "2025-06-24T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_5": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-23T00:00:00.000Z",
+      "endTime": "2025-06-23T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_6": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-22T00:00:00.000Z",
+      "endTime": "2025-06-22T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_7": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-21T00:00:00.000Z",
+      "endTime": "2025-06-21T16:00:00.000Z",
+      "duration": 16,
+      "completed": false,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_8": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-20T00:00:00.000Z",
+      "endTime": "2025-06-20T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_9": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-19T00:00:00.000Z",
+      "endTime": "2025-06-19T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_10": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-18T00:00:00.000Z",
+      "endTime": "2025-06-18T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_11": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-17T00:00:00.000Z",
+      "endTime": "2025-06-17T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_12": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-16T00:00:00.000Z",
+      "endTime": "2025-06-16T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_13": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-15T00:00:00.000Z",
+      "endTime": "2025-06-15T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_14": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-13T00:00:00.000Z",
+      "endTime": "2025-06-13T16:00:00.000Z",
+      "duration": 16,
+      "completed": false,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_15": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-12T00:00:00.000Z",
+      "endTime": "2025-06-12T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_16": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-11T00:00:00.000Z",
+      "endTime": "2025-06-11T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_17": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-10T00:00:00.000Z",
+      "endTime": "2025-06-10T16:00:00.000Z",
+      "duration": 16,
+      "completed": false,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_18": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-09T00:00:00.000Z",
+      "endTime": "2025-06-09T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_19": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-08T00:00:00.000Z",
+      "endTime": "2025-06-08T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_20": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-07T00:00:00.000Z",
+      "endTime": "2025-06-07T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_21": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-06T00:00:00.000Z",
+      "endTime": "2025-06-06T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_22": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-05T00:00:00.000Z",
+      "endTime": "2025-06-05T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_23": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-04T00:00:00.000Z",
+      "endTime": "2025-06-04T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_24": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-06-01T00:00:00.000Z",
+      "endTime": "2025-06-01T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_25": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-05-30T00:00:00.000Z",
+      "endTime": "2025-05-30T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_26": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-05-28T00:00:00.000Z",
+      "endTime": "2025-05-28T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_27": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-05-27T00:00:00.000Z",
+      "endTime": "2025-05-27T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_28": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-05-26T00:00:00.000Z",
+      "endTime": "2025-05-26T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "w7NYJtbmZcTi1BxbyhIGI0KXXCF2_fast_29": {
+      "userId": "w7NYJtbmZcTi1BxbyhIGI0KXXCF2",
+      "startTime": "2025-05-25T00:00:00.000Z",
+      "endTime": "2025-05-25T16:00:00.000Z",
+      "duration": 16,
+      "completed": true,
+      "type": "16:8",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_0": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-06-26T22:00:00.000Z",
+      "endTime": "2025-06-27T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_1": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-06-23T22:00:00.000Z",
+      "endTime": "2025-06-24T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_2": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-06-19T22:00:00.000Z",
+      "endTime": "2025-06-20T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_3": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-06-16T22:00:00.000Z",
+      "endTime": "2025-06-17T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_4": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-06-12T22:00:00.000Z",
+      "endTime": "2025-06-13T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_5": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-06-09T22:00:00.000Z",
+      "endTime": "2025-06-10T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_6": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-06-05T22:00:00.000Z",
+      "endTime": "2025-06-06T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_7": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-06-02T22:00:00.000Z",
+      "endTime": "2025-06-03T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_8": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-05-29T22:00:00.000Z",
+      "endTime": "2025-05-30T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    },
+    "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2_fast_9": {
+      "userId": "H5Ol6GcK8mbRjtAkZSZyVsJTLWR2",
+      "startTime": "2025-05-26T22:00:00.000Z",
+      "endTime": "2025-05-27T22:00:00.000Z",
+      "duration": 24,
+      "completed": true,
+      "type": "5:2",
+      "isDemo": true,
+      "createdAt": "2025-06-27T15:39:25.453Z"
+    }
+  }
+}

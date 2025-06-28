@@ -56,6 +56,22 @@ dependencies:
   eva_icons_flutter: ^3.1.0
   google_fonts: ^6.2.1
   timeago: ^3.6.1
+  intl: ^0.19.0
+
+  # AI & HTTP Dependencies
+  http: ^1.2.1
+  json_annotation: ^4.8.1
+  shared_preferences: ^2.3.2
+  get_it: ^7.6.0
+
+  # ML & Image Processing for Meal Recognition
+  tflite_flutter: ^0.11.0
+  image: ^4.1.7
+  image_picker: ^1.0.7
+
+  # Data Export Dependencies
+  csv: ^6.0.0
+  share_plus: ^7.2.2
 
 dev_dependencies:
   flutter_test:
@@ -69,6 +85,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  mockito: ^5.4.4
+  build_runner: ^2.4.7
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -50,12 +50,12 @@ class SnapAvatar extends StatelessWidget {
           ? Text(
               _initials,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontSize: radius * 0.8,
-                    fontWeight: FontWeight.bold,
-                    color: SnapUIColors.greyDark,
-                  ),
+                fontSize: radius * 0.8,
+                fontWeight: FontWeight.bold,
+                color: SnapUIColors.greyDark,
+              ),
             )
           : null,
     );
   }
-} 
+}

@@ -21,7 +21,7 @@ class SnapButton extends StatelessWidget {
     final backgroundColor = type == SnapButtonType.primary
         ? SnapUIColors.primaryYellow
         : SnapUIColors.secondaryDark;
-    
+
     final foregroundColor = type == SnapButtonType.primary
         ? SnapUIColors.black
         : SnapUIColors.white;
@@ -40,9 +40,7 @@ class SnapButton extends StatelessWidget {
         ),
         textStyle: Theme.of(context).textTheme.labelLarge,
       ),
-      child: Center(
-        child: Text(text),
-      ),
+      child: Center(child: Text(text)),
     );
   }
-} 
+}

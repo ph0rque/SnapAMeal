@@ -10,11 +10,7 @@ class ChatPage extends StatefulWidget {
   final String chatRoomId;
   final String? recipientId; // Can be null for group chats
 
-  const ChatPage({
-    super.key,
-    required this.chatRoomId,
-    this.recipientId,
-  });
+  const ChatPage({super.key, required this.chatRoomId, this.recipientId});
 
   @override
   State<ChatPage> createState() => _ChatPageState();
@@ -28,7 +24,10 @@ class _ChatPageState extends State<ChatPage> {
 
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
-      await _chatService.sendMessage(widget.chatRoomId, _messageController.text);
+      await _chatService.sendMessage(
+        widget.chatRoomId,
+        _messageController.text,
+      );
       _messageController.clear();
     }
   }
@@ -62,9 +61,7 @@ class _ChatPageState extends State<ChatPage> {
       ),
       body: Column(
         children: [
-          Expanded(
-            child: _buildMessageList(),
-          ),
+          Expanded(child: _buildMessageList()),
           _buildUserInput(),
         ],
       ),
@@ -76,15 +73,91 @@ class _ChatPageState extends State<ChatPage> {
       stream: _chatService.getMessages(widget.chatRoomId),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
-          return const Text("Error");
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: Colors.grey,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Error loading messages',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please check your connection and try again',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () => setState(() {}),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Text("Loading...");
+          return const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text("Loading messages..."),
+              ],
+            ),
+          );
+        }
+
+        final messages = snapshot.data?.docs ?? [];
+        
+        if (messages.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.chat_bubble_outline,
+                  size: 48,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No messages yet',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Start the conversation!',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+          );
         }
 
         return ListView(
-          children:
-              snapshot.data!.docs.map((doc) => _buildMessageItem(doc)).toList(),
+          children: messages.map((doc) => _buildMessageItem(doc)).toList(),
         );
       },
     );
@@ -97,8 +170,9 @@ class _ChatPageState extends State<ChatPage> {
     return Container(
       alignment: isCurrentUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Column(
-        crossAxisAlignment:
-            isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        crossAxisAlignment: isCurrentUser
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
           SnapChatBubble(
             message: data["message"],
@@ -129,4 +203,4 @@ class _ChatPageState extends State<ChatPage> {
       ),
     );
   }
-} 
+}

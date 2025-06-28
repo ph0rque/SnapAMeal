@@ -3,8 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_functions/cloud_functions.dart';
-import 'package:flutter/foundation.dart';
 import '../utils/video_compression.dart';
+import '../utils/logger.dart';
+
 import 'friend_service.dart';
 
 class SnapService {
@@ -12,7 +13,12 @@ class SnapService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> sendSnap(String mediaPath, int duration, List<String> recipientIds, bool isVideo) async {
+  Future<void> sendSnap(
+    String mediaPath,
+    int duration,
+    List<String> recipientIds,
+    bool isVideo,
+  ) async {
     final user = _auth.currentUser;
     if (user == null) return;
 
@@ -20,70 +26,83 @@ class SnapService {
     String mediaUrl;
     String? thumbnailUrl;
     try {
-      debugPrint("Attempting to upload file from path: $mediaPath");
+      Logger.d("Attempting to upload file from path: $mediaPath");
       final file = File(mediaPath);
 
       // Check if the file exists before uploading
       if (!await file.exists()) {
-        debugPrint("File does not exist at path: $mediaPath");
+        Logger.d("File does not exist at path: $mediaPath");
         return;
       }
 
       File fileToUpload = file;
-      
+
       // If it's a video, compress it first
       if (isVideo) {
-        debugPrint("Processing video file...");
-        
+        Logger.d("Processing video file...");
+
         // Validate video file
         if (!await VideoCompressionUtil.validateVideoFile(mediaPath)) {
-          debugPrint("Video file validation failed");
+          Logger.d("Video file validation failed");
           return;
         }
 
         // Compress video
-        final compressedFile = await VideoCompressionUtil.compressVideoForSnap(mediaPath);
+        final compressedFile = await VideoCompressionUtil.compressVideoForSnap(
+          mediaPath,
+        );
         if (compressedFile == null) {
-          debugPrint("Video compression failed");
+          Logger.d("Video compression failed");
           return;
         }
-        
+
         fileToUpload = compressedFile;
-        debugPrint("Video compressed successfully");
+        Logger.d("Video compressed successfully");
 
         // Generate and upload thumbnail
-        final thumbnailFile = await VideoCompressionUtil.generateThumbnail(compressedFile.path);
+        final thumbnailFile = await VideoCompressionUtil.generateThumbnail(
+          compressedFile.path,
+        );
         if (thumbnailFile != null) {
           try {
-            final thumbnailFileName = '${DateTime.now().millisecondsSinceEpoch}_thumb.jpg';
-            final thumbnailRef = _storage.ref().child('snaps').child(user.uid).child('thumbnails').child(thumbnailFileName);
-            final thumbnailUploadTask = await thumbnailRef.putFile(thumbnailFile);
+            final thumbnailFileName =
+                '${DateTime.now().millisecondsSinceEpoch}_thumb.jpg';
+            final thumbnailRef = _storage
+                .ref()
+                .child('snaps')
+                .child(user.uid)
+                .child('thumbnails')
+                .child(thumbnailFileName);
+            final thumbnailUploadTask = await thumbnailRef.putFile(
+              thumbnailFile,
+            );
             thumbnailUrl = await thumbnailUploadTask.ref.getDownloadURL();
-            debugPrint("Thumbnail uploaded successfully");
-            
+            Logger.d("Thumbnail uploaded successfully");
+
             // Clean up local thumbnail file
             await thumbnailFile.delete();
           } catch (e) {
-            debugPrint("Error uploading thumbnail: $e");
+            Logger.d("Error uploading thumbnail: $e");
             // Continue without thumbnail - not critical
           }
         }
       }
-      
-      final fileName = '${DateTime.now().millisecondsSinceEpoch}.${isVideo ? 'mp4' : 'jpg'}';
+
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}.${isVideo ? 'mp4' : 'jpg'}';
       final ref = _storage.ref().child('snaps').child(user.uid).child(fileName);
-      
+
       final uploadTask = await ref.putFile(fileToUpload);
       mediaUrl = await uploadTask.ref.getDownloadURL();
-      
+
       // Clean up temporary compressed file
       if (isVideo && fileToUpload.path != mediaPath) {
         await fileToUpload.delete();
       }
-      
-      debugPrint("Media uploaded successfully");
+
+      Logger.d("Media uploaded successfully");
     } catch (e) {
-      debugPrint("Error uploading snap media: $e");
+      Logger.d("Error uploading snap media: $e");
       return; // Stop execution if upload fails
     }
 
@@ -101,40 +120,48 @@ class SnapService {
           'isViewed': false,
           'isVideo': isVideo,
           'replayed': false,
-          'createdAt': FieldValue.serverTimestamp(), // Add explicit creation timestamp
+          'createdAt':
+              FieldValue.serverTimestamp(), // Add explicit creation timestamp
           'hasBeenScreenshot': false, // Track screenshot notifications
         };
-        
+
         // Try to add the snap document
         await _firestore
             .collection('users')
             .doc(recipientId)
             .collection('snaps')
             .add(snapData);
-        
+
         // Update streak (non-blocking)
         try {
           await _updateStreak(user.uid, recipientId);
         } catch (e) {
-          debugPrint("Error updating streak for $recipientId: $e");
+          Logger.d("Error updating streak for $recipientId: $e");
         }
-
       } catch (e) {
-        debugPrint("Error sending snap to $recipientId: $e");
+        Logger.d("Error sending snap to $recipientId: $e");
       }
     }
   }
 
   Future<void> _updateStreak(String senderId, String recipientId) async {
     final now = Timestamp.now();
-    
-    final senderFriendDocRef = _firestore.collection('users').doc(senderId).collection('friends').doc(recipientId);
-    final recipientFriendDocRef = _firestore.collection('users').doc(recipientId).collection('friends').doc(senderId);
+
+    final senderFriendDocRef = _firestore
+        .collection('users')
+        .doc(senderId)
+        .collection('friends')
+        .doc(recipientId);
+    final recipientFriendDocRef = _firestore
+        .collection('users')
+        .doc(recipientId)
+        .collection('friends')
+        .doc(senderId);
 
     try {
       // Ensure current user's friend document exists
       await FriendService().ensureCurrentUserFriendDocExists(recipientId);
-      
+
       // Get sender's friend document
       final senderFriendDoc = await senderFriendDocRef.get();
       if (!senderFriendDoc.exists) {
@@ -172,7 +199,7 @@ class SnapService {
         // Expected to fail sometimes - not a problem
       }
     } catch (e) {
-      debugPrint("Error in _updateStreak: $e");
+      Logger.d("Error in _updateStreak: $e");
     }
   }
 
@@ -195,20 +222,25 @@ class SnapService {
     if (user == null) return;
 
     // Get current user's username
-    final currentUserDoc = await _firestore.collection('users').doc(user.uid).get();
+    final currentUserDoc = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .get();
     final currentUsername = currentUserDoc.data()?['username'] ?? 'Someone';
 
     // Call the cloud function
     try {
-      final callable = FirebaseFunctions.instance.httpsCallable('sendScreenshotNotification');
+      final callable = FirebaseFunctions.instance.httpsCallable(
+        'sendScreenshotNotification',
+      );
       await callable.call({
         'snap': snap.data(),
         'viewerUsername': currentUsername,
       });
     } on FirebaseFunctionsException catch (e) {
-              debugPrint('Caught FirebaseFunctionsException: ${e.code}, ${e.message}');
+      Logger.d('Caught FirebaseFunctionsException: ${e.code}, ${e.message}');
     } catch (e) {
-              debugPrint('Caught generic exception: $e');
+      Logger.d('Caught generic exception: $e');
     }
   }
-} 
+}
