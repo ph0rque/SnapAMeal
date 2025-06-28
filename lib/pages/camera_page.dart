@@ -80,7 +80,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
       // Try with even lower settings if initialization fails
       _controller = CameraController(
         widget.cameras[_selectedCameraIndex],
-        ResolutionPreset.veryLow,
+        ResolutionPreset.low,
         enableAudio: false, // Disable audio as fallback
         imageFormatGroup: ImageFormatGroup.jpeg,
       );

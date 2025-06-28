@@ -86,17 +86,18 @@ class _ARCameraPageState extends State<ARCameraPage> {
   }
 
   Future<void> _initializeCamera() async {
-    try {
-      final cameras = await availableCameras();
-      if (cameras.isEmpty) {
-        Logger.d('No cameras available');
-        return;
-      }
+    final cameras = await availableCameras();
+    if (cameras.isEmpty) {
+      Logger.d('No cameras available');
+      return;
+    }
 
-      final frontCamera = cameras.firstWhere(
-        (camera) => camera.lensDirection == CameraLensDirection.front,
-        orElse: () => cameras.first,
-      );
+    final frontCamera = cameras.firstWhere(
+      (camera) => camera.lensDirection == CameraLensDirection.front,
+      orElse: () => cameras.first,
+    );
+
+    try {
 
       // Use conservative camera configuration for maximum compatibility
       _cameraController = CameraController(
@@ -127,7 +128,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
         _cameraController?.dispose();
         _cameraController = CameraController(
           frontCamera,
-          ResolutionPreset.veryLow, // Even lower resolution as fallback
+          ResolutionPreset.low, // Use low resolution as fallback
           enableAudio: false, // Disable audio as fallback
           imageFormatGroup: ImageFormatGroup.jpeg,
         );
