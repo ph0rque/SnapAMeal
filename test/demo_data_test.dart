@@ -40,7 +40,7 @@ void main() {
       for (final persona in personas) {
         expect(persona.email, contains('@'));
         expect(persona.email, contains('demo'));
-        expect(persona.email, contains('snapameal.com'));
+        expect(persona.email, contains('example.com'));
       }
     });
 

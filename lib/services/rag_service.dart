@@ -4,6 +4,7 @@ library;
 
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as http;
 import '../config/ai_config.dart';
 import '../utils/logger.dart';
@@ -1295,15 +1296,21 @@ All content should focus on general wellness and lifestyle, not medical advice.
       final response = await _openAIService.getChatCompletion(prompt);
 
       try {
-        final summary = jsonDecode(response ?? '{}') as Map<String, dynamic>;
+        final summaryData = jsonDecode(response ?? '{}');
+        if (summaryData is! Map) {
+          // Not a map, fallback.
+          return _createFallbackStorySummary(stories, startDate, endDate, storyAnalysis);
+        }
+        final summary = _deepCastToStringDynamic(summaryData);
+
         return {
           'summary': summary['summary'] ?? 'Summary generated successfully.',
-          'highlights': List<String>.from(summary['highlights'] ?? []),
-          'insights': List<String>.from(summary['insights'] ?? []),
+          'highlights': List<String>.from(summary['highlights'] as List? ?? []),
+          'insights': List<String>.from(summary['insights'] as List? ?? []),
           'mood_analysis': summary['mood_analysis'] ?? 'neutral',
           'engagement_summary': summary['engagement_summary'] ?? {},
           'recommendations': List<String>.from(
-            summary['recommendations'] ?? [],
+            summary['recommendations'] as List? ?? [],
           ),
           'period': '${_formatDate(startDate)} - ${_formatDate(endDate)}',
           'story_count': stories.length,
@@ -1311,12 +1318,7 @@ All content should focus on general wellness and lifestyle, not medical advice.
         };
       } catch (e) {
         // Fallback to structured summary
-        return _createFallbackStorySummary(
-          stories,
-          startDate,
-          endDate,
-          storyAnalysis,
-        );
+        return _createFallbackStorySummary(stories, startDate, endDate, storyAnalysis);
       }
     } catch (e) {
       developer.log('Error generating story summary: $e');
@@ -1343,14 +1345,19 @@ All content should focus on general wellness and lifestyle, not medical advice.
 
     // Add weekly-specific insights
     final weeklyInsights = await _generateWeeklyInsights(stories, userProfile);
+    final nextWeekGoals = await _generateNextWeekGoals(stories, userProfile);
 
     // Ensure proper type casting to prevent runtime type errors
     final result = <String, dynamic>{};
-    result.addAll(Map<String, dynamic>.from(summary));
+    
+    // Deep cast the summary to ensure all nested maps are Map<String, dynamic>
+    final castSummary = _deepCastToStringDynamic(summary);
+    result.addAll(castSummary);
+    
     result['digest_type'] = 'weekly';
     result['week_of'] = _formatDate(weekStart);
     result['weekly_insights'] = weeklyInsights;
-    result['next_week_goals'] = await _generateNextWeekGoals(stories, userProfile);
+    result['next_week_goals'] = nextWeekGoals;
 
     return result;
   }
@@ -1377,12 +1384,15 @@ All content should focus on general wellness and lifestyle, not medical advice.
 
     // Ensure proper type casting to prevent runtime type errors
     final result = <String, dynamic>{};
-    result.addAll(Map<String, dynamic>.from(summary));
+    final castSummary = _deepCastToStringDynamic(summary);
+    result.addAll(castSummary);
     result['digest_type'] = 'monthly';
     result['month_of'] = _formatDate(monthStart);
-    result['monthly_trends'] = monthlyTrends;
+    result['monthly_trends'] = _deepCastToStringDynamic(monthlyTrends);
     result['growth_areas'] = await _generateGrowthAreas(stories, userProfile);
-    result['achievement_badges'] = _calculateAchievementBadges(stories);
+    result['achievement_badges'] = (_calculateAchievementBadges(stories))
+        .map((b) => _deepCastToStringDynamic(b))
+        .toList();
 
     return result;
   }
@@ -1642,5 +1652,25 @@ All content should focus on general wellness and lifestyle, not medical advice.
       'Sunday',
     ];
     return weekdays[weekday - 1];
+  }
+
+  Map<String, dynamic> _deepCastToStringDynamic(Map input) {
+    dynamic castValue(dynamic value) {
+      if (value is Map) {
+        final result = <String, dynamic>{};
+        value.forEach((key, val) {
+          result[key.toString()] = castValue(val);
+        });
+        return result;
+      } else if (value is List) {
+        return value.map((e) => castValue(e)).toList();
+      } else if (value is Timestamp) {
+        return (value).toDate().toIso8601String();
+      } else {
+        return value;
+      }
+    }
+
+    return castValue(input) as Map<String, dynamic>;
   }
 }

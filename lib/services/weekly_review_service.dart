@@ -54,13 +54,19 @@ class WeeklyReviewService {
       Map<String, dynamic> review;
       try {
         if (_ragService != null && activityData['stories'].isNotEmpty) {
+          // Ensure userProfile is properly cast before passing to RAG service
+          Map<String, dynamic>? safeUserProfile;
+          if (userProfile != null) {
+            safeUserProfile = _deepCastToStringDynamic(userProfile);
+          }
+          
           final rawReview = await _ragService!.generateWeeklyDigest(
             userId: userId,
             weekStart: weekStart,
             stories: activityData['stories'],
-            userProfile: userProfile,
+            userProfile: safeUserProfile,
           );
-          review = Map<String, dynamic>.from(rawReview);
+          review = _deepCastToStringDynamic(rawReview);
         } else {
           review = _generateFallbackWeeklyReview(activityData, weekStart, userProfile);
         }
@@ -197,11 +203,11 @@ class WeeklyReviewService {
           .get();
 
       final stories = storiesSnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          ...data,
-        };
+        final data = doc.data();
+        if (data is Map) {
+          return _deepCastToStringDynamic({'id': doc.id, ...data});
+        }
+        return {'id': doc.id}; // Fallback for malformed data
       }).toList();
 
       // Collect meal logs
@@ -213,11 +219,11 @@ class WeeklyReviewService {
           .get();
 
       final mealLogs = mealLogsSnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          ...data,
-        };
+        final data = doc.data();
+        if (data is Map) {
+          return _deepCastToStringDynamic({'id': doc.id, ...data});
+        }
+        return {'id': doc.id};
       }).toList();
 
       // Collect fasting sessions
@@ -229,11 +235,11 @@ class WeeklyReviewService {
           .get();
 
       final fastingSessions = fastingSnapshot.docs.map((doc) {
-        final data = doc.data() as Map<String, dynamic>;
-        return {
-          'id': doc.id,
-          ...data,
-        };
+        final data = doc.data();
+        if (data is Map) {
+          return _deepCastToStringDynamic({'id': doc.id, ...data});
+        }
+        return {'id': doc.id};
       }).toList();
 
       // Calculate activity metrics
@@ -502,9 +508,10 @@ class WeeklyReviewService {
 
       if (snapshot.docs.isNotEmpty) {
         final doc = snapshot.docs.first;
+        final docData = doc.data();
         return {
           'id': doc.id,
-          ...doc.data() as Map<String, dynamic>,
+          ..._deepCastToStringDynamic(docData as Map),
         };
       }
       
@@ -522,8 +529,13 @@ class WeeklyReviewService {
       final userDoc = await _firestore.collection('users').doc(userId).get();
       final healthDoc = await _userHealthProfilesCollection.doc(userId).get();
       
-      final userData = userDoc.data() ?? {};
-      final healthData = healthDoc.data() ?? {};
+      // Safely cast Firestore data
+      final userData = userDoc.exists && userDoc.data() != null 
+          ? _deepCastToStringDynamic(userDoc.data()! as Map) 
+          : <String, dynamic>{};
+      final healthData = healthDoc.exists && healthDoc.data() != null 
+          ? _deepCastToStringDynamic(healthDoc.data()! as Map) 
+          : <String, dynamic>{};
       
       return {
         ...userData,
@@ -819,7 +831,7 @@ class WeeklyReviewService {
           .snapshots()
           .map((snapshot) => snapshot.docs.map((doc) => {
             'id': doc.id,
-            ...doc.data() as Map<String, dynamic>,
+            ..._deepCastToStringDynamic(doc.data() as Map),
           }).toList())
           .handleError((error) {
             Logger.d('Error in user reviews stream: $error');
@@ -937,5 +949,23 @@ class WeeklyReviewService {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
+  Map<String, dynamic> _deepCastToStringDynamic(Map input) {
+    dynamic castValue(dynamic value) {
+      if (value is Map) {
+        final result = <String, dynamic>{};
+        value.forEach((key, val) {
+          result[key.toString()] = castValue(val);
+        });
+        return result;
+      } else if (value is List) {
+        return value.map((e) => castValue(e)).toList();
+      } else if (value is Timestamp) {
+        return (value).toDate().toIso8601String();
+      } else {
+        return value;
+      }
+    }
 
+    return castValue(input) as Map<String, dynamic>;
+  }
 } 
