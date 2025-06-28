@@ -483,7 +483,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
                   
                   return LinearProgressIndicator(
                     value: value,
-                    backgroundColor: Colors.white.withOpacity(0.3),
+                    backgroundColor: Colors.white.withValues(alpha: 0.3),
                     valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                     minHeight: 3,
                   );
@@ -540,7 +540,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
                     Text(
                       _getTimeAgo(story['timestamp'] as Timestamp?),
                       style: TextStyle(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontSize: 12,
                       ),
                     ),
@@ -557,7 +557,7 @@ class _StoryViewPageState extends State<StoryViewPage> with TickerProviderStateM
   Widget _buildPauseIndicator() {
     return Positioned.fill(
       child: Container(
-        color: Colors.black.withOpacity(0.3),
+                      color: Colors.black.withValues(alpha: 0.3),
         child: const Center(
           child: Icon(
             Icons.pause,

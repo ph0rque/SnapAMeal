@@ -88,7 +88,7 @@ class _PreviewPageState extends State<PreviewPage> {
 
   Widget _buildStoryPostButton() {
     return Container(
-      color: Colors.black.withOpacity(0.5),
+      color: Colors.black.withValues(alpha: 0.5),
       padding: const EdgeInsets.all(20.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -205,7 +205,7 @@ class _PreviewPageState extends State<PreviewPage> {
 
   Widget _buildSnapOptions() {
     return Container(
-      color: Colors.black.withOpacity(0.5),
+      color: Colors.black.withValues(alpha: 0.5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [

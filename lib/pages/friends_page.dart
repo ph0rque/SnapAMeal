@@ -197,20 +197,5 @@ class _FriendsPageState extends State<FriendsPage> {
     );
   }
 
-  Future<void> _handleSendFriendRequest(String email) async {
-    try {
-      await _friendService.sendFriendRequest(email);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Friend request sent!")),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Failed to send friend request: $e")),
-        );
-      }
-    }
-  }
+
 } 

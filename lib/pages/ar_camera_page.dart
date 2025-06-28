@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
@@ -11,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:snapameal/pages/preview_page.dart';
-import 'package:snapameal/utils/video_config.dart';
 
 class ARCameraPage extends StatefulWidget {
   const ARCameraPage({super.key});
@@ -399,10 +397,10 @@ class _ARCameraPageState extends State<ARCameraPage> {
               decoration: BoxDecoration(
                 border: _selectedFilterIndex == index
                     ? Border.all(color: Colors.yellow, width: 3)
-                    : Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+                    : Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
                 borderRadius: BorderRadius.circular(30),
                 color: _selectedFilterIndex == index 
-                    ? Colors.yellow.withOpacity(0.2)
+                    ? Colors.yellow.withValues(alpha: 0.2)
                     : Colors.transparent,
               ),
               alignment: Alignment.center,
@@ -429,7 +427,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
   Widget _buildModeToggle() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
@@ -594,7 +592,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.7),
+          color: Colors.black.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Column(
@@ -692,12 +690,12 @@ class FacePainter extends CustomPainter {
       text: filter,
       style: TextStyle(
         fontSize: fontSize,
-        color: Colors.white.withOpacity(0.8),
+        color: Colors.white.withValues(alpha: 0.8),
         shadows: [
           Shadow(
             offset: const Offset(2.0, 2.0),
             blurRadius: 4.0,
-            color: Colors.black.withOpacity(0.5),
+            color: Colors.black.withValues(alpha: 0.5),
           ),
         ],
       ),

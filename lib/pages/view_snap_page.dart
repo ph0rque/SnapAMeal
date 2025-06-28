@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:screenshot_callback/screenshot_callback.dart';
-import 'package:snapameal/services/snap_service.dart';
+// import 'package:screenshot_callback/screenshot_callback.dart'; // Temporarily disabled
+// import 'package:snapameal/services/snap_service.dart'; // Temporarily disabled with screenshot detection
 import 'package:video_player/video_player.dart';
 
 class ViewSnapPage extends StatefulWidget {
@@ -18,14 +18,14 @@ class ViewSnapPage extends StatefulWidget {
 
 class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMixin {
   late Timer _timer;
-  final SnapService _snapService = SnapService();
+  // final SnapService _snapService = SnapService(); // Temporarily disabled with screenshot detection
   VideoPlayerController? _videoController;
   bool _isVideo = false;
   bool _isPlaying = false;
   bool _hasError = false;
   String _errorMessage = '';
   bool _isLoading = true;
-  final ScreenshotCallback _screenshotCallback = ScreenshotCallback();
+  // ScreenshotCallback? _screenshotCallback; // Temporarily disabled
   
   // Animation controllers for UI feedback
   late AnimationController _playPauseAnimationController;
@@ -241,17 +241,9 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
   }
 
   void _setupScreenshotDetection() {
-    _screenshotCallback.addListener(() {
-      _snapService.notifySenderOfScreenshot(widget.snap);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('The sender has been notified of your screenshot.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-      }
-    });
+    // TODO: Re-implement screenshot detection when package is fixed
+    // For now, this functionality is disabled to resolve Android build issues
+    debugPrint('ViewSnapPage: Screenshot detection temporarily disabled');
   }
 
   @override
@@ -260,7 +252,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
     _hideIconTimer?.cancel();
     _videoController?.removeListener(_videoListener);
     _videoController?.dispose();
-    _screenshotCallback.dispose();
+    // _screenshotCallback?.dispose(); // Temporarily disabled
     _playPauseAnimationController.dispose();
     _progressAnimationController.dispose();
     super.dispose();
@@ -352,7 +344,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
             height: 3,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(1.5),
-              color: Colors.white.withOpacity(0.3),
+                              color: Colors.white.withValues(alpha: 0.3),
             ),
             child: FractionallySizedBox(
               widthFactor: progress.clamp(0.0, 1.0),
@@ -382,7 +374,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
+                                  color: Colors.black.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -400,7 +392,7 @@ class _ViewSnapPageState extends State<ViewSnapPage> with TickerProviderStateMix
   Widget _buildErrorOverlay() {
     return Positioned.fill(
       child: Container(
-        color: Colors.black.withOpacity(0.8),
+                      color: Colors.black.withValues(alpha: 0.8),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
