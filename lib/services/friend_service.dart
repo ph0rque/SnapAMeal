@@ -251,9 +251,19 @@ class FriendService {
       final members = [currentUserId, friendId]
         ..sort(); // Sort to ensure consistent ordering
 
+      // Check if current user is a demo user
+      final userEmail = _auth.currentUser?.email;
+      final isDemoUser = userEmail != null && (
+        userEmail == 'alice.demo@example.com' ||
+        userEmail == 'bob.demo@example.com' ||
+        userEmail == 'charlie.demo@example.com'
+      );
+      
+      final collectionName = isDemoUser ? 'demo_chat_rooms' : 'chat_rooms';
+
       // Check if a chat room already exists with these members
       final existingChatQuery = await _firestore
-          .collection('chatRooms')
+          .collection(collectionName)
           .where('members', isEqualTo: members)
           .where('isGroup', isEqualTo: false)
           .limit(1)
@@ -264,7 +274,7 @@ class FriendService {
       }
 
       // Create a new chat room
-      final chatRoomDoc = await _firestore.collection('chatRooms').add({
+      final chatRoomDoc = await _firestore.collection(collectionName).add({
         'members': members,
         'isGroup': false,
         'createdAt': FieldValue.serverTimestamp(),
@@ -275,11 +285,39 @@ class FriendService {
       return chatRoomDoc.id;
     } catch (e) {
       if (e.toString().contains('permission-denied')) {
-        Logger.d('Permission denied for chat room creation, returning fallback ID');
-        // Return a deterministic chat room ID based on user IDs
+        Logger.d('Permission denied for chat room creation, trying fallback approach');
+        
+        // Create deterministic chat room ID and try to create the document directly
         final currentUserId = _auth.currentUser!.uid;
         final members = [currentUserId, friendId]..sort();
-        return 'chat_${members.join('_')}';
+        final fallbackId = 'chat_${members.join('_')}';
+        
+        try {
+          final userEmail = _auth.currentUser?.email;
+          final isDemoUser = userEmail != null && (
+            userEmail == 'alice.demo@example.com' ||
+            userEmail == 'bob.demo@example.com' ||
+            userEmail == 'charlie.demo@example.com'
+          );
+          
+          final collectionName = isDemoUser ? 'demo_chat_rooms' : 'chat_rooms';
+          
+          // Try to create the chat room document with the deterministic ID
+          await _firestore.collection(collectionName).doc(fallbackId).set({
+            'members': members,
+            'isGroup': false,
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastMessage': '',
+            'lastMessageTime': FieldValue.serverTimestamp(),
+          });
+          
+          Logger.d('Successfully created fallback chat room: $fallbackId');
+          return fallbackId;
+        } catch (fallbackError) {
+          Logger.d('Fallback chat room creation also failed: $fallbackError');
+          // Return the ID anyway - the chat service will handle the missing document
+          return fallbackId;
+        }
       } else {
         Logger.d('Error creating chat room: $e');
         rethrow;

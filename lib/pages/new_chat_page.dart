@@ -36,9 +36,19 @@ class _NewChatPageState extends State<NewChatPage> {
       ids.sort();
       String potentialChatRoomId = ids.join('_');
 
+      // Check if current user is a demo user
+      final userEmail = _auth.currentUser?.email;
+      final isDemoUser = userEmail != null && (
+        userEmail == 'alice.demo@example.com' ||
+        userEmail == 'bob.demo@example.com' ||
+        userEmail == 'charlie.demo@example.com'
+      );
+      
+      final collectionName = isDemoUser ? 'demo_chat_rooms' : 'chat_rooms';
+
       // Check if a chat room already exists
       final chatRoomDoc = await FirebaseFirestore.instance
-          .collection('chat_rooms')
+          .collection(collectionName)
           .doc(potentialChatRoomId)
           .get();
 

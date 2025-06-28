@@ -17,12 +17,25 @@ class ChatService {
   }) : _contentFilterService = contentFilterService,
        _fastingService = fastingService;
 
+  // Get the appropriate collection name based on user type
+  String _getChatCollectionName() {
+    final userEmail = _auth.currentUser?.email;
+    final isDemoUser = userEmail != null && (
+      userEmail == 'alice.demo@example.com' ||
+      userEmail == 'bob.demo@example.com' ||
+      userEmail == 'charlie.demo@example.com'
+    );
+    
+    return isDemoUser ? 'demo_chat_rooms' : 'chat_rooms';
+  }
+
   // Get chat stream for the current user
   Stream<QuerySnapshot> getChatsStream() {
     try {
       final String currentUserId = _auth.currentUser!.uid;
+      final collectionName = _getChatCollectionName();
       return _firestore
-          .collection('chat_rooms')
+          .collection(collectionName)
           .where('members', arrayContains: currentUserId)
           .orderBy('lastMessageTimestamp', descending: true)
           .snapshots()
@@ -44,8 +57,9 @@ class ChatService {
   // Get message stream for a specific chat room
   Stream<QuerySnapshot> getMessages(String chatRoomId) {
     try {
+      final collectionName = _getChatCollectionName();
       return _firestore
-          .collection('chat_rooms')
+          .collection(collectionName)
           .doc(chatRoomId)
           .collection('messages')
           .orderBy('timestamp', descending: false)
@@ -70,9 +84,33 @@ class ChatService {
     try {
       final String currentUserId = _auth.currentUser!.uid;
       final Timestamp timestamp = Timestamp.now();
+      final collectionName = _getChatCollectionName();
+
+      // First check if chat room exists, create it if it doesn't
+      final chatRoomRef = _firestore.collection(collectionName).doc(chatRoomId);
+      final chatRoomDoc = await chatRoomRef.get();
+      
+      if (!chatRoomDoc.exists) {
+        Logger.d('Chat room $chatRoomId does not exist, attempting to create it');
+        
+        // Try to extract member IDs from chat room ID for fallback creation
+        if (chatRoomId.startsWith('chat_') && chatRoomId.contains('_')) {
+          final memberIds = chatRoomId.substring(5).split('_'); // Remove 'chat_' prefix
+          if (memberIds.length == 2) {
+            await chatRoomRef.set({
+              'members': memberIds,
+              'isGroup': false,
+              'createdAt': FieldValue.serverTimestamp(),
+              'lastMessage': '',
+              'lastMessageTime': FieldValue.serverTimestamp(),
+            });
+            Logger.d('Successfully created missing chat room: $chatRoomId');
+          }
+        }
+      }
 
       await _firestore
-          .collection('chat_rooms')
+          .collection(collectionName)
           .doc(chatRoomId)
           .collection('messages')
           .add({
@@ -84,8 +122,9 @@ class ChatService {
           });
 
       // Also update the last message timestamp on the chat room for sorting
-      await _firestore.collection('chat_rooms').doc(chatRoomId).update({
+      await _firestore.collection(collectionName).doc(chatRoomId).update({
         'lastMessageTimestamp': timestamp,
+        'lastMessage': message,
       });
     } catch (e) {
       if (e.toString().contains('permission-denied')) {
@@ -105,7 +144,8 @@ class ChatService {
       memberIds.add(currentUserId);
     }
 
-    final chatRoomRef = await _firestore.collection('chat_rooms').add({
+    final collectionName = _getChatCollectionName();
+    final chatRoomRef = await _firestore.collection(collectionName).add({
       'members': memberIds,
       'isGroup': memberIds.length > 2,
       'lastMessageTimestamp': FieldValue.serverTimestamp(),
@@ -123,8 +163,9 @@ class ChatService {
     ids.sort();
     String chatRoomId = ids.join('_');
 
+    final collectionName = _getChatCollectionName();
     final querySnapshot = await _firestore
-        .collection('chat_rooms')
+        .collection(collectionName)
         .doc(chatRoomId)
         .collection('messages')
         .where('receiverId', isEqualTo: currentUserId)
@@ -140,9 +181,10 @@ class ChatService {
 
   /// Get filtered messages stream for a specific chat room
   Stream<List<DocumentSnapshot>> getFilteredMessages(String chatRoomId) async* {
+    final collectionName = _getChatCollectionName();
     await for (final snapshot
         in _firestore
-            .collection('chat_rooms')
+            .collection(collectionName)
             .doc(chatRoomId)
             .collection('messages')
             .orderBy('timestamp', descending: false)
@@ -267,7 +309,8 @@ class ChatService {
       memberIds.add(currentUserId);
     }
 
-    final chatRoomRef = await _firestore.collection('chat_rooms').add({
+    final collectionName = _getChatCollectionName();
+    final chatRoomRef = await _firestore.collection(collectionName).add({
       'members': memberIds,
       'isGroup': true,
       'isHealthGroup': true,
@@ -289,8 +332,9 @@ class ChatService {
   Future<Map<String, dynamic>> getHealthGroupStats(String chatRoomId) async {
     try {
       // Get group info
+      final collectionName = _getChatCollectionName();
       final groupDoc = await _firestore
-          .collection('chat_rooms')
+          .collection(collectionName)
           .doc(chatRoomId)
           .get();
       final groupData = groupDoc.data();
@@ -308,8 +352,18 @@ class ChatService {
 
         for (final memberId in members) {
           try {
+            // Use appropriate collection name for fasting sessions too
+            final userEmail = _auth.currentUser?.email;
+            final isDemoUser = userEmail != null && (
+              userEmail == 'alice.demo@example.com' ||
+              userEmail == 'bob.demo@example.com' ||
+              userEmail == 'charlie.demo@example.com'
+            );
+            
+            final fastingCollectionName = isDemoUser ? 'demo_fasting_sessions' : 'fasting_sessions';
+            
             final sessions = await _firestore
-                .collection('fasting_sessions')
+                .collection(fastingCollectionName)
                 .where('userId', isEqualTo: memberId)
                 .where('isActive', isEqualTo: true)
                 .get();
