@@ -68,12 +68,24 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
     _controller = CameraController(
       // Get a specific camera from the list of available cameras.
       widget.cameras[_selectedCameraIndex],
-      // Define the resolution to use.
-      ResolutionPreset.medium,
+      // Use low resolution for better compatibility and stability
+      ResolutionPreset.low,
+      enableAudio: true,
+      imageFormatGroup: ImageFormatGroup.jpeg,
     );
 
     // Next, initialize the controller. This returns a Future.
-    _initializeControllerFuture = _controller.initialize();
+    _initializeControllerFuture = _controller.initialize().catchError((error) {
+      Logger.d('Camera initialization error: $error');
+      // Try with even lower settings if initialization fails
+      _controller = CameraController(
+        widget.cameras[_selectedCameraIndex],
+        ResolutionPreset.veryLow,
+        enableAudio: false, // Disable audio as fallback
+        imageFormatGroup: ImageFormatGroup.jpeg,
+      );
+      return _controller.initialize();
+    });
   }
 
   void _switchCamera() {

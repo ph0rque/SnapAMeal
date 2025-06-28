@@ -201,24 +201,61 @@ class DemoResetService {
       };
 
       for (final entry in collections.entries) {
-        final snapshot = await _firestore
-            .collection(entry.value)
-            .where('userId', isEqualTo: userId)
-            .get();
-        stats[entry.key] = snapshot.docs.length;
+        try {
+          final snapshot = await _firestore
+              .collection(entry.value)
+              .where('userId', isEqualTo: userId)
+              .get();
+          stats[entry.key] = snapshot.docs.length;
+        } catch (collectionError) {
+          // Handle permission errors gracefully
+          if (collectionError.toString().contains('permission-denied')) {
+            // For permission errors, set count to 0 and continue
+            stats[entry.key] = 0;
+            Logger.d('Demo stats: Permission denied for ${entry.key}, using fallback');
+          } else {
+            // For other errors, rethrow
+            rethrow;
+          }
+        }
       }
 
       // Count group messages sent by this user
-      final messagesSnapshot = await _firestore
-          .collection('${_demoPrefix}group_chat_messages')
-          .where('senderId', isEqualTo: userId)
-          .get();
-      stats['Group Messages'] = messagesSnapshot.docs.length;
+      try {
+        final messagesSnapshot = await _firestore
+            .collection('${_demoPrefix}group_chat_messages')
+            .where('senderId', isEqualTo: userId)
+            .get();
+        stats['Group Messages'] = messagesSnapshot.docs.length;
+      } catch (messagesError) {
+        if (messagesError.toString().contains('permission-denied')) {
+          stats['Group Messages'] = 0;
+          Logger.d('Demo stats: Permission denied for Group Messages, using fallback');
+        } else {
+          // For non-permission errors, still provide fallback but log the error
+          stats['Group Messages'] = 0;
+          Logger.d('Demo stats: Error getting group messages: $messagesError');
+        }
+      }
 
       return stats;
     } catch (e) {
-      Logger.d('❌ Failed to get demo data stats: $e');
-      return {};
+      // Handle general permission errors gracefully
+      if (e.toString().contains('permission-denied')) {
+        Logger.d('Demo stats: Permission denied, using empty stats');
+        return <String, int>{
+          'Fasting Sessions': 0,
+          'Meal Logs': 0,
+          'Progress Stories': 0,
+          'AI Advice': 0,
+          'Health Challenges': 0,
+          'Streaks': 0,
+          'Group Messages': 0,
+        };
+      } else {
+        Logger.d('❌ Failed to get demo data stats: $e');
+        return {};
+      }
     }
   }
 
@@ -249,8 +286,14 @@ class DemoResetService {
 
       return null;
     } catch (e) {
-      Logger.d('❌ Failed to get last reset time: $e');
-      return null;
+      // Handle permission errors gracefully
+      if (e.toString().contains('permission-denied')) {
+        Logger.d('Demo reset time: Permission denied, returning null');
+        return null;
+      } else {
+        Logger.d('❌ Failed to get last reset time: $e');
+        return null;
+      }
     }
   }
 

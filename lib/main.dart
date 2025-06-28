@@ -22,6 +22,8 @@ import 'package:snapameal/pages/health_groups_page.dart';
 import 'package:snapameal/pages/integrations_page.dart';
 import 'package:snapameal/pages/chats_page.dart';
 import 'package:snapameal/pages/friends_page.dart';
+import 'package:snapameal/pages/chat_page.dart';
+import 'package:snapameal/pages/my_meals_page.dart';
 import 'pages/debug_pinecone_page.dart';
 
 import 'di/service_locator.dart';
@@ -130,17 +132,15 @@ class MyApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             title: 'SnapAMeal - Health & Wellness',
 
-            // Dynamic theme based on fasting state
-            theme: fastingState.fastingModeEnabled
-                ? _buildFastingTheme(lightMode, fastingState.appThemeColor)
-                : lightMode,
+            // Use consistent theme regardless of fasting state
+            theme: lightMode,
             // Force light mode for consistency
             themeMode: ThemeMode.light,
 
             // Wrap the entire app with fasting-aware navigation
             home: FastingAwareNavigation(
-              adaptiveTheme: true,
-              showFloatingTimer: true,
+              adaptiveTheme: false,
+              showFloatingTimer: false,
               child: const AuthGate(),
             ),
 
@@ -230,6 +230,8 @@ class MyApp extends StatelessWidget {
         return const AIAdvicePage();
       case '/meal-logging':
         return const MealLoggingPage();
+      case '/my_meals':
+        return const MyMealsPage();
       case '/health-groups':
         return const HealthGroupsPage();
       case '/integrations':
@@ -242,6 +244,12 @@ class MyApp extends StatelessWidget {
         return const ChatsPage();
       case '/friends':
         return const FriendsPage();
+      case '/group_chat':
+        // Group chat route - expects group ID as arguments
+        if (arguments is String) {
+          return ChatPage(chatRoomId: arguments);
+        }
+        return null;
       default:
         return null;
     }

@@ -35,6 +35,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   // UI State
   bool _isAnalyzing = false;
   bool _isInitialized = false;
+  bool _isSaving = false;
   String? _selectedImagePath;
   MealRecognitionResult? _analysisResult;
   String _selectedCaptionType = 'motivational';
@@ -143,9 +144,38 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     } catch (e) {
       developer.log('Error capturing image: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnapUI.errorSnackBar('Failed to capture image'));
+      
+      // Provide more specific error messages based on the error type
+      String errorMessage = 'Failed to capture image';
+      if (e.toString().contains('photo_access_denied') || e.toString().contains('camera_access_denied')) {
+        errorMessage = 'Permission denied. Please allow camera and photo library access in Settings > Privacy.';
+      } else if (e.toString().contains('not_available')) {
+        errorMessage = 'Camera or photo library not available on this device.';
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+          action: e.toString().contains('access_denied') 
+            ? SnackBarAction(
+                label: 'Settings',
+                textColor: Colors.white,
+                onPressed: () {
+                  // Note: This would require adding url_launcher dependency and app_settings package
+                  // For now, just show instruction
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Go to Settings > Privacy > Camera/Photos to enable access'),
+                      backgroundColor: Colors.blue,
+                    ),
+                  );
+                },
+              )
+            : null,
+        ),
+      );
     }
   }
 
@@ -237,16 +267,24 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       return;
     }
 
+    // Prevent duplicate uploads
+    if (_isSaving) return;
+
+    setState(() {
+      _isSaving = true;
+    });
+
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         throw Exception('User not authenticated');
       }
 
-      // Upload image to Firebase Storage
+      // Upload image to Firebase Storage with unique filename to prevent conflicts
       final imageFile = File(_selectedImagePath!);
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final fileName = 'meals/${user.uid}/$timestamp.jpg';
+      final randomId = DateTime.now().microsecondsSinceEpoch; // Additional uniqueness
+      final fileName = 'meals/${user.uid}/${timestamp}_$randomId.jpg';
 
       final uploadTask = FirebaseStorage.instance
           .ref()
@@ -335,6 +373,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnapUI.errorSnackBar('Failed to save meal log'));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -924,9 +968,10 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
   Widget _buildSaveButton() {
     return SnapUI.primaryButton(
-      'Save Meal Log',
-      _saveMealLog,
-      icon: Icons.save,
+      _isSaving ? 'Saving...' : 'Save Meal Log',
+      () => _saveMealLog(), // Always provide non-null callback
+      icon: _isSaving ? null : Icons.save,
+      isLoading: _isSaving, // This handles the disabled state
     );
   }
 }

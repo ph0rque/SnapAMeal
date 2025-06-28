@@ -54,12 +54,13 @@ class WeeklyReviewService {
       Map<String, dynamic> review;
       try {
         if (_ragService != null && activityData['stories'].isNotEmpty) {
-          review = await _ragService!.generateWeeklyDigest(
+          final rawReview = await _ragService!.generateWeeklyDigest(
             userId: userId,
             weekStart: weekStart,
             stories: activityData['stories'],
             userProfile: userProfile,
           );
+          review = Map<String, dynamic>.from(rawReview);
         } else {
           review = _generateFallbackWeeklyReview(activityData, weekStart, userProfile);
         }
@@ -68,8 +69,8 @@ class WeeklyReviewService {
         review = _generateFallbackWeeklyReview(activityData, weekStart, userProfile);
       }
 
-      // Add metadata and save to Firestore
-      final reviewDoc = {
+      // Save review to Firestore
+      final reviewDoc = <String, dynamic>{
         'user_id': userId,
         'review_type': 'weekly',
         'week_of': Timestamp.fromDate(weekStart),
@@ -80,14 +81,23 @@ class WeeklyReviewService {
         'status': 'active',
       };
 
-      final docRef = await _reviewsCollection.add(reviewDoc);
-      
-      Logger.d('Generated weekly review for user $userId: ${docRef.id}');
-      
-      return {
-        'id': docRef.id,
-        ...reviewDoc,
-      };
+      try {
+        final docRef = await _reviewsCollection.add(reviewDoc);
+        Logger.d('Generated and saved weekly review for user $userId: ${docRef.id}');
+        
+        return <String, dynamic>{
+          'id': docRef.id,
+          ...reviewDoc,
+        };
+      } catch (e) {
+        Logger.d('Error saving weekly review to Firestore: $e');
+        // Return review data even if saving fails
+        return <String, dynamic>{
+          'id': 'unsaved_${DateTime.now().millisecondsSinceEpoch}',
+          ...reviewDoc,
+          'is_saved': false,
+        };
+      }
     } catch (e) {
       Logger.d('Error generating weekly review: $e');
       return null;
@@ -121,12 +131,13 @@ class WeeklyReviewService {
       Map<String, dynamic> review;
       try {
         if (_ragService != null && activityData['stories'].isNotEmpty) {
-          review = await _ragService!.generateMonthlyDigest(
+          final rawReview = await _ragService!.generateMonthlyDigest(
             userId: userId,
             monthStart: monthStart,
             stories: activityData['stories'],
             userProfile: userProfile,
           );
+          review = Map<String, dynamic>.from(rawReview);
         } else {
           review = _generateFallbackMonthlyReview(activityData, monthStart, userProfile);
         }
@@ -135,8 +146,8 @@ class WeeklyReviewService {
         review = _generateFallbackMonthlyReview(activityData, monthStart, userProfile);
       }
 
-      // Add metadata and save to Firestore
-      final reviewDoc = {
+      // Save review to Firestore
+      final reviewDoc = <String, dynamic>{
         'user_id': userId,
         'review_type': 'monthly',
         'month_of': Timestamp.fromDate(monthStart),
@@ -147,14 +158,23 @@ class WeeklyReviewService {
         'status': 'active',
       };
 
-      final docRef = await _reviewsCollection.add(reviewDoc);
-      
-      Logger.d('Generated monthly review for user $userId: ${docRef.id}');
-      
-      return {
-        'id': docRef.id,
-        ...reviewDoc,
-      };
+      try {
+        final docRef = await _reviewsCollection.add(reviewDoc);
+        Logger.d('Generated and saved monthly review for user $userId: ${docRef.id}');
+        
+        return <String, dynamic>{
+          'id': docRef.id,
+          ...reviewDoc,
+        };
+      } catch (e) {
+        Logger.d('Error saving monthly review to Firestore: $e');
+        // Return review data even if saving fails
+        return <String, dynamic>{
+          'id': 'unsaved_${DateTime.now().millisecondsSinceEpoch}',
+          ...reviewDoc,
+          'is_saved': false,
+        };
+      }
     } catch (e) {
       Logger.d('Error generating monthly review: $e');
       return null;
@@ -219,12 +239,12 @@ class WeeklyReviewService {
       // Calculate activity metrics
       final metrics = _calculateActivityMetrics(stories, mealLogs, fastingSessions, startDate, endDate);
 
-      return {
+      return <String, dynamic>{
         'stories': stories,
         'meal_logs': mealLogs,
         'fasting_sessions': fastingSessions,
         'metrics': metrics,
-        'period': {
+        'period': <String, dynamic>{
           'start': startDate.toIso8601String(),
           'end': endDate.toIso8601String(),
           'days': endDate.difference(startDate).inDays,
@@ -232,12 +252,13 @@ class WeeklyReviewService {
       };
     } catch (e) {
       Logger.d('Error collecting user activity data: $e');
-      return {
+      // Return empty data structure but still proceed with generation
+      return <String, dynamic>{
         'stories': <Map<String, dynamic>>[],
         'meal_logs': <Map<String, dynamic>>[],
         'fasting_sessions': <Map<String, dynamic>>[],
-        'metrics': {},
-        'period': {
+        'metrics': <String, dynamic>{},
+        'period': <String, dynamic>{
           'start': startDate.toIso8601String(),
           'end': endDate.toIso8601String(),
           'days': endDate.difference(startDate).inDays,
@@ -490,6 +511,7 @@ class WeeklyReviewService {
       return null;
     } catch (e) {
       Logger.d('Error checking existing review: $e');
+      // Continue with generation even if check fails
       return null;
     }
   }
@@ -509,7 +531,13 @@ class WeeklyReviewService {
       };
     } catch (e) {
       Logger.d('Error getting user profile: $e');
-      return null;
+      // Return fallback only if Firestore access completely fails
+      return {
+        'health_profile': {
+          'health_goals': ['general_wellness'],
+          'dietary_preferences': [],
+        },
+      };
     }
   }
 
@@ -519,16 +547,16 @@ class WeeklyReviewService {
     DateTime weekStart,
     Map<String, dynamic>? userProfile,
   ) {
-    final metrics = activityData['metrics'] as Map<String, dynamic>? ?? {};
-    final storyMetrics = metrics['stories'] as Map<String, dynamic>? ?? {};
-    final mealMetrics = metrics['meals'] as Map<String, dynamic>? ?? {};
-    final overallMetrics = metrics['overall'] as Map<String, dynamic>? ?? {};
+    final metrics = Map<String, dynamic>.from(activityData['metrics'] as Map? ?? {});
+    final storyMetrics = Map<String, dynamic>.from(metrics['stories'] as Map? ?? {});
+    final mealMetrics = Map<String, dynamic>.from(metrics['meals'] as Map? ?? {});
+    final overallMetrics = Map<String, dynamic>.from(metrics['overall'] as Map? ?? {});
     
     final storyCount = storyMetrics['total_count'] as int? ?? 0;
     final mealCount = mealMetrics['total_count'] as int? ?? 0;
     final activeDays = overallMetrics['active_days'] as int? ?? 0;
     
-    return {
+    return <String, dynamic>{
       'digest_type': 'weekly',
       'week_of': _formatDate(weekStart),
       'summary': _generateWeeklySummary(storyCount, mealCount, activeDays),
@@ -546,16 +574,16 @@ class WeeklyReviewService {
     DateTime monthStart,
     Map<String, dynamic>? userProfile,
   ) {
-    final metrics = activityData['metrics'] as Map<String, dynamic>? ?? {};
-    final storyMetrics = metrics['stories'] as Map<String, dynamic>? ?? {};
-    final mealMetrics = metrics['meals'] as Map<String, dynamic>? ?? {};
-    final overallMetrics = metrics['overall'] as Map<String, dynamic>? ?? {};
+    final metrics = Map<String, dynamic>.from(activityData['metrics'] as Map? ?? {});
+    final storyMetrics = Map<String, dynamic>.from(metrics['stories'] as Map? ?? {});
+    final mealMetrics = Map<String, dynamic>.from(metrics['meals'] as Map? ?? {});
+    final overallMetrics = Map<String, dynamic>.from(metrics['overall'] as Map? ?? {});
     
     final storyCount = storyMetrics['total_count'] as int? ?? 0;
     final mealCount = mealMetrics['total_count'] as int? ?? 0;
     final activeDays = overallMetrics['active_days'] as int? ?? 0;
     
-    return {
+    return <String, dynamic>{
       'digest_type': 'monthly',
       'month_of': _formatDate(monthStart),
       'summary': _generateMonthlySummary(storyCount, mealCount, activeDays),
@@ -698,7 +726,7 @@ class WeeklyReviewService {
 
   /// Generate monthly trends
   Map<String, dynamic> _generateMonthlyTrends(Map<String, dynamic> activityData) {
-    return {
+    return <String, dynamic>{
       'content_growth': 'steady',
       'engagement_trend': 'positive',
       'consistency': 'improving',
@@ -776,22 +804,31 @@ class WeeklyReviewService {
     String? reviewType,
     int limit = 10,
   }) {
-    Query query = _reviewsCollection
-        .where('user_id', isEqualTo: userId)
-        .where('status', isEqualTo: 'active');
-    
-    if (reviewType != null) {
-      query = query.where('review_type', isEqualTo: reviewType);
+    try {
+      Query query = _reviewsCollection
+          .where('user_id', isEqualTo: userId)
+          .where('status', isEqualTo: 'active');
+      
+      if (reviewType != null) {
+        query = query.where('review_type', isEqualTo: reviewType);
+      }
+      
+      return query
+          .orderBy('generated_at', descending: true)
+          .limit(limit)
+          .snapshots()
+          .map((snapshot) => snapshot.docs.map((doc) => {
+            'id': doc.id,
+            ...doc.data() as Map<String, dynamic>,
+          }).toList())
+          .handleError((error) {
+            Logger.d('Error in user reviews stream: $error');
+            return <Map<String, dynamic>>[];
+          });
+    } catch (e) {
+      Logger.d('Error setting up user reviews stream: $e');
+      return Stream.value(<Map<String, dynamic>>[]);
     }
-    
-    return query
-        .orderBy('generated_at', descending: true)
-        .limit(limit)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => {
-          'id': doc.id,
-          ...doc.data() as Map<String, dynamic>,
-        }).toList());
   }
 
   /// Batch generate weekly reviews for all users
@@ -898,5 +935,48 @@ class WeeklyReviewService {
   /// Format date for display
   String _formatDate(DateTime date) {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+  }
+
+  /// Create a basic fallback review when all permissions are denied
+  Map<String, dynamic> _createFallbackReview(String userId, DateTime periodStart, String reviewType) {
+    final isWeekly = reviewType == 'weekly';
+    final periodName = isWeekly ? 'week' : 'month';
+    
+    return <String, dynamic>{
+      'id': 'fallback_${DateTime.now().millisecondsSinceEpoch}',
+      'user_id': userId,
+      'review_type': reviewType,
+      isWeekly ? 'week_of' : 'month_of': Timestamp.fromDate(periodStart),
+      'generated_at': Timestamp.now(),
+      'activity_data': <String, dynamic>{
+        'stories': <Map<String, dynamic>>[],
+        'meal_logs': <Map<String, dynamic>>[],
+        'fasting_sessions': <Map<String, dynamic>>[],
+        'metrics': <String, dynamic>{},
+        'period': <String, dynamic>{
+          'start': periodStart.toIso8601String(),
+          'end': isWeekly 
+            ? periodStart.add(const Duration(days: 7)).toIso8601String()
+            : DateTime(periodStart.year, periodStart.month + 1, 0).toIso8601String(),
+          'days': isWeekly ? 7 : DateTime(periodStart.year, periodStart.month + 1, 0).day,
+        },
+      },
+      'review_content': <String, dynamic>{
+        'digest_type': reviewType,
+        isWeekly ? 'week_of' : 'month_of': _formatDate(periodStart),
+        'summary': 'This $periodName is a fresh start on your wellness journey! Take time to reflect on your goals and set intentions for continued growth.',
+        'highlights': <String>['Starting fresh with renewed focus'],
+        'insights': <String>['Every new $periodName is an opportunity for growth', 'Small consistent actions lead to lasting change'],
+        if (isWeekly) 'weekly_insights': <String>['Focus on one healthy habit this week'],
+        if (isWeekly) 'next_week_goals': <String>['Set a simple, achievable health goal'],
+        if (!isWeekly) 'monthly_trends': <String, dynamic>{'overall': 'positive'},
+        if (!isWeekly) 'growth_areas': <String>['Consistency in daily habits'],
+        if (!isWeekly) 'achievement_badges': <Map<String, dynamic>>[],
+        'generated_at': DateTime.now().toIso8601String(),
+      },
+      'is_ai_generated': false,
+      'status': 'active',
+      'is_fallback': true,
+    };
   }
 } 

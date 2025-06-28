@@ -4,7 +4,7 @@ import 'package:camera/camera.dart';
 class VideoConfig {
   // Video recording settings
   static const Duration maxRecordingDuration = Duration(seconds: 5);
-  static const ResolutionPreset defaultResolution = ResolutionPreset.medium;
+  static const ResolutionPreset defaultResolution = ResolutionPreset.low; // Changed to low for better compatibility
   static const bool enableAudio = true;
 
   // Video file settings

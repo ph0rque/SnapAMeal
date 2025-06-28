@@ -1344,13 +1344,15 @@ All content should focus on general wellness and lifestyle, not medical advice.
     // Add weekly-specific insights
     final weeklyInsights = await _generateWeeklyInsights(stories, userProfile);
 
-    return {
-      ...summary,
-      'digest_type': 'weekly',
-      'week_of': _formatDate(weekStart),
-      'weekly_insights': weeklyInsights,
-      'next_week_goals': await _generateNextWeekGoals(stories, userProfile),
-    };
+    // Ensure proper type casting to prevent runtime type errors
+    final result = <String, dynamic>{};
+    result.addAll(Map<String, dynamic>.from(summary));
+    result['digest_type'] = 'weekly';
+    result['week_of'] = _formatDate(weekStart);
+    result['weekly_insights'] = weeklyInsights;
+    result['next_week_goals'] = await _generateNextWeekGoals(stories, userProfile);
+
+    return result;
   }
 
   /// Generate monthly story digest
@@ -1373,14 +1375,16 @@ All content should focus on general wellness and lifestyle, not medical advice.
     // Add monthly-specific insights
     final monthlyTrends = await _generateMonthlyTrends(stories, userProfile);
 
-    return {
-      ...summary,
-      'digest_type': 'monthly',
-      'month_of': _formatDate(monthStart),
-      'monthly_trends': monthlyTrends,
-      'growth_areas': await _generateGrowthAreas(stories, userProfile),
-      'achievement_badges': _calculateAchievementBadges(stories),
-    };
+    // Ensure proper type casting to prevent runtime type errors
+    final result = <String, dynamic>{};
+    result.addAll(Map<String, dynamic>.from(summary));
+    result['digest_type'] = 'monthly';
+    result['month_of'] = _formatDate(monthStart);
+    result['monthly_trends'] = monthlyTrends;
+    result['growth_areas'] = await _generateGrowthAreas(stories, userProfile);
+    result['achievement_badges'] = _calculateAchievementBadges(stories);
+
+    return result;
   }
 
   /// Analyze story content and extract themes

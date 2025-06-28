@@ -121,8 +121,12 @@ class HealthGroup {
         (e) => e.name == data['activity_level'],
         orElse: () => HealthGroupActivity.low,
       ),
-      createdAt: (data['created_at'] as Timestamp).toDate(),
-      lastActivity: (data['last_activity'] as Timestamp).toDate(),
+      createdAt: data['created_at'] != null 
+          ? (data['created_at'] as Timestamp).toDate()
+          : DateTime.now(),
+      lastActivity: data['last_activity'] != null 
+          ? (data['last_activity'] as Timestamp).toDate()
+          : DateTime.now(),
       maxMembers: data['max_members'] ?? 50,
       allowAnonymous: data['allow_anonymous'] ?? false,
       requireApproval: data['require_approval'] ?? false,
@@ -219,6 +223,8 @@ class HealthGroup {
 
   /// Check if user is member of the group
   bool isMember(String userId) => memberIds.contains(userId);
+
+
 
   /// Check if user is admin of the group
   bool isAdmin(String userId) => adminIds.contains(userId);

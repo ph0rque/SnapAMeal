@@ -16,9 +16,15 @@ import '../widgets/insight_of_the_day_card.dart';
 import '../widgets/mission_card.dart';
 
 import 'ai_advice_page.dart';
-import 'meal_logging_page.dart';
+import 'ai_settings_page.dart';
+import 'data_conflicts_page.dart';
+import 'data_export_page.dart';
+import 'demo_settings_page.dart';
 import 'health_groups_page.dart';
+import 'health_onboarding_page.dart';
 import 'integrations_page.dart';
+import 'meal_logging_page.dart';
+import 'weekly_review_page.dart';
 
 class HealthDashboardPage extends StatefulWidget {
   const HealthDashboardPage({super.key});
@@ -36,6 +42,7 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
   List<AIAdvice> _todaysAdvice = [];
   Map<String, dynamic> _healthMetrics = {};
   bool _isLoading = true;
+  bool _isDemoUser = false;
 
   @override
   void initState() {
@@ -49,6 +56,9 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
+
+      // Check if user is a demo user
+      _isDemoUser = await _authService.isCurrentUserDemo();
 
       // Load health profile
       await _loadHealthProfile(user.uid);
@@ -322,12 +332,148 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
                 icon: const Icon(Icons.account_circle_outlined),
                 onSelected: (value) {
                   switch (value) {
+                    case 'health_profile':
+                      _navigateToHealthProfile();
+                      break;
+                    case 'my_meals':
+                      _navigateToMyMeals();
+                      break;
+                    case 'reviews':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const WeeklyReviewPage(),
+                        ),
+                      );
+                      break;
+                    case 'ai_settings':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const AISettingsPage(),
+                        ),
+                      );
+                      break;
+                    case 'integrations':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const IntegrationsPage(),
+                        ),
+                      );
+                      break;
+                    case 'data_export':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DataExportPage(),
+                        ),
+                      );
+                      break;
+                    case 'data_conflicts':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DataConflictsPage(),
+                        ),
+                      );
+                      break;
+                    case 'demo_settings':
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DemoSettingsPage(),
+                        ),
+                      );
+                      break;
                     case 'logout':
                       _showLogoutDialog();
                       break;
                   }
                 },
                 itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 'health_profile',
+                    child: Row(
+                      children: [
+                        Icon(Icons.person, color: SnapColors.primaryYellow),
+                        SizedBox(width: 8),
+                        Text('Health Profile'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'my_meals',
+                    child: Row(
+                      children: [
+                        Icon(Icons.restaurant, color: SnapColors.accentGreen),
+                        SizedBox(width: 8),
+                        Text('My Meals'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'reviews',
+                    child: Row(
+                      children: [
+                        Icon(Icons.assessment, color: SnapColors.accentGreen),
+                        SizedBox(width: 8),
+                        Text('My Reviews'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'ai_settings',
+                    child: Row(
+                      children: [
+                        Icon(Icons.smart_toy, color: SnapColors.accentPurple),
+                        SizedBox(width: 8),
+                        Text('AI Settings'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'integrations',
+                    child: Row(
+                      children: [
+                        Icon(Icons.sync, color: SnapColors.textSecondary),
+                        SizedBox(width: 8),
+                        Text('Integrations'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'data_export',
+                    child: Row(
+                      children: [
+                        Icon(Icons.download, color: SnapColors.textSecondary),
+                        SizedBox(width: 8),
+                        Text('Export Data'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'data_conflicts',
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning, color: Colors.orange),
+                        SizedBox(width: 8),
+                        Text('Data Conflicts'),
+                      ],
+                    ),
+                  ),
+                  // Demo settings - only show for demo users
+                  if (_isDemoUser) const PopupMenuItem(
+                    value: 'demo_settings',
+                    child: Row(
+                      children: [
+                        Icon(Icons.science, color: SnapColors.primaryYellow),
+                        SizedBox(width: 8),
+                        Text('Demo Settings'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
                   const PopupMenuItem(
                     value: 'logout',
                     child: Row(
@@ -1090,6 +1236,189 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
                 Navigator.pop(context);
                 // TODO: Navigate to camera page
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToMyMeals() {
+    Navigator.pushNamed(context, '/my_meals');
+  }
+
+  void _navigateToHealthProfile() {
+    if (_healthProfile != null) {
+      // If profile exists, show profile options
+      showModalBottomSheet(
+        context: context,
+        backgroundColor: SnapColors.backgroundLight,
+        isScrollControlled: true,
+        builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          maxChildSize: 0.8,
+          minChildSize: 0.4,
+          builder: (context, scrollController) => Container(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: SnapColors.textSecondary,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Health Profile',
+                  style: SnapTypography.heading2.copyWith(
+                    color: SnapColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: SingleChildScrollView(
+                    controller: scrollController,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProfileSummaryCard(),
+                        const SizedBox(height: 16),
+                        _buildProfileActionsCard(),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      // No profile exists, navigate to onboarding
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const HealthOnboardingPage(),
+        ),
+      );
+    }
+  }
+
+  Widget _buildProfileSummaryCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Profile Summary',
+              style: SnapTypography.heading3.copyWith(
+                color: SnapColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (_healthProfile != null) ...[
+              _buildProfileItem('Age', '${_healthProfile!.age ?? 'Not set'}'),
+              _buildProfileItem('Gender', _healthProfile!.gender ?? 'Not set'),
+              _buildProfileItem('Height', 
+                _healthProfile!.heightCm != null 
+                  ? '${_healthProfile!.heightCm!.toStringAsFixed(1)} cm'
+                  : 'Not set'),
+              _buildProfileItem('Weight', 
+                _healthProfile!.weightKg != null 
+                  ? '${_healthProfile!.weightKg!.toStringAsFixed(1)} kg'
+                  : 'Not set'),
+              _buildProfileItem('Activity Level', _healthProfile!.activityLevelDisplayName),
+              _buildProfileItem('Goals', _healthProfile!.primaryGoalsDisplayNames.join(', ')),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              '$label:',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value.isEmpty ? 'Not set' : value,
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileActionsCard() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HealthOnboardingPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.edit),
+                label: const Text('Update Health Profile'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: SnapColors.primaryYellow,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DataExportPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.download),
+                label: const Text('Export Health Data'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
             ),
           ],
         ),

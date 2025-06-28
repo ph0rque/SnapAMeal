@@ -31,6 +31,16 @@ class AIAdviceService {
 
   String? get currentUserId => _auth.currentUser?.uid;
 
+  // Helper method to ensure proper type conversion from dynamic to List<String>
+  List<String> _ensureStringList(dynamic value) {
+    if (value == null) return <String>[];
+    if (value is List<String>) return value;
+    if (value is List) {
+      return value.map((item) => item.toString()).toList();
+    }
+    return <String>[];
+  }
+
   // Task 6.1: Comprehensive User Health Profile Tracking System
   Future<HealthProfile?> getHealthProfile(String userId) async {
     try {
@@ -409,7 +419,7 @@ class AIAdviceService {
         'category': (category ?? AdviceCategory.tip).name,
         'priority': _determinePriority(adviceContent, healthProfile).name,
         'context': ragContext,
-        'tags': adviceContent['tags'] ?? [],
+        'tags': _ensureStringList(adviceContent['tags']),
         'personalizationFactors': _extractPersonalizationFactors(
           healthProfile,
           behaviorAnalysis,
@@ -427,7 +437,7 @@ class AIAdviceService {
           'timestamp': DateTime.now().toIso8601String(),
           'version': '1.0',
         },
-        'suggestedActions': adviceContent['actions'] ?? [],
+        'suggestedActions': _ensureStringList(adviceContent['actions']),
         'deliveredAt': Timestamp.fromDate(DateTime.now()),
         'isRead': false,
         'isDismissed': false,
@@ -452,7 +462,7 @@ class AIAdviceService {
         category: category ?? AdviceCategory.tip,
         priority: _determinePriority(adviceContent, healthProfile),
         context: ragContext,
-        tags: adviceContent['tags'] ?? [],
+        tags: _ensureStringList(adviceContent['tags']),
         personalizationFactors: _extractPersonalizationFactors(
           healthProfile,
           behaviorAnalysis,
@@ -461,14 +471,14 @@ class AIAdviceService {
             ? AdviceTrigger.userRequested
             : AdviceTrigger.behavioral,
         sourceQuery: userQuery,
-        ragSources: adviceContent['sources'] ?? [],
+        ragSources: _ensureStringList(adviceContent['sources']),
         confidenceScore: adviceContent['confidence']?.toDouble(),
         generationMetadata: {
           'model': 'gpt-4',
           'timestamp': DateTime.now().toIso8601String(),
           'version': '1.0',
         },
-        suggestedActions: adviceContent['actions'] ?? [],
+        suggestedActions: _ensureStringList(adviceContent['actions']),
         deliveredAt: DateTime.now(),
       );
 
@@ -488,7 +498,14 @@ class AIAdviceService {
       return {};
     } catch (e) {
       Logger.d('Error getting behavior analysis: $e');
-      return {};
+      // Return empty data structure on permission error to allow graceful degradation
+      return {
+        'mealPatterns': <String, dynamic>{},
+        'fastingPatterns': <String, dynamic>{},
+        'appUsagePatterns': <String, dynamic>{},
+        'exercisePatterns': <String, dynamic>{},
+        'sleepPatterns': <String, dynamic>{},
+      };
     }
   }
 
@@ -559,7 +576,9 @@ class AIAdviceService {
         'content':
             'Stay hydrated and maintain a balanced diet for optimal health.',
         'summary': 'Basic health advice',
-        'actions': ['Drink 8 glasses of water daily'],
+        'actions': <String>['Drink 8 glasses of water daily'], // Explicitly typed as List<String>
+        'tags': <String>['health', 'hydration'], // Explicitly typed as List<String>
+        'sources': <String>[], // Empty but typed list
         'confidence': 0.5,
       };
     }
@@ -628,18 +647,26 @@ Make the advice:
   ) {
     try {
       // This would parse the JSON response from OpenAI
-      // For now, return a structured response
+      // For now, return a structured response with proper types
       return {
         'title': 'Personalized Health Advice',
         'content': response,
         'summary': 'AI-generated health advice based on your profile',
-        'actions': ['Follow the advice provided'],
-        'sources': context['sources'] ?? [],
+        'actions': <String>['Follow the advice provided'], // Explicitly typed as List<String>
+        'sources': _ensureStringList(context['sources']),
+        'tags': <String>['health', 'advice'], // Explicitly typed as List<String>
         'confidence': 0.8,
       };
     } catch (e) {
       Logger.d('Error parsing advice response: $e');
-      return {'title': 'Health Advice', 'content': response, 'confidence': 0.5};
+      return {
+        'title': 'Health Advice', 
+        'content': response, 
+        'confidence': 0.5,
+        'actions': <String>[], // Empty but typed list
+        'sources': <String>[], // Empty but typed list
+        'tags': <String>[], // Empty but typed list
+      };
     }
   }
 

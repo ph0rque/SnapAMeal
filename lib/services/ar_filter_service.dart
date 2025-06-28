@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../config/ai_config.dart';
 import '../models/fasting_session.dart';
 import '../services/rag_service.dart';
 import '../utils/logger.dart';
@@ -718,35 +719,38 @@ class ARFilterService {
         return cached[math.Random().nextInt(cached.length)];
       }
 
-      // Generate new motivational content using RAG
-      final healthContext = HealthQueryContext(
-        userId: session.userId,
-        queryType: 'motivation',
-        userProfile: {
-          'fasting_type': session.type.name,
-          'session_progress': session.progressPercentage,
-          'elapsed_time': session.elapsedTime.inHours,
-        },
-        currentGoals: ['fasting', 'motivation', 'discipline'],
-        dietaryRestrictions: [],
-        recentActivity: {
-          'session_duration': session.elapsedTime.inMinutes,
-          'personal_goal': session.personalGoal,
-        },
-        contextTimestamp: DateTime.now(),
-      );
+      // Only try AI generation if properly configured
+      if (AIConfig.isConfigured) {
+        // Generate new motivational content using RAG
+        final healthContext = HealthQueryContext(
+          userId: session.userId,
+          queryType: 'motivation',
+          userProfile: {
+            'fasting_type': session.type.name,
+            'session_progress': session.progressPercentage,
+            'elapsed_time': session.elapsedTime.inHours,
+          },
+          currentGoals: ['fasting', 'motivation', 'discipline'],
+          dietaryRestrictions: [],
+          recentActivity: {
+            'session_duration': session.elapsedTime.inMinutes,
+            'personal_goal': session.personalGoal,
+          },
+          contextTimestamp: DateTime.now(),
+        );
 
-      final aiText = await _ragService.generateContextualizedResponse(
-        userQuery:
-            'Give me a short, powerful motivational message for my ${session.typeDescription} session. I\'m ${(session.progressPercentage * 100).toInt()}% complete. Keep it under 10 words and make it inspiring.',
-        healthContext: healthContext,
-        maxContextLength: 500,
-      );
+        final aiText = await _ragService.generateContextualizedResponse(
+          userQuery:
+              'Give me a short, powerful motivational message for my ${session.typeDescription} session. I\'m ${(session.progressPercentage * 100).toInt()}% complete. Keep it under 10 words and make it inspiring.',
+          healthContext: healthContext,
+          maxContextLength: 500,
+        );
 
-      if (aiText != null && aiText.isNotEmpty) {
-        // Cache the result
-        _motivationalCache[cacheKey] = [aiText];
-        return aiText;
+        if (aiText != null && aiText.isNotEmpty) {
+          // Cache the result
+          _motivationalCache[cacheKey] = [aiText];
+          return aiText;
+        }
       }
     } catch (e) {
       Logger.d('Error getting AI motivational text: $e');
@@ -754,9 +758,50 @@ class ARFilterService {
 
     // Fallback to predefined motivational texts
     final config = _filterConfigs[FastingARFilterType.motivationalText]!;
-    return config.motivationalTexts[math.Random().nextInt(
-      config.motivationalTexts.length,
-    )];
+    final progressBasedTexts = _getProgressBasedMotivationalTexts(session);
+    
+    // Mix predefined config texts with progress-based texts
+    final allTexts = [...config.motivationalTexts, ...progressBasedTexts];
+    return allTexts[math.Random().nextInt(allTexts.length)];
+  }
+
+  /// Get motivational texts based on fasting progress
+  List<String> _getProgressBasedMotivationalTexts(FastingSession session) {
+    final progress = session.progressPercentage;
+    
+    if (progress < 0.25) {
+      return [
+        'Strong start! 💪',
+        'Building willpower',
+        'You\'ve got this!',
+        'Discipline mode: ON',
+        'Future self thanks you',
+      ];
+    } else if (progress < 0.5) {
+      return [
+        'Finding your rhythm 🔥',
+        'Momentum building',
+        'Halfway milestone ahead',
+        'Strength growing',
+        'Progress feels good',
+      ];
+    } else if (progress < 0.75) {
+      return [
+        'Over halfway! ⭐',
+        'Strong discipline',
+        'Mental clarity rising',
+        'Champions persist',
+        'Almost there!',
+      ];
+    } else {
+      return [
+        'Victory in sight! 🎉',
+        'Finish line approaching',
+        'Extraordinary effort',
+        'Pure determination',
+        'Success imminent!',
+      ];
+    }
   }
 
   /// Remove an active overlay

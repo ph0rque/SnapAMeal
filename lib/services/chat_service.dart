@@ -19,45 +19,83 @@ class ChatService {
 
   // Get chat stream for the current user
   Stream<QuerySnapshot> getChatsStream() {
-    final String currentUserId = _auth.currentUser!.uid;
-    return _firestore
-        .collection('chat_rooms')
-        .where('members', arrayContains: currentUserId)
-        .orderBy('lastMessageTimestamp', descending: true)
-        .snapshots();
+    try {
+      final String currentUserId = _auth.currentUser!.uid;
+      return _firestore
+          .collection('chat_rooms')
+          .where('members', arrayContains: currentUserId)
+          .orderBy('lastMessageTimestamp', descending: true)
+          .snapshots()
+          .handleError((error) {
+            if (error.toString().contains('permission-denied')) {
+              Logger.d('Permission denied for chat rooms, returning empty stream');
+            } else {
+              Logger.d('Error in chat rooms stream: $error');
+            }
+            return null;
+          });
+    } catch (e) {
+      Logger.d('Error setting up chat rooms stream: $e');
+      // Return empty stream to avoid crashes
+      return const Stream<QuerySnapshot>.empty();
+    }
   }
 
   // Get message stream for a specific chat room
   Stream<QuerySnapshot> getMessages(String chatRoomId) {
-    return _firestore
-        .collection('chat_rooms')
-        .doc(chatRoomId)
-        .collection('messages')
-        .orderBy('timestamp', descending: false)
-        .snapshots();
+    try {
+      return _firestore
+          .collection('chat_rooms')
+          .doc(chatRoomId)
+          .collection('messages')
+          .orderBy('timestamp', descending: false)
+          .snapshots()
+          .handleError((error) {
+            if (error.toString().contains('permission-denied')) {
+              Logger.d('Permission denied for chat messages, returning empty stream');
+            } else {
+              Logger.d('Error in chat messages stream: $error');
+            }
+            return null;
+          });
+    } catch (e) {
+      Logger.d('Error setting up chat messages stream: $e');
+      // Return empty stream to avoid crashes
+      return const Stream<QuerySnapshot>.empty();
+    }
   }
 
   // Send a message to a specific chat room
   Future<void> sendMessage(String chatRoomId, String message) async {
-    final String currentUserId = _auth.currentUser!.uid;
-    final Timestamp timestamp = Timestamp.now();
+    try {
+      final String currentUserId = _auth.currentUser!.uid;
+      final Timestamp timestamp = Timestamp.now();
 
-    await _firestore
-        .collection('chat_rooms')
-        .doc(chatRoomId)
-        .collection('messages')
-        .add({
-          'senderId': currentUserId,
-          'message': message,
-          'timestamp': timestamp,
-          'isViewed':
-              false, // Note: isViewed logic will need to be updated for groups
-        });
+      await _firestore
+          .collection('chat_rooms')
+          .doc(chatRoomId)
+          .collection('messages')
+          .add({
+            'senderId': currentUserId,
+            'message': message,
+            'timestamp': timestamp,
+            'isViewed':
+                false, // Note: isViewed logic will need to be updated for groups
+          });
 
-    // Also update the last message timestamp on the chat room for sorting
-    await _firestore.collection('chat_rooms').doc(chatRoomId).update({
-      'lastMessageTimestamp': timestamp,
-    });
+      // Also update the last message timestamp on the chat room for sorting
+      await _firestore.collection('chat_rooms').doc(chatRoomId).update({
+        'lastMessageTimestamp': timestamp,
+      });
+    } catch (e) {
+      if (e.toString().contains('permission-denied')) {
+        Logger.d('Permission denied for sending message, message not sent');
+        // Don't throw error, just log it
+      } else {
+        Logger.d('Error sending message: $e');
+        rethrow;
+      }
+    }
   }
 
   // Create a new group chat

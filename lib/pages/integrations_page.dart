@@ -337,16 +337,10 @@ class _IntegrationsPageState extends State<IntegrationsPage>
           style: TextStyle(color: SnapColors.textPrimary),
         ),
         backgroundColor: SnapColors.surface,
-        iconTheme: IconThemeData(color: SnapColors.textPrimary),
+        foregroundColor: Colors.black, // Explicit black color for visibility
+        iconTheme: const IconThemeData(color: Colors.black), // Explicit icon color
         elevation: 0,
-        automaticallyImplyLeading: true, // Ensure back button is shown
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: Icon(Icons.arrow_back, color: SnapColors.textPrimary),
-                onPressed: () => Navigator.pop(context),
-                tooltip: 'Back',
-              )
-            : null,
+        automaticallyImplyLeading: true, // Use Flutter's default back button behavior
         actions: [
           IconButton(
             icon: Icon(Icons.warning_amber, color: SnapColors.warning),

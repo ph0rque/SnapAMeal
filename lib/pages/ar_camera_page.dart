@@ -98,10 +98,10 @@ class _ARCameraPageState extends State<ARCameraPage> {
         orElse: () => cameras.first,
       );
 
-      // Use better camera configuration for improved quality and stability
+      // Use conservative camera configuration for maximum compatibility
       _cameraController = CameraController(
         frontCamera,
-        ResolutionPreset.medium, // Use medium resolution for better balance
+        ResolutionPreset.low, // Use low resolution for better compatibility
         enableAudio: true, // Enable audio for video recording
         imageFormatGroup: ImageFormatGroup.jpeg, // Specify image format
       );
@@ -121,13 +121,32 @@ class _ARCameraPageState extends State<ARCameraPage> {
       }
     } catch (e) {
       Logger.d('Error initializing camera: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Camera failed to initialize: $e'),
-            backgroundColor: Colors.red,
-          ),
+      
+      // Try with fallback configuration if initial setup fails
+      try {
+        _cameraController?.dispose();
+        _cameraController = CameraController(
+          frontCamera,
+          ResolutionPreset.veryLow, // Even lower resolution as fallback
+          enableAudio: false, // Disable audio as fallback
+          imageFormatGroup: ImageFormatGroup.jpeg,
         );
+        await _cameraController!.initialize();
+        
+        if (mounted) {
+          setState(() {});
+          Logger.d('Camera initialized with fallback configuration');
+        }
+      } catch (fallbackError) {
+        Logger.d('Fallback camera initialization also failed: $fallbackError');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Camera failed to initialize. Please restart the app.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }

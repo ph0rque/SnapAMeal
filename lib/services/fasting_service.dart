@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/ai_config.dart';
 import '../models/fasting_session.dart';
 import '../services/rag_service.dart';
 import '../services/notification_service.dart';
@@ -296,64 +297,147 @@ class FastingService {
     if (_currentSession == null) return null;
 
     try {
-      // Use RAG service to get personalized motivational content
-      final healthContext = HealthQueryContext(
-        userId: _currentSession!.userId,
-        queryType: 'motivation',
-        userProfile: {
-          'fasting_type': _currentSession!.type.name,
-          'session_progress': _currentSession!.progressPercentage,
-          'personal_goal': _currentSession!.personalGoal,
-        },
-        currentGoals: [
-          'fasting',
-          'discipline',
-          ..._currentSession!.motivationalTags,
-        ],
-        dietaryRestrictions: [],
-        recentActivity: {
-          'session_duration': _currentSession!.elapsedTime.inHours,
-          'engagement': _currentSession!.engagement.toJson(),
-        },
-        contextTimestamp: DateTime.now(),
-      );
-
-      final motivationalContent = await _ragService.generateContextualizedResponse(
-        userQuery:
-            'Give me encouragement for my ${_currentSession!.typeDescription} session. I\'m ${(_currentSession!.progressPercentage * 100).toInt()}% complete.',
-        healthContext: healthContext,
-        maxContextLength: 1000,
-      );
-
-      if (motivationalContent != null) {
-        // Record the motivation as shown
-        final motivation = FastingMotivation(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          type: 'ai_encouragement',
-          content: motivationalContent,
-          shownAt: DateTime.now(),
+      // Check if AI features are configured before attempting AI generation
+      if (AIConfig.isConfigured) {
+        // Use RAG service to get personalized motivational content
+        final healthContext = HealthQueryContext(
+          userId: _currentSession!.userId,
+          queryType: 'motivation',
+          userProfile: {
+            'fasting_type': _currentSession!.type.name,
+            'session_progress': _currentSession!.progressPercentage,
+            'personal_goal': _currentSession!.personalGoal,
+          },
+          currentGoals: [
+            'fasting',
+            'discipline',
+            ..._currentSession!.motivationalTags,
+          ],
+          dietaryRestrictions: [],
+          recentActivity: {
+            'session_duration': _currentSession!.elapsedTime.inHours,
+            'engagement': _currentSession!.engagement.toJson(),
+          },
+          contextTimestamp: DateTime.now(),
         );
 
-        final updatedSession = _currentSession!.copyWith(
-          motivationShown: [..._currentSession!.motivationShown, motivation],
-          updatedAt: DateTime.now(),
+        final motivationalContent = await _ragService.generateContextualizedResponse(
+          userQuery:
+              'Give me encouragement for my ${_currentSession!.typeDescription} session. I\'m ${(_currentSession!.progressPercentage * 100).toInt()}% complete.',
+          healthContext: healthContext,
+          maxContextLength: 1000,
         );
 
-        await _updateSession(updatedSession);
-        await recordEngagement(motivationViewed: true);
+        if (motivationalContent != null && motivationalContent.isNotEmpty) {
+          // Record the motivation as shown
+          final motivation = FastingMotivation(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            type: 'ai_encouragement',
+            content: motivationalContent,
+            shownAt: DateTime.now(),
+          );
 
-        return motivationalContent;
+          final updatedSession = _currentSession!.copyWith(
+            motivationShown: [..._currentSession!.motivationShown, motivation],
+            updatedAt: DateTime.now(),
+          );
+
+          await _updateSession(updatedSession);
+          await recordEngagement(motivationViewed: true);
+
+          return motivationalContent;
+        }
       }
 
-      // Fallback to predefined quotes
-      final randomQuote =
-          _motivationalQuotes[Random().nextInt(_motivationalQuotes.length)];
+      // Fallback to predefined quotes (either if AI not configured or failed)
+      final randomQuote = _getPersonalizedMotivationalQuote();
+      
+      // Record the motivation as shown
+      final motivation = FastingMotivation(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        type: 'predefined_quote',
+        content: randomQuote,
+        shownAt: DateTime.now(),
+      );
+
+      final updatedSession = _currentSession!.copyWith(
+        motivationShown: [..._currentSession!.motivationShown, motivation],
+        updatedAt: DateTime.now(),
+      );
+
+      await _updateSession(updatedSession);
+      await recordEngagement(motivationViewed: true);
+
       return randomQuote;
     } catch (e) {
       Logger.d('Error getting motivational content: $e');
-      // Fallback to predefined quotes
+      // Final fallback to simple predefined quotes
       return _motivationalQuotes[Random().nextInt(_motivationalQuotes.length)];
     }
+  }
+
+  /// Get a personalized motivational quote based on session progress
+  String _getPersonalizedMotivationalQuote() {
+    if (_currentSession == null) {
+      return _motivationalQuotes[Random().nextInt(_motivationalQuotes.length)];
+    }
+
+    final progress = _currentSession!.progressPercentage;
+    final type = _currentSession!.type;
+    
+    // Select quotes based on progress and fasting type
+    List<String> relevantQuotes = [];
+    
+    if (progress < 0.25) {
+      // Early stage quotes
+      relevantQuotes = [
+        'Every journey begins with a single step. You\'ve taken yours! 💪',
+        'Your future self will thank you for starting this fast.',
+        'Discipline is the bridge between goals and accomplishment.',
+        'You\'re building willpower with every passing minute.',
+        'Strong people don\'t give up when the going gets tough.',
+      ];
+    } else if (progress < 0.5) {
+      // Mid-early stage quotes
+      relevantQuotes = [
+        'You\'re finding your rhythm! Keep going strong! 🔥',
+        'Progress, not perfection. You\'re doing great!',
+        'Your commitment is inspiring - stay the course!',
+        'Each moment of discipline builds lasting strength.',
+        'You\'re proving to yourself that you can do hard things.',
+      ];
+    } else if (progress < 0.75) {
+      // Mid-late stage quotes
+      relevantQuotes = [
+        'Over halfway there! Your determination is showing! ⭐',
+        'The hardest part is behind you - finish strong!',
+        'You\'re in the zone now. Feel that mental clarity!',
+        'Your discipline today creates your freedom tomorrow.',
+        'This is where champions are made - in the difficult moments.',
+      ];
+    } else {
+      // Final stage quotes
+      relevantQuotes = [
+        'Almost there! You\'re about to achieve something amazing! 🎉',
+        'The finish line is in sight - you\'ve got this!',
+        'Your perseverance is extraordinary. Don\'t stop now!',
+        'You\'re proving what you\'re truly capable of achieving.',
+        'Victory belongs to those who persist. That\'s you!',
+      ];
+    }
+
+    // Add type-specific motivational elements
+    if (type == FastingType.sixteenEight || type == FastingType.intermittent16_8) {
+      relevantQuotes = relevantQuotes.map((quote) => 
+        '$quote Your 16:8 rhythm is building metabolic magic!'
+      ).toList();
+    } else if (type == FastingType.omad) {
+      relevantQuotes = relevantQuotes.map((quote) => 
+        '$quote OMAD warriors know the power of focused discipline!'
+      ).toList();
+    }
+
+    return relevantQuotes[Random().nextInt(relevantQuotes.length)];
   }
 
   /// Get user's fasting history
@@ -694,49 +778,99 @@ class FastingService {
   /// Generate post-session insights using RAG
   Future<void> _generateSessionInsights(FastingSession session) async {
     try {
-      final healthContext = HealthQueryContext(
-        userId: session.userId,
-        queryType: 'advice',
-        userProfile: {
-          'fasting_type': session.type.name,
-          'completion_percentage': session.completionPercentage,
-          'session_duration': session.actualDuration?.inHours ?? 0,
-        },
-        currentGoals: ['fasting', 'health', ...session.motivationalTags],
-        dietaryRestrictions: [],
-        recentActivity: {
-          'session_completed': session.isCompleted,
-          'engagement': session.engagement.toJson(),
-          'end_reason': session.endReason?.name,
-        },
-        contextTimestamp: DateTime.now(),
-      );
-
-      final insights = await _ragService.generateContextualizedResponse(
-        userQuery:
-            'Provide insights and advice based on my fasting session. I ${session.isCompleted ? 'completed' : 'ended'} a ${session.typeDescription} with ${(session.completionPercentage * 100).toInt()}% completion.',
-        healthContext: healthContext,
-        maxContextLength: 2000,
-      );
-
-      if (insights != null) {
-        // Store insights in session metadata
-        final updatedSession = session.copyWith(
-          metadata: {
-            ...session.metadata,
-            'ai_insights': insights,
-            'insights_generated_at': DateTime.now().toIso8601String(),
+      String insights;
+      
+      // Only use AI if properly configured, otherwise use predefined insights
+      if (AIConfig.isConfigured) {
+        final healthContext = HealthQueryContext(
+          userId: session.userId,
+          queryType: 'advice',
+          userProfile: {
+            'fasting_type': session.type.name,
+            'completion_percentage': session.completionPercentage,
+            'session_duration': session.actualDuration?.inHours ?? 0,
           },
+          currentGoals: ['fasting', 'health', ...session.motivationalTags],
+          dietaryRestrictions: [],
+          recentActivity: {
+            'session_completed': session.isCompleted,
+            'engagement': session.engagement.toJson(),
+            'end_reason': session.endReason?.name,
+          },
+          contextTimestamp: DateTime.now(),
         );
 
-        await _firestore
-            .collection('fasting_sessions')
-            .doc(session.id)
-            .update(updatedSession.toFirestore());
+        final aiInsights = await _ragService.generateContextualizedResponse(
+          userQuery:
+              'Provide insights and advice based on my fasting session. I ${session.isCompleted ? 'completed' : 'ended'} a ${session.typeDescription} with ${(session.completionPercentage * 100).toInt()}% completion.',
+          healthContext: healthContext,
+          maxContextLength: 2000,
+        );
+
+        insights = aiInsights ?? _generatePredefinedInsights(session);
+      } else {
+        insights = _generatePredefinedInsights(session);
       }
+
+      // Store insights in session metadata
+      final updatedSession = session.copyWith(
+        metadata: {
+          ...session.metadata,
+          'session_insights': insights,
+          'insights_generated_at': DateTime.now().toIso8601String(),
+        },
+      );
+
+      await _firestore
+          .collection('fasting_sessions')
+          .doc(session.id)
+          .update(updatedSession.toFirestore());
     } catch (e) {
       Logger.d('Error generating session insights: $e');
     }
+  }
+
+  /// Generate predefined insights based on session data
+  String _generatePredefinedInsights(FastingSession session) {
+    final completion = session.completionPercentage;
+    final duration = session.actualDuration?.inHours ?? 0;
+    final type = session.type;
+    
+    List<String> insights = [];
+    
+    // Completion-based insights
+    if (completion >= 1.0) {
+      insights.add('🎉 Congratulations on completing your ${session.typeDescription}!');
+      insights.add('💪 You demonstrated excellent self-discipline and willpower.');
+      
+      if (duration >= 16) {
+        insights.add('🔥 You achieved significant metabolic benefits from this extended fast.');
+      }
+    } else if (completion >= 0.75) {
+      insights.add('✨ Great effort! You completed 75%+ of your fasting goal.');
+      insights.add('📈 You\'re building strong fasting habits - consistency is key.');
+    } else if (completion >= 0.5) {
+      insights.add('💭 You made it halfway - that\'s progress worth celebrating!');
+      insights.add('🎯 Consider setting shorter initial goals to build confidence.');
+    } else {
+      insights.add('🌱 Every attempt teaches you something about your patterns.');
+      insights.add('🔄 Consider what factors led to ending early and plan accordingly.');
+    }
+    
+    // Type-specific insights
+    if (type == FastingType.sixteenEight || type == FastingType.intermittent16_8) {
+      insights.add('⏰ 16:8 fasting helps regulate your circadian rhythm and metabolism.');
+      insights.add('🍽️ Focus on nutrient-dense foods during your eating window.');
+    } else if (type == FastingType.omad) {
+      insights.add('🎯 OMAD requires mental discipline but offers profound metabolic benefits.');
+      insights.add('💧 Hydration becomes even more critical with longer fasting periods.');
+    }
+    
+    // General advice
+    insights.add('📚 Each fasting session builds your discipline muscle.');
+    insights.add('⏭️ Plan your next session when you feel ready to challenge yourself again.');
+    
+    return insights.join('\n\n');
   }
 
   /// Get fasting settings for app-wide configuration

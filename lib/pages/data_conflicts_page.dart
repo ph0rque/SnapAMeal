@@ -107,6 +107,8 @@ class _DataConflictsPageState extends State<DataConflictsPage>
       backgroundColor: SnapColors.backgroundPrimary,
       appBar: AppBar(
         backgroundColor: SnapColors.backgroundPrimary,
+        foregroundColor: Colors.black, // Explicit black color for visibility
+        iconTheme: const IconThemeData(color: Colors.black), // Explicit icon color
         elevation: 0,
         title: Text(
           'Data Conflicts',

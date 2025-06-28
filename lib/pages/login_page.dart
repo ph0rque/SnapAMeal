@@ -118,37 +118,15 @@ class _LoginPageState extends State<LoginPage> {
 
                   const SizedBox(height: 10),
 
-                  // user switching info
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    margin: const EdgeInsets.symmetric(horizontal: 32),
-                    decoration: BoxDecoration(
-                      color: SnapUIColors.primaryYellow.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: SnapUIColors.primaryYellow.withValues(
-                          alpha: 0.3,
-                        ),
-                      ),
-                    ),
-                    child: Text(
-                      "💡 Tip: You can easily switch between different user accounts by logging out and logging back in with different credentials.",
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: SnapUIColors.secondaryDark,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-
                   const SizedBox(height: 25),
 
-                  // demo login section
+                  // demo login section - made smaller
                   Container(
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.symmetric(horizontal: 32),
+                    padding: const EdgeInsets.all(12), // Reduced from 16
+                    margin: const EdgeInsets.symmetric(horizontal: 40), // Increased from 32 to make narrower
                     decoration: BoxDecoration(
                       color: SnapUIColors.secondaryDark.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8), // Reduced from 12
                       border: Border.all(
                         color: SnapUIColors.secondaryDark.withValues(
                           alpha: 0.1,
@@ -161,40 +139,74 @@ class _LoginPageState extends State<LoginPage> {
                           "Quick Demo Login",
                           style: Theme.of(context).textTheme.titleSmall
                               ?.copyWith(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600, // Reduced from bold
                                 color: SnapUIColors.secondaryDark,
+                                fontSize: 14, // Made smaller
                               ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 8), // Reduced from 12
                         Row(
                           children: [
                             Expanded(
-                              child: SnapButton(
-                                onTap: _isLoading
+                              child: ElevatedButton(
+                                onPressed: _isLoading
                                     ? null
                                     : () => _demoLogin(context, 'alice'),
-                                text: "Alice",
-                                type: SnapButtonType.secondary,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: SnapUIColors.secondaryDark,
+                                  foregroundColor: SnapUIColors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, // Much smaller than SnapButton's 24px
+                                    vertical: 6,   // Much smaller than SnapButton's 16px
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  minimumSize: const Size(0, 32), // Compact height
+                                ),
+                                child: const Text("Alice", style: TextStyle(fontSize: 13)),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 4), // Even smaller gap
                             Expanded(
-                              child: SnapButton(
-                                onTap: _isLoading
+                              child: ElevatedButton(
+                                onPressed: _isLoading
                                     ? null
                                     : () => _demoLogin(context, 'bob'),
-                                text: "Bob",
-                                type: SnapButtonType.secondary,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: SnapUIColors.secondaryDark,
+                                  foregroundColor: SnapUIColors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 6,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  minimumSize: const Size(0, 32),
+                                ),
+                                child: const Text("Bob", style: TextStyle(fontSize: 13)),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 4),
                             Expanded(
-                              child: SnapButton(
-                                onTap: _isLoading
+                              child: ElevatedButton(
+                                onPressed: _isLoading
                                     ? null
-                                                      : () => _demoLogin(context, 'charlie'),
-              text: "Chuck",
-                                type: SnapButtonType.secondary,
+                                    : () => _demoLogin(context, 'charlie'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: SnapUIColors.secondaryDark,
+                                  foregroundColor: SnapUIColors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 6,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  minimumSize: const Size(0, 32),
+                                ),
+                                child: const Text("Chuck", style: TextStyle(fontSize: 13)),
                               ),
                             ),
                           ],
@@ -203,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
 
-                  const SizedBox(height: 25),
+                  const SizedBox(height: 20), // Reduced from 25
 
                   // divider
                   Row(

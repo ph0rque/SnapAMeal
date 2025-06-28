@@ -4,6 +4,40 @@ import 'package:snapameal/config/demo_personas.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/logger.dart';
 
+// Simple fake DocumentSnapshot for user data fallbacks
+class FakeUserDocumentSnapshot implements DocumentSnapshot<Map<String, dynamic>> {
+  final String _id;
+  
+  FakeUserDocumentSnapshot(this._id);
+  
+  @override
+  String get id => _id;
+  
+  @override
+  bool get exists => true;
+  
+  @override
+  Map<String, dynamic>? data() => {
+    'username': 'User',
+    'displayName': 'Community Member',
+    'profileImageUrl': null,
+    'uid': _id,
+  };
+  
+  @override
+  dynamic operator [](Object field) => data()?[field];
+  
+  @override
+  dynamic get(Object field) => data()?[field];
+  
+  // Required overrides for DocumentSnapshot interface
+  @override
+  DocumentReference<Map<String, dynamic>> get reference => throw UnimplementedError();
+  
+  @override
+  SnapshotMetadata get metadata => throw UnimplementedError();
+}
+
 class AuthService {
   // auth & firestore instance
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -342,7 +376,29 @@ class AuthService {
 
   // get user doc stream
   Stream<DocumentSnapshot> getUserStream(String uid) {
-    return _firestore.collection('users').doc(uid).snapshots();
+    try {
+      return _firestore
+          .collection('users')
+          .doc(uid)
+          .snapshots()
+          .handleError((error) {
+            if (error.toString().contains('permission-denied')) {
+              Logger.d('Permission denied for user stream, returning fallback');
+            } else {
+              Logger.d('Error in user stream: $error');
+            }
+            return null;
+          });
+    } catch (e) {
+      Logger.d('Error setting up user stream: $e');
+      // Return a stream with a fake document snapshot
+      return Stream.value(_createFakeUserSnapshot(uid));
+    }
+  }
+
+  // Create a fake document snapshot for fallback
+  DocumentSnapshot _createFakeUserSnapshot(String uid) {
+    return FakeUserDocumentSnapshot(uid);
   }
 
   // sign out

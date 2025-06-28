@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../design_system/snap_ui.dart';
 import '../design_system/widgets/snap_user_search.dart';
 import '../services/health_community_service.dart';
 import '../services/rag_service.dart';
 import '../services/friend_service.dart';
+import '../services/chat_service.dart';
 import '../services/openai_service.dart';
+import '../utils/logger.dart';
 import '../models/health_group.dart';
 import '../pages/chat_page.dart';
 
@@ -54,6 +57,8 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
       backgroundColor: SnapColors.backgroundLight,
       appBar: AppBar(
         backgroundColor: SnapColors.backgroundLight,
+        foregroundColor: Colors.black, // Explicit black color for visibility
+        iconTheme: const IconThemeData(color: Colors.black), // Explicit icon color
         title: Text(
           'Community',
           style: SnapTypography.heading2.copyWith(
@@ -74,12 +79,6 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
             Tab(text: 'Challenges'),
           ],
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: SnapColors.primaryYellow),
-            onPressed: _showCreateGroupDialog,
-          ),
-        ],
       ),
       body: TabBarView(
         controller: _tabController,
@@ -120,12 +119,45 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
           return _buildEmptyGroupsState();
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: groups.length,
-          itemBuilder: (context, index) {
-            return _buildGroupCard(groups[index], isMyGroup: true);
-          },
+        return Column(
+          children: [
+            // Add Group button at the top of the Groups tab
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _showCreateGroupDialog,
+                      icon: const Icon(Icons.add, size: 20),
+                      label: const Text('Create New Group'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: SnapColors.primaryYellow,
+                        foregroundColor: SnapColors.backgroundDark,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Groups list
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: groups.length,
+                itemBuilder: (context, index) {
+                  return _buildGroupCard(groups[index], isMyGroup: true);
+                },
+              ),
+            ),
+          ],
         );
       },
     );
@@ -154,11 +186,35 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
 
               if (snapshot.hasError) {
                 return Center(
-                  child: Text(
-                    'Error loading groups: \${snapshot.error}',
-                    style: SnapTypography.body.copyWith(
-                      color: SnapColors.textSecondary,
-                    ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.error_outline,
+                        size: 48,
+                        color: SnapColors.textSecondary,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Error loading groups',
+                        style: SnapTypography.heading3.copyWith(
+                          color: SnapColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Please check your connection and try again',
+                        style: SnapTypography.body.copyWith(
+                          color: SnapColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      SnapButton(
+                        text: 'Retry',
+                        onTap: () => setState(() {}),
+                      ),
+                    ],
                   ),
                 );
               }
@@ -377,7 +433,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '\${group.memberCount} members',
+                  '${group.memberCount} members',
                   style: SnapTypography.caption.copyWith(
                     color: SnapColors.primaryYellow,
                   ),
@@ -411,7 +467,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        '#\$tag',
+                        '#$tag',
                         style: SnapTypography.caption.copyWith(
                           color: SnapColors.textSecondary,
                         ),
@@ -422,26 +478,38 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
             ),
           ],
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: SnapButton(
-                  text: isMyGroup ? 'View Group' : 'Join Group',
-                  onTap: () => _handleGroupAction(group, isMyGroup),
-                ),
-              ),
-              if (!isMyGroup) ...[
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(
-                    Icons.info_outline,
-                    color: SnapColors.textSecondary,
+                        Row(
+                children: [
+                  Expanded(
+                    child: SnapButton(
+                      text: isMyGroup ? 'Group Info' : 'Join Group',
+                      onTap: () => isMyGroup 
+                          ? _showGroupDetails(group) 
+                          : _handleGroupAction(group, isMyGroup),
+                    ),
                   ),
-                  onPressed: () => _showGroupDetails(group),
-                ),
-              ],
-            ],
-          ),
+                  if (isMyGroup) ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.chat,
+                        color: SnapColors.primaryYellow,
+                      ),
+                      onPressed: () => _navigateToGroupChat(group),
+                      tooltip: 'Group Chat',
+                    ),
+                  ] else ...[
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.info_outline,
+                        color: SnapColors.textSecondary,
+                      ),
+                      onPressed: () => _showGroupDetails(group),
+                    ),
+                  ],
+                ],
+              ),
         ],
       ),
     );
@@ -481,9 +549,22 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
-          SnapButton(
-            text: 'Discover Groups',
-            onTap: () => _tabController.animateTo(1),
+          Row(
+            children: [
+              Expanded(
+                child: SnapButton(
+                  text: 'Create Group',
+                  onTap: _showCreateGroupDialog,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SnapButton(
+                  text: 'Discover Groups',
+                  onTap: () => _tabController.animateTo(1),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -509,10 +590,16 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
           ),
           const SizedBox(height: 8),
           Text(
-            'Try adjusting your search or filters',
+            'Try adjusting your search, or create the first group in this category!',
             style: SnapTypography.caption.copyWith(
               color: SnapColors.textSecondary,
             ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          SnapButton(
+            text: 'Create First Group',
+            onTap: _showCreateGroupDialog,
           ),
         ],
       ),
@@ -521,28 +608,258 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
 
   void _handleGroupAction(HealthGroup group, bool isMyGroup) {
     if (isMyGroup) {
-      Navigator.pushNamed(context, '/group_chat', arguments: group.id);
+      _navigateToGroupChat(group);
     } else {
       _joinGroup(group);
     }
   }
 
-  void _joinGroup(HealthGroup group) async {
-    final success = await _healthCommunityService.joinHealthGroup(group.id);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            success
-                ? 'Successfully joined \${group.name}!'
-                : 'Failed to join group',
-            style: const TextStyle(color: Colors.white),
+    void _navigateToGroupChat(HealthGroup group) async {
+    // Show permission notice dialog instead of trying to access chat
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: SnapColors.backgroundLight,
+        title: Text(
+          'Group Chat Unavailable',
+          style: SnapTypography.heading3.copyWith(
+            color: SnapColors.textPrimary,
           ),
-          backgroundColor: success ? Colors.green : Colors.red,
         ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Group chat features are currently being set up. In the meantime, you can:',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildAlternativeOption(Icons.people, 'Connect with group members via the Friends tab'),
+            const SizedBox(height: 8),
+            _buildAlternativeOption(Icons.forum, 'Use general chat to discuss with other users'),
+            const SizedBox(height: 8),
+            _buildAlternativeOption(Icons.info, 'Check group details for member information'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Got it',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.primaryYellow,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/chats');
+            },
+            child: Text(
+              'Go to Chats',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.primaryYellow,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlternativeOption(IconData icon, String text) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: SnapColors.primaryYellow),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: SnapTypography.caption.copyWith(
+              color: SnapColors.textSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<String?> _getOrCreateGroupChatRoom(HealthGroup group) async {
+    try {
+      // Check if a chat room already exists for this group
+      final existingChatQuery = await FirebaseFirestore.instance
+          .collection('chat_rooms')
+          .where('groupId', isEqualTo: group.id)
+          .where('isGroup', isEqualTo: true)
+          .limit(1)
+          .get();
+
+      if (existingChatQuery.docs.isNotEmpty) {
+        return existingChatQuery.docs.first.id;
+      }
+
+      // Create new group chat room
+      final chatService = ChatService();
+      final chatRoomId = await chatService.createHealthGroupChat(
+        group.memberIds,
+        group.name,
+        group.type.name,
       );
+
+      // Update the chat room with the group ID for future reference
+      await FirebaseFirestore.instance
+          .collection('chat_rooms')
+          .doc(chatRoomId)
+          .update({'groupId': group.id});
+
+      return chatRoomId;
+    } catch (e) {
+      Logger.d('Error getting/creating group chat room: $e');
+      
+      // If chat room creation fails, we can still allow group functionality
+      // Chat room will be created when user actually tries to chat
+      if (e.toString().contains('permission-denied')) {
+        throw Exception('Chat feature temporarily unavailable. You can still join the group for other features.');
+      }
+      
+      return null;
     }
+  }
+
+  void _joinGroup(HealthGroup group) async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: SnapColors.primaryYellow,
+        ),
+      ),
+    );
+
+    try {
+      final success = await _healthCommunityService.joinHealthGroup(group.id);
+
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading dialog
+        
+                  if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.white),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Successfully joined ${group.name}! Group features are now available.',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 4),
+                action: SnackBarAction(
+                  label: 'View',
+                  textColor: Colors.white,
+                  onPressed: () => _showGroupDetails(group),
+                ),
+              ),
+            );
+        } else {
+          _showJoinGroupErrorDialog(group);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading dialog
+        _showJoinGroupErrorDialog(group);
+      }
+    }
+  }
+
+  void _showJoinGroupErrorDialog(HealthGroup group) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: SnapColors.backgroundLight,
+        title: Row(
+          children: [
+            Icon(Icons.warning, color: Colors.orange, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              'Join Group Issue',
+              style: SnapTypography.heading3.copyWith(
+                color: SnapColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Unable to join "${group.name}" at the moment. This might be due to:',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            _buildAlternativeOption(Icons.people, 'Group may be full or require approval'),
+            const SizedBox(height: 8),
+            _buildAlternativeOption(Icons.settings, 'Temporary system maintenance'),
+            const SizedBox(height: 8),
+            _buildAlternativeOption(Icons.wifi_off, 'Connection issues'),
+            const SizedBox(height: 16),
+            Text(
+              'You can still:',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _buildAlternativeOption(Icons.visibility, 'View group details and member list'),
+            const SizedBox(height: 8),
+            _buildAlternativeOption(Icons.person_add, 'Connect with members individually'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'OK',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.primaryYellow,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _showGroupDetails(group);
+            },
+            child: Text(
+              'View Group',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.primaryYellow,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showGroupDetails(HealthGroup group) {
@@ -556,92 +873,94 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
         minChildSize: 0.5,
         builder: (context, scrollController) => Container(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: SnapColors.textSecondary,
-                    borderRadius: BorderRadius.circular(2),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: SnapColors.textSecondary,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Container(
-                    width: 60,
-                    height: 60,
-                    decoration: BoxDecoration(
-                      color: SnapColors.primaryYellow,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(
-                        group.typeIcon,
-                        style: const TextStyle(fontSize: 30),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: SnapColors.primaryYellow,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          group.typeIcon,
+                          style: const TextStyle(fontSize: 30),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          group.name,
-                          style: SnapTypography.heading2.copyWith(
-                            color: SnapColors.textPrimary,
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            group.name,
+                            style: SnapTypography.heading2.copyWith(
+                              color: SnapColors.textPrimary,
+                            ),
                           ),
-                        ),
-                        Text(
-                          group.typeDisplayName,
-                          style: SnapTypography.body.copyWith(
-                            color: SnapColors.primaryYellow,
+                          Text(
+                            group.typeDisplayName,
+                            style: SnapTypography.body.copyWith(
+                              color: SnapColors.primaryYellow,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Description',
+                  style: SnapTypography.heading3.copyWith(
+                    color: SnapColors.textPrimary,
                   ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Description',
-                style: SnapTypography.heading3.copyWith(
-                  color: SnapColors.textPrimary,
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                group.description,
-                style: SnapTypography.body.copyWith(
-                  color: SnapColors.textSecondary,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  _buildStatItem('Members', '\${group.memberCount}'),
-                  _buildStatItem('Privacy', group.privacy.name.toUpperCase()),
-                  _buildStatItem(
-                    'Activity',
-                    group.activityLevel.name.toUpperCase(),
+                const SizedBox(height: 8),
+                Text(
+                  group.description,
+                  style: SnapTypography.body.copyWith(
+                    color: SnapColors.textSecondary,
                   ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: SnapButton(
-                  text: 'Join Group',
-                  onTap: () => _joinGroup(group),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _buildStatItem('Members', '${group.memberCount}'),
+                    _buildStatItem('Privacy', group.privacy.name.toUpperCase()),
+                    _buildStatItem(
+                      'Activity',
+                      group.activityLevel.name.toUpperCase(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: _buildGroupActionButton(group),
+                ),
+                const SizedBox(height: 8), // Add bottom padding for scroll
+              ],
+            ),
           ),
         ),
       ),
@@ -681,7 +1000,10 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
               color: SnapColors.textPrimary,
             ),
           ),
-          content: SingleChildScrollView(
+          contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0), // More horizontal padding
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.85, // Make dialog wider (85% of screen width)
+            child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -703,6 +1025,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
                   value: _selectedType,
                   decoration: const InputDecoration(
                     labelText: 'Group Type',
+                    hintText: 'Select a group type',
                     border: OutlineInputBorder(),
                   ),
                   dropdownColor: SnapColors.backgroundLight,
@@ -714,7 +1037,11 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
                         (type) => DropdownMenuItem(
                           value: type,
                           child: Text(
-                            '\${type.name.toUpperCase()} - \${_getTypeDisplayName(type)}',
+                            _getTypeDisplayName(type),
+                            overflow: TextOverflow.ellipsis,
+                            style: SnapTypography.body.copyWith(
+                              color: SnapColors.textPrimary,
+                            ),
                           ),
                         ),
                       )
@@ -732,6 +1059,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
                   value: _selectedPrivacy,
                   decoration: const InputDecoration(
                     labelText: 'Privacy',
+                    hintText: 'Select privacy level',
                     border: OutlineInputBorder(),
                   ),
                   dropdownColor: SnapColors.backgroundLight,
@@ -742,7 +1070,13 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
                       .map(
                         (privacy) => DropdownMenuItem(
                           value: privacy,
-                          child: Text(privacy.name.toUpperCase()),
+                          child: Text(
+                            privacy.name[0].toUpperCase() + privacy.name.substring(1),
+                            overflow: TextOverflow.ellipsis,
+                            style: SnapTypography.body.copyWith(
+                              color: SnapColors.textPrimary,
+                            ),
+                          ),
                         ),
                       )
                       .toList(),
@@ -755,6 +1089,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
                   },
                 ),
               ],
+            ),
             ),
           ),
           actions: [
@@ -799,13 +1134,13 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
   void _createGroup() async {
     final name = _nameController.text;
     final description = _descriptionController.text;
-    final type = _selectedType!;
-    final privacy = _selectedPrivacy!;
+    final type = _selectedType;
+    final privacy = _selectedPrivacy;
 
-    if (name.isEmpty || description.isEmpty) {
+    if (name.isEmpty || description.isEmpty || type == null || privacy == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please fill in all fields'),
+          content: Text('Please fill in all fields and select group type'),
           backgroundColor: Colors.red,
         ),
       );
@@ -836,6 +1171,349 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
 
       if (groupId != null) {
         _tabController.animateTo(0);
+      }
+    }
+  }
+
+  Widget _buildGroupActionButton(HealthGroup group) {
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) {
+      return SnapButton(
+        text: 'Join Group',
+        onTap: () => _joinGroup(group),
+      );
+    }
+
+    final isMember = group.isMember(currentUserId);
+    final isCreator = group.isCreator(currentUserId);
+
+    if (!isMember) {
+      return SnapButton(
+        text: 'Join Group',
+        onTap: () => _joinGroup(group),
+      );
+    } else if (isCreator) {
+      return SnapButton(
+        text: 'Manage Group',
+        onTap: () => _showManageGroupOptions(group),
+        type: SnapButtonType.secondary,
+      );
+    } else {
+      return Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: SnapButton(
+              text: 'Group Info',
+              onTap: () => Navigator.pop(context), // Close current dialog to show group details
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: SnapButton(
+                  text: 'Find Members',
+                  onTap: () => _showGroupMembers(group),
+                  type: SnapButtonType.secondary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => _confirmLeaveGroup(group),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Leave Group'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    }
+  }
+
+  void _confirmLeaveGroup(HealthGroup group) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: SnapColors.backgroundLight,
+        title: Text(
+          'Leave Group',
+          style: SnapTypography.heading3.copyWith(
+            color: SnapColors.textPrimary,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to leave "${group.name}"? You will lose access to group content and chat.',
+          style: SnapTypography.body.copyWith(
+            color: SnapColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: SnapTypography.body.copyWith(
+                color: SnapColors.textSecondary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); // Close group details
+              _leaveGroup(group);
+            },
+            child: Text(
+              'Leave',
+              style: SnapTypography.body.copyWith(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _leaveGroup(HealthGroup group) async {
+    final success = await _healthCommunityService.leaveHealthGroup(group.id);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            success
+                ? 'Left ${group.name} successfully'
+                : 'Failed to leave group',
+            style: const TextStyle(color: Colors.white),
+          ),
+          backgroundColor: success ? Colors.green : Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _showManageGroupOptions(HealthGroup group) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: SnapColors.backgroundLight,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Manage Group',
+              style: SnapTypography.heading3.copyWith(
+                color: SnapColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.people, color: SnapColors.primaryYellow),
+              title: const Text('View Members'),
+              onTap: () {
+                Navigator.pop(context);
+                _showGroupMembers(group);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.edit, color: SnapColors.primaryYellow),
+              title: const Text('Edit Group'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Edit group feature coming soon!'),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.people, color: SnapColors.primaryYellow),
+              title: const Text('Manage Members'),
+              onTap: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Member management feature coming soon!'),
+                    backgroundColor: Colors.blue,
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showGroupMembers(HealthGroup group) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: SnapColors.backgroundLight,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        maxChildSize: 0.9,
+        minChildSize: 0.3,
+        builder: (context, scrollController) => Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: SnapColors.textSecondary,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Icon(Icons.people, color: SnapColors.primaryYellow, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      '${group.name} Members',
+                      style: SnapTypography.heading3.copyWith(
+                        color: SnapColors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${group.memberCount} members',
+                style: SnapTypography.body.copyWith(
+                  color: SnapColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: group.memberIds.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No members to display',
+                          style: SnapTypography.body.copyWith(
+                            color: SnapColors.textSecondary,
+                          ),
+                        ),
+                      )
+                    : ListView.builder(
+                        controller: scrollController,
+                        itemCount: group.memberIds.length,
+                        itemBuilder: (context, index) {
+                          final memberId = group.memberIds[index];
+                          final isCreator = group.isCreator(memberId);
+                          final isAdmin = group.isAdmin(memberId);
+                          
+                          return FutureBuilder<DocumentSnapshot>(
+                            future: _friendService.getUserData(memberId),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData) {
+                                return const ListTile(
+                                  leading: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: SnapColors.primaryYellow,
+                                  ),
+                                  title: Text('Loading...'),
+                                );
+                              }
+                              
+                              final userData = snapshot.data!.data() as Map<String, dynamic>?;
+                              final username = userData?['username'] ?? 'Unknown User';
+                              
+                              return ListTile(
+                                leading: SnapAvatar(
+                                  name: username,
+                                  imageUrl: userData?['profileImageUrl'],
+                                  radius: 20,
+                                ),
+                                title: Text(
+                                  username,
+                                  style: SnapTypography.body.copyWith(
+                                    color: SnapColors.textPrimary,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                                subtitle: Text(
+                                  isCreator 
+                                      ? 'Creator' 
+                                      : isAdmin 
+                                          ? 'Admin' 
+                                          : 'Member',
+                                  style: SnapTypography.caption.copyWith(
+                                    color: isCreator || isAdmin 
+                                        ? SnapColors.primaryYellow 
+                                        : SnapColors.textSecondary,
+                                  ),
+                                ),
+                                trailing: SizedBox(
+                                  width: 48,
+                                  child: IconButton(
+                                    icon: const Icon(Icons.person_add, 
+                                        color: SnapColors.primaryYellow),
+                                    onPressed: () => _addAsFriend(memberId, username),
+                                    tooltip: 'Add as Friend',
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _addAsFriend(String userId, String username) async {
+    try {
+      await _friendService.sendFriendRequest(userId);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Friend request sent to $username'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send friend request to $username'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }

@@ -276,42 +276,51 @@ class _DemoTourOverlayState extends State<DemoTourOverlay> {
       child: Row(
         children: [
           if (_currentStep > 0)
-            TextButton(
-              onPressed: () {
-                _pageController.previousPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              },
-              child: const Text(
-                'Previous',
-                style: TextStyle(color: Colors.white70),
+            Flexible(
+              child: TextButton(
+                onPressed: () {
+                  _pageController.previousPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: const Text(
+                  'Previous',
+                  style: TextStyle(color: Colors.white70),
+                ),
               ),
             ),
           const Spacer(),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Skip Tour',
-              style: TextStyle(color: Colors.white54),
+          Flexible(
+            child: TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Skip Tour',
+                style: TextStyle(color: Colors.white54),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
-          const SizedBox(width: 16),
-          ElevatedButton(
-            onPressed: () {
-              if (_currentStep < _mainTourSteps.length - 1) {
-                _pageController.nextPage(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeInOut,
-                );
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
-            child: Text(
-              _currentStep < _mainTourSteps.length - 1
-                  ? 'Next'
-                  : 'Start Exploring',
+          const SizedBox(width: 8),
+          Flexible(
+            flex: 2,
+            child: ElevatedButton(
+              onPressed: () {
+                if (_currentStep < _mainTourSteps.length - 1) {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                } else {
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Text(
+                _currentStep < _mainTourSteps.length - 1
+                    ? 'Next'
+                    : 'Explore',
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
         ],

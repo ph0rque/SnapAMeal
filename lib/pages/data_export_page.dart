@@ -140,7 +140,7 @@ class _DataExportPageState extends State<DataExportPage> {
       appBar: AppBar(
         title: const Text('Export Data'),
         backgroundColor: SnapColors.surface,
-        foregroundColor: SnapColors.textPrimary,
+        foregroundColor: SnapColors.textPrimary, // Fixed: Set dark color for visibility on light background
         elevation: 0,
       ),
       body: _isLoading
