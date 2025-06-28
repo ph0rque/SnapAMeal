@@ -20,10 +20,20 @@ class ReviewCard extends StatelessWidget {
     final activityData = review['activity_data'] as Map<String, dynamic>? ?? {};
     final isAiGenerated = review['is_ai_generated'] as bool? ?? false;
     
-    // Extract date information
+    // Extract date information with robust handling for both Timestamp and String
     final dateField = reviewType == 'weekly' ? 'week_of' : 'month_of';
-    final dateTimestamp = review[dateField] as Timestamp?;
-    final reviewDate = dateTimestamp?.toDate() ?? DateTime.now();
+    DateTime reviewDate = DateTime.now();
+    
+    final dateValue = review[dateField];
+    if (dateValue is Timestamp) {
+      reviewDate = dateValue.toDate();
+    } else if (dateValue is String) {
+      try {
+        reviewDate = DateTime.parse(dateValue);
+      } catch (e) {
+        Logger.d('Failed to parse date string: $dateValue, using current date');
+      }
+    }
     
     return Card(
       elevation: 4,
