@@ -298,7 +298,7 @@ class ChatService {
     }
   }
 
-  /// Create health-focused group chat
+  /// Create health-focused group chat or return existing one
   Future<String> createHealthGroupChat(
     List<String> memberIds,
     String groupName,
@@ -310,8 +310,32 @@ class ChatService {
     }
 
     final collectionName = _getChatCollectionName();
+    
+    // Sort member IDs for consistent searching
+    final sortedMemberIds = List<String>.from(memberIds)..sort();
+    
+    // Check if a health group chat already exists with the same members and name
+    try {
+      final existingChats = await _firestore
+          .collection(collectionName)
+          .where('isHealthGroup', isEqualTo: true)
+          .where('groupName', isEqualTo: groupName)
+          .where('members', isEqualTo: sortedMemberIds)
+          .limit(1)
+          .get();
+      
+      if (existingChats.docs.isNotEmpty) {
+        Logger.d('Found existing health group chat: ${existingChats.docs.first.id}');
+        return existingChats.docs.first.id;
+      }
+    } catch (e) {
+      Logger.d('Error checking for existing health group chat: $e');
+      // Continue to create new chat
+    }
+
+    // Create new health group chat
     final chatRoomRef = await _firestore.collection(collectionName).add({
-      'members': memberIds,
+      'members': sortedMemberIds,
       'isGroup': true,
       'isHealthGroup': true,
       'groupName': groupName,
@@ -325,6 +349,7 @@ class ChatService {
       },
     });
 
+    Logger.d('Created new health group chat: ${chatRoomRef.id}');
     return chatRoomRef.id;
   }
 
