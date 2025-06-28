@@ -22,6 +22,18 @@ class _ChatPageState extends State<ChatPage> {
   final AuthService _authService = AuthService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // Get the appropriate collection name based on user type
+  String _getChatCollectionName() {
+    final userEmail = _auth.currentUser?.email;
+    final isDemoUser = userEmail != null && (
+      userEmail == 'alice.demo@example.com' ||
+      userEmail == 'bob.demo@example.com' ||
+      userEmail == 'charlie.demo@example.com'
+    );
+    
+    return isDemoUser ? 'demo_chat_rooms' : 'chat_rooms';
+  }
+
   void sendMessage() async {
     if (_messageController.text.isNotEmpty) {
       await _chatService.sendMessage(
@@ -57,7 +69,29 @@ class _ChatPageState extends State<ChatPage> {
                   return const Text('Chat');
                 },
               )
-            : const Text('Group Chat'),
+            : StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection(_getChatCollectionName())
+                    .doc(widget.chatRoomId)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final chatData = snapshot.data!.data() as Map<String, dynamic>;
+                    final groupName = chatData['groupName'];
+                    final isHealthGroup = chatData['isHealthGroup'] == true;
+                    
+                    if (groupName != null) {
+                      return Text(
+                        groupName,
+                        style: const TextStyle(fontSize: 18),
+                      );
+                    } else if (isHealthGroup) {
+                      return const Text('Health Group Chat');
+                    }
+                  }
+                  return const Text('Group Chat');
+                },
+              ),
       ),
       body: Column(
         children: [

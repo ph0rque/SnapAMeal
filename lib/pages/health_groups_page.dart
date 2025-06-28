@@ -6,8 +6,10 @@ import '../services/health_community_service.dart';
 import '../services/rag_service.dart';
 import '../services/friend_service.dart';
 import '../services/openai_service.dart';
+import '../services/chat_service.dart';
 import '../models/health_group.dart';
 import '../pages/chat_page.dart';
+import '../utils/logger.dart';
 
 class HealthGroupsPage extends StatefulWidget {
   const HealthGroupsPage({super.key});
@@ -21,6 +23,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
   late TabController _tabController;
   late HealthCommunityService _healthCommunityService;
   late FriendService _friendService;
+  late ChatService _chatService;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -35,6 +38,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
 
     // Initialize services
     _friendService = FriendService();
+    _chatService = ChatService();
     final ragService = RAGService(OpenAIService());
     _healthCommunityService = HealthCommunityService(ragService, _friendService);
   }
@@ -611,63 +615,85 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
     }
   }
 
-    void _navigateToGroupChat(HealthGroup group) async {
-    // Show permission notice dialog instead of trying to access chat
+  void _navigateToGroupChat(HealthGroup group) async {
+    // Show loading indicator
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: SnapColors.backgroundLight,
-        title: Text(
-          'Group Chat Unavailable',
-          style: SnapTypography.heading3.copyWith(
-            color: SnapColors.textPrimary,
-          ),
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          color: SnapColors.primaryYellow,
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Group chat features are currently being set up. In the meantime, you can:',
+      ),
+    );
+
+    try {
+      // Create or find existing health group chat
+      final chatRoomId = await _chatService.createHealthGroupChat(
+        group.memberIds,
+        group.name,
+        group.type.name, // Convert enum to string
+      );
+
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading dialog
+        
+        // Navigate to chat page
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChatPage(
+              chatRoomId: chatRoomId,
+              recipientId: null, // null indicates group chat
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      Logger.d('Error creating/accessing group chat: $e');
+      
+      if (mounted) {
+        Navigator.pop(context); // Dismiss loading dialog
+        
+        // Show error dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: SnapColors.backgroundLight,
+            title: Row(
+              children: [
+                Icon(Icons.warning, color: Colors.orange, size: 24),
+                const SizedBox(width: 8),
+                Text(
+                  'Chat Access Issue',
+                  style: SnapTypography.heading3.copyWith(
+                    color: SnapColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+            content: Text(
+              'Unable to access group chat at the moment. Please try again later or contact group members directly.',
               style: SnapTypography.body.copyWith(
                 color: SnapColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 12),
-            _buildAlternativeOption(Icons.people, 'Connect with group members via the Friends tab'),
-            const SizedBox(height: 8),
-            _buildAlternativeOption(Icons.forum, 'Use general chat to discuss with other users'),
-            const SizedBox(height: 8),
-            _buildAlternativeOption(Icons.info, 'Check group details for member information'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Got it',
-              style: SnapTypography.body.copyWith(
-                color: SnapColors.primaryYellow,
-                fontWeight: FontWeight.w600,
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'OK',
+                  style: SnapTypography.body.copyWith(
+                    color: SnapColors.primaryYellow,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/chats');
-            },
-            child: Text(
-              'Go to Chats',
-              style: SnapTypography.body.copyWith(
-                color: SnapColors.primaryYellow,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+        );
+      }
+    }
   }
 
   Widget _buildAlternativeOption(IconData icon, String text) {
