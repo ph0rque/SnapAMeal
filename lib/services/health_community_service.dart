@@ -22,12 +22,22 @@ class HealthCommunityService {
   late final CollectionReference _conversationStartersCollection;
 
   HealthCommunityService(this._ragService, this._friendService) {
-    _groupsCollection = _firestore.collection('health_groups');
-    _challengesCollection = _firestore.collection('health_challenges');
-    _userHealthProfilesCollection = _firestore.collection(
-      'user_health_profiles',
+    // Check if current user is a demo user
+    final userEmail = _auth.currentUser?.email;
+    final isDemoUser = userEmail != null && (
+      userEmail == 'alice.demo@example.com' ||
+      userEmail == 'bob.demo@example.com' ||
+      userEmail == 'charlie.demo@example.com'
     );
-    _conversationStartersCollection = _firestore.collection('conversation_starters');
+    
+    final prefix = isDemoUser ? 'demo_' : '';
+    
+    _groupsCollection = _firestore.collection('${prefix}health_groups');
+    _challengesCollection = _firestore.collection('${prefix}health_challenges');
+    _userHealthProfilesCollection = _firestore.collection(
+      '${prefix}user_health_profiles',
+    );
+    _conversationStartersCollection = _firestore.collection('${prefix}conversation_starters');
   }
 
   /// Get current user ID
@@ -90,7 +100,28 @@ class HealthCommunityService {
         return false;
       }
 
-      // Simply return success - no permission checks or Firestore operations
+      // Get the group document to check if user is already a member
+      final groupDoc = await _groupsCollection.doc(groupId).get();
+      if (!groupDoc.exists) {
+        Logger.d('Group not found: $groupId');
+        return false;
+      }
+
+      final groupData = groupDoc.data() as Map<String, dynamic>;
+      final memberIds = List<String>.from(groupData['member_ids'] ?? []);
+      
+      // Check if user is already a member
+      if (memberIds.contains(userId)) {
+        Logger.d('User already a member of group: $groupId');
+        return true;
+      }
+
+      // Add user to member_ids array
+      await _groupsCollection.doc(groupId).update({
+        'member_ids': FieldValue.arrayUnion([userId]),
+        'last_activity': FieldValue.serverTimestamp(),
+      });
+
       Logger.d('Successfully joined health group: $groupId');
       return true;
     } catch (e) {
@@ -110,7 +141,28 @@ class HealthCommunityService {
         return false;
       }
 
-      // Simply return success - no permission checks or Firestore operations
+      // Get the group document to check if user is a member
+      final groupDoc = await _groupsCollection.doc(groupId).get();
+      if (!groupDoc.exists) {
+        Logger.d('Group not found: $groupId');
+        return false;
+      }
+
+      final groupData = groupDoc.data() as Map<String, dynamic>;
+      final memberIds = List<String>.from(groupData['member_ids'] ?? []);
+      
+      // Check if user is a member
+      if (!memberIds.contains(userId)) {
+        Logger.d('User not a member of group: $groupId');
+        return true;
+      }
+
+      // Remove user from member_ids array
+      await _groupsCollection.doc(groupId).update({
+        'member_ids': FieldValue.arrayRemove([userId]),
+        'last_activity': FieldValue.serverTimestamp(),
+      });
+
       Logger.d('Successfully left health group: $groupId');
       return true;
     } catch (e) {
