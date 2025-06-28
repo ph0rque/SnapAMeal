@@ -86,68 +86,93 @@ class _ARCameraPageState extends State<ARCameraPage> {
   }
 
   Future<void> _initializeCamera() async {
-    final cameras = await availableCameras();
-    if (cameras.isEmpty) {
-      Logger.d('No cameras available');
-      return;
-    }
-
-    final frontCamera = cameras.firstWhere(
-      (camera) => camera.lensDirection == CameraLensDirection.front,
-      orElse: () => cameras.first,
-    );
-
     try {
-
-      // Use conservative camera configuration for maximum compatibility
-      _cameraController = CameraController(
-        frontCamera,
-        ResolutionPreset.low, // Use low resolution for better compatibility
-        enableAudio: true, // Enable audio for video recording
-        imageFormatGroup: ImageFormatGroup.jpeg, // Specify image format
-      );
-
-      await _cameraController!.initialize();
-
-      if (mounted &&
-          _cameraController != null &&
-          _cameraController!.value.isInitialized) {
-        setState(() {});
-
-        // Initialize face detection after camera is stable
-        await Future.delayed(const Duration(milliseconds: 1000));
-        if (mounted) {
-          await _initializeFaceDetector();
-        }
-      }
-    } catch (e) {
-      Logger.d('Error initializing camera: $e');
+      Logger.d('Initializing camera...');
+      final cameras = await availableCameras();
+      Logger.d('Found ${cameras.length} cameras');
       
-      // Try with fallback configuration if initial setup fails
-      try {
-        _cameraController?.dispose();
-        _cameraController = CameraController(
-          frontCamera,
-          ResolutionPreset.low, // Use low resolution as fallback
-          enableAudio: false, // Disable audio as fallback
-          imageFormatGroup: ImageFormatGroup.jpeg,
-        );
-        await _cameraController!.initialize();
-        
-        if (mounted) {
-          setState(() {});
-          Logger.d('Camera initialized with fallback configuration');
-        }
-      } catch (fallbackError) {
-        Logger.d('Fallback camera initialization also failed: $fallbackError');
+      if (cameras.isEmpty) {
+        Logger.d('No cameras available');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Camera failed to initialize. Please restart the app.'),
+            const SnackBar(
+              content: Text('No cameras available on this device.'),
               backgroundColor: Colors.red,
             ),
           );
         }
+        return;
+      }
+
+      final frontCamera = cameras.firstWhere(
+        (camera) => camera.lensDirection == CameraLensDirection.front,
+        orElse: () => cameras.first,
+      );
+      
+      Logger.d('Using camera: ${frontCamera.name} (${frontCamera.lensDirection})');
+
+      try {
+        // Use conservative camera configuration for maximum compatibility
+        _cameraController = CameraController(
+          frontCamera,
+          ResolutionPreset.low, // Use low resolution for better compatibility
+          enableAudio: true, // Enable audio for video recording
+          imageFormatGroup: ImageFormatGroup.jpeg, // Specify image format
+        );
+
+        await _cameraController!.initialize();
+
+        if (mounted &&
+            _cameraController != null &&
+            _cameraController!.value.isInitialized) {
+          setState(() {});
+
+          // Initialize face detection after camera is stable
+          await Future.delayed(const Duration(milliseconds: 1000));
+          if (mounted) {
+            await _initializeFaceDetector();
+          }
+        }
+      } catch (e) {
+        Logger.d('Error initializing camera: $e');
+        
+        // Try with fallback configuration if initial setup fails
+        try {
+          _cameraController?.dispose();
+          _cameraController = CameraController(
+            frontCamera,
+            ResolutionPreset.low, // Use low resolution as fallback
+            enableAudio: false, // Disable audio as fallback
+            imageFormatGroup: ImageFormatGroup.jpeg,
+          );
+          await _cameraController!.initialize();
+          
+          if (mounted) {
+            setState(() {});
+            Logger.d('Camera initialized with fallback configuration');
+          }
+        } catch (fallbackError) {
+          Logger.d('Fallback camera initialization also failed: $fallbackError');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Camera failed to initialize. Please restart the app.'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      }
+    } catch (outerError) {
+      Logger.d('Critical error in camera initialization: $outerError');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Camera initialization failed: $outerError'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
       }
     }
   }
@@ -264,9 +289,25 @@ class _ARCameraPageState extends State<ARCameraPage> {
 
   Future<void> _takePicture() async {
     try {
+      if (_cameraController == null || !_cameraController!.value.isInitialized) {
+        Logger.d("Camera not initialized");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Camera not ready. Please try again.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      Logger.d("Taking picture...");
+
       if (_selectedFilterIndex == 0) {
         // No filter - take a direct camera picture for better quality
         final XFile picture = await _cameraController!.takePicture();
+        Logger.d("Picture taken: ${picture.path}");
 
         if (!mounted) return;
 
@@ -292,6 +333,8 @@ class _ARCameraPageState extends State<ARCameraPage> {
         final File file = File(filePath);
         await file.writeAsBytes(pngBytes);
 
+        Logger.d("Filtered picture saved: $filePath");
+
         if (!mounted) return;
 
         await Navigator.of(context).push(
@@ -303,6 +346,14 @@ class _ARCameraPageState extends State<ARCameraPage> {
       }
     } catch (e) {
       Logger.d("Error taking picture: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to take picture: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -543,55 +594,102 @@ class _ARCameraPageState extends State<ARCameraPage> {
   }
 
   Future<void> _startRecording() async {
-    // Haptic feedback for start
-    HapticFeedback.lightImpact();
-
-    await _cameraController!.startVideoRecording();
-
-    setState(() {
-      _isRecording = true;
-      _recordingDuration = Duration.zero;
-    });
-
-    // Start the recording timer
-    _recordingTimer = Timer.periodic(const Duration(milliseconds: 100), (
-      timer,
-    ) {
-      if (!mounted) {
-        timer.cancel();
+    try {
+      if (_cameraController == null || !_cameraController!.value.isInitialized) {
+        Logger.d("Camera not initialized for video recording");
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Camera not ready for video recording.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         return;
       }
 
+      Logger.d("Starting video recording...");
+
+      // Haptic feedback for start
+      HapticFeedback.lightImpact();
+
+      await _cameraController!.startVideoRecording();
+
       setState(() {
-        _recordingDuration = Duration(milliseconds: timer.tick * 100);
+        _isRecording = true;
+        _recordingDuration = Duration.zero;
       });
 
-      // Auto-stop at 5 seconds
-      if (_recordingDuration >= _maxRecordingDuration) {
-        _stopRecording();
+      // Start the recording timer
+      _recordingTimer = Timer.periodic(const Duration(milliseconds: 100), (
+        timer,
+      ) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
+
+        setState(() {
+          _recordingDuration = Duration(milliseconds: timer.tick * 100);
+        });
+
+        // Auto-stop at 5 seconds
+        if (_recordingDuration >= _maxRecordingDuration) {
+          _stopRecording();
+        }
+      });
+
+      Logger.d("Video recording started successfully");
+    } catch (e) {
+      Logger.d("Error starting video recording: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to start video recording: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
-    });
+      _resetRecordingState();
+    }
   }
 
   Future<void> _stopRecording() async {
-    // Haptic feedback for stop
-    HapticFeedback.mediumImpact();
+    try {
+      Logger.d("Stopping video recording...");
 
-    _recordingTimer?.cancel();
+      // Haptic feedback for stop
+      HapticFeedback.mediumImpact();
 
-    if (_cameraController!.value.isRecordingVideo) {
-      final XFile videoFile = await _cameraController!.stopVideoRecording();
+      _recordingTimer?.cancel();
 
-      _resetRecordingState();
+      if (_cameraController != null && _cameraController!.value.isRecordingVideo) {
+        final XFile videoFile = await _cameraController!.stopVideoRecording();
+        Logger.d("Video recording stopped: ${videoFile.path}");
 
-      if (!mounted) return;
+        _resetRecordingState();
 
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => PreviewPage(picture: videoFile, isVideo: true),
-        ),
-      );
-    } else {
+        if (!mounted) return;
+
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => PreviewPage(picture: videoFile, isVideo: true),
+          ),
+        );
+      } else {
+        Logger.d("Camera not recording, just resetting state");
+        _resetRecordingState();
+      }
+    } catch (e) {
+      Logger.d("Error stopping video recording: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to stop video recording: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
       _resetRecordingState();
     }
   }

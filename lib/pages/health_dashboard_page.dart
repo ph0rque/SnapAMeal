@@ -14,6 +14,8 @@ import '../widgets/fasting_aware_navigation.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
 import '../widgets/insight_of_the_day_card.dart';
 import '../widgets/mission_card.dart';
+import '../widgets/notification_bell_widget.dart';
+import '../services/in_app_notification_service.dart';
 
 import 'ai_advice_page.dart';
 import 'ai_settings_page.dart';
@@ -25,6 +27,7 @@ import 'health_onboarding_page.dart';
 import 'integrations_page.dart';
 import 'meal_logging_page.dart';
 import 'weekly_review_page.dart';
+import 'simple_camera_page.dart';
 
 class HealthDashboardPage extends StatefulWidget {
   const HealthDashboardPage({super.key});
@@ -36,6 +39,7 @@ class HealthDashboardPage extends StatefulWidget {
 class _HealthDashboardPageState extends State<HealthDashboardPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final AuthService _authService = AuthService();
+  final InAppNotificationService _notificationService = InAppNotificationService();
 
   HealthProfile? _healthProfile;
   List<FastingSession> _recentSessions = [];
@@ -59,6 +63,11 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
 
       // Check if user is a demo user
       _isDemoUser = await _authService.isCurrentUserDemo();
+
+      // Create test notifications for demo users if needed
+      if (_isDemoUser) {
+        await _notificationService.createTestNotifications();
+      }
 
       // Load health profile
       await _loadHealthProfile(user.uid);
@@ -311,23 +320,7 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
           appBar: FastingAwareAppBar(
             title: 'Health Dashboard',
             actions: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () {
-                  // TODO: Navigate to notifications page
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.settings_outlined),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const IntegrationsPage(),
-                    ),
-                  );
-                },
-              ),
+              const NotificationBellWidget(),
               PopupMenuButton<String>(
                 icon: const Icon(Icons.account_circle_outlined),
                 onSelected: (value) {
@@ -1234,7 +1227,12 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
               subtitle: const Text('Capture moments with AR filters'),
               onTap: () {
                 Navigator.pop(context);
-                // TODO: Navigate to camera page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SimpleCameraPage(),
+                  ),
+                );
               },
             ),
           ],

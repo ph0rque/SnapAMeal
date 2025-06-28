@@ -7,6 +7,7 @@ import '../services/friend_service.dart';
 import '../services/health_community_service.dart';
 import '../services/weekly_review_service.dart';
 import '../services/ai_preference_service.dart';
+import '../services/in_app_notification_service.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -26,6 +27,9 @@ void setupServiceLocator() {
   // Social services
   sl.registerLazySingleton<FriendService>(() => FriendService(ragService: sl<RAGService>()));
   sl.registerLazySingleton<HealthCommunityService>(() => HealthCommunityService(sl<RAGService>(), sl<FriendService>()));
+  
+  // Notification services
+  sl.registerLazySingleton<InAppNotificationService>(() => InAppNotificationService());
   
   // Review services
   sl.registerLazySingleton<WeeklyReviewService>(() => WeeklyReviewService(ragService: sl<RAGService>()));

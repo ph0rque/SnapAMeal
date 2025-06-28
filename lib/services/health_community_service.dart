@@ -208,6 +208,7 @@ class HealthCommunityService {
     HealthGroupType? type,
     List<String> tags = const [],
     String? searchTerm,
+    bool excludeUserGroups = false, // New parameter to exclude groups user is already in
   }) {
     try {
       // Start with all groups, then filter by privacy client-side to be more flexible
@@ -231,11 +232,19 @@ class HealthCommunityService {
                 .map((doc) => HealthGroup.fromFirestore(doc))
                 .toList();
 
-            // Filter by privacy (show public groups and groups user belongs to)
+            // Filter by privacy and membership
             final userId = currentUserId;
             groups = groups.where((group) {
-              return group.privacy == HealthGroupPrivacy.public ||
-                     (userId != null && group.memberIds.contains(userId));
+              final isPublic = group.privacy == HealthGroupPrivacy.public;
+              final isMember = userId != null && group.memberIds.contains(userId);
+              
+              if (excludeUserGroups) {
+                // For discover: show only public groups user is NOT a member of
+                return isPublic && !isMember;
+              } else {
+                // For general search: show public groups and groups user belongs to
+                return isPublic || isMember;
+              }
             }).toList();
 
             // Filter by multiple tags if provided (client-side for complex queries)

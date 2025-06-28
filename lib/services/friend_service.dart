@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../utils/logger.dart';
 
 import 'rag_service.dart';
+import 'in_app_notification_service.dart';
 
 
 
@@ -10,6 +11,7 @@ class FriendService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final RAGService? _ragService;
+  final InAppNotificationService _notificationService = InAppNotificationService();
 
   FriendService({RAGService? ragService}) : _ragService = ragService;
 
@@ -79,6 +81,25 @@ class FriendService {
       'status': 'pending',
       'timestamp': FieldValue.serverTimestamp(),
     });
+
+    // Create notification for the receiver
+    try {
+      // Get sender's name for the notification
+      final senderDoc = await _firestore.collection('users').doc(currentUserId).get();
+      final senderData = senderDoc.data();
+      final senderName = senderData?['username'] ?? senderData?['displayName'] ?? 'Someone';
+      
+      if (senderName != 'Someone') { // Only create notification if we have a valid sender name
+        await _notificationService.createFriendRequestNotification(
+          receiverId: receiverId,
+          senderName: senderName,
+          senderId: currentUserId,
+        );
+      }
+    } catch (e) {
+      Logger.d('Error creating friend request notification: $e');
+      // Don't fail the friend request if notification creation fails
+    }
   }
 
   // Get friend requests for the current user
@@ -251,19 +272,9 @@ class FriendService {
       final members = [currentUserId, friendId]
         ..sort(); // Sort to ensure consistent ordering
 
-      // Check if current user is a demo user
-      final userEmail = _auth.currentUser?.email;
-      final isDemoUser = userEmail != null && (
-        userEmail == 'alice.demo@example.com' ||
-        userEmail == 'bob.demo@example.com' ||
-        userEmail == 'charlie.demo@example.com'
-      );
-      
-      final collectionName = isDemoUser ? 'demo_chat_rooms' : 'chat_rooms';
-
       // Check if a chat room already exists with these members
       final existingChatQuery = await _firestore
-          .collection(collectionName)
+          .collection('chat_rooms')
           .where('members', isEqualTo: members)
           .where('isGroup', isEqualTo: false)
           .limit(1)
@@ -274,7 +285,7 @@ class FriendService {
       }
 
       // Create a new chat room
-      final chatRoomDoc = await _firestore.collection(collectionName).add({
+      final chatRoomDoc = await _firestore.collection('chat_rooms').add({
         'members': members,
         'isGroup': false,
         'createdAt': FieldValue.serverTimestamp(),
@@ -293,17 +304,8 @@ class FriendService {
         final fallbackId = 'chat_${members.join('_')}';
         
         try {
-          final userEmail = _auth.currentUser?.email;
-          final isDemoUser = userEmail != null && (
-            userEmail == 'alice.demo@example.com' ||
-            userEmail == 'bob.demo@example.com' ||
-            userEmail == 'charlie.demo@example.com'
-          );
-          
-          final collectionName = isDemoUser ? 'demo_chat_rooms' : 'chat_rooms';
-          
           // Try to create the chat room document with the deterministic ID
-          await _firestore.collection(collectionName).doc(fallbackId).set({
+          await _firestore.collection('chat_rooms').doc(fallbackId).set({
             'members': members,
             'isGroup': false,
             'createdAt': FieldValue.serverTimestamp(),

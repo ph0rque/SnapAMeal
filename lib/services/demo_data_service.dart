@@ -401,6 +401,7 @@ class DemoDataService {
       {'user1': 'bob', 'user2': 'charlie', 'since': 12}, // 12 days ago
     ];
 
+    // Create friendships in demo_friendships collection (existing logic)
     for (final friendship in friendships) {
       final user1Id = userIds[friendship['user1']];
       final user2Id = userIds[friendship['user2']];
@@ -427,6 +428,78 @@ class DemoDataService {
             .set({...friendshipData, 'userId': user1Id});
       }
     }
+
+    // ALSO create friendships in demo_users collection for FriendService compatibility
+    await _establishUserDocumentFriendships(userIds);
+  }
+
+  /// Establish friendships in user documents (FriendService compatible format)
+  static Future<void> _establishUserDocumentFriendships(Map<String, String> userIds) async {
+    Logger.d('🤝 Establishing friendships in demo_users collection...');
+    
+    final friendships = [
+      {'user1': 'alice', 'user2': 'bob'},
+      {'user1': 'alice', 'user2': 'charlie'},
+      {'user1': 'bob', 'user2': 'charlie'},
+    ];
+
+    for (final friendship in friendships) {
+      final user1Id = userIds[friendship['user1']];
+      final user2Id = userIds[friendship['user2']];
+
+      if (user1Id != null && user2Id != null) {
+        // Update user1's friends array to include user2
+        await _firestore
+            .collection('${_demoPrefix}users')
+            .doc(user1Id)
+            .update({
+              'friends': FieldValue.arrayUnion([user2Id]),
+            });
+
+        // Update user2's friends array to include user1
+        await _firestore
+            .collection('${_demoPrefix}users')
+            .doc(user2Id)
+            .update({
+              'friends': FieldValue.arrayUnion([user1Id]),
+            });
+
+        // Create friend documents in subcollections for streak tracking
+        final friendshipTimestamp = Timestamp.fromDate(
+          DateTime.now().subtract(const Duration(days: 15))
+        );
+
+        // Create friend doc in user1's friends subcollection
+        await _firestore
+            .collection('${_demoPrefix}users')
+            .doc(user1Id)
+            .collection('friends')
+            .doc(user2Id)
+            .set({
+              'friendId': user2Id,
+              'timestamp': friendshipTimestamp,
+              'streakCount': 0,
+              'lastSnapTimestamp': null,
+            });
+
+        // Create friend doc in user2's friends subcollection  
+        await _firestore
+            .collection('${_demoPrefix}users')
+            .doc(user2Id)
+            .collection('friends')
+            .doc(user1Id)
+            .set({
+              'friendId': user1Id,
+              'timestamp': friendshipTimestamp,
+              'streakCount': 0,
+              'lastSnapTimestamp': null,
+            });
+
+        Logger.d('✅ Created friendship: ${friendship['user1']} ↔ ${friendship['user2']}');
+      }
+    }
+
+    Logger.d('✅ Demo user friendships established in demo_users collection');
   }
 
   /// Create health groups

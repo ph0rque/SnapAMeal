@@ -8,14 +8,7 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Demo user function for enhanced access
-    function isDemoUser() {
-      return request.auth != null && (
-        request.auth.token.email == 'alice.demo@example.com' ||
-        request.auth.token.email == 'bob.demo@example.com' ||
-        request.auth.token.email == 'charlie.demo@example.com'
-      );
-    }
+
 
     // Helper function to check if user owns the document
     function isOwner(userId) {
@@ -214,6 +207,15 @@ service cloud.firestore {
       );
     }
 
+    // In-app notifications - users can only access their own notifications
+    match /notifications/{notificationId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == resource.data.user_id;
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.user_id;
+      allow list: if request.auth != null;
+    }
+
     // Friend suggestions - users can only access their own suggestions
     match /friend_suggestions/{suggestionId} {
       allow read, write: if isDocumentOwner('userId');
@@ -406,155 +408,7 @@ service cloud.firestore {
       allow write: if false; // Only admin can write (via server-side)
     }
 
-    // ===== DEMO COLLECTIONS =====
 
-    // Demo data collections - isolated from production data
-    match /demo_users/{userId} {
-      allow read, write: if isDemoUser() && request.auth.uid == userId;
-      allow read: if isDemoUser(); // Allow demo users to read other demo users
-    }
-
-    match /demo_meal_logs/{logId} {
-      allow read, write: if isDemoUser() && 
-        request.auth.uid == resource.data.user_id;
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.user_id;
-      allow read: if isDemoUser(); // Allow demo users to read other demo meal logs
-    }
-
-    match /demo_fasting_sessions/{sessionId} {
-      allow read, write: if isDemoUser() && 
-        request.auth.uid == resource.data.user_id;
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.user_id;
-      allow read: if isDemoUser(); // Allow demo users to read other demo sessions
-    }
-
-    match /demo_health_groups/{groupId} {
-      allow read: if isDemoUser();
-      allow write: if isDemoUser() && 
-        (resource == null || 
-         request.auth.uid in resource.data.member_ids || 
-         request.auth.uid == resource.data.creator_id ||
-         // Allow join operations (adding user to member_ids)
-         (request.resource.data.member_ids != null &&
-          request.auth.uid in request.resource.data.member_ids &&
-          !(request.auth.uid in resource.data.member_ids)) ||
-         // Allow leave operations (removing user from member_ids)  
-         (request.resource.data.member_ids != null &&
-          !(request.auth.uid in request.resource.data.member_ids) &&
-          request.auth.uid in resource.data.member_ids));
-      allow create: if isDemoUser();
-    }
-
-    match /demo_ai_advice/{adviceId} {
-      allow read: if isDemoUser() && 
-        (resource == null || request.auth.uid == resource.data.userId);
-      allow write: if isDemoUser() && 
-        (resource == null || request.auth.uid == resource.data.userId);
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.userId;
-    }
-
-    match /demo_ai_advice_history/{adviceId} {
-      allow read, write: if isDemoUser() && 
-        request.auth.uid == resource.data.user_id;
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.user_id;
-    }
-
-    match /demo_progress_stories/{storyId} {
-      allow read: if isDemoUser();
-      allow write: if isDemoUser() && 
-        request.auth.uid == resource.data.user_id;
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.user_id;
-    }
-
-    match /demo_stories/{storyId} {
-      allow read: if isDemoUser();
-      allow write: if isDemoUser() && 
-        request.auth.uid == resource.data.userId;
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.userId;
-    }
-
-    match /demo_chat_rooms/{chatRoomId} {
-      allow read, write: if isDemoUser() && 
-        request.auth.uid in resource.data.members;
-      allow create: if isDemoUser() && 
-        request.auth.uid in request.resource.data.members;
-
-      match /messages/{messageId} {
-        allow read, write: if isDemoUser() && 
-          request.auth.uid in get(/databases/$(database)/documents/demo_chat_rooms/$(chatRoomId)).data.members;
-      }
-    }
-
-    match /demo_analytics/{documentId} {
-      allow create: if isDemoUser();
-      allow read: if false; // Only admin access for analytics
-    }
-
-    match /demo_session_data/{sessionId} {
-      allow read, write: if isDemoUser() && 
-        request.auth.uid == resource.data.userId;
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.userId;
-    }
-
-    match /demo_reset_history/{resetId} {
-      allow create: if isDemoUser();
-      allow read: if isDemoUser() && 
-        request.auth.uid == resource.data.userId;
-    }
-
-    match /demo_daily_insights/{insightId} {
-      allow read: if isDemoUser() && 
-        (resource == null || request.auth.uid == resource.data.userId);
-      allow write: if isDemoUser() && 
-        (resource == null || request.auth.uid == resource.data.userId);
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.userId;
-    }
-
-    match /demo_user_missions/{missionId} {
-      allow read: if isDemoUser() && 
-        (resource == null || request.auth.uid == resource.data.userId);
-      allow write: if isDemoUser() && 
-        (resource == null || request.auth.uid == resource.data.userId);
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.userId;
-    }
-
-    match /demo_ai_content_feed/{contentId} {
-      allow read: if isDemoUser() && 
-        (resource == null || request.auth.uid == resource.data.userId);
-      allow write: if isDemoUser() && 
-        (resource == null || request.auth.uid == resource.data.userId);
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.userId;
-    }
-
-    match /demo_privacy_settings/{userId} {
-      allow read: if isDemoUser() && request.auth.uid == userId;
-      allow write: if isDemoUser() && request.auth.uid == userId;
-      allow create: if isDemoUser() && request.auth.uid == userId;
-    }
-
-    match /demo_health_challenges/{challengeId} {
-      allow read, write: if isDemoUser() && 
-        request.auth.uid == resource.data.user_id;
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.user_id;
-    }
-
-    match /demo_user_streaks/{streakId} {
-      allow read, write: if isDemoUser() && 
-        request.auth.uid == resource.data.user_id;
-      allow create: if isDemoUser() && 
-        request.auth.uid == request.resource.data.user_id;
-    }
 
     // ===== ADMIN COLLECTIONS =====
 

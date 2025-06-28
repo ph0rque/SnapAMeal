@@ -4,12 +4,14 @@ import '../services/content_filter_service.dart';
 import '../utils/logger.dart';
 import '../services/fasting_service.dart';
 import '../models/fasting_session.dart';
+import 'in_app_notification_service.dart';
 
 class ChatService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final ContentFilterService? _contentFilterService;
   final FastingService? _fastingService;
+  final InAppNotificationService _notificationService = InAppNotificationService();
 
   ChatService({
     ContentFilterService? contentFilterService,
@@ -17,16 +19,9 @@ class ChatService {
   }) : _contentFilterService = contentFilterService,
        _fastingService = fastingService;
 
-  // Get the appropriate collection name based on user type
+  // Get the appropriate collection name
   String _getChatCollectionName() {
-    final userEmail = _auth.currentUser?.email;
-    final isDemoUser = userEmail != null && (
-      userEmail == 'alice.demo@example.com' ||
-      userEmail == 'bob.demo@example.com' ||
-      userEmail == 'charlie.demo@example.com'
-    );
-    
-    return isDemoUser ? 'demo_chat_rooms' : 'chat_rooms';
+    return 'chat_rooms';
   }
 
   // Get chat stream for the current user
@@ -126,6 +121,18 @@ class ChatService {
         'lastMessageTimestamp': timestamp,
         'lastMessage': message,
       });
+
+      // Create notifications for other chat members
+      try {
+        await _createMessageNotifications(
+          chatRoomId: chatRoomId,
+          senderId: currentUserId,
+          messagePreview: message.length > 50 ? '${message.substring(0, 50)}...' : message,
+        );
+      } catch (e) {
+        Logger.d('Error creating message notifications: $e');
+        // Don't fail the message send if notification creation fails
+      }
     } catch (e) {
       if (e.toString().contains('permission-denied')) {
         Logger.d('Permission denied for sending message, message not sent');
@@ -377,18 +384,8 @@ class ChatService {
 
         for (final memberId in members) {
           try {
-            // Use appropriate collection name for fasting sessions too
-            final userEmail = _auth.currentUser?.email;
-            final isDemoUser = userEmail != null && (
-              userEmail == 'alice.demo@example.com' ||
-              userEmail == 'bob.demo@example.com' ||
-              userEmail == 'charlie.demo@example.com'
-            );
-            
-            final fastingCollectionName = isDemoUser ? 'demo_fasting_sessions' : 'fasting_sessions';
-            
             final sessions = await _firestore
-                .collection(fastingCollectionName)
+                .collection('fasting_sessions')
                 .where('userId', isEqualTo: memberId)
                 .where('isActive', isEqualTo: true)
                 .get();
@@ -426,6 +423,53 @@ class ChatService {
     } catch (e) {
       Logger.d('Error getting health group stats: $e');
       return {};
+    }
+  }
+
+  /// Helper method to create message notifications for chat room members
+  Future<void> _createMessageNotifications({
+    required String chatRoomId,
+    required String senderId,
+    required String messagePreview,
+  }) async {
+    try {
+      // Get chat room info to find members
+      final collectionName = _getChatCollectionName();
+      final chatRoomDoc = await _firestore
+          .collection(collectionName)
+          .doc(chatRoomId)
+          .get();
+
+      if (!chatRoomDoc.exists) return;
+
+      final chatRoomData = chatRoomDoc.data() as Map<String, dynamic>;
+      final members = List<String>.from(chatRoomData['members'] ?? []);
+
+      // Get sender's info
+      final senderDoc = await _firestore.collection('users').doc(senderId).get();
+      final senderData = senderDoc.data();
+      final senderName = senderData?['username'] ?? senderData?['displayName'] ?? 'Someone';
+
+      // Create notifications for all members except the sender
+      if (senderName != 'Someone') { // Only create notifications if we have a valid sender name
+        for (final memberId in members) {
+          if (memberId != senderId) {
+            try {
+              await _notificationService.createMessageNotification(
+                receiverId: memberId,
+                senderName: senderName,
+                senderId: senderId,
+                chatRoomId: chatRoomId,
+                messagePreview: messagePreview,
+              );
+            } catch (e) {
+              Logger.d('Error creating message notification for member $memberId: $e');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      Logger.d('Error creating message notifications: $e');
     }
   }
 }

@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "snapameal-cabc7"
-  }
+    "default": "snapameal-cabc7",
+    "staging": "snapameal-cabc7"
+  },
+  "targets": {},
+  "etags": {}
 }

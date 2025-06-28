@@ -41,6 +41,11 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
     _chatService = ChatService();
     final ragService = RAGService(OpenAIService());
     _healthCommunityService = HealthCommunityService(ragService, _friendService);
+    
+    // Add listener to search controller to refresh results when text changes
+    _searchController.addListener(() {
+      setState(() {}); // Refresh the StreamBuilder when search text changes
+    });
   }
 
   @override
@@ -170,67 +175,90 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
         _buildSearchAndFilters(),
         Expanded(
           child: StreamBuilder<List<HealthGroup>>(
+            // Get all available groups (without excluding user groups)
             stream: _healthCommunityService.searchHealthGroups(
               type: _selectedType,
               searchTerm: _searchController.text.isEmpty
                   ? null
                   : _searchController.text,
+              excludeUserGroups: false, // Get all groups to check total count
             ),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(
-                    color: SnapColors.primaryYellow,
-                  ),
-                );
-              }
-
-              if (snapshot.hasError) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 48,
-                        color: SnapColors.textSecondary,
+            builder: (context, allGroupsSnapshot) {
+              return StreamBuilder<List<HealthGroup>>(
+                // Get groups user can discover (excluding user groups)
+                stream: _healthCommunityService.searchHealthGroups(
+                  type: _selectedType,
+                  searchTerm: _searchController.text.isEmpty
+                      ? null
+                      : _searchController.text,
+                  excludeUserGroups: true, // Only show groups user is NOT a member of
+                ),
+                builder: (context, discoverSnapshot) {
+                  if (discoverSnapshot.connectionState == ConnectionState.waiting ||
+                      allGroupsSnapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CircularProgressIndicator(
+                        color: SnapColors.primaryYellow,
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Error loading groups',
-                        style: SnapTypography.heading3.copyWith(
-                          color: SnapColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Please check your connection and try again',
-                        style: SnapTypography.body.copyWith(
-                          color: SnapColors.textSecondary,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      SnapButton(
-                        text: 'Retry',
-                        onTap: () => setState(() {}),
-                      ),
-                    ],
-                  ),
-                );
-              }
+                    );
+                  }
 
-              final groups = snapshot.data ?? [];
+                  if (discoverSnapshot.hasError || allGroupsSnapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: SnapColors.textSecondary,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error loading groups',
+                            style: SnapTypography.heading3.copyWith(
+                              color: SnapColors.textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Please check your connection and try again',
+                            style: SnapTypography.body.copyWith(
+                              color: SnapColors.textSecondary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 16),
+                          SnapButton(
+                            text: 'Retry',
+                            onTap: () => setState(() {}),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
 
-              if (groups.isEmpty) {
-                return _buildNoGroupsFoundState();
-              }
+                  final allGroups = allGroupsSnapshot.data ?? [];
+                  final discoverableGroups = discoverSnapshot.data ?? [];
 
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: groups.length,
-                itemBuilder: (context, index) {
-                  return _buildGroupCard(groups[index]);
+                  if (discoverableGroups.isEmpty) {
+                    // Check if there are groups at all
+                    if (allGroups.isNotEmpty) {
+                      // User has joined all available groups
+                      return _buildAllGroupsJoinedState();
+                    } else {
+                      // No groups exist at all
+                      return _buildNoGroupsFoundState();
+                    }
+                  }
+
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: discoverableGroups.length,
+                    itemBuilder: (context, index) {
+                      return _buildGroupCard(discoverableGroups[index]);
+                    },
+                  );
                 },
               );
             },
@@ -464,13 +492,14 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: SnapColors.backgroundDark,
+                        color: Colors.grey[500],
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         '#$tag',
                         style: SnapTypography.caption.copyWith(
-                          color: SnapColors.textSecondary,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -574,35 +603,98 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
 
   Widget _buildNoGroupsFoundState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.search_off,
-            size: 60,
-            color: SnapColors.textSecondary,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No Groups Found',
-            style: SnapTypography.heading3.copyWith(
-              color: SnapColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Try adjusting your search, or create the first group in this category!',
-            style: SnapTypography.caption.copyWith(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.search_off,
+              size: 48,
               color: SnapColors.textSecondary,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          SnapButton(
-            text: 'Create First Group',
-            onTap: _showCreateGroupDialog,
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              'No Groups Found',
+              style: SnapTypography.heading3.copyWith(
+                color: SnapColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Try adjusting your search, or create the first group in this category!',
+                style: SnapTypography.caption.copyWith(
+                  color: SnapColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SnapButton(
+              text: 'Create First Group',
+              onTap: _showCreateGroupDialog,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAllGroupsJoinedState() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.groups,
+              size: 48,
+              color: SnapColors.primaryYellow,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'All Groups Joined!',
+              style: SnapTypography.heading3.copyWith(
+                color: SnapColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'You\'ve joined all available groups in this category. Create a new group to connect with more people!',
+                style: SnapTypography.caption.copyWith(
+                  color: SnapColors.textSecondary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 12),
+            SnapButton(
+              text: 'Create New Group',
+              onTap: _showCreateGroupDialog,
+            ),
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () {
+                // Switch to Groups tab to see their joined groups
+                _tabController.animateTo(0);
+              },
+              child: Text(
+                'View My Groups',
+                style: SnapTypography.caption.copyWith(
+                  color: SnapColors.primaryYellow,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
