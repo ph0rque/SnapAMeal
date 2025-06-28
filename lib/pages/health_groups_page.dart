@@ -2,13 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../design_system/snap_ui.dart';
-import '../design_system/widgets/snap_user_search.dart';
 import '../services/health_community_service.dart';
 import '../services/rag_service.dart';
 import '../services/friend_service.dart';
-import '../services/chat_service.dart';
 import '../services/openai_service.dart';
-import '../utils/logger.dart';
 import '../models/health_group.dart';
 import '../pages/chat_page.dart';
 
@@ -267,7 +264,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
             ),
           ),
           const SizedBox(height: 10),
-          Container(
+          SizedBox(
             height: 150, // Constrained height for friends list
             child: _buildFriendsList(),
           ),
@@ -279,7 +276,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
             ),
           ),
           const SizedBox(height: 10),
-          Container(
+          SizedBox(
             height: 150, // Constrained height for friend requests
             child: _buildFriendRequestList(),
           ),
@@ -690,47 +687,7 @@ class _HealthGroupsPageState extends State<HealthGroupsPage>
     );
   }
 
-  Future<String?> _getOrCreateGroupChatRoom(HealthGroup group) async {
-    try {
-      // Check if a chat room already exists for this group
-      final existingChatQuery = await FirebaseFirestore.instance
-          .collection('chat_rooms')
-          .where('groupId', isEqualTo: group.id)
-          .where('isGroup', isEqualTo: true)
-          .limit(1)
-          .get();
 
-      if (existingChatQuery.docs.isNotEmpty) {
-        return existingChatQuery.docs.first.id;
-      }
-
-      // Create new group chat room
-      final chatService = ChatService();
-      final chatRoomId = await chatService.createHealthGroupChat(
-        group.memberIds,
-        group.name,
-        group.type.name,
-      );
-
-      // Update the chat room with the group ID for future reference
-      await FirebaseFirestore.instance
-          .collection('chat_rooms')
-          .doc(chatRoomId)
-          .update({'groupId': group.id});
-
-      return chatRoomId;
-    } catch (e) {
-      Logger.d('Error getting/creating group chat room: $e');
-      
-      // If chat room creation fails, we can still allow group functionality
-      // Chat room will be created when user actually tries to chat
-      if (e.toString().contains('permission-denied')) {
-        throw Exception('Chat feature temporarily unavailable. You can still join the group for other features.');
-      }
-      
-      return null;
-    }
-  }
 
   void _joinGroup(HealthGroup group) async {
     // Show loading indicator

@@ -413,7 +413,7 @@ class FastingStateProvider extends ChangeNotifier {
     }
 
     try {
-      final result = await _contentFilterService.shouldFilterContent(
+      final result = await _contentFilterService!.shouldFilterContent(
         content: content,
         contentType: contentType,
         fastingSession: _currentSession,
@@ -439,7 +439,7 @@ class FastingStateProvider extends ChangeNotifier {
     }
 
     try {
-      return await _contentFilterService.generateAlternativeContent(
+      return await _contentFilterService!.generateAlternativeContent(
         category,
         currentSession,
       );

@@ -286,9 +286,9 @@ class WeeklyReviewService {
         final tier = permanence?['tier'] as String?;
         return tier == 'milestone' || tier == 'monthly' || tier == 'weekly';
       }).length,
-      'engagement_total': stories.fold<int>(0, (sum, story) {
+      'engagement_total': stories.fold<int>(0, (total, story) {
         final engagement = story['engagement'] as Map<String, dynamic>? ?? {};
-        return sum + 
+        return total + 
                (engagement['views'] as int? ?? 0) +
                (engagement['likes'] as int? ?? 0) +
                (engagement['comments'] as int? ?? 0);
@@ -361,10 +361,10 @@ class WeeklyReviewService {
     
     if (completedSessions.isEmpty) return 0.0;
     
-    final totalDuration = completedSessions.fold<double>(0.0, (sum, session) {
+    final totalDuration = completedSessions.fold<double>(0.0, (total, session) {
       final startTime = (session['start_time'] as Timestamp).toDate();
       final endTime = (session['end_time'] as Timestamp).toDate();
-      return sum + endTime.difference(startTime).inHours;
+      return total + endTime.difference(startTime).inHours;
     });
     
     return totalDuration / completedSessions.length;
@@ -937,46 +937,5 @@ class WeeklyReviewService {
     return '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
   }
 
-  /// Create a basic fallback review when all permissions are denied
-  Map<String, dynamic> _createFallbackReview(String userId, DateTime periodStart, String reviewType) {
-    final isWeekly = reviewType == 'weekly';
-    final periodName = isWeekly ? 'week' : 'month';
-    
-    return <String, dynamic>{
-      'id': 'fallback_${DateTime.now().millisecondsSinceEpoch}',
-      'user_id': userId,
-      'review_type': reviewType,
-      isWeekly ? 'week_of' : 'month_of': Timestamp.fromDate(periodStart),
-      'generated_at': Timestamp.now(),
-      'activity_data': <String, dynamic>{
-        'stories': <Map<String, dynamic>>[],
-        'meal_logs': <Map<String, dynamic>>[],
-        'fasting_sessions': <Map<String, dynamic>>[],
-        'metrics': <String, dynamic>{},
-        'period': <String, dynamic>{
-          'start': periodStart.toIso8601String(),
-          'end': isWeekly 
-            ? periodStart.add(const Duration(days: 7)).toIso8601String()
-            : DateTime(periodStart.year, periodStart.month + 1, 0).toIso8601String(),
-          'days': isWeekly ? 7 : DateTime(periodStart.year, periodStart.month + 1, 0).day,
-        },
-      },
-      'review_content': <String, dynamic>{
-        'digest_type': reviewType,
-        isWeekly ? 'week_of' : 'month_of': _formatDate(periodStart),
-        'summary': 'This $periodName is a fresh start on your wellness journey! Take time to reflect on your goals and set intentions for continued growth.',
-        'highlights': <String>['Starting fresh with renewed focus'],
-        'insights': <String>['Every new $periodName is an opportunity for growth', 'Small consistent actions lead to lasting change'],
-        if (isWeekly) 'weekly_insights': <String>['Focus on one healthy habit this week'],
-        if (isWeekly) 'next_week_goals': <String>['Set a simple, achievable health goal'],
-        if (!isWeekly) 'monthly_trends': <String, dynamic>{'overall': 'positive'},
-        if (!isWeekly) 'growth_areas': <String>['Consistency in daily habits'],
-        if (!isWeekly) 'achievement_badges': <Map<String, dynamic>>[],
-        'generated_at': DateTime.now().toIso8601String(),
-      },
-      'is_ai_generated': false,
-      'status': 'active',
-      'is_fallback': true,
-    };
-  }
+
 } 

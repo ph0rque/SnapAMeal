@@ -44,7 +44,7 @@ class EnhancedFriendSuggestionCard extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [
               Colors.white,
-              SnapColors.primary.withOpacity(0.02),
+              SnapColors.primary.withValues(alpha: 0.02),
             ],
           ),
         ),
@@ -57,7 +57,7 @@ class EnhancedFriendSuggestionCard extends StatelessWidget {
                 // Profile picture
                 CircleAvatar(
                   radius: 24,
-                  backgroundColor: SnapColors.primary.withOpacity(0.1),
+                  backgroundColor: SnapColors.primary.withValues(alpha: 0.1),
                   backgroundImage: profilePicUrl != null && profilePicUrl.isNotEmpty
                       ? NetworkImage(profilePicUrl)
                       : null,
@@ -117,7 +117,7 @@ class EnhancedFriendSuggestionCard extends StatelessWidget {
                       vertical: SnapDimensions.paddingXSmall,
                     ),
                     decoration: BoxDecoration(
-                      color: SnapColors.primary.withOpacity(0.1),
+                      color: SnapColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(SnapDimensions.borderRadiusSmall),
                     ),
                     child: Row(
@@ -169,10 +169,10 @@ class EnhancedFriendSuggestionCard extends StatelessWidget {
                         vertical: SnapDimensions.paddingXSmall,
                       ),
                       decoration: BoxDecoration(
-                        color: SnapColors.primary.withOpacity(0.1),
+                        color: SnapColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(SnapDimensions.borderRadiusSmall),
                         border: Border.all(
-                          color: SnapColors.primary.withOpacity(0.2),
+                          color: SnapColors.primary.withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),
@@ -196,12 +196,12 @@ class EnhancedFriendSuggestionCard extends StatelessWidget {
                 padding: const EdgeInsets.all(SnapDimensions.paddingMedium),
                 decoration: BoxDecoration(
                   color: hasAIJustification 
-                      ? SnapColors.primary.withOpacity(0.05)
+                      ? SnapColors.primary.withValues(alpha: 0.05)
                       : SnapColors.surface,
                   borderRadius: BorderRadius.circular(SnapDimensions.borderRadiusSmall),
                   border: Border.all(
                     color: hasAIJustification 
-                        ? SnapColors.primary.withOpacity(0.1)
+                        ? SnapColors.primary.withValues(alpha: 0.1)
                         : SnapColors.border,
                     width: 1,
                   ),

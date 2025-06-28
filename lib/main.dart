@@ -156,38 +156,7 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  /// Build fasting-adapted theme
-  ThemeData _buildFastingTheme(ThemeData baseTheme, Color fastingColor) {
-    return baseTheme.copyWith(
-      primaryColor: fastingColor,
-      colorScheme: baseTheme.colorScheme.copyWith(
-        primary: fastingColor,
-        secondary: fastingColor.withValues(alpha: 0.7),
-        surface: fastingColor.withValues(alpha: 0.05),
-      ),
-      appBarTheme: baseTheme.appBarTheme.copyWith(
-        backgroundColor: fastingColor,
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: baseTheme.textTheme.titleLarge?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: fastingColor,
-          foregroundColor: Colors.white,
-        ),
-      ),
-      floatingActionButtonTheme: baseTheme.floatingActionButtonTheme.copyWith(
-        backgroundColor: fastingColor,
-      ),
-      progressIndicatorTheme: baseTheme.progressIndicatorTheme.copyWith(
-        color: fastingColor,
-      ),
-    );
-  }
+
 
   /// Generate routes with fasting protection
   Route<dynamic>? _generateRoute(

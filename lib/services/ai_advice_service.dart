@@ -368,7 +368,8 @@ class AIAdviceService {
 
     // Exercise frequency (placeholder)
     if (exercisePatterns['weeklyFrequency'] != null) {
-      score += min(1.0, exercisePatterns['weeklyFrequency'] / 5.0) * 0.25;
+      final frequency = (exercisePatterns['weeklyFrequency'] as num).toDouble();
+      score += min(1.0, frequency / 5.0) * 0.25;
       factors++;
     }
 

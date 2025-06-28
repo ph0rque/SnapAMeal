@@ -157,9 +157,7 @@ Future<void> main() async {
         }
         
         // Sign out after processing each account
-        if (userCredential != null) {
-          await auth.signOut();
-        }
+        await auth.signOut();
         
       } catch (e) {
         print('❌ Failed to process demo account for ${persona.displayName}: $e');

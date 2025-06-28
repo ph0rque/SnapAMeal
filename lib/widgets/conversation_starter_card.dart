@@ -41,8 +41,8 @@ class ConversationStarterCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                _getTypeColor().withOpacity(0.1),
-                _getTypeColor().withOpacity(0.05),
+                _getTypeColor().withValues(alpha: 0.1),
+                _getTypeColor().withValues(alpha: 0.05),
               ],
             ),
           ),
@@ -91,7 +91,7 @@ class ConversationStarterCard extends StatelessWidget {
                         vertical: SnapDimensions.paddingXSmall,
                       ),
                       decoration: BoxDecoration(
-                        color: SnapColors.primary.withOpacity(0.1),
+                        color: SnapColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(SnapDimensions.borderRadiusSmall),
                       ),
                       child: Row(
@@ -211,7 +211,7 @@ class ConversationStarterCard extends StatelessWidget {
                         vertical: SnapDimensions.paddingXSmall,
                       ),
                       decoration: BoxDecoration(
-                        color: SnapColors.success.withOpacity(0.1),
+                        color: SnapColors.success.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(SnapDimensions.borderRadiusSmall),
                       ),
                       child: Row(
@@ -298,7 +298,7 @@ class ConversationStarterCard extends StatelessWidget {
                   child: Text(
                     'Posted ${_getTimeAgo(conversationStarter.postedAt!)}',
                     style: SnapTypography.bodySmall.copyWith(
-                      color: SnapColors.textSecondary.withOpacity(0.7),
+                      color: SnapColors.textSecondary.withValues(alpha: 0.7),
                     ),
                   ),
                 ),

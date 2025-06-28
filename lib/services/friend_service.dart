@@ -4,38 +4,7 @@ import '../utils/logger.dart';
 
 import 'rag_service.dart';
 
-// Simple fake DocumentSnapshot for permission error fallbacks
-class FakeDocumentSnapshot implements DocumentSnapshot<Map<String, dynamic>> {
-  final String _id;
-  
-  FakeDocumentSnapshot(this._id);
-  
-  @override
-  String get id => _id;
-  
-  @override
-  bool get exists => true;
-  
-  @override
-  Map<String, dynamic>? data() => {
-    'username': 'User',
-    'display_name': 'Community Member',
-    'profileImageUrl': null,
-  };
-  
-  @override
-  dynamic operator [](Object field) => data()?[field];
-  
-  @override
-  dynamic get(Object field) => data()?[field];
-  
-  // Required overrides for DocumentSnapshot interface
-  @override
-  DocumentReference<Map<String, dynamic>> get reference => throw UnimplementedError();
-  
-  @override
-  SnapshotMetadata get metadata => throw UnimplementedError();
-}
+
 
 class FriendService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -194,14 +163,8 @@ class FriendService {
     try {
       return await _firestore.collection('users').doc(userId).get();
     } catch (e) {
-      if (e.toString().contains('permission-denied')) {
-        Logger.d('Permission denied for getUserData, returning empty document');
-        // Return a mock DocumentSnapshot-like object
-        return FakeDocumentSnapshot(userId);
-      } else {
-        Logger.d('Error getting user data: $e');
-        rethrow;
-      }
+      Logger.d('Error getting user data: $e');
+      rethrow;
     }
   }
 
@@ -410,8 +373,8 @@ class FriendService {
         final userDoc = await _firestore.collection('users').doc(candidateUserId).get();
         if (!userDoc.exists) continue;
 
-        final userData = userDoc.data() as Map<String, dynamic>;
-        final healthProfile = doc.data() as Map<String, dynamic>;
+        final userData = userDoc.data()!;
+        final healthProfile = doc.data();
         
         // Calculate compatibility score
         final compatibilityScore = _calculateCompatibilityScore(userProfile, healthProfile);
@@ -465,7 +428,7 @@ class FriendService {
           continue;
         }
 
-        final userData = doc.data() as Map<String, dynamic>;
+        final userData = doc.data();
         
         candidates.add({
           ...userData,
@@ -676,7 +639,7 @@ class FriendService {
     try {
       final doc = await _firestore.collection('user_health_profiles').doc(userId).get();
       if (doc.exists) {
-        return doc.data() as Map<String, dynamic>?;
+        return doc.data();
       }
       return null;
     } catch (e) {
@@ -701,8 +664,8 @@ class FriendService {
       final userDoc = await _firestore.collection('users').doc(userId).get();
       final healthDoc = await _firestore.collection('user_health_profiles').doc(userId).get();
       
-      final userData = userDoc.data() as Map<String, dynamic>? ?? {};
-      final healthData = healthDoc.data() as Map<String, dynamic>? ?? {};
+      final userData = userDoc.data() ?? {};
+      final healthData = healthDoc.data() ?? {};
       
       return {
         ...userData,

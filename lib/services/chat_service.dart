@@ -154,10 +154,10 @@ class ChatService {
 
       try {
         // Get current fasting session
-        final currentSession = await _fastingService.getCurrentSession();
+        final currentSession = await _fastingService!.getCurrentSession();
 
         // Filter messages based on fasting state
-        final filteredMessages = await _contentFilterService.filterChatMessages(
+        final filteredMessages = await _contentFilterService!.filterChatMessages(
           snapshot.docs,
           currentSession,
         );
@@ -177,12 +177,12 @@ class ChatService {
     }
 
     try {
-      final currentSession = await _fastingService.getCurrentSession();
+      final currentSession = await _fastingService!.getCurrentSession();
       if (currentSession?.isActive != true) {
         return false;
       }
 
-      final result = await _contentFilterService.shouldFilterContent(
+      final result = await _contentFilterService!.shouldFilterContent(
         content: message,
         contentType: ContentType.chat,
         fastingSession: currentSession!,
@@ -230,20 +230,20 @@ class ChatService {
     }
 
     try {
-      final currentSession = await _fastingService.getCurrentSession();
+      final currentSession = await _fastingService!.getCurrentSession();
       if (currentSession?.isActive != true) {
         return null;
       }
 
       // Use content filter to get alternative content
-      final result = await _contentFilterService.shouldFilterContent(
+      final result = await _contentFilterService!.shouldFilterContent(
         content: originalMessage,
         contentType: ContentType.chat,
         fastingSession: currentSession!,
       );
 
       if (result.shouldFilter && result.category != null) {
-        final alternative = await _contentFilterService
+        final alternative = await _contentFilterService!
             .generateAlternativeContent(result.category!, currentSession);
 
         return alternative.description;

@@ -38,8 +38,8 @@ class ReviewCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: reviewType == 'weekly' 
-                ? [SnapColors.primary.withOpacity(0.1), SnapColors.primary.withOpacity(0.05)]
-                : [SnapColors.secondary.withOpacity(0.1), SnapColors.secondary.withOpacity(0.05)],
+                ? [SnapColors.primary.withValues(alpha: 0.1), SnapColors.primary.withValues(alpha: 0.05)]
+                : [SnapColors.secondary.withValues(alpha: 0.1), SnapColors.secondary.withValues(alpha: 0.05)],
           ),
         ),
         child: Padding(
@@ -286,7 +286,7 @@ class ReviewCard extends StatelessWidget {
       padding: const EdgeInsets.all(SnapDimensions.paddingSmall),
       margin: const EdgeInsets.only(right: SnapDimensions.spacingSmall),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(SnapDimensions.radiusSmall),
       ),
       child: Column(
@@ -362,9 +362,9 @@ class ReviewCard extends StatelessWidget {
         vertical: SnapDimensions.paddingXSmall,
       ),
       decoration: BoxDecoration(
-        color: SnapColors.warning.withOpacity(0.1),
+        color: SnapColors.warning.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(SnapDimensions.radiusLarge),
-        border: Border.all(color: SnapColors.warning.withOpacity(0.3)),
+        border: Border.all(color: SnapColors.warning.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -422,9 +422,9 @@ class ReviewCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(SnapDimensions.paddingSmall),
             decoration: BoxDecoration(
-              color: SnapColors.accent.withOpacity(0.1),
+              color: SnapColors.accent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(SnapDimensions.radiusSmall),
-              border: Border.all(color: SnapColors.accent.withOpacity(0.2)),
+              border: Border.all(color: SnapColors.accent.withValues(alpha: 0.2)),
             ),
             child: Text(
               insight.toString(),

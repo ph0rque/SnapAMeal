@@ -183,10 +183,10 @@ class StoryService {
 
       try {
         // Get current fasting session
-        final currentSession = await _fastingService.getCurrentSession();
+        final currentSession = await _fastingService!.getCurrentSession();
 
         // Filter stories based on fasting state
-        final filteredStories = await _contentFilterService.filterStoryContent(
+        final filteredStories = await _contentFilterService!.filterStoryContent(
           snapshot.docs,
           currentSession,
         );
@@ -218,7 +218,7 @@ class StoryService {
         // Get current fasting session for filtering
         FastingSession? currentSession;
         if (_fastingService != null) {
-          currentSession = await _fastingService.getCurrentSession();
+          currentSession = await _fastingService!.getCurrentSession();
         }
 
         for (final friendId in friendIds) {
@@ -236,7 +236,7 @@ class StoryService {
             // Apply content filtering if fasting
             if (_contentFilterService != null &&
                 currentSession?.isActive == true) {
-              filteredStories = await _contentFilterService.filterStoryContent(
+              filteredStories = await _contentFilterService!.filterStoryContent(
                 friendStories.docs,
                 currentSession,
               );
@@ -301,12 +301,12 @@ class StoryService {
     }
 
     try {
-      final currentSession = await _fastingService.getCurrentSession();
+      final currentSession = await _fastingService!.getCurrentSession();
       if (currentSession?.isActive != true) {
         return null;
       }
 
-      return await _contentFilterService.shouldFilterContent(
+      return await _contentFilterService!.shouldFilterContent(
         content: text,
         contentType: ContentType.story,
         fastingSession: currentSession!,
@@ -626,10 +626,10 @@ class StoryService {
     }
 
     try {
-      final currentSession = await _fastingService.getCurrentSession();
+      final currentSession = await _fastingService!.getCurrentSession();
       if (currentSession == null) return null;
 
-      return await _contentFilterService.generateAlternativeContent(
+      return await _contentFilterService!.generateAlternativeContent(
         category,
         currentSession,
       );
