@@ -115,11 +115,11 @@ class FastingAwareNavigation extends StatelessWidget {
   /// Build fasting mode indicator
   Widget _buildFastingModeIndicator(FastingStateProvider fastingState) {
     return Positioned(
-      top: 50,
+      bottom: 0,
       left: 0,
       right: 0,
       child: Container(
-        height: 3,
+        height: 2,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
