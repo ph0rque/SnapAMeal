@@ -60,20 +60,52 @@ class MealCardWidget extends StatelessWidget {
           ),
           child: AspectRatio(
             aspectRatio: isCompact ? 16 / 9 : 4 / 3,
-            child: CachedNetworkImage(
-              imageUrl: mealLog.imageUrl,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
-                color: Colors.grey[300],
-                child: const Center(child: CircularProgressIndicator()),
-              ),
-              errorWidget: (context, url, error) => Container(
-                color: Colors.grey[300],
-                child: const Center(
-                  child: Icon(Icons.error, color: Colors.grey),
-                ),
-              ),
-            ),
+            child: mealLog.imageUrl.isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: mealLog.imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: SnapColors.primaryYellow,
+                        ),
+                      ),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      color: Colors.grey[300],
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.broken_image, color: Colors.grey, size: 32),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Image failed to load',
+                            style: SnapTypography.caption.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : Container(
+                    color: Colors.grey[300],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.image_not_supported, color: Colors.grey, size: 32),
+                        const SizedBox(height: 8),
+                        Text(
+                          'No image available',
+                          style: SnapTypography.caption.copyWith(
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
           ),
         ),
 

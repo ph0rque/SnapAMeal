@@ -15,6 +15,7 @@ import '../services/meal_recognition_service.dart';
 import '../services/openai_service.dart';
 import '../services/rag_service.dart';
 import '../services/mission_service.dart';
+import '../services/demo_account_management_service.dart';
 import '../widgets/food_correction_dialog.dart';
 import 'package:get_it/get_it.dart';
 
@@ -343,9 +344,14 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         },
       );
 
+      // Check if user is a demo user to determine which collection to use
+      final demoService = DemoAccountManagementService();
+      final isDemo = await demoService.isCurrentUserDemo();
+      final collectionName = isDemo ? 'demo_meal_logs' : 'meal_logs';
+
       // Save to Firestore
       await FirebaseFirestore.instance
-          .collection('meal_logs')
+          .collection(collectionName)
           .add(mealLog.toJson());
 
       // Check for mission auto-completions

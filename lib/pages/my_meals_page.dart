@@ -6,6 +6,7 @@ import '../design_system/snap_ui.dart';
 import '../design_system/widgets/meal_card_widget.dart';
 import '../models/meal_log.dart';
 import '../utils/logger.dart';
+import '../services/demo_account_management_service.dart';
 
 class MyMealsPage extends StatefulWidget {
   const MyMealsPage({super.key});
@@ -35,13 +36,19 @@ class _MyMealsPageState extends State<MyMealsPage> {
         return;
       }
 
+      // Check if user is a demo user to determine which collection to use
+      final demoService = DemoAccountManagementService();
+      final isDemo = await demoService.isCurrentUserDemo();
+      final collectionName = isDemo ? 'demo_meal_logs' : 'meal_logs';
+      final userIdField = isDemo ? 'userId' : 'userId'; // Both use same field name
+
       QuerySnapshot? querySnapshot;
       
       // Try to load meals, handle permission errors gracefully
       try {
         querySnapshot = await _firestore
-            .collection('meal_logs')
-            .where('userId', isEqualTo: user.uid)
+            .collection(collectionName)
+            .where(userIdField, isEqualTo: user.uid)
             .orderBy('timestamp', descending: true)
             .limit(50)
             .get();
@@ -116,6 +123,7 @@ class _MyMealsPageState extends State<MyMealsPage> {
             ...processedData,
           });
           
+          Logger.d('Loaded meal: ${meal.id}, imageUrl: ${meal.imageUrl.isNotEmpty ? 'present' : 'empty'}, timestamp: ${meal.timestamp}');
           meals.add(meal);
         } catch (e) {
           Logger.d('Error parsing meal log ${doc.id}: $e');
@@ -131,7 +139,7 @@ class _MyMealsPageState extends State<MyMealsPage> {
         _isLoading = false;
       });
       
-      Logger.d('Successfully loaded ${meals.length} meals');
+      Logger.d('Successfully loaded ${meals.length} meals from $collectionName');
       
       // Show helpful message for first-time users
       if (meals.isEmpty && mounted) {
