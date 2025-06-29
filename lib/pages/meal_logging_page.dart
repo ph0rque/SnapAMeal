@@ -61,7 +61,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   @override
   void initState() {
     super.initState();
-    print('🚨 BASIC INIT: MealLoggingPage initState() called - THIS SHOULD SHOW!');
     _initializeServices();
     _setupAnimations();
   }
@@ -95,41 +94,30 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _initializeServices() async {
-    print('🚨 SERVICE INIT: Starting service initialization...');
     
     try {
-      print('🚨 SERVICE INIT: Creating OpenAIService...');
       _openAIService = OpenAIService();
       
-      print('🚨 SERVICE INIT: Initializing OpenAIService...');
       await _openAIService.initialize();
-      print('🚨 SERVICE INIT: OpenAIService initialized successfully!');
       
-      print('🚨 SERVICE INIT: Creating RAGService...');
       _ragService = RAGService(_openAIService);
       
-      print('🚨 SERVICE INIT: Creating MealRecognitionService...');
       _mealRecognitionService = MealRecognitionService(
         _openAIService,
         _ragService,
       );
 
-      print('🚨 SERVICE INIT: Initializing MealRecognitionService...');
       final initialized = await _mealRecognitionService.initialize();
-      print('🚨 SERVICE INIT: MealRecognitionService returned: $initialized');
       
       setState(() {
         _isInitialized = initialized;
       });
-      print('🚨 SERVICE INIT: _isInitialized set to: $_isInitialized');
 
       if (initialized) {
-        print('🚨 SERVICE INIT: ✅ ALL SERVICES READY!');
       } else {
         throw Exception('Failed to initialize meal recognition services');
       }
     } catch (e) {
-      print('🚨 SERVICE INIT: ❌ ERROR: $e');
       developer.log('❌ SERVICE INIT: Error initializing services: $e');
       
       setState(() {
@@ -144,11 +132,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _captureImage(ImageSource source) async {
-    print('🚨 IMAGE CAPTURE: Starting image capture from ${source == ImageSource.gallery ? 'GALLERY' : 'CAMERA'}');
     
     try {
       final picker = ImagePicker();
-      print('🚨 IMAGE CAPTURE: Created ImagePicker instance');
       
       final image = await picker.pickImage(
         source: source,
@@ -157,10 +143,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         maxHeight: 1024,
       );
 
-      print('🚨 IMAGE CAPTURE: pickImage returned: ${image != null ? 'SUCCESS' : 'NULL'}');
       if (image != null) {
-        print('🚨 IMAGE CAPTURE: Image path: ${image.path}');
-        print('🚨 IMAGE CAPTURE: Image file exists: ${File(image.path).existsSync()}');
         
         setState(() {
           _selectedImagePath = image.path;
@@ -169,12 +152,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           _recipeSuggestions = null;
         });
 
-        print('🚨 IMAGE CAPTURE: State updated, starting animation');
         _slideAnimationController.forward();
         
-        print('🚨 IMAGE CAPTURE: Starting meal analysis...');
         await _analyzeMeal(image.path);
-        print('🚨 IMAGE CAPTURE: Meal analysis completed!');
       } else {
       }
     } catch (e) {
@@ -216,11 +196,8 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _analyzeMeal(String imagePath) async {
-    print('🚨 MEAL ANALYSIS: Starting analysis for image: $imagePath');
-    print('🚨 MEAL ANALYSIS: _isInitialized = $_isInitialized');
     
     if (!_isInitialized) {
-      print('🚨 MEAL ANALYSIS: ❌ Services not initialized!');
       developer.log('❌ MEAL ANALYSIS: Services not initialized');
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -229,26 +206,19 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       return;
     }
 
-    print('🚨 MEAL ANALYSIS: Setting _isAnalyzing = true');
     setState(() {
       _isAnalyzing = true;
     });
 
     try {
-      print('🚨 MEAL ANALYSIS: Calling analyzeMealImage...');
       // Analyze the meal image (always performed)
       final result = await _mealRecognitionService.analyzeMealImage(imagePath);
-      print('🚨 MEAL ANALYSIS: ✅ analyzeMealImage completed successfully!');
-      print('🚨 MEAL ANALYSIS: Detected foods: ${result.detectedFoods.length}');
-      print('🚨 MEAL ANALYSIS: Primary category: ${result.primaryFoodCategory}');
 
-      print('🚨 MEAL ANALYSIS: Generating caption...');
       // Generate caption (always performed)
       final caption = await _mealRecognitionService.generateMealCaption(
         result,
         _selectedCaptionType,
       );
-      print('🚨 MEAL ANALYSIS: ✅ Caption generated successfully!');
 
       // Conditional recipe suggestions based on meal type
       List<RecipeSuggestion> recipes = [];
@@ -257,14 +227,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       } else {
       }
 
-      print('🚨 MEAL ANALYSIS: Setting analysis results in state...');
       setState(() {
         _analysisResult = result;
         _generatedCaption = caption;
         _recipeSuggestions = recipes;
         _isAnalyzing = false;
       });
-      print('🚨 MEAL ANALYSIS: ✅ State updated with results! Save button should now appear.');
 
       // Provide haptic feedback
       HapticFeedback.lightImpact();
@@ -282,12 +250,8 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         context,
       ).showSnackBar(SnapUI.successSnackBar(message));
     } catch (e) {
-      print('🚨 MEAL ANALYSIS: ❌ ERROR occurred: $e');
-      print('🚨 MEAL ANALYSIS: ❌ Error type: ${e.runtimeType}');
-      print('🚨 MEAL ANALYSIS: ❌ Full error: ${e.toString()}');
       developer.log('❌ MEAL ANALYSIS: Error analyzing meal: $e');
       
-      print('🚨 MEAL ANALYSIS: Setting _isAnalyzing = false due to error');
       setState(() {
         _isAnalyzing = false;
       });
@@ -417,12 +381,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
             .putFile(imageFile);
 
         
-        // Add upload progress monitoring
+        // Monitor upload progress (for future UI progress indicator)
         uploadTask.snapshotEvents.listen((snapshot) {
+          // Progress monitoring - can be used for future progress UI
           if (snapshot.totalBytes > 0) {
-            final progress = snapshot.bytesTransferred / snapshot.totalBytes;
-            final progressPercent = (progress * 100).clamp(0.0, 100.0).toInt();
-          } else {
+            // final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+            // Progress value available for future progress indicator implementation
           }
         });
         
