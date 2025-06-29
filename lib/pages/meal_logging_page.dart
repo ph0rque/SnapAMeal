@@ -332,8 +332,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       developer.log('  File exists: ${imageFile.existsSync()}');
       developer.log('  File size: ${imageFile.lengthSync()} bytes');
       developer.log('  Storage path: $fileName');
-      developer.log('  User ID: ${user.uid}');
+      developer.log('  User ID: $user.uid');
 
+      String imageUrl = '';
       try {
         final uploadTask = FirebaseStorage.instance
             .ref()
@@ -344,7 +345,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         final snapshot = await uploadTask;
         developer.log('✅ Upload completed successfully');
         
-        final imageUrl = await snapshot.ref.getDownloadURL();
+        imageUrl = await snapshot.ref.getDownloadURL();
         developer.log('🔗 Download URL obtained: $imageUrl');
 
         if (imageUrl.isEmpty) {
@@ -395,8 +396,8 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       );
 
       developer.log('📝 Created meal log with imageUrl: $imageUrl');
-      developer.log('   Image path: ${_selectedImagePath}');
-      developer.log('   User ID: ${user.uid}');
+      developer.log('   Image path: $_selectedImagePath');
+      developer.log('   User ID: $user.uid');
 
       // Check if user is a demo user to determine which collection to use
               final collectionName = 'meal_logs'; // All users now use production meal_logs
