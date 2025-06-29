@@ -56,6 +56,32 @@ An advanced AI-powered health and wellness social platform built with Flutter an
 - **Circuit Breaker Protection**: Automatic failure detection and graceful degradation
 - **Emergency Rollback**: One-command rollback procedures for critical issues
 
+## 🤖 RAG-Enhanced Food & Nutrition Recognition
+
+The system uses a multi-stage, AI-driven pipeline that combines **Computer Vision**, **Retrieval-Augmented Generation (RAG)**, and **generative AI** to provide accurate and context-aware results.
+
+Here is the step-by-step process:
+
+1.  **Initial Image Analysis (OpenAI Vision):**
+    *   When a user uploads a photo, it's first sent to the **OpenAI Vision API**.
+    *   The primary goal is to perform two tasks:
+        1.  **Food Presence Check**: Determine if the image actually contains food (`contains_food: true/false`). This prevents non-food items from being analyzed.
+        2.  **Initial Item Identification**: Identify all visible food items in the image (e.g., "a bowl of oatmeal, a banana, and a glass of orange juice").
+
+2.  **RAG-Powered Nutrition Retrieval (Vector Search):**
+    *   For each food item identified by the Vision API, the system queries a specialized **Pinecone vector database**. This database has been pre-indexed with comprehensive nutritional information from sources like the **USDA FoodData Central**.
+    *   The query finds the most nutritionally relevant matches for each food item (e.g., "oatmeal" retrieves data for "rolled oats, cooked"). This is the "Retrieval" part of RAG.
+
+3.  **Contextual Nutrition Summarization (Generative AI):**
+    *   The retrieved nutritional data from the vector search is combined with the initial list of food items.
+    *   This combined information is then passed back to a generative AI model (like GPT-4).
+    *   The model uses this rich context to perform the "Augmented Generation" part of RAG:
+        *   **Estimate Weights**: It calculates a reasonable estimated weight for each food item based on visual cues.
+        *   **Calculate Nutrition**: It computes the total nutritional information (calories, protein, fat, carbs) for the entire meal based on the retrieved data and estimated weights.
+        *   **Generate Structured Output**: It formats everything into a clean, structured `MealRecognitionResult` object, ready for the app's UI.
+
+This RAG-enhanced process is superior to a simple AI call because it grounds the AI's analysis in a reliable, external knowledge base (the USDA nutrition data in Pinecone). This ensures the nutritional values are not just "hallucinated" by the AI but are based on factual, retrieved data, leading to much higher accuracy.
+
 ## 🏥 Health & Wellness Features
 
 ### 🤖 AI-Powered Health Coach
