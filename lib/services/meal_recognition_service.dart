@@ -166,13 +166,22 @@ class MealRecognitionService {
       double mealTypeConfidence;
       String? mealTypeReason;
 
-      // Phase 2: Hybrid processing with TensorFlow Lite first-pass and OpenAI fallback
-      // Use TensorFlow Lite for fast initial detection, OpenAI for enhanced analysis
+      // Phase 2: Hybrid processing with OpenAI food validation first, then TensorFlow optimization
+      // Always validate that the image contains food using OpenAI first
+      developer.log('Starting food validation with OpenAI Vision API');
+      
+      // First, validate that the image contains food (this will throw NonFoodImageException if not)
+      final openAIResults = await _detectFoodsWithOpenAI(imageBytes);
+      mealType = _lastMealType ?? MealType.unknown;
+      mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
+      mealTypeReason = _lastMealTypeReason ?? 'OpenAI Vision analysis';
+      
+      // If we reach here, the image contains food - now decide on best detection method
       if (_interpreter != null) {
-        developer.log('Starting hybrid processing: TensorFlow Lite + OpenAI');
+        developer.log('Image contains food, starting hybrid processing: TensorFlow Lite + OpenAI');
         
         try {
-          // First pass: TensorFlow Lite for quick detection
+          // Second pass: TensorFlow Lite for fast food classification (we know it contains food)
           final tfLiteResults = await _detectFoodsWithTFLite(image);
           final avgConfidence = _calculateOverallConfidence(tfLiteResults);
           
@@ -180,38 +189,27 @@ class MealRecognitionService {
           
           // Check if TensorFlow Lite results meet confidence threshold
           if (avgConfidence >= 0.7 && tfLiteResults.isNotEmpty) {
-            // High confidence TensorFlow Lite results - use them directly
+            // High confidence TensorFlow Lite results - use them with OpenAI meal type
             detectedFoods = tfLiteResults;
-            mealType = _determineMealTypeFromFoods(detectedFoods);
-            mealTypeConfidence = 0.8; // High confidence for TensorFlow processing
-            mealTypeReason = 'Determined from TensorFlow Lite food analysis';
-            developer.log('Using TensorFlow Lite results (high confidence)');
+            mealTypeReason = 'TensorFlow Lite food detection with OpenAI meal type classification';
+            developer.log('Using TensorFlow Lite results (high confidence) with OpenAI meal type');
           } else {
-            // Low confidence - enhance with OpenAI analysis
-            developer.log('TensorFlow Lite confidence low, enhancing with OpenAI');
-            final openAIResults = await _detectFoodsWithOpenAI(imageBytes);
-            
-            // Merge results: keep high-confidence TensorFlow items, add OpenAI insights
-            detectedFoods = _mergeDetectionResults(tfLiteResults, openAIResults);
-            mealType = _lastMealType ?? MealType.unknown;
-            mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
-            mealTypeReason = _lastMealTypeReason ?? 'Hybrid analysis (TensorFlow + OpenAI)';
+            // Low confidence - use OpenAI results that we already have
+            developer.log('TensorFlow Lite confidence low, using OpenAI results');
+            detectedFoods = openAIResults;
+            mealTypeReason = 'OpenAI analysis (TensorFlow confidence too low)';
           }
         } catch (e) {
-          developer.log('TensorFlow Lite processing failed: $e, falling back to OpenAI');
-          // Fallback to OpenAI if TensorFlow Lite fails
-          detectedFoods = await _detectFoodsWithOpenAI(imageBytes);
-          mealType = _lastMealType ?? MealType.unknown;
-          mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
-          mealTypeReason = _lastMealTypeReason ?? 'OpenAI analysis (TensorFlow fallback)';
+          developer.log('TensorFlow Lite processing failed: $e, using OpenAI results');
+          // Use OpenAI results that we already have
+          detectedFoods = openAIResults;
+          mealTypeReason = 'OpenAI analysis (TensorFlow failed)';
         }
       } else {
-        // TensorFlow Lite not available - use OpenAI only
-        developer.log('TensorFlow Lite not available, using OpenAI Vision API');
-        detectedFoods = await _detectFoodsWithOpenAI(imageBytes);
-        mealType = _lastMealType ?? MealType.unknown;
-        mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
-        mealTypeReason = _lastMealTypeReason ?? 'OpenAI Vision analysis';
+        // TensorFlow Lite not available - use OpenAI results that we already have
+        developer.log('TensorFlow Lite not available, using OpenAI Vision API results');
+        detectedFoods = openAIResults;
+        mealTypeReason = 'OpenAI Vision analysis (TensorFlow not available)';
       }
 
       // Calculate total nutrition (always performed)
@@ -443,7 +441,12 @@ If contains_food is false, set meal_type to "unknown", meal_type_confidence to 0
       developer.log('Error in OpenAI food detection: $e');
       timer.fail(e.toString());
       
-      // Return a generic food item as fallback
+      // Re-throw NonFoodImageException so it can be handled properly by the UI
+      if (e is NonFoodImageException) {
+        rethrow;
+      }
+      
+      // Return a generic food item as fallback for other types of errors
       return [await _createGenericFoodItem()];
     }
   }
@@ -671,35 +674,9 @@ If contains_food is false, set meal_type to "unknown", meal_type_confidence to 0
     // Run in background to avoid blocking main flow
     Future(() async {
       try {
-        final firestore = FirebaseFirestore.instance;
-        final scaleFactor = 100.0 / weightGrams; // Convert to per-100g
-        
-        final foodData = {
-          'foodName': foodName,
-          'searchableKeywords': _generateSearchKeywords(foodName),
-          'fdcId': null, // Unknown for backfilled data
-          'dataType': 'backfill_usda',
-          'category': _categorizeFoodItem(foodName),
-          'nutritionPer100g': {
-            'calories': nutrition.calories * scaleFactor,
-            'protein': nutrition.protein * scaleFactor,
-            'carbs': nutrition.carbs * scaleFactor,
-            'fat': nutrition.fat * scaleFactor,
-            'fiber': nutrition.fiber * scaleFactor,
-            'sugar': nutrition.sugar * scaleFactor,
-            'sodium': nutrition.sodium * scaleFactor,
-            'vitamins': nutrition.vitamins,
-            'minerals': nutrition.minerals,
-          },
-          'allergens': [],
-          'servingSizes': {'default': weightGrams},
-          'source': 'USDA_backfill',
-          'createdAt': FieldValue.serverTimestamp(),
-          'version': 1,
-        };
-        
-        await firestore.collection('foods').add(foodData);
-        developer.log('Backfilled Firebase with USDA data for: $foodName');
+        // Skip Firebase backfill - foods collection is read-only for client-side code
+        // This would be handled by server-side admin scripts instead
+        developer.log('Would backfill Firebase with USDA data for: $foodName (skipped - foods collection is read-only)');
       } catch (e) {
         developer.log('Error backfilling Firebase with USDA data: $e');
       }
@@ -711,35 +688,9 @@ If contains_food is false, set meal_type to "unknown", meal_type_confidence to 0
     // Run in background to avoid blocking main flow
     Future(() async {
       try {
-        final firestore = FirebaseFirestore.instance;
-        final scaleFactor = 100.0 / nutrition.servingSize; // Convert to per-100g
-        
-        final foodData = {
-          'foodName': foodName,
-          'searchableKeywords': _generateSearchKeywords(foodName),
-          'fdcId': null,
-          'dataType': 'ai_estimate',
-          'category': _categorizeFoodItem(foodName),
-          'nutritionPer100g': {
-            'calories': nutrition.calories * scaleFactor,
-            'protein': nutrition.protein * scaleFactor,
-            'carbs': nutrition.carbs * scaleFactor,
-            'fat': nutrition.fat * scaleFactor,
-            'fiber': nutrition.fiber * scaleFactor,
-            'sugar': nutrition.sugar * scaleFactor,
-            'sodium': nutrition.sodium * scaleFactor,
-            'vitamins': {},
-            'minerals': {},
-          },
-          'allergens': [],
-          'servingSizes': {'estimated': nutrition.servingSize},
-          'source': 'AI_estimate',
-          'createdAt': FieldValue.serverTimestamp(),
-          'version': 1,
-        };
-        
-        await firestore.collection('foods').add(foodData);
-        developer.log('Backfilled Firebase with AI estimate for: $foodName');
+        // Skip Firebase backfill - foods collection is read-only for client-side code
+        // This would be handled by server-side admin scripts instead
+        developer.log('Would backfill Firebase with AI estimate for: $foodName (skipped - foods collection is read-only)');
       } catch (e) {
         developer.log('Error backfilling Firebase with AI data: $e');
       }
@@ -983,138 +934,7 @@ All values should be numbers (not strings) and represent the total amount for th
     return [];
   }
 
-  /// Determine meal type from detected foods (fallback for TensorFlow)
-  MealType _determineMealTypeFromFoods(List<FoodItem> foods) {
-    if (foods.isEmpty) return MealType.unknown;
 
-    int rawIngredients = 0;
-    int cookedItems = 0;
-
-    for (final food in foods) {
-      final name = food.name.toLowerCase();
-      
-      // Check for raw ingredients indicators
-      if (name.contains('raw') || 
-          name.contains('fresh') ||
-          name.contains('uncooked') ||
-          _isTypicalRawIngredient(name)) {
-        rawIngredients++;
-      }
-      // Check for cooked/prepared food indicators  
-      else if (name.contains('cooked') ||
-               name.contains('grilled') ||
-               name.contains('fried') ||
-               name.contains('baked') ||
-               _isTypicalPreparedFood(name)) {
-        cookedItems++;
-      }
-    }
-
-    // Determine meal type based on ingredient analysis
-    if (rawIngredients > cookedItems) {
-      return MealType.ingredients;
-    } else if (cookedItems > rawIngredients) {
-      return MealType.readyMade;
-    } else if (rawIngredients > 0 && cookedItems > 0) {
-      return MealType.mixed;
-    }
-    
-    return MealType.unknown;
-  }
-
-  /// Helper method to identify typical raw ingredients
-  bool _isTypicalRawIngredient(String foodName) {
-    const rawIngredients = [
-      'chicken breast', 'ground beef', 'salmon fillet',
-      'broccoli', 'carrot', 'onion', 'garlic', 'spinach',
-      'rice', 'pasta', 'flour', 'egg',
-      'olive oil', 'salt', 'pepper', 'herbs', 'spices'
-    ];
-    
-    return rawIngredients.any((ingredient) => 
-      foodName.contains(ingredient));
-  }
-
-  /// Helper method to identify typical prepared foods
-  bool _isTypicalPreparedFood(String foodName) {
-    const preparedFoods = [
-      'pizza', 'burger', 'sandwich', 'salad',
-      'soup', 'stew', 'casserole', 'pasta dish',
-      'stir fry', 'curry', 'taco', 'burrito'
-    ];
-    
-    return preparedFoods.any((food) => 
-      foodName.contains(food));
-  }
-
-  /// Merge TensorFlow Lite and OpenAI detection results
-  List<FoodItem> _mergeDetectionResults(
-    List<FoodItem> tfLiteResults,
-    List<FoodItem> openAIResults,
-  ) {
-    final mergedResults = <FoodItem>[];
-    final processedNames = <String>{};
-    
-    // First, add high-confidence TensorFlow Lite results
-    for (final tfItem in tfLiteResults) {
-      if (tfItem.confidence >= 0.6) {
-        mergedResults.add(tfItem);
-        processedNames.add(tfItem.name.toLowerCase());
-      }
-    }
-    
-    // Then, add OpenAI results that don't duplicate TensorFlow items
-    for (final aiItem in openAIResults) {
-      final aiNameLower = aiItem.name.toLowerCase();
-      bool isDuplicate = false;
-      
-      // Check for duplicates or very similar items
-      for (final processedName in processedNames) {
-        if (_areItemsSimilar(aiNameLower, processedName)) {
-          isDuplicate = true;
-          break;
-        }
-      }
-      
-      if (!isDuplicate) {
-        mergedResults.add(aiItem);
-        processedNames.add(aiNameLower);
-      }
-    }
-    
-    // Finally, add low-confidence TensorFlow items if we don't have enough results
-    if (mergedResults.length < 3) {
-      for (final tfItem in tfLiteResults) {
-        if (tfItem.confidence < 0.6 && 
-            !processedNames.contains(tfItem.name.toLowerCase())) {
-          mergedResults.add(tfItem);
-          if (mergedResults.length >= 5) break; // Limit total results
-        }
-      }
-    }
-    
-    developer.log('Merged results: ${mergedResults.length} items from TensorFlow (${tfLiteResults.length}) + OpenAI (${openAIResults.length})');
-    return mergedResults;
-  }
-
-  /// Check if two food item names are similar enough to be considered duplicates
-  bool _areItemsSimilar(String name1, String name2) {
-    // Simple similarity check - can be enhanced with more sophisticated algorithms
-    if (name1 == name2) return true;
-    
-    // Check if one name contains the other
-    if (name1.contains(name2) || name2.contains(name1)) return true;
-    
-    // Check for common word overlap
-    final words1 = name1.split(' ').where((w) => w.length > 2).toSet();
-    final words2 = name2.split(' ').where((w) => w.length > 2).toSet();
-    final overlap = words1.intersection(words2);
-    
-    // Consider similar if they share significant words
-    return overlap.isNotEmpty && 
-           overlap.length >= (words1.length * 0.5) || 
-           overlap.length >= (words2.length * 0.5);
-  }
 
   /// Create a generic food item as fallback
   Future<FoodItem> _createGenericFoodItem() async {

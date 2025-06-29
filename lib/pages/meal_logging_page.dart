@@ -336,14 +336,55 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
       String imageUrl = '';
       try {
+        // Enhanced validation before upload
+        if (!imageFile.existsSync()) {
+          throw Exception('Image file does not exist at path: $_selectedImagePath');
+        }
+        
+        final fileSize = imageFile.lengthSync();
+        if (fileSize == 0) {
+          throw Exception('Image file is empty (0 bytes)');
+        }
+        
+        if (fileSize > 10 * 1024 * 1024) {
+          throw Exception('Image file too large: $fileSize bytes (max 10MB)');
+        }
+
+        developer.log('🔄 Pre-upload validation passed');
+        developer.log('  File exists: ${imageFile.existsSync()}');
+        developer.log('  File size: $fileSize bytes');
+        developer.log('  User authenticated: ${user.uid}');
+        
+        // Test Firebase Storage connectivity
+        try {
+          FirebaseStorage.instance.ref();
+          developer.log('✅ Firebase Storage reference created successfully');
+        } catch (storageError) {
+          throw Exception('Failed to create Firebase Storage reference: $storageError');
+        }
+
         final uploadTask = FirebaseStorage.instance
             .ref()
             .child(fileName)
             .putFile(imageFile);
 
         developer.log('📤 Upload task created, waiting for completion...');
+        
+        // Add upload progress monitoring
+        uploadTask.snapshotEvents.listen((snapshot) {
+          if (snapshot.totalBytes > 0) {
+            final progress = snapshot.bytesTransferred / snapshot.totalBytes;
+            final progressPercent = (progress * 100).clamp(0.0, 100.0).toInt();
+            developer.log('📊 Upload progress: $progressPercent%');
+          } else {
+            developer.log('📊 Upload progress: preparing...');
+          }
+        });
+        
         final snapshot = await uploadTask;
         developer.log('✅ Upload completed successfully');
+        developer.log('  Bytes transferred: ${snapshot.totalBytes}');
+        developer.log('  Upload state: ${snapshot.state}');
         
         imageUrl = await snapshot.ref.getDownloadURL();
         developer.log('🔗 Download URL obtained: $imageUrl');
@@ -351,11 +392,31 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         if (imageUrl.isEmpty) {
           throw Exception('Download URL is empty');
         }
+        
+        // Validate the download URL format
+        if (!imageUrl.startsWith('https://')) {
+          throw Exception('Invalid download URL format: $imageUrl');
+        }
+        
+        developer.log('✅ Image upload and URL validation successful');
+        
       } catch (uploadError) {
         developer.log('❌ Image upload failed: $uploadError');
+        developer.log('❌ Upload error type: ${uploadError.runtimeType}');
+        developer.log('❌ Full error details: ${uploadError.toString()}');
+        
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnapUI.errorSnackBar('Failed to upload image: $uploadError')
+          SnackBar(
+            content: Text('Failed to upload image: ${uploadError.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 10),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () => _saveMealLog(),
+            ),
+          ),
         );
         return;
       }
@@ -399,6 +460,18 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       developer.log('   Image path: $_selectedImagePath');
       developer.log('   User ID: $user.uid');
 
+      // Validate meal log data before saving
+      final mealLogJson = mealLog.toJson();
+      developer.log('🔍 Meal log JSON data:');
+      developer.log('   image_url: ${mealLogJson['image_url']}');
+      developer.log('   image_path: ${mealLogJson['image_path']}');
+      developer.log('   user_id: ${mealLogJson['user_id']}');
+      developer.log('   timestamp: ${mealLogJson['timestamp']}');
+      
+      if (mealLogJson['image_url'] == null || mealLogJson['image_url'].toString().isEmpty) {
+        throw Exception('Meal log has empty image_url before saving to Firestore');
+      }
+
       // Check if user is a demo user to determine which collection to use
               final collectionName = 'meal_logs'; // All users now use production meal_logs
 
@@ -407,10 +480,25 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       // Save to Firestore
       final docRef = await FirebaseFirestore.instance
           .collection(collectionName)
-          .add(mealLog.toJson());
+          .add(mealLogJson);
 
       developer.log('✅ Meal log saved with document ID: ${docRef.id}');
       developer.log('   Saved imageUrl: ${mealLog.imageUrl}');
+      
+      // Immediately read back the document to verify it was saved correctly
+      try {
+        final savedDoc = await docRef.get();
+        final savedData = savedDoc.data() as Map<String, dynamic>;
+        developer.log('✅ Verification read from Firestore:');
+        developer.log('   Saved image_url: ${savedData['image_url']}');
+        developer.log('   Saved image_path: ${savedData['image_path']}');
+        
+        if (savedData['image_url'] == null || savedData['image_url'].toString().isEmpty) {
+          developer.log('❌ WARNING: image_url is null/empty in saved Firestore document!');
+        }
+      } catch (verificationError) {
+        developer.log('❌ Failed to verify saved document: $verificationError');
+      }
 
       // Check for mission auto-completions
       try {

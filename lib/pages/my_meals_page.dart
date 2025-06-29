@@ -128,7 +128,14 @@ class _MyMealsPageState extends State<MyMealsPage> {
             ...processedData,
           });
           
-          Logger.d('Loaded meal: ${meal.id}, imageUrl: ${meal.imageUrl.isNotEmpty ? 'present' : 'empty'}, timestamp: ${meal.timestamp}');
+          // Filter out corrupted meals that don't have valid images or user IDs
+          // These are likely from when image upload was failing
+          if (meal.imageUrl.isEmpty || meal.userId.isEmpty) {
+            Logger.d('⚠️ Skipping corrupted meal: ${meal.id} (missing image_url or user_id)');
+            continue;
+          }
+          
+          Logger.d('✅ Loaded valid meal: ${meal.id}, imageUrl: present, timestamp: ${meal.timestamp}');
           meals.add(meal);
         } catch (e) {
           Logger.d('Error parsing meal log ${doc.id}: $e');
@@ -144,7 +151,14 @@ class _MyMealsPageState extends State<MyMealsPage> {
         _isLoading = false;
       });
       
-      Logger.d('Successfully loaded ${meals.length} meals from $collectionName');
+      final totalDocuments = querySnapshot.docs.length;
+      final validMeals = meals.length;
+      final skippedMeals = totalDocuments - validMeals;
+      
+      Logger.d('Successfully loaded $validMeals valid meals from $collectionName');
+      if (skippedMeals > 0) {
+        Logger.d('⚠️ Skipped $skippedMeals corrupted meal documents (missing images from previous bug)');
+      }
       
       // Show helpful message for first-time users
       if (meals.isEmpty && mounted) {

@@ -80,7 +80,20 @@ class ContentValidationService {
   /// Check if content is acceptable despite minor warnings
   static bool _isAcceptableWithWarnings(List<String> issues) {
     // Allow content that only has disclaimer issues (we can add disclaimer)
-    return issues.length == 1 && issues.first.contains('Missing safety disclaimer');
+    if (issues.length == 1 && issues.first.contains('Missing safety disclaimer')) {
+      return true;
+    }
+    
+    // Allow content with medical keywords if the only other issue is missing disclaimer
+    if (issues.length == 2) {
+      final hasDisclaimerIssue = issues.any((issue) => issue.contains('Missing safety disclaimer'));
+      final hasMedicalKeywordOnly = issues.any((issue) => issue.contains('Contains medical advice keyword'));
+      final hasNoHarmfulAdvice = !issues.any((issue) => issue.contains('potentially harmful advice'));
+      
+      return hasDisclaimerIssue && hasMedicalKeywordOnly && hasNoHarmfulAdvice;
+    }
+    
+    return false;
   }
 
   /// Generate safe alternative content when original fails validation

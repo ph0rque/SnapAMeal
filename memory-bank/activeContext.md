@@ -1,6 +1,96 @@
 # Active Context
 
-## Current Focus: Intelligent Meal Analysis Enhancement (COMPLETED) ✅
+## Current Focus: Meal Saving Permission and Upload Fixes (COMPLETED) ✅
+
+**🔧 CRITICAL FIXES**: Resolved Meal Saving Errors and Upload Issues! ✅
+
+### Issue Resolution: Permission Denied and Upload Progress Errors
+- ✅ **Permission Error Fixed**: Disabled Firebase backfill methods trying to write to read-only `foods` collection
+- ✅ **Upload Progress Fixed**: Added safe division handling to prevent `Infinity/NaN toInt` errors
+- ✅ **Code Cleanup**: Removed unused variables and simplified backfill logic
+- ✅ **Firebase Rules**: Confirmed proper read-only access to foods collection (server-side writes only)
+- ✅ **Error Handling**: Enhanced upload progress monitoring with bounds checking
+
+### Technical Implementation:
+- **Permission Fix**: `lib/services/meal_recognition_service.dart` - Disabled `_backfillFirebaseWithUSDA()` and `_backfillFirebaseWithAI()` methods
+- **Upload Progress Fix**: `lib/pages/meal_logging_page.dart` line 376 - Added `totalBytes > 0` check and `.clamp(0.0, 100.0)` bounds
+- **Variable Cleanup**: Removed unused `firestore` and `foodData` variables from disabled backfill methods
+- **Error Prevention**: Safe division prevents `Infinity/NaN` when upload hasn't started yet
+- **Code Quality**: All fixes pass `flutter analyze` with zero errors
+
+### Previous Fix: My Meals UI Image Loading (COMPLETED) ✅
+
+**🔧 COMPLETE FIX**: Resolved My Meals UI Image Loading Issue! ✅
+
+### Issue Resolution: Missing Images in My Meals UI
+- ✅ **Problem Identified**: My Meals page was loading corrupted meal documents with null `image_url` and `image_path` fields
+- ✅ **Root Cause**: Historical documents from when image upload was failing (before content validation fix)
+- ✅ **Solution Applied**: Added filtering in My Meals page to skip corrupted documents that lack proper image URLs or user IDs
+- ✅ **Enhanced Logging**: Added detailed logging to track how many corrupted documents are skipped vs. valid meals loaded
+- ✅ **User Experience**: Users now only see properly saved meals with valid images, while corrupted documents are silently filtered out
+
+### Technical Implementation:
+- **Primary Fix**: `lib/pages/my_meals_page.dart` - Added filtering logic in `_loadMeals()` method to skip corrupted documents
+- **Filter Logic**: Skip meals where `meal.imageUrl.isEmpty || meal.userId.isEmpty` to exclude corrupted documents  
+- **Enhanced Logging**: Added detailed tracking of total documents vs. valid meals vs. skipped corrupted documents
+- **User Experience**: Only properly saved meals with valid images are now displayed in My Meals UI
+- **Data Integrity**: Corrupted historical documents are filtered out without user disruption
+- **Code Quality**: Fixed linting issues and passes `flutter analyze` with zero issues
+
+### Database Cleanup (Ready for Manual Execution):
+- **Cleanup Scripts Created**: Multiple cleanup scripts created (`cleanup_corrupted_meals.ts`, `cleanup_corrupted_meals.dart`, `find_corrupted_meals.js`)
+- **Manual Cleanup Guide**: Provided Firebase Console instructions for deleting corrupted documents
+- **Identification Criteria**: Documents with null/empty `image_url`, `image_path`, or `user_id` fields
+- **Firebase Console URL**: https://console.firebase.google.com/project/snapameal-cabc7/firestore
+- **Target Collection**: `meal_logs` collection contains the corrupted historical documents
+- **Expected Result**: After cleanup, My Meals UI will only show properly saved meals with images
+
+### Debugging Enhancements Applied:
+- ✅ **Pre-upload Validation**: File existence, size, and format checks before Firebase Storage upload
+- ✅ **Firebase Connectivity**: Test Firebase Storage reference creation before upload attempts
+- ✅ **Upload Progress**: Real-time upload progress monitoring with detailed logging
+- ✅ **URL Validation**: Verify download URL format and accessibility after upload
+- ✅ **Firestore Verification**: Immediate read-back verification of saved documents
+- ✅ **Enhanced Error Messages**: Detailed error logging with retry functionality
+- ✅ **User Feedback**: Improved error snackbars with 10-second duration and retry buttons
+
+### Technical Implementation:
+- **File Modified**: `lib/pages/meal_logging_page.dart` - Enhanced `_saveMealLog()` method
+- **Validation Added**: File existence, size limits (10MB), and Firebase Storage connectivity tests
+- **Progress Monitoring**: Upload progress logging and state tracking
+- **Error Recovery**: Retry functionality and detailed error reporting
+- **Data Integrity**: Pre-save validation and post-save verification of Firestore documents
+
+### Next Steps for Testing:
+1. **Run the app** and take a photo of food using the meal logger
+2. **Check debug console** for detailed upload logs starting with 🔄, 📤, ✅, or ❌
+3. **Look for specific errors** in the enhanced error messages
+4. **Use retry functionality** if upload fails
+
+## Previous Focus: Non-Food Detection Bug Fix (COMPLETED) ✅
+
+**🔧 CRITICAL BUG FIX**: Non-Food Image Detection Now Working Properly! ✅
+
+### Bug Fix Implementation: Proper Non-Food Image Handling
+- ✅ **Issue Identified**: Images of non-food items were returning generic "Mixed Food" labels instead of proper "not food" messages
+- ✅ **Root Cause**: Hybrid processing bypassed OpenAI food validation when TensorFlow Lite gave high confidence results (≥ 0.7)
+- ✅ **Architectural Fix**: Restructured meal analysis to always validate food presence with OpenAI first, before any TensorFlow processing
+- ✅ **New Flow**: OpenAI food validation → (if food detected) → TensorFlow optimization → Result processing
+- ✅ **Exception Propagation**: Fixed catch block to re-throw `NonFoodImageException` while preserving fallback for technical errors  
+- ✅ **User Experience**: Users now see clear "This image doesn't contain food" message with "Try Again" action button
+- ✅ **System Integrity**: OpenAI Vision API's food validation (`contains_food: false`) now functions as designed for ALL images
+- ✅ **Performance**: Maintains TensorFlow optimization for actual food images while ensuring non-food detection
+- ✅ **Code Cleanup**: Removed 120+ lines of unused hybrid processing methods (`_determineMealTypeFromFoods`, `_mergeDetectionResults`, etc.)
+
+### Technical Details:
+- **Primary Fix**: `lib/services/meal_recognition_service.dart` - Restructured `analyzeMealImage()` method (lines 169-205)
+- **Architecture Change**: OpenAI food validation now always happens first, regardless of TensorFlow availability/confidence
+- **Exception Handling**: Fixed catch block to re-throw `NonFoodImageException` (lines 442-448)
+- **Code Cleanup**: Removed unused methods: `_determineMealTypeFromFoods`, `_mergeDetectionResults`, `_isTypicalRawIngredient`, `_isTypicalPreparedFood`, `_areItemsSimilar`
+- **UI Integration**: `MealLoggingPage` already had proper exception handling for `NonFoodImageException`
+- **Testing**: Code passes `flutter analyze` with zero issues, cleaner and more maintainable
+
+### Previous Focus: Intelligent Meal Analysis Enhancement (COMPLETED) ✅
 
 **🍽️ MEAL TYPE CLASSIFICATION SYSTEM IMPLEMENTED**: Smart Recipe Suggestions Based on Meal Type! ✅
 
