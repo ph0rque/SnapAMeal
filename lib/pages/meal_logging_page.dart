@@ -423,25 +423,39 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     });
 
     try {
+      print('🚨 MEAL SAVE: Getting current user...');
       final user = FirebaseAuth.instance.currentUser;
+      print('🚨 MEAL SAVE: User authentication check complete');
+      print('🚨 MEAL SAVE: User: ${user != null ? 'authenticated' : 'null'}');
       developer.log('🔍 MEAL SAVE: User authentication check');
       developer.log('   User: ${user != null ? 'authenticated' : 'null'}');
       if (user != null) {
+        print('🚨 MEAL SAVE: User ID: ${user.uid}');
+        print('🚨 MEAL SAVE: User email: ${user.email}');
         developer.log('   User ID: ${user.uid}');
         developer.log('   User email: ${user.email}');
       }
       
       if (user == null) {
+        print('🚨 MEAL SAVE: ❌ User not authenticated!');
         developer.log('❌ MEAL SAVE: User not authenticated');
         throw Exception('User not authenticated');
       }
 
       // Upload image to Firebase Storage with unique filename to prevent conflicts
+      print('🚨 MEAL SAVE: Creating image file object...');
       final imageFile = File(_selectedImagePath!);
+      print('🚨 MEAL SAVE: Generating unique filename...');
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final randomId = DateTime.now().microsecondsSinceEpoch; // Additional uniqueness
       final fileName = 'meals/${user.uid}/${timestamp}_$randomId.jpg';
 
+      print('🚨 MEAL SAVE: Starting image upload...');
+      print('🚨 MEAL SAVE: File path: $_selectedImagePath');
+      print('🚨 MEAL SAVE: File exists: ${imageFile.existsSync()}');
+      print('🚨 MEAL SAVE: File size: ${imageFile.lengthSync()} bytes');
+      print('🚨 MEAL SAVE: Storage path: $fileName');
+      print('🚨 MEAL SAVE: User ID: $user.uid');
       developer.log('🔄 Starting image upload...');
       developer.log('  File path: $_selectedImagePath');
       developer.log('  File exists: ${imageFile.existsSync()}');
@@ -452,6 +466,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       String imageUrl = '';
       try {
         // Enhanced validation before upload
+        print('🚨 MEAL SAVE: Validating image file...');
         if (!imageFile.existsSync()) {
           throw Exception('Image file does not exist at path: $_selectedImagePath');
         }
@@ -465,24 +480,33 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           throw Exception('Image file too large: $fileSize bytes (max 10MB)');
         }
 
+        print('🚨 MEAL SAVE: ✅ Pre-upload validation passed');
+        print('🚨 MEAL SAVE: File exists: ${imageFile.existsSync()}');
+        print('🚨 MEAL SAVE: File size: $fileSize bytes');
+        print('🚨 MEAL SAVE: User authenticated: ${user.uid}');
         developer.log('🔄 Pre-upload validation passed');
         developer.log('  File exists: ${imageFile.existsSync()}');
         developer.log('  File size: $fileSize bytes');
         developer.log('  User authenticated: ${user.uid}');
         
         // Test Firebase Storage connectivity
+        print('🚨 MEAL SAVE: Testing Firebase Storage connectivity...');
         try {
           FirebaseStorage.instance.ref();
+          print('🚨 MEAL SAVE: ✅ Firebase Storage reference created successfully');
           developer.log('✅ Firebase Storage reference created successfully');
         } catch (storageError) {
+          print('🚨 MEAL SAVE: ❌ Firebase Storage reference failed: $storageError');
           throw Exception('Failed to create Firebase Storage reference: $storageError');
         }
 
+        print('🚨 MEAL SAVE: Creating upload task...');
         final uploadTask = FirebaseStorage.instance
             .ref()
             .child(fileName)
             .putFile(imageFile);
 
+        print('🚨 MEAL SAVE: ✅ Upload task created, waiting for completion...');
         developer.log('📤 Upload task created, waiting for completion...');
         
         // Add upload progress monitoring
@@ -496,12 +520,18 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           }
         });
         
+        print('🚨 MEAL SAVE: Waiting for upload to complete...');
         final snapshot = await uploadTask;
+        print('🚨 MEAL SAVE: ✅ Upload completed successfully!');
+        print('🚨 MEAL SAVE: Bytes transferred: ${snapshot.totalBytes}');
+        print('🚨 MEAL SAVE: Upload state: ${snapshot.state}');
         developer.log('✅ Upload completed successfully');
         developer.log('  Bytes transferred: ${snapshot.totalBytes}');
         developer.log('  Upload state: ${snapshot.state}');
         
+        print('🚨 MEAL SAVE: Getting download URL...');
         imageUrl = await snapshot.ref.getDownloadURL();
+        print('🚨 MEAL SAVE: ✅ Download URL obtained: $imageUrl');
         developer.log('🔗 Download URL obtained: $imageUrl');
 
         if (imageUrl.isEmpty) {
