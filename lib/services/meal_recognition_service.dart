@@ -166,10 +166,18 @@ class MealRecognitionService {
         // Use OpenAI Vision API for advanced analysis
         print('=== USING OPENAI VISION API ===');
         detectedFoods = await _detectFoodsWithOpenAI(imageBytes);
+        
+        print('=== BACK FROM OPENAI DETECTION ===');
+        print('Detected foods count: ${detectedFoods.length}');
+        print('Detected foods: ${detectedFoods.map((f) => f.name).join(', ')}');
+        
         // Use OpenAI's meal type classification
         mealType = _lastMealType ?? MealType.unknown;
         mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
         mealTypeReason = _lastMealTypeReason;
+        
+        print('Final meal type: ${mealType.value}');
+        print('Final meal type confidence: $mealTypeConfidence');
       }
 
       // Calculate total nutrition (always performed)
@@ -200,6 +208,13 @@ class MealRecognitionService {
         'Meal analysis completed: ${detectedFoods.length} foods detected, '
         'meal type: ${mealType.value} (${(mealTypeConfidence * 100).toInt()}% confidence)',
       );
+      
+      print('=== FINAL MEAL RECOGNITION RESULT ===');
+      print('Foods in result: ${result.detectedFoods.map((f) => f.name).join(', ')}');
+      print('Total nutrition calories: ${result.totalNutrition.calories}');
+      print('Meal type in result: ${result.mealType.value}');
+      print('Should show recipes: ${result.shouldShowRecipeSuggestions}');
+      
       return result;
     } catch (e) {
       developer.log('Error analyzing meal image: $e');
@@ -324,35 +339,64 @@ Format the response as JSON with this exact structure:
 
       // Parse the response
       print('=== PARSING OPENAI RESPONSE ===');
-      final analysisResult = jsonDecode(response);
+      
+      // Clean the response - remove markdown code blocks if present
+      String cleanResponse = response.trim();
+      if (cleanResponse.startsWith('```json')) {
+        cleanResponse = cleanResponse.substring(7); // Remove ```json
+      }
+      if (cleanResponse.startsWith('```')) {
+        cleanResponse = cleanResponse.substring(3); // Remove ```
+      }
+      if (cleanResponse.endsWith('```')) {
+        cleanResponse = cleanResponse.substring(0, cleanResponse.length - 3); // Remove trailing ```
+      }
+      cleanResponse = cleanResponse.trim();
+      
+      print('Cleaned response: $cleanResponse');
+      
+      final analysisResult = jsonDecode(cleanResponse);
       final List<FoodItem> detectedFoods = [];
+
+      print('=== JSON PARSING SUCCESSFUL ===');
+      print('Meal type: ${analysisResult['meal_type']}');
+      print('Meal type confidence: ${analysisResult['meal_type_confidence']}');
+      print('Foods detected: ${analysisResult['foods']?.length ?? 0}');
 
       // Store meal type information for later use
       _lastMealType = MealType.fromString(analysisResult['meal_type'] ?? 'unknown');
       _lastMealTypeConfidence = analysisResult['meal_type_confidence']?.toDouble() ?? 0.0;
       _lastMealTypeReason = analysisResult['meal_type_reason'];
 
+      print('=== PROCESSING DETECTED FOODS ===');
       if (analysisResult['foods'] != null) {
         for (final foodData in analysisResult['foods']) {
+          print('Processing food: ${foodData['name']} (${foodData['estimated_weight']}g)');
+          
           final nutrition = await estimateNutrition(
             foodData['name'],
             foodData['estimated_weight']?.toDouble() ?? 100.0,
           );
 
-          detectedFoods.add(
-            FoodItem(
-              name: foodData['name'],
-              category: foodData['category'] ?? 'unknown',
-              confidence: foodData['confidence']?.toDouble() ?? 0.5,
-              nutrition: nutrition,
-              estimatedWeight:
-                  foodData['estimated_weight']?.toDouble() ?? 100.0,
-              alternativeNames: _getAlternativeNames(foodData['name']),
-            ),
+          final foodItem = FoodItem(
+            name: foodData['name'],
+            category: foodData['category'] ?? 'unknown',
+            confidence: foodData['confidence']?.toDouble() ?? 0.5,
+            nutrition: nutrition,
+            estimatedWeight:
+                foodData['estimated_weight']?.toDouble() ?? 100.0,
+            alternativeNames: _getAlternativeNames(foodData['name']),
           );
+          
+          detectedFoods.add(foodItem);
+          print('Added food item: ${foodItem.name}');
         }
       }
 
+      print('=== OPENAI DETECTION COMPLETE ===');
+      print('Total foods detected: ${detectedFoods.length}');
+      print('Food names: ${detectedFoods.map((f) => f.name).join(', ')}');
+      
       return detectedFoods;
     } catch (e) {
       developer.log('Error in OpenAI food detection: $e');
