@@ -392,11 +392,15 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _saveMealLog() async {
+    print('🚨 MEAL SAVE: 🎯 Starting _saveMealLog() method');
+    print('🚨 MEAL SAVE: _selectedImagePath = $_selectedImagePath');
+    print('🚨 MEAL SAVE: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
     developer.log('🎯 MEAL SAVE: Starting _saveMealLog() method');
     developer.log('🔍 MEAL SAVE: _selectedImagePath = $_selectedImagePath');
     developer.log('🔍 MEAL SAVE: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
     
     if (_selectedImagePath == null || _analysisResult == null) {
+      print('🚨 MEAL SAVE: ❌ Missing required data!');
       developer.log('❌ MEAL SAVE: Missing required data - imagePath: $_selectedImagePath, analysisResult: ${_analysisResult != null}');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -407,10 +411,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
     // Prevent duplicate uploads
     if (_isSaving) {
+      print('🚨 MEAL SAVE: Already saving, ignoring duplicate call');
       developer.log('🔵 MEAL SAVE: Already saving, ignoring duplicate call');
       return;
     }
 
+    print('🚨 MEAL SAVE: Setting _isSaving = true');
     developer.log('🔵 MEAL SAVE: Setting _isSaving = true');
     setState(() {
       _isSaving = true;
@@ -1752,12 +1758,16 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Widget _buildSaveButton() {
+    print('🚨 SAVE BUTTON: Building save button, _isSaving = $_isSaving');
+    print('🚨 SAVE BUTTON: Button enabled = ${!_isSaving}');
     developer.log('🔵 SAVE BUTTON: Building save button, _isSaving = $_isSaving');
     developer.log('🔵 SAVE BUTTON: Button enabled = ${!_isSaving}');
     
     return SnapUI.primaryButton(
       _isSaving ? 'Saving...' : 'Save Meal Log',
       () {
+        print('🚨 SAVE BUTTON: 🎯 BUTTON PRESSED! _isSaving = $_isSaving');
+        print('🚨 SAVE BUTTON: Calling _saveMealLog()...');
         developer.log('🔵 SAVE BUTTON: Button pressed! _isSaving = $_isSaving');
         developer.log('🔵 SAVE BUTTON: Calling _saveMealLog()');
         _saveMealLog();
