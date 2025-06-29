@@ -145,7 +145,10 @@ class ContentReportingService {
           .get();
 
       final total = snapshot.docs.length;
-      final helpful = snapshot.docs.where((doc) => doc.data()['isHelpful'] == true).length;
+      final helpful = snapshot.docs.where((doc) {
+        final data = doc.data();
+        return data['isHelpful'] == true;
+      }).length;
       final notHelpful = total - helpful;
 
       return {

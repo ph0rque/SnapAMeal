@@ -326,11 +326,17 @@ class DailyInsightsService {
 
       final totalToday = todaySnapshot.docs.length;
       final generatedToday = todaySnapshot.docs
-          .where((doc) => doc.data()['isGenerated'] == true)
+          .where((doc) {
+          final data = doc.data();
+          return data['isGenerated'] == true;
+        })
           .length;
       final fallbackToday = totalToday - generatedToday;
       final dismissedToday = todaySnapshot.docs
-          .where((doc) => doc.data()['isDismissed'] == true)
+          .where((doc) {
+          final data = doc.data();
+          return data['isDismissed'] == true;
+        })
           .length;
 
       return {

@@ -327,9 +327,13 @@ class _ARCameraPageState extends State<ARCameraPage> {
         );
       } else {
         // Filter applied - capture the rendered view
+        final context = _globalKey.currentContext;
+        if (context == null) {
+          Logger.d("Error: GlobalKey context is null, cannot capture filtered image");
+          return;
+        }
         RenderRepaintBoundary boundary =
-            _globalKey.currentContext!.findRenderObject()
-                as RenderRepaintBoundary;
+            context.findRenderObject() as RenderRepaintBoundary;
         ui.Image image = await boundary.toImage(pixelRatio: 3.0);
         ByteData? byteData = await image.toByteData(
           format: ui.ImageByteFormat.png,
@@ -346,9 +350,11 @@ class _ARCameraPageState extends State<ARCameraPage> {
 
         if (!mounted) return;
 
-        await Navigator.of(context).push(
+        // ignore: use_build_context_synchronously
+        final navigator = Navigator.of(context);
+        await navigator.push(
           MaterialPageRoute(
-            builder: (context) =>
+            builder: (_) =>
                 PreviewPage(picture: XFile(file.path), isVideo: false),
           ),
         );

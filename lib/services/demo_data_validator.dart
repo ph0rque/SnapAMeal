@@ -82,7 +82,8 @@ class DemoDataValidator {
           .doc(group.id)
           .collection('members');
       final members = await memberCol.get();
-      if (members.docs.length != (group.data()['memberCount'] ?? 0)) {
+      final groupData = group.data();
+      if (members.docs.length != (groupData['memberCount'] ?? 0)) {
         return false;
       }
     }

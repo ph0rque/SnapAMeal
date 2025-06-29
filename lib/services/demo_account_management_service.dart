@@ -110,8 +110,8 @@ class DemoAccountManagementService {
           .get();
 
       if (lastResetDoc.docs.isNotEmpty) {
-        final lastReset =
-            (lastResetDoc.docs.first.data()['resetTime'] as Timestamp).toDate();
+        final resetData = lastResetDoc.docs.first.data();
+        final lastReset = (resetData['resetTime'] as Timestamp).toDate();
         final autoResetInterval = config['autoResetInterval'] as Duration;
 
         if (DateTime.now().difference(lastReset) > autoResetInterval) {
@@ -251,7 +251,8 @@ class DemoAccountManagementService {
           .get();
 
       for (final doc in inactiveSessions.docs) {
-        final userId = doc.data()['userId'];
+        final data = doc.data();
+        final userId = data['userId'];
         await _performSessionCleanup(userId);
       }
     } catch (e) {
@@ -312,7 +313,8 @@ class DemoAccountManagementService {
 
       final totalResets = resetHistory.docs.length;
       final recentResets = resetHistory.docs.where((doc) {
-        final resetTime = (doc.data()['resetTime'] as Timestamp).toDate();
+        final data = doc.data();
+        final resetTime = (data['resetTime'] as Timestamp).toDate();
         return DateTime.now().difference(resetTime).inDays <= 7;
       }).length;
 

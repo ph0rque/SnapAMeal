@@ -516,8 +516,8 @@ Format the response as JSON with this exact structure:
         double bestScore = 0.0;
         
         for (final doc in query.docs) {
-          final data = doc.data() as Map<String, dynamic>;
-          final docFoodName = data['foodName'] as String? ?? '';
+          final data = doc.data();
+          final docFoodName = data['foodName']?.toString() ?? '';
           final score = _calculateFoodNameSimilarity(foodName, docFoodName);
           
           if (score > bestScore) {
