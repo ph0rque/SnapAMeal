@@ -900,6 +900,13 @@ class OpenAIService {
     }
 
     try {
+      // Check if API key is configured
+      if (AIConfig.openaiApiKey.isEmpty) {
+        developer.log('ERROR: OpenAI API key is not configured!');
+        throw Exception('OpenAI API key is not configured');
+      }
+      
+      developer.log('OpenAI API Key configured: ${AIConfig.openaiApiKey.isNotEmpty ? 'Yes' : 'No'}');
       developer.log('Sending image analysis request to OpenAI Vision API');
 
       final response = await http.post(
@@ -930,6 +937,9 @@ class OpenAIService {
         }),
       );
 
+      developer.log('OpenAI API Response Status: ${response.statusCode}');
+      developer.log('OpenAI API Response Body (first 500 chars): ${response.body.substring(0, response.body.length > 500 ? 500 : response.body.length)}');
+
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         final chatResponse = ChatCompletionResponse.fromJson(responseData);
@@ -941,6 +951,7 @@ class OpenAIService {
         );
 
         developer.log('OpenAI Vision analysis completed successfully');
+        developer.log('OpenAI Response content: ${chatResponse.content}');
         return chatResponse.content;
       } else {
         final errorData = jsonDecode(response.body);

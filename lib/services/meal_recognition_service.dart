@@ -127,7 +127,12 @@ class MealRecognitionService {
 
   /// Analyze a meal image and return recognition results
   Future<MealRecognitionResult> analyzeMealImage(String imagePath) async {
+    print('=== ANALYZE MEAL IMAGE STARTED ===');
+    print('Image path: $imagePath');
+    print('Service initialized: $_isInitialized');
+    
     if (!_isInitialized) {
+      print('ERROR: MealRecognitionService not initialized');
       throw Exception('MealRecognitionService not initialized');
     }
 
@@ -341,6 +346,17 @@ Format the response as JSON with this exact structure:
       return detectedFoods;
     } catch (e) {
       developer.log('Error in OpenAI food detection: $e');
+      developer.log('Stack trace: ${StackTrace.current}');
+      
+      // Add more detailed error logging
+      if (e.toString().contains('API')) {
+        developer.log('OpenAI API Error - this should be visible in logs');
+      } else if (e.toString().contains('JSON')) {
+        developer.log('JSON parsing error - response might be malformed');
+      } else {
+        developer.log('Unknown error type: ${e.runtimeType}');
+      }
+      
       // Return a generic food item as fallback
       return [await _createGenericFoodItem()];
     }
