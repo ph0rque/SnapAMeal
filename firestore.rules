@@ -454,6 +454,13 @@ service cloud.firestore {
       allow write: if false; // Only admin/server-side can update/delete
     }
 
+    // Production metrics - comprehensive system metrics
+    match /production_metrics/{metricId} {
+      allow create: if request.auth != null; // Allow authenticated users to create metrics
+      allow read: if false; // Only admin/server-side can read
+      allow write: if false; // Only admin/server-side can update/delete
+    }
+
     // Content reports - user-reported content issues
     match /content_reports/{reportId} {
       allow create: if request.auth != null && 
