@@ -8,6 +8,7 @@ import '../services/health_community_service.dart';
 import '../services/weekly_review_service.dart';
 import '../services/ai_preference_service.dart';
 import '../services/in_app_notification_service.dart';
+import '../services/meal_recognition_service.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -22,6 +23,7 @@ void setupServiceLocator() {
   // AI services
   sl.registerLazySingleton<OpenAIService>(() => OpenAIService());
   sl.registerFactory<RAGService>(() => RAGService(sl<OpenAIService>()));
+  sl.registerLazySingleton<MealRecognitionService>(() => MealRecognitionService(sl<OpenAIService>(), sl<RAGService>()));
   sl.registerLazySingleton<AIPreferenceService>(() => AIPreferenceService());
   
   // Social services

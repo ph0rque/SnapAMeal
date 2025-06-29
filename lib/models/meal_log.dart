@@ -183,6 +183,9 @@ class FoodItem {
   final double estimatedWeight; // in grams
   final BoundingBox? boundingBox;
   final List<String> alternativeNames;
+  final bool isUserCorrected; // Track if user modified this item
+  final String? originalName; // Original name before correction
+  final double? originalWeight; // Original weight before correction
 
   FoodItem({
     required this.name,
@@ -192,6 +195,9 @@ class FoodItem {
     required this.estimatedWeight,
     this.boundingBox,
     required this.alternativeNames,
+    this.isUserCorrected = false,
+    this.originalName,
+    this.originalWeight,
   });
 
   Map<String, dynamic> toJson() {
@@ -203,6 +209,9 @@ class FoodItem {
       'estimated_weight': estimatedWeight,
       'bounding_box': boundingBox?.toJson(),
       'alternative_names': alternativeNames,
+      'is_user_corrected': isUserCorrected,
+      'original_name': originalName,
+      'original_weight': originalWeight,
     };
   }
 
@@ -217,6 +226,30 @@ class FoodItem {
           ? BoundingBox.fromJson(json['bounding_box'])
           : null,
       alternativeNames: List<String>.from(json['alternative_names'] ?? []),
+      isUserCorrected: json['is_user_corrected'] ?? false,
+      originalName: json['original_name'],
+      originalWeight: json['original_weight']?.toDouble(),
+    );
+  }
+
+  /// Create a corrected version of this food item
+  FoodItem copyWithCorrection({
+    required String newName,
+    required double newWeight,
+    required NutritionInfo newNutrition,
+    String? newCategory,
+  }) {
+    return FoodItem(
+      name: newName,
+      category: newCategory ?? category,
+      confidence: confidence,
+      nutrition: newNutrition,
+      estimatedWeight: newWeight,
+      boundingBox: boundingBox,
+      alternativeNames: alternativeNames,
+      isUserCorrected: true,
+      originalName: originalName ?? name, // Preserve original if already corrected
+      originalWeight: originalWeight ?? estimatedWeight,
     );
   }
 }

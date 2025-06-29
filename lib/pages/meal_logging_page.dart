@@ -15,6 +15,8 @@ import '../services/meal_recognition_service.dart';
 import '../services/openai_service.dart';
 import '../services/rag_service.dart';
 import '../services/mission_service.dart';
+import '../widgets/food_correction_dialog.dart';
+import 'package:get_it/get_it.dart';
 
 /// AI-Powered Meal Logging Page
 /// Allows users to snap meals for instant calorie estimates and AI captions
@@ -696,9 +698,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey.withOpacity(0.1),
+          color: Colors.grey.withValues(alpha: 0.1),
           borderRadius: SnapUI.borderRadius,
-          border: Border.all(color: Colors.grey.withOpacity(0.3)),
+          border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         ),
         child: Row(
           children: [
@@ -753,7 +755,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: _getCategoryColor(food.category).withOpacity(0.2),
+                    color: _getCategoryColor(food.category).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -787,7 +789,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: _getConfidenceColor(food.confidence).withOpacity(0.2),
+                              color: _getConfidenceColor(food.confidence).withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -838,14 +840,125 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                           ),
                         ],
                       ),
+                      
+                      // User correction indicator
+                      if (food.isUserCorrected) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Icon(Icons.edit, size: 12, color: Colors.green),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Edited by you',
+                              style: SnapUI.captionStyle.copyWith(
+                                color: Colors.green,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
+                ),
+                
+                // Edit button
+                IconButton(
+                  icon: Icon(
+                    Icons.edit,
+                    size: 20,
+                    color: food.isUserCorrected ? Colors.green : Colors.grey[600],
+                  ),
+                  onPressed: () => _showFoodCorrectionDialog(food, index),
+                  tooltip: 'Edit food item',
                 ),
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
+    );
+  }
+
+  /// Show food correction dialog for inline editing
+  void _showFoodCorrectionDialog(FoodItem food, int index) async {
+    final mealService = GetIt.instance<MealRecognitionService>();
+    
+    await showDialog(
+      context: context,
+      builder: (context) => FoodCorrectionDialog(
+        originalFood: food,
+        mealService: mealService,
+        onFoodCorrected: (correctedFood) {
+          setState(() {
+            // Update the food item in the analysis result
+            final updatedFoods = List<FoodItem>.from(_analysisResult!.detectedFoods);
+            updatedFoods[index] = correctedFood;
+            
+            // Recalculate total nutrition
+            final totalNutrition = _calculateTotalNutrition(updatedFoods);
+            
+            // Update the analysis result
+            _analysisResult = MealRecognitionResult(
+              detectedFoods: updatedFoods,
+              totalNutrition: totalNutrition,
+              confidenceScore: _analysisResult!.confidenceScore,
+              primaryFoodCategory: _analysisResult!.primaryFoodCategory,
+              allergenWarnings: _analysisResult!.allergenWarnings,
+              analysisTimestamp: _analysisResult!.analysisTimestamp,
+              mealType: _analysisResult!.mealType,
+              mealTypeConfidence: _analysisResult!.mealTypeConfidence,
+              mealTypeReason: _analysisResult!.mealTypeReason,
+            );
+            
+            // Show success feedback
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Food item updated successfully!'),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          });
+        },
+      ),
+    );
+  }
+
+  /// Calculate total nutrition from list of foods
+  NutritionInfo _calculateTotalNutrition(List<FoodItem> foods) {
+    double totalCalories = 0;
+    double totalProtein = 0;
+    double totalCarbs = 0;
+    double totalFat = 0;
+    double totalFiber = 0;
+    double totalSugar = 0;
+    double totalSodium = 0;
+    double totalServingSize = 0;
+
+    for (final food in foods) {
+      totalCalories += food.nutrition.calories;
+      totalProtein += food.nutrition.protein;
+      totalCarbs += food.nutrition.carbs;
+      totalFat += food.nutrition.fat;
+      totalFiber += food.nutrition.fiber;
+      totalSugar += food.nutrition.sugar;
+      totalSodium += food.nutrition.sodium;
+      totalServingSize += food.nutrition.servingSize;
+    }
+
+    return NutritionInfo(
+      calories: totalCalories,
+      protein: totalProtein,
+      carbs: totalCarbs,
+      fat: totalFat,
+      fiber: totalFiber,
+      sugar: totalSugar,
+      sodium: totalSodium,
+      servingSize: totalServingSize,
+      vitamins: {},
+      minerals: {},
     );
   }
 
@@ -1194,9 +1307,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.05),
+                color: Colors.blue.withValues(alpha: 0.05),
                 borderRadius: SnapUI.borderRadius,
-                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -1237,9 +1350,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.05),
+                color: Colors.blue.withValues(alpha: 0.05),
                 borderRadius: SnapUI.borderRadius,
-                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
@@ -1314,9 +1427,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: indicatorColor.withOpacity(0.1),
+        color: indicatorColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: indicatorColor.withOpacity(0.3)),
+        border: Border.all(color: indicatorColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

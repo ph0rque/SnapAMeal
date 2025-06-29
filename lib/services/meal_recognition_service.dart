@@ -9,6 +9,7 @@ import 'dart:developer' as developer;
 import 'dart:convert';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/services.dart';
 import '../models/meal_log.dart';
@@ -148,23 +149,52 @@ class MealRecognitionService {
       double mealTypeConfidence;
       String? mealTypeReason;
 
-      // Temporarily disable TensorFlow Lite to use advanced OpenAI Vision API
-      // with meal type classification and USDA nutrition integration
-      if (false && _interpreter != null) {
-        // Use TensorFlow Lite model for detection
-        detectedFoods = await _detectFoodsWithTFLite(image);
-        // Fallback meal type detection for TensorFlow
-        mealType = _determineMealTypeFromFoods(detectedFoods);
-        mealTypeConfidence = 0.7; // Lower confidence for heuristic-based detection
-        mealTypeReason = 'Determined from food type analysis';
-      } else {
-        // Use OpenAI Vision API for advanced analysis
-        detectedFoods = await _detectFoodsWithOpenAI(imageBytes);
+      // Phase 2: Hybrid processing with TensorFlow Lite first-pass and OpenAI fallback
+      // Use TensorFlow Lite for fast initial detection, OpenAI for enhanced analysis
+      if (_interpreter != null) {
+        developer.log('Starting hybrid processing: TensorFlow Lite + OpenAI');
         
-        // Use OpenAI's meal type classification
+        try {
+          // First pass: TensorFlow Lite for quick detection
+          final tfLiteResults = await _detectFoodsWithTFLite(image);
+          final avgConfidence = _calculateOverallConfidence(tfLiteResults);
+          
+          developer.log('TensorFlow Lite results: ${tfLiteResults.length} foods, avg confidence: ${(avgConfidence * 100).toInt()}%');
+          
+          // Check if TensorFlow Lite results meet confidence threshold
+          if (avgConfidence >= 0.7 && tfLiteResults.isNotEmpty) {
+            // High confidence TensorFlow Lite results - use them directly
+            detectedFoods = tfLiteResults;
+            mealType = _determineMealTypeFromFoods(detectedFoods);
+            mealTypeConfidence = 0.8; // High confidence for TensorFlow processing
+            mealTypeReason = 'Determined from TensorFlow Lite food analysis';
+            developer.log('Using TensorFlow Lite results (high confidence)');
+          } else {
+            // Low confidence - enhance with OpenAI analysis
+            developer.log('TensorFlow Lite confidence low, enhancing with OpenAI');
+            final openAIResults = await _detectFoodsWithOpenAI(imageBytes);
+            
+            // Merge results: keep high-confidence TensorFlow items, add OpenAI insights
+            detectedFoods = _mergeDetectionResults(tfLiteResults, openAIResults);
+            mealType = _lastMealType ?? MealType.unknown;
+            mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
+            mealTypeReason = _lastMealTypeReason ?? 'Hybrid analysis (TensorFlow + OpenAI)';
+          }
+        } catch (e) {
+          developer.log('TensorFlow Lite processing failed: $e, falling back to OpenAI');
+          // Fallback to OpenAI if TensorFlow Lite fails
+          detectedFoods = await _detectFoodsWithOpenAI(imageBytes);
+          mealType = _lastMealType ?? MealType.unknown;
+          mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
+          mealTypeReason = _lastMealTypeReason ?? 'OpenAI analysis (TensorFlow fallback)';
+        }
+      } else {
+        // TensorFlow Lite not available - use OpenAI only
+        developer.log('TensorFlow Lite not available, using OpenAI Vision API');
+        detectedFoods = await _detectFoodsWithOpenAI(imageBytes);
         mealType = _lastMealType ?? MealType.unknown;
         mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
-        mealTypeReason = _lastMealTypeReason;
+        mealTypeReason = _lastMealTypeReason ?? 'OpenAI Vision analysis';
       }
 
       // Calculate total nutrition (always performed)
@@ -390,36 +420,255 @@ Format the response as JSON with this exact structure:
   }
 
   /// Estimate nutrition information for a food item
-  /// Priority: USDA Database -> Local Database -> AI Estimation -> Default
+  /// Priority: Firebase Database -> USDA Database -> AI Estimation -> Default
   Future<NutritionInfo> estimateNutrition(
     String foodName,
     double weightGrams,
   ) async {
     try {
-      // First, try USDA FoodData Central (most accurate)
+      // First, try Firebase foods collection (fastest, pre-populated)
+      final firebaseNutrition = await _getNutritionFromFirebase(foodName, weightGrams);
+      if (firebaseNutrition != null) {
+        developer.log('Using Firebase nutrition data for: $foodName');
+        return firebaseNutrition;
+      }
+
+      // Second, try USDA FoodData Central (most accurate, save to Firebase)
       final usdaNutrition = await _usdaService.getNutritionForFood(foodName, weightGrams);
       if (usdaNutrition != null) {
         developer.log('Using USDA nutrition data for: $foodName');
+        // Backfill Firebase with USDA data for future use
+        _backfillFirebaseWithUSDA(foodName, usdaNutrition, weightGrams);
         return usdaNutrition;
       }
 
-      // Fallback to local database
+      // Third, fallback to local hardcoded database (legacy)
       final localNutrition = _getNutritionFromDatabase(foodName, weightGrams);
       if (localNutrition != null) {
         developer.log('Using local nutrition data for: $foodName');
         return localNutrition;
       }
 
-      // Fallback to AI-estimated nutrition
+      // Final fallback to AI-estimated nutrition
       developer.log('Using AI nutrition estimation for: $foodName');
-      return await _estimateNutritionWithAI(foodName, weightGrams);
+      final aiNutrition = await _estimateNutritionWithAI(foodName, weightGrams);
+      // Save AI estimation to Firebase for future use
+      _backfillFirebaseWithAI(foodName, aiNutrition);
+      return aiNutrition;
     } catch (e) {
       developer.log('Error estimating nutrition for $foodName: $e');
       return _getDefaultNutrition(weightGrams);
     }
   }
 
-  /// Get nutrition data from local food database
+  /// Get nutrition data from Firebase foods collection
+  Future<NutritionInfo?> _getNutritionFromFirebase(
+    String foodName,
+    double weightGrams,
+  ) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final searchTerms = _generateSearchKeywords(foodName);
+      
+      // Try exact name match first
+      var query = await firestore
+          .collection('foods')
+          .where('foodName', isEqualTo: foodName)
+          .limit(1)
+          .get();
+          
+      // If no exact match, try fuzzy search with keywords
+      if (query.docs.isEmpty) {
+        query = await firestore
+            .collection('foods')
+            .where('searchableKeywords', arrayContainsAny: searchTerms)
+            .orderBy('createdAt', descending: true)
+            .limit(5)
+            .get();
+      }
+      
+      if (query.docs.isNotEmpty) {
+        // Find best match using similarity scoring
+        DocumentSnapshot? bestMatch;
+        double bestScore = 0.0;
+        
+        for (final doc in query.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final docFoodName = data['foodName'] as String? ?? '';
+          final score = _calculateFoodNameSimilarity(foodName, docFoodName);
+          
+          if (score > bestScore) {
+            bestScore = score;
+            bestMatch = doc;
+          }
+        }
+        
+        if (bestMatch != null && bestScore > 0.6) {
+          final data = bestMatch.data() as Map<String, dynamic>;
+          return _parseFirebaseNutritionData(data, weightGrams);
+        }
+      }
+      
+      return null;
+    } catch (e) {
+      developer.log('Error querying Firebase foods: $e');
+      return null;
+    }
+  }
+
+  /// Generate search keywords from food name for fuzzy matching
+  List<String> _generateSearchKeywords(String foodName) {
+    final keywords = <String>{};
+    final cleanName = foodName.toLowerCase().trim();
+    
+    // Add the full name
+    keywords.add(cleanName);
+    
+    // Add individual words (length > 2)
+    final words = cleanName.split(RegExp(r'[,\s]+'))
+        .where((word) => word.length > 2)
+        .toList();
+    keywords.addAll(words);
+    
+    // Add common variations
+    if (cleanName.contains('chicken')) keywords.addAll(['poultry', 'fowl']);
+    if (cleanName.contains('beef')) keywords.addAll(['steak', 'meat']);
+    if (cleanName.contains('fish')) keywords.add('seafood');
+    if (cleanName.contains('bread')) keywords.addAll(['toast', 'roll']);
+    
+    return keywords.toList();
+  }
+
+  /// Calculate similarity between two food names (0.0 to 1.0)
+  double _calculateFoodNameSimilarity(String name1, String name2) {
+    final n1 = name1.toLowerCase().trim();
+    final n2 = name2.toLowerCase().trim();
+    
+    // Exact match
+    if (n1 == n2) return 1.0;
+    
+    // One contains the other
+    if (n1.contains(n2) || n2.contains(n1)) return 0.8;
+    
+    // Word overlap scoring
+    final words1 = n1.split(RegExp(r'\s+')).where((w) => w.length > 2).toSet();
+    final words2 = n2.split(RegExp(r'\s+')).where((w) => w.length > 2).toSet();
+    
+    if (words1.isEmpty || words2.isEmpty) return 0.0;
+    
+    final intersection = words1.intersection(words2);
+    final union = words1.union(words2);
+    
+    return intersection.length / union.length;
+  }
+
+  /// Parse Firebase nutrition data into NutritionInfo
+  NutritionInfo _parseFirebaseNutritionData(
+    Map<String, dynamic> data,
+    double weightGrams,
+  ) {
+    final nutritionPer100g = data['nutritionPer100g'] as Map<String, dynamic>? ?? {};
+    final scaleFactor = weightGrams / 100.0;
+    
+    return NutritionInfo(
+      calories: (nutritionPer100g['calories']?.toDouble() ?? 0.0) * scaleFactor,
+      protein: (nutritionPer100g['protein']?.toDouble() ?? 0.0) * scaleFactor,
+      carbs: (nutritionPer100g['carbs']?.toDouble() ?? 0.0) * scaleFactor,
+      fat: (nutritionPer100g['fat']?.toDouble() ?? 0.0) * scaleFactor,
+      fiber: (nutritionPer100g['fiber']?.toDouble() ?? 0.0) * scaleFactor,
+      sugar: (nutritionPer100g['sugar']?.toDouble() ?? 0.0) * scaleFactor,
+      sodium: (nutritionPer100g['sodium']?.toDouble() ?? 0.0) * scaleFactor,
+      servingSize: weightGrams,
+      vitamins: Map<String, double>.from(nutritionPer100g['vitamins'] ?? {}),
+      minerals: Map<String, double>.from(nutritionPer100g['minerals'] ?? {}),
+    );
+  }
+
+  /// Backfill Firebase with USDA nutrition data
+  void _backfillFirebaseWithUSDA(
+    String foodName,
+    NutritionInfo nutrition,
+    double weightGrams,
+  ) {
+    // Run in background to avoid blocking main flow
+    Future(() async {
+      try {
+        final firestore = FirebaseFirestore.instance;
+        final scaleFactor = 100.0 / weightGrams; // Convert to per-100g
+        
+        final foodData = {
+          'foodName': foodName,
+          'searchableKeywords': _generateSearchKeywords(foodName),
+          'fdcId': null, // Unknown for backfilled data
+          'dataType': 'backfill_usda',
+          'category': _categorizeFoodItem(foodName),
+          'nutritionPer100g': {
+            'calories': nutrition.calories * scaleFactor,
+            'protein': nutrition.protein * scaleFactor,
+            'carbs': nutrition.carbs * scaleFactor,
+            'fat': nutrition.fat * scaleFactor,
+            'fiber': nutrition.fiber * scaleFactor,
+            'sugar': nutrition.sugar * scaleFactor,
+            'sodium': nutrition.sodium * scaleFactor,
+            'vitamins': nutrition.vitamins,
+            'minerals': nutrition.minerals,
+          },
+          'allergens': [],
+          'servingSizes': {'default': weightGrams},
+          'source': 'USDA_backfill',
+          'createdAt': FieldValue.serverTimestamp(),
+          'version': 1,
+        };
+        
+        await firestore.collection('foods').add(foodData);
+        developer.log('Backfilled Firebase with USDA data for: $foodName');
+      } catch (e) {
+        developer.log('Error backfilling Firebase with USDA data: $e');
+      }
+    });
+  }
+
+  /// Backfill Firebase with AI nutrition estimation
+  void _backfillFirebaseWithAI(String foodName, NutritionInfo nutrition) {
+    // Run in background to avoid blocking main flow
+    Future(() async {
+      try {
+        final firestore = FirebaseFirestore.instance;
+        final scaleFactor = 100.0 / nutrition.servingSize; // Convert to per-100g
+        
+        final foodData = {
+          'foodName': foodName,
+          'searchableKeywords': _generateSearchKeywords(foodName),
+          'fdcId': null,
+          'dataType': 'ai_estimate',
+          'category': _categorizeFoodItem(foodName),
+          'nutritionPer100g': {
+            'calories': nutrition.calories * scaleFactor,
+            'protein': nutrition.protein * scaleFactor,
+            'carbs': nutrition.carbs * scaleFactor,
+            'fat': nutrition.fat * scaleFactor,
+            'fiber': nutrition.fiber * scaleFactor,
+            'sugar': nutrition.sugar * scaleFactor,
+            'sodium': nutrition.sodium * scaleFactor,
+            'vitamins': {},
+            'minerals': {},
+          },
+          'allergens': [],
+          'servingSizes': {'estimated': nutrition.servingSize},
+          'source': 'AI_estimate',
+          'createdAt': FieldValue.serverTimestamp(),
+          'version': 1,
+        };
+        
+        await firestore.collection('foods').add(foodData);
+        developer.log('Backfilled Firebase with AI estimate for: $foodName');
+      } catch (e) {
+        developer.log('Error backfilling Firebase with AI data: $e');
+      }
+    });
+  }
+
+  /// Get nutrition data from local food database (legacy fallback)
   NutritionInfo? _getNutritionFromDatabase(
     String foodName,
     double weightGrams,
@@ -560,7 +809,7 @@ All values should be numbers (not strings) and represent the total amount for th
       sodium: totalSodium,
       servingSize: foods.fold(
         0.0,
-        (sum, food) => sum + food.nutrition.servingSize,
+        (total, food) => total + food.nutrition.servingSize,
       ),
       vitamins: {},
       minerals: {},
@@ -748,6 +997,75 @@ All values should be numbers (not strings) and represent the total amount for th
     
     return preparedFoods.any((food) => 
       foodName.contains(food));
+  }
+
+  /// Merge TensorFlow Lite and OpenAI detection results
+  List<FoodItem> _mergeDetectionResults(
+    List<FoodItem> tfLiteResults,
+    List<FoodItem> openAIResults,
+  ) {
+    final mergedResults = <FoodItem>[];
+    final processedNames = <String>{};
+    
+    // First, add high-confidence TensorFlow Lite results
+    for (final tfItem in tfLiteResults) {
+      if (tfItem.confidence >= 0.6) {
+        mergedResults.add(tfItem);
+        processedNames.add(tfItem.name.toLowerCase());
+      }
+    }
+    
+    // Then, add OpenAI results that don't duplicate TensorFlow items
+    for (final aiItem in openAIResults) {
+      final aiNameLower = aiItem.name.toLowerCase();
+      bool isDuplicate = false;
+      
+      // Check for duplicates or very similar items
+      for (final processedName in processedNames) {
+        if (_areItemsSimilar(aiNameLower, processedName)) {
+          isDuplicate = true;
+          break;
+        }
+      }
+      
+      if (!isDuplicate) {
+        mergedResults.add(aiItem);
+        processedNames.add(aiNameLower);
+      }
+    }
+    
+    // Finally, add low-confidence TensorFlow items if we don't have enough results
+    if (mergedResults.length < 3) {
+      for (final tfItem in tfLiteResults) {
+        if (tfItem.confidence < 0.6 && 
+            !processedNames.contains(tfItem.name.toLowerCase())) {
+          mergedResults.add(tfItem);
+          if (mergedResults.length >= 5) break; // Limit total results
+        }
+      }
+    }
+    
+    developer.log('Merged results: ${mergedResults.length} items from TensorFlow (${tfLiteResults.length}) + OpenAI (${openAIResults.length})');
+    return mergedResults;
+  }
+
+  /// Check if two food item names are similar enough to be considered duplicates
+  bool _areItemsSimilar(String name1, String name2) {
+    // Simple similarity check - can be enhanced with more sophisticated algorithms
+    if (name1 == name2) return true;
+    
+    // Check if one name contains the other
+    if (name1.contains(name2) || name2.contains(name1)) return true;
+    
+    // Check for common word overlap
+    final words1 = name1.split(' ').where((w) => w.length > 2).toSet();
+    final words2 = name2.split(' ').where((w) => w.length > 2).toSet();
+    final overlap = words1.intersection(words2);
+    
+    // Consider similar if they share significant words
+    return overlap.isNotEmpty && 
+           overlap.length >= (words1.length * 0.5) || 
+           overlap.length >= (words2.length * 0.5);
   }
 
   /// Create a generic food item as fallback

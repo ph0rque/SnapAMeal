@@ -3,10 +3,8 @@
 // ignore_for_file: avoid_print
 
 import "dart:io";
-import "dart:convert";
 import "package:firebase_core/firebase_core.dart";
 import "package:cloud_firestore/cloud_firestore.dart";
-import "package:http/http.dart" as http;
 
 /// Simple script to populate Firebase foods collection with USDA data
 Future<void> main(List<String> args) async {
@@ -95,8 +93,7 @@ Future<void> main(List<String> args) async {
 }
 
 String _extractEnvValue(String envContent, String key) {
-  final lines = envContent.split("
-");
+  final lines = envContent.split("\n");
   for (final line in lines) {
     if (line.trim().startsWith("$key=")) {
       return line.split("=")[1].trim().replaceAll("\"", "");
