@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../services/rag_service.dart';
 import '../services/openai_service.dart';
 import '../services/knowledge_seeding_service.dart';
@@ -15,8 +17,10 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
   late KnowledgeSeedingService _seedingService;
   bool _isLoading = false;
   bool _isSeeding = false;
+  bool _isCleaningUp = false;
   Map<String, dynamic>? _testResults;
   Map<String, dynamic>? _seedingResults;
+  Map<String, dynamic>? _cleanupResults;
   String? _errorMessage;
 
   @override
@@ -31,6 +35,7 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
       _isLoading = true;
       _testResults = null;
       _seedingResults = null;
+      _cleanupResults = null;
       _errorMessage = null;
     });
 
@@ -52,6 +57,7 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
     setState(() {
       _isSeeding = true;
       _seedingResults = null;
+      _cleanupResults = null;
       _errorMessage = null;
     });
 
@@ -91,11 +97,180 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
     }
   }
 
+  Future<void> _cleanupCorruptedMealLogs() async {
+    setState(() {
+      _isCleaningUp = true;
+      _cleanupResults = null;
+      _errorMessage = null;
+    });
+
+    try {
+      print('🧹 Starting cleanup of corrupted meal logs...');
+      
+      final firestore = FirebaseFirestore.instance;
+      
+      // Get current user ID from Firebase Auth
+      final currentUser = FirebaseAuth.instance.currentUser;
+      if (currentUser == null) {
+        throw Exception('User not authenticated');
+      }
+      final currentUserId = currentUser.uid;
+      print('👤 Current user ID: $currentUserId');
+      
+      int totalChecked = 0;
+      int corruptedCount = 0;
+      int deletedCount = 0;
+      final List<DocumentReference> corruptedDocs = [];
+      
+      // Step 1: Check user's own meal logs
+      print('📊 Step 1: Fetching meal documents for current user...');
+      final QuerySnapshot userSnapshot = await firestore
+          .collection('meal_logs')
+          .where('user_id', isEqualTo: currentUserId)
+          .get();
+      
+      print('📊 Found ${userSnapshot.docs.length} meal documents for current user');
+      totalChecked += userSnapshot.docs.length;
+      
+      // Check user's documents for corruption
+      for (final doc in userSnapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        
+        // Check if document is corrupted (has null/empty values for critical fields)
+        final bool isCorrupted = (
+          data['image_url'] == null || 
+          data['image_url'] == '' ||
+          data['image_path'] == null || 
+          data['image_path'] == ''
+        );
+        
+        if (isCorrupted) {
+          corruptedCount++;
+          print('🗑️  Found corrupted user document: ${doc.id}');
+          print('   - image_url: ${data['image_url']}');
+          print('   - image_path: ${data['image_path']}');
+          print('   - user_id: ${data['user_id']}');
+          
+          corruptedDocs.add(doc.reference);
+        }
+      }
+      
+      // Step 2: Check for orphaned documents (null user_id)
+      print('📊 Step 2: Fetching orphaned meal documents (null user_id)...');
+      try {
+        final QuerySnapshot orphanedSnapshot = await firestore
+            .collection('meal_logs')
+            .where('user_id', isNull: true)
+            .get();
+        
+        print('📊 Found ${orphanedSnapshot.docs.length} orphaned meal documents');
+        totalChecked += orphanedSnapshot.docs.length;
+        
+        // All orphaned documents are considered corrupted
+        for (final doc in orphanedSnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          corruptedCount++;
+          print('🗑️  Found orphaned document: ${doc.id}');
+          print('   - image_url: ${data['image_url']}');
+          print('   - image_path: ${data['image_path']}');
+          print('   - user_id: ${data['user_id']}');
+          
+          corruptedDocs.add(doc.reference);
+        }
+      } catch (e) {
+        print('⚠️  Could not query orphaned documents: $e');
+        // Continue with user documents only
+      }
+      
+      // Step 3: Check for documents with empty string user_id
+      print('📊 Step 3: Fetching documents with empty user_id...');
+      try {
+        final QuerySnapshot emptyUserSnapshot = await firestore
+            .collection('meal_logs')
+            .where('user_id', isEqualTo: '')
+            .get();
+        
+        print('📊 Found ${emptyUserSnapshot.docs.length} documents with empty user_id');
+        totalChecked += emptyUserSnapshot.docs.length;
+        
+        // All empty user_id documents are considered corrupted
+        for (final doc in emptyUserSnapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          corruptedCount++;
+          print('🗑️  Found empty user_id document: ${doc.id}');
+          print('   - image_url: ${data['image_url']}');
+          print('   - image_path: ${data['image_path']}');
+          print('   - user_id: "${data['user_id']}"');
+          
+          corruptedDocs.add(doc.reference);
+        }
+      } catch (e) {
+        print('⚠️  Could not query empty user_id documents: $e');
+        // Continue with what we have
+      }
+      
+      if (corruptedDocs.isEmpty) {
+        setState(() {
+          _cleanupResults = {
+            'success': true,
+            'message': 'No corrupted documents found - database is clean!',
+            'totalChecked': totalChecked,
+            'corruptedFound': 0,
+            'documentsDeleted': 0,
+            'validRemaining': totalChecked,
+          };
+          _isCleaningUp = false;
+        });
+        return;
+      }
+      
+      print('\n🗑️  Deleting ${corruptedDocs.length} corrupted documents...');
+      
+      // Delete documents one by one to handle permission differences
+      for (int i = 0; i < corruptedDocs.length; i++) {
+        try {
+          print('💾 Deleting document ${i + 1}/${corruptedDocs.length}: ${corruptedDocs[i].id}');
+          await corruptedDocs[i].delete();
+          deletedCount++;
+        } catch (e) {
+          print('❌ Failed to delete document ${corruptedDocs[i].id}: $e');
+          // Continue with next document - some may fail due to permissions
+        }
+      }
+      
+      setState(() {
+        _cleanupResults = {
+          'success': true,
+          'message': 'Cleanup completed! Removed $deletedCount out of $corruptedCount corrupted meal documents.',
+          'totalChecked': totalChecked,
+          'corruptedFound': corruptedCount,
+          'documentsDeleted': deletedCount,
+          'validRemaining': totalChecked - deletedCount,
+        };
+        _isCleaningUp = false;
+      });
+      
+      print('✅ Cleanup completed successfully!');
+      print('📊 Summary:');
+      print('   - Total documents checked: $totalChecked');
+      print('   - Corrupted documents found: $corruptedCount');
+      print('   - Documents deleted: $deletedCount');
+      print('   - Valid documents remaining: ${totalChecked - deletedCount}');
+      
+    } catch (e) {
+      print('❌ Error during cleanup: $e');
+      setState(() {
+        _errorMessage = 'Error cleaning up meal logs: $e';
+        _isCleaningUp = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Debug Pinecone'),
+        title: const Text('Debug & Cleanup'),
         backgroundColor: Theme.of(context).primaryColor,
         foregroundColor: Colors.white,
       ),
@@ -112,7 +287,7 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
 
             // Connection Test Button
             ElevatedButton(
-              onPressed: (_isLoading || _isSeeding) ? null : _testConnection,
+              onPressed: (_isLoading || _isSeeding || _isCleaningUp) ? null : _testConnection,
               child: _isLoading
                   ? const SizedBox(
                       width: 20,
@@ -126,7 +301,7 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
 
             // Seed Knowledge Base Button
             ElevatedButton(
-              onPressed: (_isLoading || _isSeeding) ? null : _seedKnowledgeBase,
+              onPressed: (_isLoading || _isSeeding || _isCleaningUp) ? null : _seedKnowledgeBase,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.green,
                 foregroundColor: Colors.white,
@@ -141,6 +316,33 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                       ),
                     )
                   : const Text('Seed Knowledge Base'),
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              'Meal Log Cleanup',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+
+            // Cleanup Corrupted Meal Logs Button
+            ElevatedButton(
+              onPressed: (_isLoading || _isSeeding || _isCleaningUp) ? null : _cleanupCorruptedMealLogs,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: _isCleaningUp
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Cleanup Corrupted Meal Logs'),
             ),
 
             const SizedBox(height: 24),
@@ -202,6 +404,65 @@ class _DebugPineconePageState extends State<DebugPineconePage> {
                         'Updated Stats - Total Vectors: ${_seedingResults!['stats']['total_vector_count']}',
                         style: TextStyle(
                           color: Colors.green.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+            if (_cleanupResults != null)
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  border: Border.all(color: Colors.blue.shade200),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Meal Log Cleanup Results:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      _cleanupResults!['message'],
+                      style: const TextStyle(color: Colors.blue),
+                    ),
+                    if (_cleanupResults!['totalChecked'] != null) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Total documents checked: ${_cleanupResults!['totalChecked']}',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        'Corrupted documents found: ${_cleanupResults!['corruptedFound']}',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        'Documents deleted: ${_cleanupResults!['documentsDeleted']}',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        'Valid documents remaining: ${_cleanupResults!['validRemaining']}',
+                        style: TextStyle(
+                          color: Colors.blue.shade700,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
