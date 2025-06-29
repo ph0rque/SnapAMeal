@@ -252,25 +252,32 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       return;
     }
 
+    print('🚨 MEAL ANALYSIS: Setting _isAnalyzing = true');
     developer.log('🔍 MEAL ANALYSIS: Setting _isAnalyzing = true');
     setState(() {
       _isAnalyzing = true;
     });
 
     try {
+      print('🚨 MEAL ANALYSIS: Calling analyzeMealImage...');
       developer.log('🔍 MEAL ANALYSIS: Calling analyzeMealImage...');
       // Analyze the meal image (always performed)
       final result = await _mealRecognitionService.analyzeMealImage(imagePath);
+      print('🚨 MEAL ANALYSIS: ✅ analyzeMealImage completed successfully!');
+      print('🚨 MEAL ANALYSIS: Detected foods: ${result.detectedFoods.length}');
+      print('🚨 MEAL ANALYSIS: Primary category: ${result.primaryFoodCategory}');
       developer.log('✅ MEAL ANALYSIS: analyzeMealImage completed successfully');
       developer.log('   Detected foods: ${result.detectedFoods.length}');
       developer.log('   Primary category: ${result.primaryFoodCategory}');
 
+      print('🚨 MEAL ANALYSIS: Generating caption...');
       developer.log('🔍 MEAL ANALYSIS: Generating caption...');
       // Generate caption (always performed)
       final caption = await _mealRecognitionService.generateMealCaption(
         result,
         _selectedCaptionType,
       );
+      print('🚨 MEAL ANALYSIS: ✅ Caption generated successfully!');
       developer.log('✅ MEAL ANALYSIS: Caption generated successfully');
 
       // Conditional recipe suggestions based on meal type
@@ -283,6 +290,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         developer.log('🔍 MEAL ANALYSIS: Skipping recipe suggestions for ${result.mealType.value} meal');
       }
 
+      print('🚨 MEAL ANALYSIS: Setting analysis results in state...');
       developer.log('🔍 MEAL ANALYSIS: Setting analysis results in state...');
       setState(() {
         _analysisResult = result;
@@ -290,6 +298,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         _recipeSuggestions = recipes;
         _isAnalyzing = false;
       });
+      print('🚨 MEAL ANALYSIS: ✅ State updated with results! Save button should now appear.');
       developer.log('✅ MEAL ANALYSIS: State updated with results');
 
       // Provide haptic feedback
@@ -309,10 +318,14 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         context,
       ).showSnackBar(SnapUI.successSnackBar(message));
     } catch (e) {
+      print('🚨 MEAL ANALYSIS: ❌ ERROR occurred: $e');
+      print('🚨 MEAL ANALYSIS: ❌ Error type: ${e.runtimeType}');
+      print('🚨 MEAL ANALYSIS: ❌ Full error: ${e.toString()}');
       developer.log('❌ MEAL ANALYSIS: Error analyzing meal: $e');
       developer.log('❌ MEAL ANALYSIS: Error type: ${e.runtimeType}');
       developer.log('❌ MEAL ANALYSIS: Full error: ${e.toString()}');
       
+      print('🚨 MEAL ANALYSIS: Setting _isAnalyzing = false due to error');
       setState(() {
         _isAnalyzing = false;
       });
