@@ -13,6 +13,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:flutter/services.dart';
 import '../models/meal_log.dart';
+import '../utils/performance_monitor.dart';
 
 import 'openai_service.dart';
 import 'rag_service.dart';
@@ -128,7 +129,11 @@ class MealRecognitionService {
 
   /// Analyze a meal image and return recognition results
   Future<MealRecognitionResult> analyzeMealImage(String imagePath) async {
+    final timer = PerformanceMonitor().startTimer('analyze_meal_image', 'meal_recognition', 
+        metadata: {'image_path': imagePath});
+
     if (!_isInitialized) {
+      timer.fail('Service not initialized');
       throw Exception('MealRecognitionService not initialized');
     }
 
@@ -226,15 +231,24 @@ class MealRecognitionService {
         'meal type: ${mealType.value} (${(mealTypeConfidence * 100).toInt()}% confidence)',
       );
       
+      timer.complete(additionalMetadata: {
+        'foods_detected': detectedFoods.length,
+        'confidence_score': confidenceScore,
+        'meal_type': mealType.value,
+      });
+      
       return result;
     } catch (e) {
       developer.log('Error analyzing meal image: $e');
+      timer.fail(e.toString());
       rethrow;
     }
   }
 
   /// Detect foods using TensorFlow Lite model
   Future<List<FoodItem>> _detectFoodsWithTFLite(img.Image image) async {
+    final timer = PerformanceMonitor().startTimer('tensorflow_inference', 'tensorflow');
+    
     try {
       // Preprocess image for model input
       final input = _preprocessImage(image);
@@ -248,7 +262,7 @@ class MealRecognitionService {
 
       // Parse results
       final List<FoodItem> detectedFoods = [];
-      final scores = output[0] as List<double>;
+      final scores = output[0] as List;
 
       // Get top predictions
       final predictions = <MapEntry<int, double>>[];
@@ -282,15 +296,19 @@ class MealRecognitionService {
         }
       }
 
+      timer.complete(additionalMetadata: {'foods_detected': detectedFoods.length});
       return detectedFoods;
     } catch (e) {
       developer.log('Error in TensorFlow Lite detection: $e');
+      timer.fail(e.toString());
       rethrow;
     }
   }
 
   /// Detect foods using OpenAI Vision API as fallback
   Future<List<FoodItem>> _detectFoodsWithOpenAI(Uint8List imageBytes) async {
+    final timer = PerformanceMonitor().startTimer('vision_analysis', 'openai');
+    
     try {
       developer.log('Using OpenAI Vision API for food detection');
 
@@ -384,9 +402,11 @@ Format the response as JSON with this exact structure:
         }
       }
       
+      timer.complete(additionalMetadata: {'foods_detected': detectedFoods.length});
       return detectedFoods;
     } catch (e) {
       developer.log('Error in OpenAI food detection: $e');
+      timer.fail(e.toString());
       
       // Return a generic food item as fallback
       return [await _createGenericFoodItem()];
@@ -466,6 +486,9 @@ Format the response as JSON with this exact structure:
     String foodName,
     double weightGrams,
   ) async {
+    final timer = PerformanceMonitor().startTimer('nutrition_lookup', 'firebase', 
+        metadata: {'food_name': foodName});
+    
     try {
       final firestore = FirebaseFirestore.instance;
       final searchTerms = _generateSearchKeywords(foodName);
@@ -505,13 +528,16 @@ Format the response as JSON with this exact structure:
         
         if (bestMatch != null && bestScore > 0.6) {
           final data = bestMatch.data() as Map<String, dynamic>;
+          timer.complete(additionalMetadata: {'found_match': true, 'similarity_score': bestScore});
           return _parseFirebaseNutritionData(data, weightGrams);
         }
       }
       
+      timer.complete(additionalMetadata: {'found_match': false});
       return null;
     } catch (e) {
       developer.log('Error querying Firebase foods: $e');
+      timer.fail(e.toString());
       return null;
     }
   }

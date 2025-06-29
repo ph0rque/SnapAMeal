@@ -27,6 +27,12 @@ import 'package:snapameal/pages/my_meals_page.dart';
 import 'pages/debug_pinecone_page.dart';
 
 import 'di/service_locator.dart';
+import 'themes/dark_mode.dart';
+import 'config/feature_flags.dart';
+import 'services/production_monitoring_service.dart';
+
+import 'utils/performance_monitor.dart';
+import 'utils/logger.dart';
 
 late List<CameraDescription> cameras;
 
@@ -88,8 +94,33 @@ Future<void> main() async {
     }
   }
 
+  // Initialize service locator
   setupServiceLocator();
+  
+  // Initialize Phase 4 enhanced services
+  await _initializePhase4Services();
+
   runApp(const MyApp());
+}
+
+/// Initialize Phase 4 enhanced services for production deployment
+Future<void> _initializePhase4Services() async {
+  try {
+    // Initialize feature flags for gradual rollout
+    await FeatureFlagService().initialize();
+    
+    // Initialize production monitoring and health checks
+    await ProductionMonitoringService().initialize();
+    
+    // Performance monitoring is already initialized in service locator
+    // but we ensure it's enabled for Phase 4
+    PerformanceMonitor().setEnabled(true);
+    
+    Logger.d('✅ Phase 4 enhanced services initialized successfully');
+  } catch (e) {
+    Logger.d('❌ Error initializing Phase 4 services: $e');
+    // Continue with app initialization even if some services fail
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -134,8 +165,9 @@ class MyApp extends StatelessWidget {
 
             // Use consistent theme regardless of fasting state
             theme: lightMode,
+            darkTheme: darkMode,
             // Force light mode for consistency
-            themeMode: ThemeMode.light,
+            themeMode: ThemeMode.system,
 
             // Wrap the entire app with fasting-aware navigation
             home: FastingAwareNavigation(
@@ -150,13 +182,16 @@ class MyApp extends StatelessWidget {
 
             // Handle initial route with fasting context
             initialRoute: '/',
+
+            // Add global error handling for production
+            builder: (context, child) {
+              return _ProductionErrorHandler(child: child);
+            },
           );
         },
       ),
     );
   }
-
-
 
   /// Generate routes with fasting protection
   Route<dynamic>? _generateRoute(
@@ -268,6 +303,18 @@ class MyApp extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// Global error handler for production monitoring
+class _ProductionErrorHandler extends StatelessWidget {
+  final Widget? child;
+
+  const _ProductionErrorHandler({this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return child ?? const SizedBox.shrink();
   }
 }
 

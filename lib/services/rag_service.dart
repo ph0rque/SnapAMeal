@@ -552,6 +552,183 @@ class RAGService {
     }
   }
 
+  /// Query nutritional facts and comparisons from the knowledge base
+  Future<String?> queryNutritionalFacts({
+    required String query,
+    String? userId,
+    List<String>? dietaryRestrictions,
+    int maxResults = 5,
+  }) async {
+    try {
+      Logger.d('🔍 Querying nutritional facts: $query');
+
+      // Create specialized health context for nutritional queries
+      final healthContext = HealthQueryContext(
+        userId: userId ?? 'anonymous',
+        queryType: 'nutrition_facts',
+        userProfile: {},
+        currentGoals: ['nutrition_education'],
+        dietaryRestrictions: dietaryRestrictions ?? [],
+        recentActivity: {},
+        contextTimestamp: DateTime.now(),
+      );
+
+      // Enhanced search with nutrition-specific filtering
+      final searchResults = await performSemanticSearch(
+        query: query,
+        healthContext: healthContext,
+        maxResults: maxResults,
+        minSimilarityScore: 0.6, // Lower threshold for broader nutrition results
+        categoryFilter: _getNutritionCategories(),
+        tagFilter: ['nutrition_facts'],
+      );
+
+      if (searchResults.isEmpty) {
+        return await _generateNutritionFallbackResponse(query, dietaryRestrictions);
+      }
+
+      // Build specialized nutrition context
+      final context = _buildNutritionContext(searchResults);
+
+      // Create nutrition-specific prompt
+      final systemPrompt = _buildNutritionSystemPrompt(dietaryRestrictions);
+      final userPrompt = _buildNutritionUserPrompt(query, context);
+
+      // Generate response using OpenAI
+      final response = await _openAIService.getChatCompletionWithMessages(
+        messages: [
+          {'role': 'system', 'content': systemPrompt},
+          {'role': 'user', 'content': userPrompt},
+        ],
+        maxTokens: 600,
+        temperature: 0.3, // Lower temperature for more factual responses
+      );
+
+      Logger.d('✅ Generated nutritional response: ${response?.substring(0, 100)}...');
+      return response != null ? _addNutritionDisclaimer(response) : null;
+    } catch (e) {
+      Logger.d('❌ Error querying nutritional facts: $e');
+      return null;
+    }
+  }
+
+  /// Compare nutritional content between foods
+  Future<String?> compareNutritionalContent({
+    required List<String> foodNames,
+    String? comparisonAspect, // e.g., "protein", "calories", "vitamins"
+    List<String>? dietaryRestrictions,
+  }) async {
+    try {
+      Logger.d('⚖️ Comparing nutritional content: ${foodNames.join(" vs ")}');
+
+      if (foodNames.length < 2) {
+        return 'Please provide at least two foods to compare.';
+      }
+
+             // Search for each food individually to get comprehensive data
+      final allResults = <SearchResult>[];
+      
+      for (final foodName in foodNames) {
+        final foodQuery = 'nutritional information $foodName';
+        final results = await performSemanticSearch(
+          query: foodQuery,
+          maxResults: 3,
+          minSimilarityScore: 0.5,
+          categoryFilter: _getNutritionCategories(),
+          tagFilter: ['nutrition_facts'],
+        );
+        
+        // Filter results that actually mention this food
+        final relevantResults = results.where((result) =>
+          result.document.title.toLowerCase().contains(foodName.toLowerCase()) ||
+          result.document.content.toLowerCase().contains(foodName.toLowerCase())
+        ).toList();
+        
+        allResults.addAll(relevantResults);
+      }
+
+      if (allResults.isEmpty) {
+        return await _generateComparisonFallbackResponse(foodNames, comparisonAspect);
+      }
+
+      // Build comparison context
+      final context = _buildComparisonContext(allResults, foodNames);
+
+      // Create comparison-specific prompt
+      final systemPrompt = _buildComparisonSystemPrompt(dietaryRestrictions);
+      final userPrompt = _buildComparisonUserPrompt(foodNames, comparisonAspect, context);
+
+      // Generate comparison response
+      final response = await _openAIService.getChatCompletionWithMessages(
+        messages: [
+          {'role': 'system', 'content': systemPrompt},
+          {'role': 'user', 'content': userPrompt},
+        ],
+        maxTokens: 700,
+        temperature: 0.2, // Very factual for comparisons
+      );
+
+      Logger.d('✅ Generated comparison response');
+      return response != null ? _addNutritionDisclaimer(response) : null;
+    } catch (e) {
+      Logger.d('❌ Error comparing nutritional content: $e');
+      return null;
+    }
+  }
+
+  /// Find foods high in specific nutrients
+  Future<String?> findFoodsHighInNutrient({
+    required String nutrient,
+    List<String>? dietaryRestrictions,
+    int maxSuggestions = 8,
+  }) async {
+    try {
+      Logger.d('🔍 Finding foods high in: $nutrient');
+
+      // Create nutrient-specific query
+      final query = 'foods high in $nutrient excellent source rich $nutrient content';
+
+      // Search with nutrition focus
+      final searchResults = await performSemanticSearch(
+        query: query,
+        maxResults: maxSuggestions * 2, // Get more results to filter
+        minSimilarityScore: 0.4, // Lower threshold for broader results
+        categoryFilter: _getNutritionCategories(),
+        tagFilter: ['nutrition_facts'],
+      );
+
+      if (searchResults.isEmpty) {
+        return await _generateNutrientFallbackResponse(nutrient, dietaryRestrictions);
+      }
+
+      // Filter and rank results by nutrient relevance
+      final relevantResults = _filterByNutrientRelevance(searchResults, nutrient);
+
+      // Build nutrient-focused context
+      final context = _buildNutrientContext(relevantResults, nutrient);
+
+      // Create nutrient-specific prompt
+      final systemPrompt = _buildNutrientSystemPrompt(dietaryRestrictions);
+      final userPrompt = _buildNutrientUserPrompt(nutrient, context);
+
+      // Generate response
+      final response = await _openAIService.getChatCompletionWithMessages(
+        messages: [
+          {'role': 'system', 'content': systemPrompt},
+          {'role': 'user', 'content': userPrompt},
+        ],
+        maxTokens: 600,
+        temperature: 0.3,
+      );
+
+      Logger.d('✅ Generated nutrient-rich foods response');
+      return response != null ? _addNutritionDisclaimer(response) : null;
+    } catch (e) {
+      Logger.d('❌ Error finding foods high in nutrient: $e');
+      return null;
+    }
+  }
+
   /// Extract key terms from query using simple NLP
   List<String> _extractKeyTerms(String query) {
     // Simple keyword extraction - could be enhanced with proper NLP
@@ -1672,5 +1849,386 @@ All content should focus on general wellness and lifestyle, not medical advice.
     }
 
     return castValue(input) as Map<String, dynamic>;
+  }
+
+  // NUTRITIONAL QUERY HELPER METHODS
+
+  /// Get nutrition-specific categories for filtering
+  List<String> _getNutritionCategories() {
+    return [
+      'vegetables',
+      'fruits',
+      'protein',
+      'dairy',
+      'grains',
+      'carbohydrates',
+      'fats',
+      'nuts',
+      'seafood',
+      'beverages',
+    ];
+  }
+
+  /// Build specialized nutrition context from search results
+  String _buildNutritionContext(List<SearchResult> results) {
+    final contextParts = <String>[];
+    
+    for (final result in results) {
+      final doc = result.document;
+      final metadata = doc.metadata;
+      
+      // Extract nutritional metadata if available
+      final calories = metadata['calories_per_100g']?.toString() ?? 'N/A';
+      final protein = metadata['protein_per_100g']?.toString() ?? 'N/A';
+      final carbs = metadata['carbs_per_100g']?.toString() ?? 'N/A';
+      final fat = metadata['fat_per_100g']?.toString() ?? 'N/A';
+      
+      final nutritionData = calories != 'N/A' 
+          ? 'Nutrition per 100g: ${calories}cal, ${protein}g protein, ${carbs}g carbs, ${fat}g fat'
+          : '';
+      
+      final snippet = '''
+Food: ${doc.title.replaceAll('Nutritional Information: ', '')}
+Category: ${doc.category}
+${nutritionData}
+Information: ${doc.content.length > 300 ? doc.content.substring(0, 300) + '...' : doc.content}
+Relevance: ${(result.relevanceScore * 100).toInt()}%
+''';
+      
+      contextParts.add(snippet);
+    }
+    
+    return contextParts.join('\n---\n\n');
+  }
+
+  /// Build nutrition-specific system prompt
+  String _buildNutritionSystemPrompt(List<String>? dietaryRestrictions) {
+    final restrictions = dietaryRestrictions?.isNotEmpty == true 
+        ? 'User dietary restrictions: ${dietaryRestrictions!.join(", ")}'
+        : 'No specific dietary restrictions mentioned';
+    
+    return '''
+You are a knowledgeable nutrition education assistant for SnapAMeal. Your role is to provide evidence-based nutritional information using the knowledge base.
+
+$restrictions
+
+CRITICAL SAFETY GUIDELINES:
+- NEVER provide medical advice, diagnoses, or treatment recommendations
+- NEVER suggest specific medications, supplements, or medical procedures
+- NEVER claim to replace healthcare professionals or medical consultations
+- AVOID making definitive health claims or promises about outcomes
+- DO NOT provide advice for serious medical conditions, eating disorders, or mental health issues
+- ALWAYS include disclaimers when appropriate
+
+Your expertise:
+1. Provide evidence-based nutritional facts from the knowledge base
+2. Explain food composition, nutrients, and general nutritional benefits
+3. Compare foods based on nutritional content
+4. Suggest foods rich in specific nutrients
+5. Offer general wellness and lifestyle information
+6. Respect dietary restrictions and preferences
+
+Guidelines:
+- Use factual, educational tone
+- Reference specific information from the knowledge base
+- Provide practical, actionable information
+- Be encouraging about healthy lifestyle choices
+- Always prioritize safety and general wellness information
+- Include appropriate disclaimers about not replacing professional advice
+
+Format responses clearly with:
+- Key nutritional facts
+- Practical usage suggestions
+- Relevant comparisons when helpful
+- General wellness context
+''';
+  }
+
+  /// Build nutrition-specific user prompt
+  String _buildNutritionUserPrompt(String query, String context) {
+    return '''
+User Question: $query
+
+Relevant Nutritional Knowledge:
+$context
+
+Please provide a comprehensive, educational response about the nutritional aspects of this query. Use the specific information from the knowledge base and present it in a clear, helpful way.
+''';
+  }
+
+  /// Build comparison context for food comparisons
+  String _buildComparisonContext(List<SearchResult> results, List<String> foodNames) {
+    final foodData = <String, List<SearchResult>>{};
+    
+    // Group results by food
+    for (final result in results) {
+      for (final foodName in foodNames) {
+        if (result.document.title.toLowerCase().contains(foodName.toLowerCase()) ||
+            result.document.content.toLowerCase().contains(foodName.toLowerCase())) {
+          foodData[foodName] ??= [];
+          foodData[foodName]!.add(result);
+          break;
+        }
+      }
+    }
+    
+    final contextParts = <String>[];
+    
+    for (final foodName in foodNames) {
+      final foodResults = foodData[foodName] ?? [];
+      if (foodResults.isNotEmpty) {
+        final bestResult = foodResults.first;
+        final doc = bestResult.document;
+        final metadata = doc.metadata;
+        
+        final calories = metadata['calories_per_100g']?.toString() ?? 'N/A';
+        final protein = metadata['protein_per_100g']?.toString() ?? 'N/A';
+        final carbs = metadata['carbs_per_100g']?.toString() ?? 'N/A';
+        final fat = metadata['fat_per_100g']?.toString() ?? 'N/A';
+        
+        contextParts.add('''
+$foodName:
+- Calories per 100g: $calories
+- Protein per 100g: ${protein}g
+- Carbohydrates per 100g: ${carbs}g
+- Fat per 100g: ${fat}g
+- Category: ${doc.category}
+- Details: ${doc.content.length > 200 ? doc.content.substring(0, 200) + '...' : doc.content}
+''');
+      } else {
+        contextParts.add('$foodName: Limited nutritional data available');
+      }
+    }
+    
+    return contextParts.join('\n\n');
+  }
+
+  /// Build comparison system prompt
+  String _buildComparisonSystemPrompt(List<String>? dietaryRestrictions) {
+    return '''
+You are a nutrition education assistant specializing in food comparisons. Provide factual, evidence-based comparisons using the nutritional knowledge base.
+
+${dietaryRestrictions?.isNotEmpty == true ? 'User dietary restrictions: ${dietaryRestrictions!.join(", ")}' : ''}
+
+SAFETY GUIDELINES: Provide educational nutritional comparisons only. Never give medical advice or make health claims.
+
+Your task:
+1. Compare foods based on nutritional content from the knowledge base
+2. Highlight key differences in macronutrients, micronutrients, and calories
+3. Provide context about when each food might be preferred
+4. Consider dietary restrictions if mentioned
+5. Present information in a clear, comparative format
+
+Format:
+- Direct nutritional comparisons with specific numbers
+- Practical implications of the differences
+- General usage suggestions for each food
+- Educational context about the nutrients
+''';
+  }
+
+  /// Build comparison user prompt
+  String _buildComparisonUserPrompt(List<String> foodNames, String? comparisonAspect, String context) {
+    final aspect = comparisonAspect != null ? ' focusing on $comparisonAspect' : '';
+    
+    return '''
+Compare the nutritional content of: ${foodNames.join(" vs ")}$aspect
+
+Nutritional Data:
+$context
+
+Please provide a detailed comparison highlighting the key nutritional differences and similarities between these foods.
+''';
+  }
+
+  /// Build nutrient context for foods high in specific nutrients
+  String _buildNutrientContext(List<SearchResult> results, String nutrient) {
+    final contextParts = <String>[];
+    
+    for (final result in results) {
+      final doc = result.document;
+      final metadata = doc.metadata;
+      
+      // Extract relevant nutrient data
+      final relevantInfo = _extractNutrientInfo(doc.content, nutrient);
+      final nutritionSummary = _buildNutritionSummary(metadata);
+      
+      contextParts.add('''
+${doc.title.replaceAll('Nutritional Information: ', '')}:
+${nutritionSummary}
+${nutrient.toUpperCase()} Content: $relevantInfo
+Category: ${doc.category}
+Benefits: ${doc.content.contains('Health Benefits:') ? doc.content.split('Health Benefits:')[1].split('Usage Tips:')[0].trim() : 'General nutritional benefits'}
+''');
+    }
+    
+    return contextParts.join('\n\n');
+  }
+
+  /// Extract nutrient-specific information from content
+  String _extractNutrientInfo(String content, String nutrient) {
+    final lines = content.split('\n');
+    for (final line in lines) {
+      if (line.toLowerCase().contains(nutrient.toLowerCase())) {
+        return line.trim();
+      }
+    }
+    return 'Contains $nutrient';
+  }
+
+  /// Build nutrition summary from metadata
+  String _buildNutritionSummary(Map<String, dynamic> metadata) {
+    final calories = metadata['calories_per_100g']?.toString();
+    final protein = metadata['protein_per_100g']?.toString();
+    final carbs = metadata['carbs_per_100g']?.toString();
+    final fat = metadata['fat_per_100g']?.toString();
+    
+    if (calories != null || protein != null || carbs != null || fat != null) {
+      return 'Per 100g: ${calories ?? '?'}cal, ${protein ?? '?'}g protein, ${carbs ?? '?'}g carbs, ${fat ?? '?'}g fat';
+    }
+    
+    return 'Nutritional data available';
+  }
+
+  /// Build nutrient system prompt
+  String _buildNutrientSystemPrompt(List<String>? dietaryRestrictions) {
+    return '''
+You are a nutrition education assistant helping users find foods rich in specific nutrients. Use the knowledge base to provide evidence-based recommendations.
+
+${dietaryRestrictions?.isNotEmpty == true ? 'User dietary restrictions: ${dietaryRestrictions!.join(", ")}' : ''}
+
+SAFETY GUIDELINES: Provide educational information about nutrient-rich foods only. Never give medical advice or make health claims.
+
+Your task:
+1. Identify foods that are excellent sources of the requested nutrient
+2. Explain the nutritional benefits of the nutrient
+3. Provide practical suggestions for incorporating these foods
+4. Consider dietary restrictions if mentioned
+5. Offer variety in food suggestions
+
+Format:
+- List of top food sources with specific nutrient content
+- Brief explanation of the nutrient's role in general wellness
+- Practical tips for including these foods in meals
+- Variety suggestions across different food categories
+''';
+  }
+
+  /// Build nutrient user prompt
+  String _buildNutrientUserPrompt(String nutrient, String context) {
+    return '''
+Find foods that are excellent sources of: $nutrient
+
+Available Food Information:
+$context
+
+Please provide a comprehensive list of foods high in $nutrient, with practical suggestions for incorporating them into meals.
+''';
+  }
+
+  /// Filter search results by nutrient relevance
+  List<SearchResult> _filterByNutrientRelevance(List<SearchResult> results, String nutrient) {
+    // Score results based on nutrient relevance
+    final scoredResults = results.map((result) {
+      double nutrientScore = 0.0;
+      final content = result.document.content.toLowerCase();
+      final title = result.document.title.toLowerCase();
+      final nutrientLower = nutrient.toLowerCase();
+      
+      // Higher score for nutrient mentions in title
+      if (title.contains(nutrientLower)) {
+        nutrientScore += 0.5;
+      }
+      
+      // Score for nutrient mentions in content
+      final nutrientMentions = RegExp(nutrientLower).allMatches(content).length;
+      nutrientScore += nutrientMentions * 0.1;
+      
+      // Bonus for specific nutrient phrases
+      if (content.contains('high in $nutrientLower') || 
+          content.contains('rich in $nutrientLower') ||
+          content.contains('excellent source of $nutrientLower') ||
+          content.contains('good source of $nutrientLower')) {
+        nutrientScore += 0.3;
+      }
+      
+      return MapEntry(result, nutrientScore);
+    }).toList();
+    
+    // Sort by combined relevance and nutrient score
+    scoredResults.sort((a, b) {
+      final scoreA = a.value + a.key.relevanceScore;
+      final scoreB = b.value + b.key.relevanceScore;
+      return scoreB.compareTo(scoreA);
+    });
+    
+    return scoredResults.map((entry) => entry.key).toList();
+  }
+
+  /// Generate fallback response for nutritional queries
+  Future<String?> _generateNutritionFallbackResponse(String query, List<String>? dietaryRestrictions) async {
+    final restrictions = dietaryRestrictions?.isNotEmpty == true 
+        ? ' considering your dietary restrictions (${dietaryRestrictions!.join(", ")})'
+        : '';
+    
+    return '''
+I don't have specific nutritional information in my knowledge base to fully answer your question about "$query"$restrictions.
+
+For comprehensive nutritional information, I recommend:
+• Consulting with a registered dietitian or nutritionist
+• Using verified nutrition databases like USDA FoodData Central
+• Speaking with your healthcare provider about specific dietary needs
+
+*This information is for general wellness purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.*
+''';
+  }
+
+  /// Generate fallback response for food comparisons
+  Future<String?> _generateComparisonFallbackResponse(List<String> foodNames, String? comparisonAspect) async {
+    final aspect = comparisonAspect != null ? ' regarding $comparisonAspect' : '';
+    
+    return '''
+I don't have sufficient nutritional data in my knowledge base to compare ${foodNames.join(" and ")}$aspect.
+
+For accurate nutritional comparisons, I recommend:
+• Checking verified nutrition databases like USDA FoodData Central
+• Using nutrition tracking apps with comprehensive food databases
+• Consulting with a registered dietitian for personalized comparisons
+
+*This information is for general wellness purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.*
+''';
+  }
+
+  /// Generate fallback response for nutrient-rich food queries
+  Future<String?> _generateNutrientFallbackResponse(String nutrient, List<String>? dietaryRestrictions) async {
+    final restrictions = dietaryRestrictions?.isNotEmpty == true 
+        ? ' that fit your dietary restrictions (${dietaryRestrictions!.join(", ")})'
+        : '';
+    
+    return '''
+I don't have sufficient information in my knowledge base about foods high in $nutrient$restrictions.
+
+For finding foods rich in specific nutrients, I recommend:
+• Consulting verified nutrition databases like USDA FoodData Central
+• Speaking with a registered dietitian about nutrient-rich foods
+• Using comprehensive nutrition tracking apps
+
+*This information is for general wellness purposes only and is not a substitute for professional medical advice, diagnosis, or treatment.*
+''';
+  }
+
+  /// Add nutrition-specific disclaimer
+  String _addNutritionDisclaimer(String content) {
+    if (content.trim().isEmpty) return content;
+    
+    const disclaimer = "\n\n*This nutritional information is for educational purposes only and is not a substitute for professional medical advice, diagnosis, or treatment. Always consult with a healthcare professional or registered dietitian for personalized nutrition advice.*";
+    
+    // Check if disclaimer already exists
+    if (content.toLowerCase().contains('not a substitute for professional medical advice') ||
+        content.toLowerCase().contains('consult with a healthcare professional')) {
+      return content;
+    }
+    
+    return content + disclaimer;
   }
 }
