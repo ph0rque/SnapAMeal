@@ -626,23 +626,8 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
           SnapUI.verticalSpaceMedium,
 
-          // Detected Foods
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: foods
-                .map(
-                  (food) => Chip(
-                    label: Text(
-                      '${food.name} (${food.confidence.toStringAsFixed(1)}%)',
-                      style: SnapUI.captionStyle,
-                    ),
-                    backgroundColor: SnapUI.primaryColor.withValues(alpha: 0.1),
-                    side: BorderSide(color: SnapUI.primaryColor),
-                  ),
-                )
-                .toList(),
-          ),
+          // Detected Foods - Enhanced List
+          _buildDetectedFoodsList(foods),
 
           SnapUI.verticalSpaceMedium,
 
@@ -704,6 +689,212 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         ],
       ),
     );
+  }
+
+  Widget _buildDetectedFoodsList(List<FoodItem> foods) {
+    if (foods.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.withOpacity(0.1),
+          borderRadius: SnapUI.borderRadius,
+          border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.grey[600], size: 20),
+            SnapUI.horizontalSpaceSmall,
+            Expanded(
+              child: Text(
+                'No foods detected in this image',
+                style: SnapUI.bodyStyle.copyWith(color: Colors.grey[600]),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.list_alt, color: SnapUI.primaryColor, size: 18),
+            SnapUI.horizontalSpaceSmall,
+            Text(
+              'Detected Ingredients (${foods.length})',
+              style: SnapUI.bodyStyle.copyWith(
+                fontWeight: FontWeight.w600,
+                color: SnapUI.primaryColor,
+              ),
+            ),
+          ],
+        ),
+        SnapUI.verticalSpaceSmall,
+        ...foods.asMap().entries.map((entry) {
+          final index = entry.key;
+          final food = entry.value;
+          
+          return Container(
+            margin: EdgeInsets.only(bottom: index < foods.length - 1 ? 8 : 0),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: SnapUI.primaryColor.withValues(alpha: 0.03),
+              borderRadius: SnapUI.borderRadius,
+              border: Border.all(
+                color: SnapUI.primaryColor.withValues(alpha: 0.1),
+              ),
+            ),
+            child: Row(
+              children: [
+                // Food category icon
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: _getCategoryColor(food.category).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    _getCategoryIcon(food.category),
+                    size: 16,
+                    color: _getCategoryColor(food.category),
+                  ),
+                ),
+                SnapUI.horizontalSpaceSmall,
+                
+                // Food details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              food.name.toUpperCase(),
+                              style: SnapUI.bodyStyle.copyWith(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                          // Confidence badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _getConfidenceColor(food.confidence).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              '${(food.confidence * 100).toInt()}%',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w600,
+                                color: _getConfidenceColor(food.confidence),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          // Weight
+                          Icon(Icons.scale, size: 12, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${food.estimatedWeight.toInt()}g',
+                            style: SnapUI.captionStyle.copyWith(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          SnapUI.horizontalSpaceSmall,
+                          
+                          // Category
+                          Icon(Icons.category, size: 12, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              food.category,
+                              style: SnapUI.captionStyle.copyWith(
+                                color: _getCategoryColor(food.category),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          
+                          // Quick nutrition preview
+                          Text(
+                            '${food.nutrition.calories.toInt()} cal',
+                            style: SnapUI.captionStyle.copyWith(
+                              color: SnapUI.primaryColor,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Color _getCategoryColor(String category) {
+    switch (category.toLowerCase()) {
+      case 'protein':
+        return Colors.red;
+      case 'vegetables':
+        return Colors.green;
+      case 'dairy':
+        return Colors.blue;
+      case 'carbs':
+      case 'grains':
+        return Colors.orange;
+      case 'fruits':
+        return Colors.purple;
+      case 'fats':
+      case 'oils':
+        return Colors.amber;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getCategoryIcon(String category) {
+    switch (category.toLowerCase()) {
+      case 'protein':
+        return Icons.egg;
+      case 'vegetables':
+        return Icons.local_florist;
+      case 'dairy':
+        return Icons.local_drink;
+      case 'carbs':
+      case 'grains':
+        return Icons.grain;
+      case 'fruits':
+        return Icons.apple;
+      case 'fats':
+      case 'oils':
+        return Icons.water_drop;
+      default:
+        return Icons.restaurant;
+    }
+  }
+
+  Color _getConfidenceColor(double confidence) {
+    if (confidence >= 0.8) return Colors.green;
+    if (confidence >= 0.6) return Colors.orange;
+    return Colors.red;
   }
 
   Widget _buildNutritionItem(String label, String value, String unit) {
