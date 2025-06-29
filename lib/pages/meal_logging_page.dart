@@ -628,9 +628,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
             children: [
               Icon(Icons.local_dining, color: SnapUI.primaryColor, size: 24),
               SnapUI.horizontalSpaceSmall,
-              Text('Nutrition Analysis', style: SnapUI.headingStyle),
-              Spacer(),
-              _buildMealTypeIndicator(),
+              Expanded(
+                child: Text('Nutrition Analysis', style: SnapUI.headingStyle),
+              ),
+              Flexible(
+                child: _buildMealTypeIndicator(),
+              ),
             ],
           ),
 
@@ -1131,35 +1134,35 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
         color: indicatorColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: indicatorColor.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(indicatorIcon, size: 14, color: indicatorColor),
-          const SizedBox(width: 4),
-          Text(
-            displayText,
-            style: TextStyle(
-              color: indicatorColor,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          if (confidence > 0) ...[
-            const SizedBox(width: 2),
+          Icon(indicatorIcon, size: 12, color: indicatorColor),
+          const SizedBox(width: 3),
+          if (confidence > 0)
             Text(
-              '(${(confidence * 100).toInt()}%)',
+              '${(confidence * 100).toInt()}%',
               style: TextStyle(
-                color: indicatorColor.withOpacity(0.7),
-                fontSize: 9,
+                color: indicatorColor,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+            )
+          else
+            Text(
+              displayText,
+              style: TextStyle(
+                color: indicatorColor,
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
               ),
             ),
-          ],
         ],
       ),
     );
