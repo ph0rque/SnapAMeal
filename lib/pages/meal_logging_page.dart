@@ -96,40 +96,51 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _initializeServices() async {
+    print('🚨 SERVICE INIT: Starting service initialization...');
     developer.log('🔧 SERVICE INIT: Starting service initialization...');
     
     try {
+      print('🚨 SERVICE INIT: Creating OpenAIService...');
       developer.log('🔧 SERVICE INIT: Creating OpenAIService...');
       _openAIService = OpenAIService();
       
+      print('🚨 SERVICE INIT: Initializing OpenAIService...');
       developer.log('🔧 SERVICE INIT: Initializing OpenAIService...');
       await _openAIService.initialize();
+      print('🚨 SERVICE INIT: OpenAIService initialized successfully!');
       developer.log('✅ SERVICE INIT: OpenAIService initialized');
       
+      print('🚨 SERVICE INIT: Creating RAGService...');
       developer.log('🔧 SERVICE INIT: Creating RAGService...');
       _ragService = RAGService(_openAIService);
       
+      print('🚨 SERVICE INIT: Creating MealRecognitionService...');
       developer.log('🔧 SERVICE INIT: Creating MealRecognitionService...');
       _mealRecognitionService = MealRecognitionService(
         _openAIService,
         _ragService,
       );
 
+      print('🚨 SERVICE INIT: Initializing MealRecognitionService...');
       developer.log('🔧 SERVICE INIT: Initializing MealRecognitionService...');
       final initialized = await _mealRecognitionService.initialize();
+      print('🚨 SERVICE INIT: MealRecognitionService returned: $initialized');
       developer.log('🔧 SERVICE INIT: MealRecognitionService.initialize() returned: $initialized');
       
       setState(() {
         _isInitialized = initialized;
       });
+      print('🚨 SERVICE INIT: _isInitialized set to: $_isInitialized');
       developer.log('🔧 SERVICE INIT: _isInitialized set to: $_isInitialized');
 
       if (initialized) {
+        print('🚨 SERVICE INIT: ✅ ALL SERVICES READY!');
         developer.log('✅ SERVICE INIT: All meal recognition services initialized successfully');
       } else {
         throw Exception('Failed to initialize meal recognition services');
       }
     } catch (e) {
+      print('🚨 SERVICE INIT: ❌ ERROR: $e');
       developer.log('❌ SERVICE INIT: Error initializing services: $e');
       developer.log('❌ SERVICE INIT: Error type: ${e.runtimeType}');
       
@@ -145,10 +156,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _captureImage(ImageSource source) async {
+    print('🚨 IMAGE CAPTURE: Starting image capture from ${source == ImageSource.gallery ? 'GALLERY' : 'CAMERA'}');
     developer.log('📸 IMAGE CAPTURE: Starting image capture from ${source == ImageSource.gallery ? 'GALLERY' : 'CAMERA'}');
     
     try {
       final picker = ImagePicker();
+      print('🚨 IMAGE CAPTURE: Created ImagePicker instance');
       developer.log('📸 IMAGE CAPTURE: Created ImagePicker instance');
       
       final image = await picker.pickImage(
@@ -158,8 +171,11 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         maxHeight: 1024,
       );
 
+      print('🚨 IMAGE CAPTURE: pickImage returned: ${image != null ? 'SUCCESS' : 'NULL'}');
       developer.log('📸 IMAGE CAPTURE: pickImage returned: ${image != null ? 'SUCCESS' : 'NULL'}');
       if (image != null) {
+        print('🚨 IMAGE CAPTURE: Image path: ${image.path}');
+        print('🚨 IMAGE CAPTURE: Image file exists: ${File(image.path).existsSync()}');
         developer.log('📸 IMAGE CAPTURE: Image path: ${image.path}');
         developer.log('📸 IMAGE CAPTURE: Image file exists: ${File(image.path).existsSync()}');
         
@@ -170,11 +186,14 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           _recipeSuggestions = null;
         });
 
+        print('🚨 IMAGE CAPTURE: State updated, starting animation');
         developer.log('📸 IMAGE CAPTURE: State updated, starting animation');
         _slideAnimationController.forward();
         
+        print('🚨 IMAGE CAPTURE: Starting meal analysis...');
         developer.log('📸 IMAGE CAPTURE: Starting meal analysis...');
         await _analyzeMeal(image.path);
+        print('🚨 IMAGE CAPTURE: Meal analysis completed!');
         developer.log('📸 IMAGE CAPTURE: Meal analysis completed');
       } else {
         developer.log('❌ IMAGE CAPTURE: User cancelled image selection');
@@ -218,10 +237,13 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _analyzeMeal(String imagePath) async {
+    print('🚨 MEAL ANALYSIS: Starting analysis for image: $imagePath');
+    print('🚨 MEAL ANALYSIS: _isInitialized = $_isInitialized');
     developer.log('🔍 MEAL ANALYSIS: Starting analysis for image: $imagePath');
     developer.log('🔍 MEAL ANALYSIS: _isInitialized = $_isInitialized');
     
     if (!_isInitialized) {
+      print('🚨 MEAL ANALYSIS: ❌ Services not initialized!');
       developer.log('❌ MEAL ANALYSIS: Services not initialized');
       if (!mounted) return;
       ScaffoldMessenger.of(
