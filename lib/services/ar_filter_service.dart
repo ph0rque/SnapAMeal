@@ -198,7 +198,7 @@ class _FastingChampionOverlayState extends State<FastingChampionOverlay>
           scale: _scaleAnimation.value,
           child: Transform.rotate(
             angle: _rotationAnimation.value,
-            child: Container(
+            child: SizedBox(
               width: widget.size.width,
               height: widget.size.height,
               child: Column(
@@ -294,7 +294,7 @@ class _CalorieCrusherOverlayState extends State<CalorieCrusherOverlay>
       builder: (context, child) {
         return Transform.scale(
           scale: _bounceAnimation.value,
-          child: Container(
+          child: SizedBox(
             width: widget.size.width,
             height: widget.size.height,
             child: Row(
@@ -386,7 +386,7 @@ class _WorkoutGuideOverlayState extends State<WorkoutGuideOverlay>
       builder: (context, child) {
         return Transform.scale(
           scale: _pulseAnimation.value,
-          child: Container(
+          child: SizedBox(
             width: widget.size.width,
             height: widget.size.height,
             child: Column(
@@ -471,7 +471,7 @@ class _ProgressPartyOverlayState extends State<ProgressPartyOverlay>
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
-        return Container(
+        return SizedBox(
           width: widget.size.width,
           height: widget.size.height,
           child: Stack(
@@ -556,7 +556,7 @@ class _GroupStreakSparklerOverlayState extends State<GroupStreakSparklerOverlay>
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
-        return Container(
+        return SizedBox(
           width: widget.size.width,
           height: widget.size.height,
           child: Stack(
