@@ -2,8 +2,11 @@
 // Processes USDA food data and indexes it into Pinecone for semantic search
 
 import 'dart:io';
-import 'package:firebase_core/firebase_core.dart';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:http/http.dart' as http;
+import '../lib/utils/logger.dart';
 
 /// Main indexing service
 class USDAKnowledgeIndexer {

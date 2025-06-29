@@ -724,10 +724,10 @@ Format the response as JSON with this exact structure:
         final scaleFactor = weightGrams / 100.0; // Base values are per 100g
 
         return NutritionInfo(
-          calories: (baseNutrition['calories']! * scaleFactor),
-          protein: (baseNutrition['protein']! * scaleFactor),
-          carbs: (baseNutrition['carbs']! * scaleFactor),
-          fat: (baseNutrition['fat']! * scaleFactor),
+          calories: baseNutrition['calories']! * scaleFactor,
+          protein: baseNutrition['protein']! * scaleFactor,
+          carbs: baseNutrition['carbs']! * scaleFactor,
+          fat: baseNutrition['fat']! * scaleFactor,
           fiber: (baseNutrition['fiber'] ?? 2.0) * scaleFactor,
           sugar: (baseNutrition['sugar'] ?? 5.0) * scaleFactor,
           sodium: (baseNutrition['sodium'] ?? 50.0) * scaleFactor,

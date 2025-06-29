@@ -1890,7 +1890,7 @@ All content should focus on general wellness and lifestyle, not medical advice.
       final snippet = '''
 Food: ${doc.title.replaceAll('Nutritional Information: ', '')}
 Category: ${doc.category}
-${nutritionData}
+$nutritionData
 Information: ${doc.content.length > 300 ? doc.content.substring(0, 300) + '...' : doc.content}
 Relevance: ${(result.relevanceScore * 100).toInt()}%
 ''';
@@ -2008,7 +2008,7 @@ $foodName:
     return '''
 You are a nutrition education assistant specializing in food comparisons. Provide factual, evidence-based comparisons using the nutritional knowledge base.
 
-${dietaryRestrictions?.isNotEmpty == true ? 'User dietary restrictions: ${dietaryRestrictions!.join(", ")}' : ''}
+${dietaryRestrictions?.isNotEmpty == true ? 'User dietary restrictions: ' + dietaryRestrictions!.join(", ") : ''}
 
 SAFETY GUIDELINES: Provide educational nutritional comparisons only. Never give medical advice or make health claims.
 
@@ -2055,7 +2055,7 @@ Please provide a detailed comparison highlighting the key nutritional difference
       
       contextParts.add('''
 ${doc.title.replaceAll('Nutritional Information: ', '')}:
-${nutritionSummary}
+$nutritionSummary
 ${nutrient.toUpperCase()} Content: $relevantInfo
 Category: ${doc.category}
 Benefits: ${doc.content.contains('Health Benefits:') ? doc.content.split('Health Benefits:')[1].split('Usage Tips:')[0].trim() : 'General nutritional benefits'}
@@ -2095,7 +2095,7 @@ Benefits: ${doc.content.contains('Health Benefits:') ? doc.content.split('Health
     return '''
 You are a nutrition education assistant helping users find foods rich in specific nutrients. Use the knowledge base to provide evidence-based recommendations.
 
-${dietaryRestrictions?.isNotEmpty == true ? 'User dietary restrictions: ${dietaryRestrictions!.join(", ")}' : ''}
+${dietaryRestrictions?.isNotEmpty == true ? 'User dietary restrictions: ' + dietaryRestrictions!.join(", ") : ''}
 
 SAFETY GUIDELINES: Provide educational information about nutrient-rich foods only. Never give medical advice or make health claims.
 
@@ -2168,7 +2168,7 @@ Please provide a comprehensive list of foods high in $nutrient, with practical s
   /// Generate fallback response for nutritional queries
   Future<String?> _generateNutritionFallbackResponse(String query, List<String>? dietaryRestrictions) async {
     final restrictions = dietaryRestrictions?.isNotEmpty == true 
-        ? ' considering your dietary restrictions (${dietaryRestrictions!.join(", ")})'
+        ? ' considering your dietary restrictions (' + dietaryRestrictions!.join(", ") + ')'
         : '';
     
     return '''
@@ -2202,7 +2202,7 @@ For accurate nutritional comparisons, I recommend:
   /// Generate fallback response for nutrient-rich food queries
   Future<String?> _generateNutrientFallbackResponse(String nutrient, List<String>? dietaryRestrictions) async {
     final restrictions = dietaryRestrictions?.isNotEmpty == true 
-        ? ' that fit your dietary restrictions (${dietaryRestrictions!.join(", ")})'
+        ? ' that fit your dietary restrictions (' + dietaryRestrictions!.join(", ") + ')'
         : '';
     
     return '''

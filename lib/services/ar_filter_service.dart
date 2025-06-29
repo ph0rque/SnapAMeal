@@ -205,7 +205,7 @@ class _FastingChampionOverlayState extends State<FastingChampionOverlay>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   // Crown SVG
-                  Container(
+                  SizedBox(
                     width: 80,
                     height: 60,
                     child: CustomPaint(
@@ -301,7 +301,7 @@ class _CalorieCrusherOverlayState extends State<CalorieCrusherOverlay>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Superhero
-                Container(
+                SizedBox(
                   width: 60,
                   height: 80,
                   child: CustomPaint(
@@ -393,7 +393,7 @@ class _WorkoutGuideOverlayState extends State<WorkoutGuideOverlay>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Yoga pose
-                Container(
+                SizedBox(
                   width: 70,
                   height: 70,
                   child: CustomPaint(
