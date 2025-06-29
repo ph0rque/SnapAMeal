@@ -193,19 +193,23 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     });
 
     try {
-      // Analyze the meal image
+      // Analyze the meal image (always performed)
       final result = await _mealRecognitionService.analyzeMealImage(imagePath);
 
-      // Generate caption
+      // Generate caption (always performed)
       final caption = await _mealRecognitionService.generateMealCaption(
         result,
         _selectedCaptionType,
       );
 
-      // Generate recipe suggestions
-      final recipes = await _mealRecognitionService.generateRecipeSuggestions(
-        result,
-      );
+      // Conditional recipe suggestions based on meal type
+      List<RecipeSuggestion> recipes = [];
+      if (result.shouldShowRecipeSuggestions) {
+        developer.log('Generating recipe suggestions for ${result.mealType.value} meal');
+        recipes = await _mealRecognitionService.generateRecipeSuggestions(result);
+      } else {
+        developer.log('Skipping recipe suggestions for ${result.mealType.value} meal');
+      }
 
       setState(() {
         _analysisResult = result;
@@ -218,9 +222,17 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       HapticFeedback.lightImpact();
 
       if (!mounted) return;
+      
+      // Show different success messages based on meal type
+      final message = result.mealType == MealType.ingredients
+        ? 'Ingredients analyzed! Recipe suggestions included.'
+        : result.mealType == MealType.readyMade 
+          ? 'Ready-made meal analyzed!'
+          : 'Meal analyzed successfully!';
+          
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnapUI.successSnackBar('Meal analyzed successfully!'));
+      ).showSnackBar(SnapUI.successSnackBar(message));
     } catch (e) {
       developer.log('Error analyzing meal: $e');
       setState(() {
@@ -470,10 +482,8 @@ class _MealLoggingPageState extends State<MealLoggingPage>
               // Tags and Notes
               _buildTagsNotesSection(),
 
-              if (_recipeSuggestions?.isNotEmpty == true) ...[
-                SnapUI.verticalSpaceMedium,
-                _buildRecipeSuggestionsSection(),
-              ],
+              SnapUI.verticalSpaceMedium,
+              _buildConditionalRecipeSuggestionsSection(),
 
               SnapUI.verticalSpaceLarge,
 
@@ -606,6 +616,8 @@ class _MealLoggingPageState extends State<MealLoggingPage>
               Icon(Icons.local_dining, color: SnapUI.primaryColor, size: 24),
               SnapUI.horizontalSpaceSmall,
               Text('Nutrition Analysis', style: SnapUI.headingStyle),
+              Spacer(),
+              _buildMealTypeIndicator(),
             ],
           ),
 
@@ -966,12 +978,177 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     );
   }
 
+  Widget _buildConditionalRecipeSuggestionsSection() {
+    if (_analysisResult == null) return const SizedBox.shrink();
+
+    // Show explanation for ready-made meals
+    if (!_analysisResult!.shouldShowRecipeSuggestions) {
+      return Container(
+        padding: SnapUI.cardPadding,
+        decoration: SnapUI.cardDecorationWithBorder,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.info_outline, color: Colors.blue, size: 24),
+                SnapUI.horizontalSpaceSmall,
+                Text('Recipe Suggestions', style: SnapUI.headingStyle),
+              ],
+            ),
+            SnapUI.verticalSpaceSmall,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.05),
+                borderRadius: SnapUI.borderRadius,
+                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.restaurant_menu, color: Colors.blue, size: 20),
+                  SnapUI.horizontalSpaceSmall,
+                  Expanded(
+                    child: Text(
+                      _analysisResult!.mealType == MealType.readyMade
+                        ? 'This appears to be a ready-made meal, so no recipe suggestions are needed!'
+                        : 'Recipe suggestions are only shown for raw ingredients that can be cooked together.',
+                      style: SnapUI.bodyStyle.copyWith(color: Colors.blue[700]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Show recipe suggestions for ingredients
+    if (_recipeSuggestions == null || _recipeSuggestions!.isEmpty) {
+      return Container(
+        padding: SnapUI.cardPadding,
+        decoration: SnapUI.cardDecorationWithBorder,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.restaurant_menu, color: SnapUI.primaryColor, size: 24),
+                SnapUI.horizontalSpaceSmall,
+                Text('Recipe Suggestions', style: SnapUI.headingStyle),
+              ],
+            ),
+            SnapUI.verticalSpaceSmall,
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.05),
+                borderRadius: SnapUI.borderRadius,
+                border: Border.all(color: Colors.blue.withOpacity(0.2)),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  SnapUI.horizontalSpaceSmall,
+                  Expanded(
+                    child: Text(
+                      'We detected ingredients! Recipe suggestions are being generated...',
+                      style: SnapUI.bodyStyle.copyWith(color: Colors.blue[700]),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Show actual recipe suggestions
+    return _buildRecipeSuggestionsSection();
+  }
+
   Widget _buildSaveButton() {
     return SnapUI.primaryButton(
       _isSaving ? 'Saving...' : 'Save Meal Log',
       () => _saveMealLog(), // Always provide non-null callback
       icon: _isSaving ? null : Icons.save,
       isLoading: _isSaving, // This handles the disabled state
+    );
+  }
+
+  Widget _buildMealTypeIndicator() {
+    if (_analysisResult == null) return const SizedBox.shrink();
+
+    final mealType = _analysisResult!.mealType;
+    final confidence = _analysisResult!.mealTypeConfidence;
+    
+    Color indicatorColor;
+    IconData indicatorIcon;
+    String displayText;
+    
+    switch (mealType) {
+      case MealType.ingredients:
+        indicatorColor = Colors.blue;
+        indicatorIcon = Icons.restaurant;
+        displayText = 'Ingredients';
+        break;
+      case MealType.readyMade:
+        indicatorColor = Colors.green;
+        indicatorIcon = Icons.restaurant_menu;
+        displayText = 'Ready-made';
+        break;
+      case MealType.mixed:
+        indicatorColor = Colors.orange;
+        indicatorIcon = Icons.blender;
+        displayText = 'Mixed';
+        break;
+      default:
+        indicatorColor = Colors.grey;
+        indicatorIcon = Icons.help_outline;
+        displayText = 'Unknown';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: indicatorColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: indicatorColor.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(indicatorIcon, size: 14, color: indicatorColor),
+          const SizedBox(width: 4),
+          Text(
+            displayText,
+            style: TextStyle(
+              color: indicatorColor,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (confidence > 0) ...[
+            const SizedBox(width: 2),
+            Text(
+              '(${(confidence * 100).toInt()}%)',
+              style: TextStyle(
+                color: indicatorColor.withOpacity(0.7),
+                fontSize: 9,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }

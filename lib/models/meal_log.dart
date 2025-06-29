@@ -1,5 +1,27 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Types of meals detected in images
+enum MealType {
+  /// Individual ingredients that can be cooked together (raw chicken, vegetables, spices)
+  ingredients('ingredients'),
+  /// Ready-made/prepared dishes (pizza, burger, cooked pasta)
+  readyMade('ready_made'),
+  /// Mixed - contains both ingredients and prepared items
+  mixed('mixed'),
+  /// Cannot determine the meal type
+  unknown('unknown');
+
+  const MealType(this.value);
+  final String value;
+  
+  factory MealType.fromString(String value) {
+    return values.firstWhere(
+      (type) => type.value == value,
+      orElse: () => MealType.unknown,
+    );
+  }
+}
+
 /// Represents a meal logged by the user with AI analysis
 class MealLog {
   final String id;
@@ -97,6 +119,9 @@ class MealRecognitionResult {
   final String primaryFoodCategory;
   final List<String> allergenWarnings;
   final DateTime analysisTimestamp;
+  final MealType mealType;
+  final double mealTypeConfidence;
+  final String? mealTypeReason;
 
   MealRecognitionResult({
     required this.detectedFoods,
@@ -105,6 +130,9 @@ class MealRecognitionResult {
     required this.primaryFoodCategory,
     required this.allergenWarnings,
     required this.analysisTimestamp,
+    required this.mealType,
+    required this.mealTypeConfidence,
+    this.mealTypeReason,
   });
 
   Map<String, dynamic> toJson() {
@@ -115,6 +143,9 @@ class MealRecognitionResult {
       'primary_food_category': primaryFoodCategory,
       'allergen_warnings': allergenWarnings,
       'analysis_timestamp': analysisTimestamp.millisecondsSinceEpoch,
+      'meal_type': mealType.value,
+      'meal_type_confidence': mealTypeConfidence,
+      'meal_type_reason': mealTypeReason,
     };
   }
 
@@ -130,7 +161,16 @@ class MealRecognitionResult {
       analysisTimestamp: DateTime.fromMillisecondsSinceEpoch(
         json['analysis_timestamp'],
       ),
+      mealType: MealType.fromString(json['meal_type'] ?? 'unknown'),
+      mealTypeConfidence: json['meal_type_confidence']?.toDouble() ?? 0.0,
+      mealTypeReason: json['meal_type_reason'],
     );
+  }
+
+  /// Helper method to determine if recipe suggestions should be shown
+  bool get shouldShowRecipeSuggestions {
+    return mealType == MealType.ingredients || 
+           (mealType == MealType.mixed && mealTypeConfidence < 0.8);
   }
 }
 

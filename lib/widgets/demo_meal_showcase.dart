@@ -137,6 +137,9 @@ class _DemoMealShowcaseState extends State<DemoMealShowcase>
         primaryFoodCategory: 'Balanced Meal',
         allergenWarnings: ['Fish'],
         analysisTimestamp: DateTime.now().subtract(const Duration(minutes: 15)),
+        mealType: MealType.readyMade,
+        mealTypeConfidence: 0.92,
+        mealTypeReason: 'Fully prepared dish with cooked salmon, steamed broccoli, and ready-to-eat quinoa salad',
       ),
       aiCaption:
           'Healthy balanced lunch with lean protein, complex carbs, and vegetables',

@@ -16,6 +16,8 @@ import '../models/meal_log.dart';
 import 'openai_service.dart';
 import 'rag_service.dart';
 
+import '../services/usda_nutrition_service.dart';
+
 /// Comprehensive meal recognition service with AI-powered analysis
 class MealRecognitionService {
   static const int _inputSize = 224;
@@ -27,8 +29,15 @@ class MealRecognitionService {
 
   final OpenAIService _openAIService;
   final RAGService _ragService;
+  final USDANutritionService _usdaService;
 
-  MealRecognitionService(this._openAIService, this._ragService);
+  // Fields to store meal type information between method calls
+  MealType? _lastMealType;
+  double? _lastMealTypeConfidence;
+  String? _lastMealTypeReason;
+
+  MealRecognitionService(this._openAIService, this._ragService)
+      : _usdaService = USDANutritionService();
 
   /// Initialize the meal recognition service
   Future<bool> initialize() async {
@@ -135,16 +144,27 @@ class MealRecognitionService {
       }
 
       List<FoodItem> detectedFoods;
+      MealType mealType;
+      double mealTypeConfidence;
+      String? mealTypeReason;
 
       if (_interpreter != null) {
         // Use TensorFlow Lite model for detection
         detectedFoods = await _detectFoodsWithTFLite(image);
+        // Fallback meal type detection for TensorFlow
+        mealType = _determineMealTypeFromFoods(detectedFoods);
+        mealTypeConfidence = 0.7; // Lower confidence for heuristic-based detection
+        mealTypeReason = 'Determined from food type analysis';
       } else {
         // Fallback to OpenAI Vision API
         detectedFoods = await _detectFoodsWithOpenAI(imageBytes);
+        // Use OpenAI's meal type classification
+        mealType = _lastMealType ?? MealType.unknown;
+        mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
+        mealTypeReason = _lastMealTypeReason;
       }
 
-      // Calculate total nutrition
+      // Calculate total nutrition (always performed)
       final totalNutrition = _calculateTotalNutrition(detectedFoods);
 
       // Determine primary food category
@@ -163,10 +183,14 @@ class MealRecognitionService {
         primaryFoodCategory: primaryCategory,
         allergenWarnings: allergenWarnings,
         analysisTimestamp: DateTime.now(),
+        mealType: mealType,
+        mealTypeConfidence: mealTypeConfidence,
+        mealTypeReason: mealTypeReason,
       );
 
       developer.log(
-        'Meal analysis completed with ${detectedFoods.length} food items detected',
+        'Meal analysis completed: ${detectedFoods.length} foods detected, '
+        'meal type: ${mealType.value} (${(mealTypeConfidence * 100).toInt()}% confidence)',
       );
       return result;
     } catch (e) {
@@ -206,7 +230,7 @@ class MealRecognitionService {
         if (prediction.value > 0.1) {
           // Confidence threshold
           final foodName = _labels![prediction.key];
-          final nutrition = await _estimateNutrition(
+          final nutrition = await estimateNutrition(
             foodName,
             100.0,
           ); // Default 100g
@@ -239,22 +263,36 @@ class MealRecognitionService {
       // Convert image to base64
       final base64Image = base64Encode(imageBytes);
 
-      // Create prompt for food detection
+      // Create enhanced prompt for food detection with meal type classification
       final prompt = '''
-Analyze this food image and identify all visible food items. For each food item, provide:
-1. Name of the food
-2. Estimated portion size in grams
-3. Confidence level (0-1)
-4. Food category (e.g., protein, carbs, vegetables, dairy, etc.)
+Analyze this food image and provide a comprehensive analysis:
 
-Format the response as JSON with this structure:
+1. MEAL TYPE CLASSIFICATION:
+   - "ingredients": Raw/uncooked ingredients that could be used to prepare a meal (raw chicken, vegetables, spices, uncooked pasta, etc.)
+   - "ready_made": Fully prepared/cooked dishes ready to eat (pizza, burgers, cooked pasta dishes, sandwiches, etc.)
+   - "mixed": Contains both ingredients and prepared items
+   - "unknown": Cannot determine meal type
+
+2. FOOD ITEM DETECTION:
+   For each visible food item, provide:
+   - Name of the food
+   - Estimated portion size in grams
+   - Confidence level (0-1)
+   - Food category (protein, carbs, vegetables, dairy, etc.)
+   - Preparation state (raw, cooked, processed)
+
+Format the response as JSON with this exact structure:
 {
+  "meal_type": "ingredients|ready_made|mixed|unknown",
+  "meal_type_confidence": 0.85,
+  "meal_type_reason": "Brief explanation of why this meal type was chosen",
   "foods": [
     {
       "name": "food name",
       "estimated_weight": 150.0,
       "confidence": 0.85,
-      "category": "protein"
+      "category": "protein",
+      "preparation_state": "raw|cooked|processed"
     }
   ]
 }
@@ -274,9 +312,14 @@ Format the response as JSON with this structure:
       final analysisResult = jsonDecode(response);
       final List<FoodItem> detectedFoods = [];
 
+      // Store meal type information for later use
+      _lastMealType = MealType.fromString(analysisResult['meal_type'] ?? 'unknown');
+      _lastMealTypeConfidence = analysisResult['meal_type_confidence']?.toDouble() ?? 0.0;
+      _lastMealTypeReason = analysisResult['meal_type_reason'];
+
       if (analysisResult['foods'] != null) {
         for (final foodData in analysisResult['foods']) {
-          final nutrition = await _estimateNutrition(
+          final nutrition = await estimateNutrition(
             foodData['name'],
             foodData['estimated_weight']?.toDouble() ?? 100.0,
           );
@@ -330,18 +373,28 @@ Format the response as JSON with this structure:
   }
 
   /// Estimate nutrition information for a food item
-  Future<NutritionInfo> _estimateNutrition(
+  /// Priority: USDA Database -> Local Database -> AI Estimation -> Default
+  Future<NutritionInfo> estimateNutrition(
     String foodName,
     double weightGrams,
   ) async {
     try {
-      // Try to get nutrition data from local database first
+      // First, try USDA FoodData Central (most accurate)
+      final usdaNutrition = await _usdaService.getNutritionForFood(foodName, weightGrams);
+      if (usdaNutrition != null) {
+        developer.log('Using USDA nutrition data for: $foodName');
+        return usdaNutrition;
+      }
+
+      // Fallback to local database
       final localNutrition = _getNutritionFromDatabase(foodName, weightGrams);
       if (localNutrition != null) {
+        developer.log('Using local nutrition data for: $foodName');
         return localNutrition;
       }
 
       // Fallback to AI-estimated nutrition
+      developer.log('Using AI nutrition estimation for: $foodName');
       return await _estimateNutritionWithAI(foodName, weightGrams);
     } catch (e) {
       developer.log('Error estimating nutrition for $foodName: $e');
@@ -616,6 +669,70 @@ All values should be numbers (not strings) and represent the total amount for th
     return [];
   }
 
+  /// Determine meal type from detected foods (fallback for TensorFlow)
+  MealType _determineMealTypeFromFoods(List<FoodItem> foods) {
+    if (foods.isEmpty) return MealType.unknown;
+
+    int rawIngredients = 0;
+    int cookedItems = 0;
+
+    for (final food in foods) {
+      final name = food.name.toLowerCase();
+      
+      // Check for raw ingredients indicators
+      if (name.contains('raw') || 
+          name.contains('fresh') ||
+          name.contains('uncooked') ||
+          _isTypicalRawIngredient(name)) {
+        rawIngredients++;
+      }
+      // Check for cooked/prepared food indicators  
+      else if (name.contains('cooked') ||
+               name.contains('grilled') ||
+               name.contains('fried') ||
+               name.contains('baked') ||
+               _isTypicalPreparedFood(name)) {
+        cookedItems++;
+      }
+    }
+
+    // Determine meal type based on ingredient analysis
+    if (rawIngredients > cookedItems) {
+      return MealType.ingredients;
+    } else if (cookedItems > rawIngredients) {
+      return MealType.readyMade;
+    } else if (rawIngredients > 0 && cookedItems > 0) {
+      return MealType.mixed;
+    }
+    
+    return MealType.unknown;
+  }
+
+  /// Helper method to identify typical raw ingredients
+  bool _isTypicalRawIngredient(String foodName) {
+    const rawIngredients = [
+      'chicken breast', 'ground beef', 'salmon fillet',
+      'broccoli', 'carrot', 'onion', 'garlic', 'spinach',
+      'rice', 'pasta', 'flour', 'egg',
+      'olive oil', 'salt', 'pepper', 'herbs', 'spices'
+    ];
+    
+    return rawIngredients.any((ingredient) => 
+      foodName.contains(ingredient));
+  }
+
+  /// Helper method to identify typical prepared foods
+  bool _isTypicalPreparedFood(String foodName) {
+    const preparedFoods = [
+      'pizza', 'burger', 'sandwich', 'salad',
+      'soup', 'stew', 'casserole', 'pasta dish',
+      'stir fry', 'curry', 'taco', 'burrito'
+    ];
+    
+    return preparedFoods.any((food) => 
+      foodName.contains(food));
+  }
+
   /// Create a generic food item as fallback
   Future<FoodItem> _createGenericFoodItem() async {
     final nutrition = _getDefaultNutrition(100.0);
@@ -831,6 +948,12 @@ Keep it informative and under 100 characters.
   /// Dispose of resources
   void dispose() {
     _interpreter?.close();
+    _usdaService.clearExpiredCache();
     _isInitialized = false;
+  }
+
+  /// Get USDA service cache statistics
+  Map<String, int> getUSDAStats() {
+    return _usdaService.getCacheStats();
   }
 }

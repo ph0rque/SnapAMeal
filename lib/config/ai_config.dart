@@ -31,6 +31,12 @@ class AIConfig {
   static String get myFitnessPalApiKey =>
       dotenv.env['MYFITNESSPAL_API_KEY'] ?? '';
 
+  // USDA FoodData Central Configuration
+  static String get usdaApiKey => dotenv.env['USDA_API_KEY'] ?? '';
+  static const String usdaBaseUrl = 'https://api.nal.usda.gov/fdc/v1';
+  static const int maxUsdaSearchResults = 25;
+  static const int usdaTimeoutSeconds = 30;
+
   static String get openaiEmbeddingModel =>
       dotenv.env['OPENAI_EMBEDDING_MODEL'] ?? 'text-embedding-3-small';
 
@@ -62,6 +68,10 @@ class AIConfig {
   // Validation
   static bool get isConfigured {
     return pineconeApiKey.isNotEmpty && openaiApiKey.isNotEmpty;
+  }
+
+  static bool get isUSDAConfigured {
+    return usdaApiKey.isNotEmpty;
   }
 
   // Cost optimization settings
