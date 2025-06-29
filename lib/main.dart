@@ -167,7 +167,7 @@ class MyApp extends StatelessWidget {
             theme: lightMode,
             darkTheme: darkMode,
             // Force light mode for consistency
-            themeMode: ThemeMode.system,
+            themeMode: ThemeMode.light,
 
             // Wrap the entire app with fasting-aware navigation
             home: FastingAwareNavigation(
