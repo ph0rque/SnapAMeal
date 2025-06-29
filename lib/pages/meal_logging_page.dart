@@ -639,6 +639,34 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
           SnapUI.verticalSpaceMedium,
 
+          // Total Weight Display
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey.withValues(alpha: 0.05),
+              borderRadius: SnapUI.borderRadius,
+              border: Border.all(
+                color: Colors.grey.withValues(alpha: 0.2),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.scale, color: Colors.grey[600], size: 18),
+                SnapUI.horizontalSpaceSmall,
+                Text(
+                  'Total Weight: ${_calculateTotalWeight(foods).toInt()}g',
+                  style: SnapUI.bodyStyle.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[700],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          SnapUI.verticalSpaceSmall,
+
           // Macro Overview
           Container(
             padding: const EdgeInsets.all(16),
@@ -929,6 +957,50 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           });
         },
       ),
+    );
+  }
+
+  /// Calculate total weight from list of foods
+  double _calculateTotalWeight(List<FoodItem> foods) {
+    return foods.fold(0.0, (total, food) => total + food.estimatedWeight);
+  }
+
+  /// Build formatted text with support for **bold** markdown
+  Widget _buildFormattedText(String text) {
+    final spans = <TextSpan>[];
+    final regex = RegExp(r'\*\*(.*?)\*\*');
+    int lastEnd = 0;
+
+    for (final match in regex.allMatches(text)) {
+      // Add text before the bold part
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(
+          text: text.substring(lastEnd, match.start),
+          style: SnapUI.captionStyle,
+        ));
+      }
+      
+      // Add the bold part
+      spans.add(TextSpan(
+        text: match.group(1) ?? '',
+        style: SnapUI.captionStyle.copyWith(
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+      
+      lastEnd = match.end;
+    }
+
+    // Add remaining text
+    if (lastEnd < text.length) {
+      spans.add(TextSpan(
+        text: text.substring(lastEnd),
+        style: SnapUI.captionStyle,
+      ));
+    }
+
+    return RichText(
+      text: TextSpan(children: spans),
     );
   }
 
@@ -1263,7 +1335,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                     ),
                   ),
                   SnapUI.verticalSpaceXSmall,
-                  Text(recipe.description, style: SnapUI.captionStyle),
+                  _buildFormattedText(recipe.description),
                   SnapUI.verticalSpaceXSmall,
                   Row(
                     children: [

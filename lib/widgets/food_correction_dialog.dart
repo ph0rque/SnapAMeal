@@ -277,10 +277,11 @@ class _FoodCorrectionDialogState extends State<FoodCorrectionDialog> {
       child: Container(
         padding: const EdgeInsets.all(20),
         constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Header
             Row(
               children: [
@@ -430,6 +431,7 @@ class _FoodCorrectionDialogState extends State<FoodCorrectionDialog> {
           ],
         ),
       ),
+    ),
     );
   }
 
