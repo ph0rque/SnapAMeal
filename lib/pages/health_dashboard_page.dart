@@ -27,7 +27,7 @@ import 'health_onboarding_page.dart';
 import 'integrations_page.dart';
 import 'meal_logging_page.dart';
 import 'weekly_review_page.dart';
-import 'simple_camera_page.dart';
+import 'ar_camera_page.dart';
 
 class HealthDashboardPage extends StatefulWidget {
   const HealthDashboardPage({super.key});
@@ -1222,15 +1222,15 @@ class _HealthDashboardPageState extends State<HealthDashboardPage> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt),
-              title: const Text('Take Photo'),
-              subtitle: const Text('Capture moments with AR filters'),
+              leading: const Icon(Icons.auto_awesome),
+              title: const Text('AR Camera'),
+              subtitle: const Text('Capture moments with fitness AR filters'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const SimpleCameraPage(),
+                    builder: (context) => const ARCameraPage(),
                   ),
                 );
               },

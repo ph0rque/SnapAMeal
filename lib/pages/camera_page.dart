@@ -9,8 +9,6 @@ import 'package:snapameal/design_system/snap_ui.dart';
 import 'package:provider/provider.dart';
 import '../services/fasting_service.dart';
 import '../services/ar_filter_service.dart';
-import '../services/rag_service.dart';
-import '../services/openai_service.dart';
 import '../models/fasting_session.dart';
 import '../providers/fasting_state_provider.dart';
 import '../design_system/widgets/fasting_timer_widget.dart';
@@ -38,7 +36,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   bool _showFastingTimer = false;
   bool _showARFilters = false;
   FastingSession? _currentFastingSession;
-  FastingARFilterType? _selectedARFilter;
+  FitnessARFilterType? _selectedARFilter;
   late ARFilterService _arFilterService;
   final List<ARFilterOverlay> _activeAROverlays = [];
 
@@ -56,10 +54,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   }
 
   Future<void> _initializeARFilterService() async {
-    final openAIService = OpenAIService();
-    await openAIService.initialize();
-    final ragService = RAGService(openAIService);
-    _arFilterService = ARFilterService(ragService);
+    _arFilterService = ARFilterService();
   }
 
   void _initializeCamera() {
@@ -99,7 +94,6 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   void dispose() {
     // Dispose of the controller when the widget is disposed.
     _controller.dispose();
-    _arFilterService.dispose();
     super.dispose();
   }
 
@@ -156,26 +150,25 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                                     },
                                   ),
 
-                                  // AR Filters toggle (only show if fasting)
-                                  if (_currentFastingSession?.isActive == true)
-                                    IconButton(
-                                      icon: Icon(
-                                        _showARFilters
-                                            ? Icons.auto_awesome_outlined
-                                            : Icons.auto_awesome,
-                                        color: _showARFilters
-                                            ? Colors.yellow
-                                            : SnapUIColors.white,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _showARFilters = !_showARFilters;
-                                          if (!_showARFilters) {
-                                            _clearARFilters();
-                                          }
-                                        });
-                                      },
+                                  // AR Filters toggle (available to all users)
+                                  IconButton(
+                                    icon: Icon(
+                                      _showARFilters
+                                          ? Icons.auto_awesome_outlined
+                                          : Icons.auto_awesome,
+                                      color: _showARFilters
+                                          ? Colors.yellow
+                                          : SnapUIColors.white,
                                     ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _showARFilters = !_showARFilters;
+                                        if (!_showARFilters) {
+                                          _clearARFilters();
+                                        }
+                                      });
+                                    },
+                                  ),
                                 ],
                               ),
 
@@ -233,8 +226,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
                         ),
 
                         // AR Filter Selector
-                        if (_showARFilters &&
-                            _currentFastingSession?.isActive == true)
+                        if (_showARFilters)
                           Positioned(
                             bottom: 140,
                             left: 0,
@@ -652,7 +644,7 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
   }
 
   /// Handle AR filter selection
-  void _onARFilterSelected(FastingARFilterType filterType) async {
+  void _onARFilterSelected(FitnessARFilterType filterType) async {
     if (_selectedARFilter == filterType) {
       // Deselect the filter
       _clearARFilters();
@@ -662,33 +654,6 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
     setState(() {
       _selectedARFilter = filterType;
     });
-
-    // Clear existing overlays
-    _clearARFilters();
-
-    // Apply new filter
-    if (_currentFastingSession != null) {
-      final overlay = await _arFilterService.applyFilter(
-        filterType,
-        _currentFastingSession!,
-        this,
-      );
-
-      if (overlay != null) {
-        setState(() {
-          _activeAROverlays.add(overlay);
-        });
-
-        // Auto-remove overlay after duration
-        if (overlay.duration != Duration.zero) {
-          Future.delayed(overlay.duration, () {
-            setState(() {
-              _activeAROverlays.remove(overlay);
-            });
-          });
-        }
-      }
-    }
   }
 
   /// Clear all active AR filters
@@ -697,6 +662,5 @@ class _CameraPageState extends State<CameraPage> with TickerProviderStateMixin {
       _selectedARFilter = null;
       _activeAROverlays.clear();
     });
-    _arFilterService.clearAllOverlays();
   }
 }

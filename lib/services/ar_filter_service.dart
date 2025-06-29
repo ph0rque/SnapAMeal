@@ -1,31 +1,23 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../config/ai_config.dart';
-import '../models/fasting_session.dart';
-import '../services/rag_service.dart';
-import '../utils/logger.dart';
 
-/// Types of AR filters available for fasting mode
-enum FastingARFilterType {
-  motivationalText, // Floating motivational quotes
-  progressRing, // Animated progress rings around face
-  achievement, // Achievement celebration effects
-  strengthAura, // Glowing strength aura
-  timeCounter, // Floating time counter
-  willpowerBoost, // Power-up style effects
-  zenMode, // Calming, meditative effects
-  challengeMode, // Intense, focused effects
+/// Types of AR filters available for fitness motivation
+enum FitnessARFilterType {
+  fastingChampion,   // Crown with "16-Hour Fasting Champ!"
+  calorieCrusher,    // Superhero with calorie count
+  workoutGuide,      // Yoga pose with tips
+  progressParty,     // Fireworks with milestone
+  groupStreakSparkler, // Sparkles with group streak
 }
 
-/// Configuration for an AR filter
+/// Configuration for an AR fitness filter
 class ARFilterConfig {
-  final FastingARFilterType type;
+  final FitnessARFilterType type;
   final String name;
   final String description;
   final Color primaryColor;
   final Color accentColor;
   final Duration animationDuration;
-  final List<String> motivationalTexts;
   final Map<String, dynamic> customParams;
 
   ARFilterConfig({
@@ -35,14 +27,13 @@ class ARFilterConfig {
     required this.primaryColor,
     required this.accentColor,
     this.animationDuration = const Duration(seconds: 3),
-    this.motivationalTexts = const [],
     this.customParams = const {},
   });
 }
 
 /// A rendered AR filter overlay
 class ARFilterOverlay {
-  final FastingARFilterType type;
+  final FitnessARFilterType type;
   final Widget widget;
   final Duration duration;
   final bool isAnimated;
@@ -57,836 +48,841 @@ class ARFilterOverlay {
   });
 }
 
-/// Service for managing AR filters and effects during fasting
+/// Service for managing fitness-based AR filters
 class ARFilterService {
-  final RAGService _ragService;
-
-  // Animation controllers and state
-  final Map<FastingARFilterType, AnimationController> _animationControllers =
-      {};
-  final List<ARFilterOverlay> _activeOverlays = [];
-
   // Filter configurations
-  late final Map<FastingARFilterType, ARFilterConfig> _filterConfigs;
+  late final Map<FitnessARFilterType, ARFilterConfig> _filterConfigs;
 
-  // Motivational content cache
-  final Map<String, List<String>> _motivationalCache = {};
-
-  ARFilterService(this._ragService) {
+  ARFilterService() {
     _initializeFilterConfigs();
   }
 
-  /// Initialize predefined filter configurations
+  /// Initialize fitness filter configurations
   void _initializeFilterConfigs() {
     _filterConfigs = {
-      FastingARFilterType.motivationalText: ARFilterConfig(
-        type: FastingARFilterType.motivationalText,
-        name: 'Motivational Quotes',
-        description: 'Floating inspirational messages',
-        primaryColor: Colors.blue,
-        accentColor: Colors.lightBlue,
-        motivationalTexts: [
-          'Stay Strong! 💪',
-          'You\'ve Got This! 🔥',
-          'Building Discipline 🧠',
-          'Every Hour Counts ⏰',
-          'Mind Over Matter 🎯',
-          'Strength in Progress 📈',
-          'Focused & Determined 🎯',
-          'Growing Stronger 🌱',
-        ],
-      ),
-
-      FastingARFilterType.progressRing: ARFilterConfig(
-        type: FastingARFilterType.progressRing,
-        name: 'Progress Ring',
-        description: 'Animated progress visualization',
-        primaryColor: Colors.green,
-        accentColor: Colors.lightGreen,
+      FitnessARFilterType.fastingChampion: ARFilterConfig(
+        type: FitnessARFilterType.fastingChampion,
+        name: 'Fasting Champion',
+        description: 'Celebrate fasting milestones',
+        primaryColor: Color(0xFFFFD700), // Gold
+        accentColor: Color(0xFFFFA500), // Orange
         animationDuration: Duration(seconds: 2),
       ),
 
-      FastingARFilterType.achievement: ARFilterConfig(
-        type: FastingARFilterType.achievement,
-        name: 'Achievement Burst',
-        description: 'Celebration effects for milestones',
-        primaryColor: Colors.amber,
-        accentColor: Colors.yellow,
-        animationDuration: Duration(seconds: 4),
+      FitnessARFilterType.calorieCrusher: ARFilterConfig(
+        type: FitnessARFilterType.calorieCrusher,
+        name: 'Calorie Crusher',
+        description: 'Superhero calorie feedback',
+        primaryColor: Color(0xFF1E90FF), // DodgerBlue
+        accentColor: Color(0xFF00CED1), // DarkTurquoise
+        animationDuration: Duration(seconds: 2),
       ),
 
-      FastingARFilterType.strengthAura: ARFilterConfig(
-        type: FastingARFilterType.strengthAura,
-        name: 'Strength Aura',
-        description: 'Glowing aura of inner strength',
-        primaryColor: Colors.purple,
-        accentColor: Colors.deepPurple,
+      FitnessARFilterType.workoutGuide: ARFilterConfig(
+        type: FitnessARFilterType.workoutGuide,
+        name: 'Workout Guide',
+        description: 'Visual workout coaching',
+        primaryColor: Color(0xFFFF7F50), // Coral
+        accentColor: Color(0xFFFF6347), // Tomato
         animationDuration: Duration(seconds: 3),
       ),
 
-      FastingARFilterType.timeCounter: ARFilterConfig(
-        type: FastingARFilterType.timeCounter,
-        name: 'Time Counter',
-        description: 'Floating elapsed time display',
-        primaryColor: Colors.cyan,
-        accentColor: Colors.teal,
+      FitnessARFilterType.progressParty: ARFilterConfig(
+        type: FitnessARFilterType.progressParty,
+        name: 'Progress Party',
+        description: 'Celebrate achievements',
+        primaryColor: Color(0xFF9370DB), // MediumPurple
+        accentColor: Color(0xFFBA55D3), // MediumOrchid
+        animationDuration: Duration(seconds: 4),
       ),
 
-      FastingARFilterType.willpowerBoost: ARFilterConfig(
-        type: FastingARFilterType.willpowerBoost,
-        name: 'Willpower Boost',
-        description: 'Power-up style energy effects',
-        primaryColor: Colors.red,
-        accentColor: Colors.orange,
-        animationDuration: Duration(seconds: 2),
-      ),
-
-      FastingARFilterType.zenMode: ARFilterConfig(
-        type: FastingARFilterType.zenMode,
-        name: 'Zen Mode',
-        description: 'Calming, meditative ambiance',
-        primaryColor: Colors.indigo,
-        accentColor: Colors.blue,
-        animationDuration: Duration(seconds: 5),
-      ),
-
-      FastingARFilterType.challengeMode: ARFilterConfig(
-        type: FastingARFilterType.challengeMode,
-        name: 'Challenge Mode',
-        description: 'Intense focus enhancement',
-        primaryColor: Colors.deepOrange,
-        accentColor: Colors.red,
-        animationDuration: Duration(seconds: 1),
+      FitnessARFilterType.groupStreakSparkler: ARFilterConfig(
+        type: FitnessARFilterType.groupStreakSparkler,
+        name: 'Group Streak Sparkler',
+        description: 'Group engagement sparkles',
+        primaryColor: Color(0xFFFFD700), // Gold
+        accentColor: Color(0xFFFFFACD), // LemonChiffon
+        animationDuration: Duration(seconds: 3),
       ),
     };
   }
 
-  /// Get available filters for the current fasting session
-  List<ARFilterConfig> getAvailableFilters(FastingSession? session) {
-    if (session == null) return [];
-
-    final filters = <ARFilterConfig>[];
-
-    // Always available filters
-    filters.addAll([
-      _filterConfigs[FastingARFilterType.motivationalText]!,
-      _filterConfigs[FastingARFilterType.progressRing]!,
-      _filterConfigs[FastingARFilterType.timeCounter]!,
-    ]);
-
-    // Progress-based filters
-    if (session.progressPercentage > 0.25) {
-      filters.add(_filterConfigs[FastingARFilterType.strengthAura]!);
-    }
-
-    if (session.progressPercentage > 0.5) {
-      filters.add(_filterConfigs[FastingARFilterType.willpowerBoost]!);
-    }
-
-    if (session.progressPercentage > 0.75) {
-      filters.add(_filterConfigs[FastingARFilterType.achievement]!);
-    }
-
-    // Session type specific filters
-    if (session.type == FastingType.extended24 ||
-        session.type == FastingType.extended36 ||
-        session.type == FastingType.extended48) {
-      filters.add(_filterConfigs[FastingARFilterType.challengeMode]!);
-    } else {
-      filters.add(_filterConfigs[FastingARFilterType.zenMode]!);
-    }
-
-    return filters;
+  /// Get all available fitness filters
+  List<ARFilterConfig> getAvailableFilters() {
+    return _filterConfigs.values.toList();
   }
 
-  /// Apply an AR filter to the camera view
-  Future<ARFilterOverlay?> applyFilter(
-    FastingARFilterType type,
-    FastingSession session,
-    TickerProvider tickerProvider,
-  ) async {
+  /// Get filter configuration by type
+  ARFilterConfig? getFilterConfig(FitnessARFilterType type) {
+    return _filterConfigs[type];
+  }
+
+  /// Generate overlay widget for a specific filter type
+  Widget generateFilterOverlay(FitnessARFilterType type, {Size? size}) {
     final config = _filterConfigs[type];
-    if (config == null) return null;
+    if (config == null) return SizedBox.shrink();
 
-    try {
-      Widget filterWidget;
-
-      switch (type) {
-        case FastingARFilterType.motivationalText:
-          filterWidget = await _buildMotivationalTextFilter(
-            config,
-            session,
-            tickerProvider,
-          );
-          break;
-
-        case FastingARFilterType.progressRing:
-          filterWidget = _buildProgressRingFilter(
-            config,
-            session,
-            tickerProvider,
-          );
-          break;
-
-        case FastingARFilterType.achievement:
-          filterWidget = _buildAchievementFilter(
-            config,
-            session,
-            tickerProvider,
-          );
-          break;
-
-        case FastingARFilterType.strengthAura:
-          filterWidget = _buildStrengthAuraFilter(
-            config,
-            session,
-            tickerProvider,
-          );
-          break;
-
-        case FastingARFilterType.timeCounter:
-          filterWidget = _buildTimeCounterFilter(
-            config,
-            session,
-            tickerProvider,
-          );
-          break;
-
-        case FastingARFilterType.willpowerBoost:
-          filterWidget = _buildWillpowerBoostFilter(
-            config,
-            session,
-            tickerProvider,
-          );
-          break;
-
-        case FastingARFilterType.zenMode:
-          filterWidget = _buildZenModeFilter(config, session, tickerProvider);
-          break;
-
-        case FastingARFilterType.challengeMode:
-          filterWidget = _buildChallengeModeFilter(
-            config,
-            session,
-            tickerProvider,
-          );
-          break;
-      }
-
-      final overlay = ARFilterOverlay(
-        type: type,
-        widget: filterWidget,
-        duration: config.animationDuration,
-        isAnimated: true,
-      );
-
-      _activeOverlays.add(overlay);
-      return overlay;
-    } catch (e) {
-      Logger.d('Error applying AR filter: $e');
-      return null;
+    switch (type) {
+      case FitnessARFilterType.fastingChampion:
+        return FastingChampionOverlay(size: size ?? Size(300, 200));
+      case FitnessARFilterType.calorieCrusher:
+        return CalorieCrusherOverlay(size: size ?? Size(300, 200));
+      case FitnessARFilterType.workoutGuide:
+        return WorkoutGuideOverlay(size: size ?? Size(300, 200));
+      case FitnessARFilterType.progressParty:
+        return ProgressPartyOverlay(size: size ?? Size(300, 200));
+      case FitnessARFilterType.groupStreakSparkler:
+        return GroupStreakSparklerOverlay(size: size ?? Size(300, 200));
     }
   }
 
-  /// Build motivational text filter with AI-generated content
-  Future<Widget> _buildMotivationalTextFilter(
-    ARFilterConfig config,
-    FastingSession session,
-    TickerProvider tickerProvider,
-  ) async {
-    // Get AI-generated motivational text
-    String motivationalText = await _getAIMotivationalText(session);
 
-    final controller = AnimationController(
-      duration: config.animationDuration,
-      vsync: tickerProvider,
-    );
 
-    final fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+}
 
-    final slideAnimation = Tween<Offset>(
-      begin: Offset(0, 0.3),
-      end: Offset(0, 0),
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOutBack));
+/// Fasting Champion Filter - Crown with celebration text
+class FastingChampionOverlay extends StatefulWidget {
+  final Size size;
 
-    controller.forward();
+  const FastingChampionOverlay({super.key, required this.size});
 
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        return SlideTransition(
-          position: slideAnimation,
-          child: FadeTransition(
-            opacity: fadeAnimation,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    config.primaryColor.withValues(alpha: 0.8),
-                    config.accentColor.withValues(alpha: 0.9),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: config.primaryColor.withValues(alpha: 0.4),
-                    blurRadius: 20,
-                    offset: Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Text(
-                motivationalText,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      offset: Offset(0, 2),
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
+  @override
+  State<FastingChampionOverlay> createState() => _FastingChampionOverlayState();
+}
 
-  /// Build animated progress ring filter
-  Widget _buildProgressRingFilter(
-    ARFilterConfig config,
-    FastingSession session,
-    TickerProvider tickerProvider,
-  ) {
-    final controller = AnimationController(
-      duration: config.animationDuration,
-      vsync: tickerProvider,
-    );
+class _FastingChampionOverlayState extends State<FastingChampionOverlay>
+    with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _rotationAnimation;
 
-    final progressAnimation = Tween<double>(
-      begin: 0.0,
-      end: session.progressPercentage,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOutCubic));
-
-    final pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.2,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.elasticOut));
-
-    controller.forward();
-
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: pulseAnimation.value,
-          child: SizedBox(
-            width: 150,
-            height: 150,
-            child: CustomPaint(
-              painter: ProgressRingPainter(
-                progress: progressAnimation.value,
-                primaryColor: config.primaryColor,
-                accentColor: config.accentColor,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Build achievement celebration filter
-  Widget _buildAchievementFilter(
-    ARFilterConfig config,
-    FastingSession session,
-    TickerProvider tickerProvider,
-  ) {
-    final controller = AnimationController(
-      duration: config.animationDuration,
-      vsync: tickerProvider,
-    );
-
-    final scaleAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.elasticOut));
-
-    final rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 2 * math.pi,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
-
-    controller.forward();
-
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: scaleAnimation.value,
-          child: Transform.rotate(
-            angle: rotationAnimation.value,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    config.primaryColor.withValues(alpha: 0.8),
-                    config.accentColor.withValues(alpha: 0.3),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-              child: Center(
-                child: Icon(Icons.celebration, size: 60, color: Colors.white),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Build strength aura filter
-  Widget _buildStrengthAuraFilter(
-    ARFilterConfig config,
-    FastingSession session,
-    TickerProvider tickerProvider,
-  ) {
-    final controller = AnimationController(
-      duration: config.animationDuration,
-      vsync: tickerProvider,
-    );
-
-    final pulseAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
-
-    controller.repeat(reverse: true);
-
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        return Container(
-          width: 300,
-          height: 300,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [
-                Colors.transparent,
-                config.primaryColor.withValues(
-                  alpha: 0.1 * pulseAnimation.value,
-                ),
-                config.accentColor.withValues(
-                  alpha: 0.3 * pulseAnimation.value,
-                ),
-                Colors.transparent,
-              ],
-              stops: [0.0, 0.3, 0.7, 1.0],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Build floating time counter filter
-  Widget _buildTimeCounterFilter(
-    ARFilterConfig config,
-    FastingSession session,
-    TickerProvider tickerProvider,
-  ) {
-    final controller = AnimationController(
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
       duration: Duration(seconds: 2),
-      vsync: tickerProvider,
+      vsync: this,
     );
 
-    final floatAnimation = Tween<double>(
-      begin: -5.0,
-      end: 5.0,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
-
-    controller.repeat(reverse: true);
-
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, floatAnimation.value),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: config.primaryColor.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: config.accentColor, width: 2),
-            ),
-            child: Text(
-              _formatDuration(session.elapsedTime),
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'monospace',
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Build willpower boost filter
-  Widget _buildWillpowerBoostFilter(
-    ARFilterConfig config,
-    FastingSession session,
-    TickerProvider tickerProvider,
-  ) {
-    final controller = AnimationController(
-      duration: config.animationDuration,
-      vsync: tickerProvider,
-    );
-
-    final burstAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeOutExpo));
-
-    controller.forward();
-
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        return Stack(
-          alignment: Alignment.center,
-          children: List.generate(8, (index) {
-            final angle = (index * math.pi * 2) / 8;
-            final distance = 100 * burstAnimation.value;
-
-            return Transform.translate(
-              offset: Offset(
-                math.cos(angle) * distance,
-                math.sin(angle) * distance,
-              ),
-              child: Opacity(
-                opacity: 1.0 - burstAnimation.value,
-                child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: config.primaryColor,
-                    boxShadow: [
-                      BoxShadow(color: config.accentColor, blurRadius: 10),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        );
-      },
-    );
-  }
-
-  /// Build zen mode filter
-  Widget _buildZenModeFilter(
-    ARFilterConfig config,
-    FastingSession session,
-    TickerProvider tickerProvider,
-  ) {
-    final controller = AnimationController(
-      duration: config.animationDuration,
-      vsync: tickerProvider,
-    );
-
-    final breatheAnimation = Tween<double>(
+    _scaleAnimation = Tween<double>(
       begin: 0.8,
       end: 1.2,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.elasticInOut,
+    ));
 
-    controller.repeat(reverse: true);
+    _rotationAnimation = Tween<double>(
+      begin: -0.1,
+      end: 0.1,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
 
+    _animationController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AnimatedBuilder(
-      animation: controller,
+      animation: _animationController,
       builder: (context, child) {
         return Transform.scale(
-          scale: breatheAnimation.value,
-          child: Container(
-            width: 250,
-            height: 250,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  config.primaryColor.withValues(alpha: 0.2),
-                  config.accentColor.withValues(alpha: 0.1),
-                  Colors.transparent,
+          scale: _scaleAnimation.value,
+          child: Transform.rotate(
+            angle: _rotationAnimation.value,
+            child: Container(
+              width: widget.size.width,
+              height: widget.size.height,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Crown SVG
+                  Container(
+                    width: 80,
+                    height: 60,
+                    child: CustomPaint(
+                      painter: CrownPainter(),
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  // Celebration text
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.7),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      '16-Hour\nFasting Champ!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Color(0xFFFFD700),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                          Shadow(
+                            offset: Offset(1, 1),
+                            blurRadius: 2,
+                            color: Colors.black.withValues(alpha: 0.8),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
-            child: Center(
-              child: Icon(
-                Icons.self_improvement,
-                size: 50,
-                color: config.primaryColor.withValues(alpha: 0.7),
-              ),
-            ),
           ),
         );
       },
     );
-  }
-
-  /// Build challenge mode filter
-  Widget _buildChallengeModeFilter(
-    ARFilterConfig config,
-    FastingSession session,
-    TickerProvider tickerProvider,
-  ) {
-    final controller = AnimationController(
-      duration: config.animationDuration,
-      vsync: tickerProvider,
-    );
-
-    final intensityAnimation = Tween<double>(
-      begin: 0.3,
-      end: 1.0,
-    ).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut));
-
-    controller.repeat(reverse: true);
-
-    return AnimatedBuilder(
-      animation: controller,
-      builder: (context, child) {
-        return Container(
-          width: 300,
-          height: 300,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: config.primaryColor.withValues(
-                alpha: intensityAnimation.value,
-              ),
-              width: 4,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: config.accentColor.withValues(
-                  alpha: intensityAnimation.value * 0.5,
-                ),
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: Center(
-            child: Icon(
-              Icons.fitness_center,
-              size: 60,
-              color: config.primaryColor.withValues(
-                alpha: intensityAnimation.value,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Get AI-generated motivational text
-  Future<String> _getAIMotivationalText(FastingSession session) async {
-    try {
-      // Check cache first
-      final cacheKey =
-          '${session.type.name}_${(session.progressPercentage * 10).floor()}';
-      if (_motivationalCache.containsKey(cacheKey) &&
-          _motivationalCache[cacheKey]!.isNotEmpty) {
-        final cached = _motivationalCache[cacheKey]!;
-        return cached[math.Random().nextInt(cached.length)];
-      }
-
-      // Only try AI generation if properly configured
-      if (AIConfig.isConfigured) {
-        // Generate new motivational content using RAG
-        final healthContext = HealthQueryContext(
-          userId: session.userId,
-          queryType: 'motivation',
-          userProfile: {
-            'fasting_type': session.type.name,
-            'session_progress': session.progressPercentage,
-            'elapsed_time': session.elapsedTime.inHours,
-          },
-          currentGoals: ['fasting', 'motivation', 'discipline'],
-          dietaryRestrictions: [],
-          recentActivity: {
-            'session_duration': session.elapsedTime.inMinutes,
-            'personal_goal': session.personalGoal,
-          },
-          contextTimestamp: DateTime.now(),
-        );
-
-        final aiText = await _ragService.generateContextualizedResponse(
-          userQuery:
-              'Give me a short, powerful motivational message for my ${session.typeDescription} session. I\'m ${(session.progressPercentage * 100).toInt()}% complete. Keep it under 10 words and make it inspiring.',
-          healthContext: healthContext,
-          maxContextLength: 500,
-        );
-
-        if (aiText != null && aiText.isNotEmpty) {
-          // Cache the result
-          _motivationalCache[cacheKey] = [aiText];
-          return aiText;
-        }
-      }
-    } catch (e) {
-      Logger.d('Error getting AI motivational text: $e');
-    }
-
-    // Fallback to predefined motivational texts
-    final config = _filterConfigs[FastingARFilterType.motivationalText]!;
-    final progressBasedTexts = _getProgressBasedMotivationalTexts(session);
-    
-    // Mix predefined config texts with progress-based texts
-    final allTexts = [...config.motivationalTexts, ...progressBasedTexts];
-    return allTexts[math.Random().nextInt(allTexts.length)];
-  }
-
-  /// Get motivational texts based on fasting progress
-  List<String> _getProgressBasedMotivationalTexts(FastingSession session) {
-    final progress = session.progressPercentage;
-    
-    if (progress < 0.25) {
-      return [
-        'Strong start! 💪',
-        'Building willpower',
-        'You\'ve got this!',
-        'Discipline mode: ON',
-        'Future self thanks you',
-      ];
-    } else if (progress < 0.5) {
-      return [
-        'Finding your rhythm 🔥',
-        'Momentum building',
-        'Halfway milestone ahead',
-        'Strength growing',
-        'Progress feels good',
-      ];
-    } else if (progress < 0.75) {
-      return [
-        'Over halfway! ⭐',
-        'Strong discipline',
-        'Mental clarity rising',
-        'Champions persist',
-        'Almost there!',
-      ];
-    } else {
-      return [
-        'Victory in sight! 🎉',
-        'Finish line approaching',
-        'Extraordinary effort',
-        'Pure determination',
-        'Success imminent!',
-      ];
-    }
-  }
-
-  /// Remove an active overlay
-  void removeOverlay(ARFilterOverlay overlay) {
-    _activeOverlays.remove(overlay);
-  }
-
-  /// Clear all active overlays
-  void clearAllOverlays() {
-    _activeOverlays.clear();
-  }
-
-  /// Get list of active overlays
-  List<ARFilterOverlay> get activeOverlays =>
-      List.unmodifiable(_activeOverlays);
-
-  /// Format duration for display
-  String _formatDuration(Duration duration) {
-    final hours = duration.inHours;
-    final minutes = duration.inMinutes.remainder(60);
-    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
-  }
-
-  /// Dispose of resources
-  void dispose() {
-    for (final controller in _animationControllers.values) {
-      controller.dispose();
-    }
-    _animationControllers.clear();
-    _activeOverlays.clear();
   }
 }
 
-/// Custom painter for progress ring
-class ProgressRingPainter extends CustomPainter {
-  final double progress;
-  final Color primaryColor;
-  final Color accentColor;
+/// Calorie Crusher Filter - Superhero with calorie count
+class CalorieCrusherOverlay extends StatefulWidget {
+  final Size size;
 
-  ProgressRingPainter({
-    required this.progress,
-    required this.primaryColor,
-    required this.accentColor,
-  });
+  const CalorieCrusherOverlay({super.key, required this.size});
+
+  @override
+  State<CalorieCrusherOverlay> createState() => _CalorieCrusherOverlayState();
+}
+
+class _CalorieCrusherOverlayState extends State<CalorieCrusherOverlay>
+    with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _bounceAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _bounceAnimation = Tween<double>(
+      begin: 0.9,
+      end: 1.1,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.bounceInOut,
+    ));
+
+    _animationController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _bounceAnimation.value,
+          child: Container(
+            width: widget.size.width,
+            height: widget.size.height,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Superhero
+                Container(
+                  width: 60,
+                  height: 80,
+                  child: CustomPaint(
+                    painter: SuperheroPainter(),
+                  ),
+                ),
+                SizedBox(width: 12),
+                // Calorie badge
+                Container(
+                  padding: EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Color(0xFFFFA500),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 2,
+                    ),
+                  ),
+                  child: Text(
+                    '300\nkcal',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Workout Guide Filter - Yoga pose with tips
+class WorkoutGuideOverlay extends StatefulWidget {
+  final Size size;
+
+  const WorkoutGuideOverlay({super.key, required this.size});
+
+  @override
+  State<WorkoutGuideOverlay> createState() => _WorkoutGuideOverlayState();
+}
+
+class _WorkoutGuideOverlayState extends State<WorkoutGuideOverlay>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: Duration(seconds: 2),
+      vsync: this,
+    );
+
+    _pulseAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.05,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _animationController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _pulseAnimation.value,
+          child: Container(
+            width: widget.size.width,
+            height: widget.size.height,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Yoga pose
+                Container(
+                  width: 70,
+                  height: 70,
+                  child: CustomPaint(
+                    painter: YogaPosePainter(),
+                  ),
+                ),
+                SizedBox(height: 8),
+                // Tip text
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    'Keep back straight!',
+                    style: TextStyle(
+                      color: Color(0xFFFF7F50),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Progress Party Filter - Fireworks with achievement
+class ProgressPartyOverlay extends StatefulWidget {
+  final Size size;
+
+  const ProgressPartyOverlay({super.key, required this.size});
+
+  @override
+  State<ProgressPartyOverlay> createState() => _ProgressPartyOverlayState();
+}
+
+class _ProgressPartyOverlayState extends State<ProgressPartyOverlay>
+    with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _sparkleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: Duration(seconds: 3),
+      vsync: this,
+    );
+
+    _sparkleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _animationController.repeat();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Container(
+          width: widget.size.width,
+          height: widget.size.height,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Fireworks
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: FireworksPainter(_sparkleAnimation.value),
+                ),
+              ),
+              // Achievement text
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Color(0xFF9370DB),
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  '-5 lbs!',
+                  style: TextStyle(
+                    color: Color(0xFF9370DB),
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Group Streak Sparkler Filter - Sparkles with streak count
+class GroupStreakSparklerOverlay extends StatefulWidget {
+  final Size size;
+
+  const GroupStreakSparklerOverlay({super.key, required this.size});
+
+  @override
+  State<GroupStreakSparklerOverlay> createState() => _GroupStreakSparklerOverlayState();
+}
+
+class _GroupStreakSparklerOverlayState extends State<GroupStreakSparklerOverlay>
+    with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _twinkleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: Duration(milliseconds: 2000),
+      vsync: this,
+    );
+
+    _twinkleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+
+    _animationController.repeat();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Container(
+          width: widget.size.width,
+          height: widget.size.height,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Sparkles
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: SparklesPainter(_twinkleAnimation.value),
+                ),
+              ),
+              // Streak text
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Color(0xFFFFD700),
+                    width: 2,
+                  ),
+                ),
+                child: Text(
+                  '3-Day Group\nStreak!',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Color(0xFFFFD700),
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+// Custom Painters for SVG-like graphics
+
+class CrownPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Color(0xFFFFD700)
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    
+    // Crown base
+    path.moveTo(size.width * 0.1, size.height * 0.8);
+    path.lineTo(size.width * 0.9, size.height * 0.8);
+    path.lineTo(size.width * 0.85, size.height);
+    path.lineTo(size.width * 0.15, size.height);
+    path.close();
+
+    // Crown peaks
+    path.moveTo(size.width * 0.1, size.height * 0.8);
+    path.lineTo(size.width * 0.2, size.height * 0.4);
+    path.lineTo(size.width * 0.35, size.height * 0.6);
+    path.lineTo(size.width * 0.5, size.height * 0.2);
+    path.lineTo(size.width * 0.65, size.height * 0.6);
+    path.lineTo(size.width * 0.8, size.height * 0.4);
+    path.lineTo(size.width * 0.9, size.height * 0.8);
+
+    canvas.drawPath(path, paint);
+
+    // Add sparkles
+    final sparklePaint = Paint()
+      ..color = Color(0xFFFFFACD)
+      ..style = PaintingStyle.fill;
+
+    for (int i = 0; i < 5; i++) {
+      final x = size.width * (0.2 + i * 0.15);
+      final y = size.height * 0.1;
+      _drawSparkle(canvas, sparklePaint, Offset(x, y), 3);
+    }
+  }
+
+  void _drawSparkle(Canvas canvas, Paint paint, Offset center, double size) {
+    final path = Path();
+    path.moveTo(center.dx, center.dy - size);
+    path.lineTo(center.dx + size * 0.3, center.dy - size * 0.3);
+    path.lineTo(center.dx + size, center.dy);
+    path.lineTo(center.dx + size * 0.3, center.dy + size * 0.3);
+    path.lineTo(center.dx, center.dy + size);
+    path.lineTo(center.dx - size * 0.3, center.dy + size * 0.3);
+    path.lineTo(center.dx - size, center.dy);
+    path.lineTo(center.dx - size * 0.3, center.dy - size * 0.3);
+    path.close();
+    
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class SuperheroPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Superhero body
+    final bodyPaint = Paint()
+      ..color = Color(0xFF00CED1)
+      ..style = PaintingStyle.fill;
+
+    // Head
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.25),
+      size.width * 0.15,
+      bodyPaint..color = Color(0xFFFFDBAE),
+    );
+
+    // Body
+    final bodyRect = Rect.fromLTWH(
+      size.width * 0.3,
+      size.height * 0.35,
+      size.width * 0.4,
+      size.height * 0.45,
+    );
+    canvas.drawRect(bodyRect, bodyPaint..color = Color(0xFF00CED1));
+
+    // Cape
+    final capePaint = Paint()
+      ..color = Color(0xFFDC143C)
+      ..style = PaintingStyle.fill;
+
+    final capePath = Path();
+    capePath.moveTo(size.width * 0.25, size.height * 0.4);
+    capePath.lineTo(size.width * 0.15, size.height * 0.9);
+    capePath.lineTo(size.width * 0.3, size.height * 0.75);
+    capePath.close();
+    canvas.drawPath(capePath, capePaint);
+
+    // Arms (flexing)
+    final armPaint = Paint()
+      ..color = Color(0xFFFFDBAE)
+      ..style = PaintingStyle.fill
+      ..strokeWidth = 8
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(
+      Offset(size.width * 0.15, size.height * 0.5),
+      size.width * 0.08,
+      armPaint,
+    );
+    canvas.drawCircle(
+      Offset(size.width * 0.85, size.height * 0.5),
+      size.width * 0.08,
+      armPaint,
+    );
+
+    // "S" logo on chest
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: 'S',
+        style: TextStyle(
+          fontSize: size.height * 0.2,
+          fontWeight: FontWeight.bold,
+          color: Colors.yellow,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(
+      canvas,
+      Offset(
+        size.width * 0.5 - textPainter.width / 2,
+        size.height * 0.45,
+      ),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class YogaPosePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Color(0xFFFF7F50)
+      ..style = PaintingStyle.fill;
+
+    // Head
+    canvas.drawCircle(
+      Offset(size.width * 0.5, size.height * 0.2),
+      size.width * 0.1,
+      paint..color = Color(0xFFFFDBAE),
+    );
+
+    // Body in warrior pose
+    final bodyPaint = Paint()
+      ..color = Color(0xFFFF7F50)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6
+      ..strokeCap = StrokeCap.round;
+
+    // Torso
+    canvas.drawLine(
+      Offset(size.width * 0.5, size.height * 0.3),
+      Offset(size.width * 0.5, size.height * 0.6),
+      bodyPaint,
+    );
+
+    // Arms extended
+    canvas.drawLine(
+      Offset(size.width * 0.2, size.height * 0.4),
+      Offset(size.width * 0.8, size.height * 0.4),
+      bodyPaint,
+    );
+
+    // Legs in lunge
+    canvas.drawLine(
+      Offset(size.width * 0.5, size.height * 0.6),
+      Offset(size.width * 0.3, size.height * 0.9),
+      bodyPaint,
+    );
+    canvas.drawLine(
+      Offset(size.width * 0.5, size.height * 0.6),
+      Offset(size.width * 0.7, size.height * 0.9),
+      bodyPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+class FireworksPainter extends CustomPainter {
+  final double animationValue;
+
+  FireworksPainter(this.animationValue);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 10;
+    final paint = Paint()
+      ..style = PaintingStyle.fill;
 
-    // Background ring
-    final backgroundPaint = Paint()
-      ..color = primaryColor.withValues(alpha: 0.2)
-      ..strokeWidth = 8.0
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+    final colors = [
+      Color(0xFFFF6347),
+      Color(0xFF9370DB),
+      Color(0xFFFFD700),
+      Color(0xFF00CED1),
+    ];
 
-    canvas.drawCircle(center, radius, backgroundPaint);
+    // Draw multiple fireworks
+    for (int i = 0; i < 3; i++) {
+      final centerX = size.width * (0.2 + i * 0.3);
+      final centerY = size.height * (0.2 + i * 0.2);
+      final color = colors[i % colors.length];
+      
+      _drawFirework(canvas, paint, Offset(centerX, centerY), color, animationValue);
+    }
+  }
 
-    // Progress ring
-    if (progress > 0) {
-      final progressPaint = Paint()
-        ..shader = SweepGradient(
-          colors: [primaryColor, accentColor, primaryColor],
-          stops: [0.0, 0.5, 1.0],
-        ).createShader(Rect.fromCircle(center: center, radius: radius))
-        ..strokeWidth = 8.0
-        ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round;
-
-      final sweepAngle = 2 * math.pi * progress;
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        -math.pi / 2,
-        sweepAngle,
-        false,
-        progressPaint,
-      );
+  void _drawFirework(Canvas canvas, Paint paint, Offset center, Color color, double progress) {
+    paint.color = color.withValues(alpha: 1.0 - progress * 0.5);
+    
+    final radius = progress * 30;
+    final sparkleCount = 8;
+    
+    for (int i = 0; i < sparkleCount; i++) {
+      final angle = (i * 2 * math.pi) / sparkleCount;
+      final x = center.dx + math.cos(angle) * radius;
+      final y = center.dy + math.sin(angle) * radius;
+      
+      canvas.drawCircle(Offset(x, y), 3 * (1 - progress), paint);
     }
   }
 
   @override
-  bool shouldRepaint(ProgressRingPainter oldDelegate) {
-    return oldDelegate.progress != progress ||
-        oldDelegate.primaryColor != primaryColor ||
-        oldDelegate.accentColor != accentColor;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class SparklesPainter extends CustomPainter {
+  final double animationValue;
+
+  SparklesPainter(this.animationValue);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Color(0xFFFFD700)
+      ..style = PaintingStyle.fill;
+
+    // Draw sparkles at various positions
+    final sparklePositions = [
+      Offset(size.width * 0.2, size.height * 0.2),
+      Offset(size.width * 0.8, size.height * 0.3),
+      Offset(size.width * 0.1, size.height * 0.6),
+      Offset(size.width * 0.9, size.height * 0.7),
+      Offset(size.width * 0.5, size.height * 0.1),
+      Offset(size.width * 0.3, size.height * 0.8),
+      Offset(size.width * 0.7, size.height * 0.9),
+    ];
+
+    for (int i = 0; i < sparklePositions.length; i++) {
+      final position = sparklePositions[i];
+      final phase = (animationValue + i * 0.2) % 1.0;
+      final alpha = (math.sin(phase * 2 * math.pi) + 1) / 2;
+      final size = 4 + 2 * alpha;
+      
+      paint.color = Color(0xFFFFD700).withValues(alpha: alpha);
+      _drawSparkle(canvas, paint, position, size);
+    }
   }
+
+  void _drawSparkle(Canvas canvas, Paint paint, Offset center, double size) {
+    final path = Path();
+    path.moveTo(center.dx, center.dy - size);
+    path.lineTo(center.dx + size * 0.3, center.dy - size * 0.3);
+    path.lineTo(center.dx + size, center.dy);
+    path.lineTo(center.dx + size * 0.3, center.dy + size * 0.3);
+    path.lineTo(center.dx, center.dy + size);
+    path.lineTo(center.dx - size * 0.3, center.dy + size * 0.3);
+    path.lineTo(center.dx - size, center.dy);
+    path.lineTo(center.dx - size * 0.3, center.dy - size * 0.3);
+    path.close();
+    
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

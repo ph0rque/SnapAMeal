@@ -6,8 +6,8 @@ import '../../models/fasting_session.dart';
 class ARFilterSelector extends StatefulWidget {
   final FastingSession? fastingSession;
   final ARFilterService arFilterService;
-  final Function(FastingARFilterType) onFilterSelected;
-  final FastingARFilterType? selectedFilter;
+  final Function(FitnessARFilterType) onFilterSelected;
+  final FitnessARFilterType? selectedFilter;
   final bool isVisible;
 
   const ARFilterSelector({
@@ -66,13 +66,7 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.fastingSession == null) {
-      return SizedBox.shrink();
-    }
-
-    final availableFilters = widget.arFilterService.getAvailableFilters(
-      widget.fastingSession,
-    );
+    final availableFilters = widget.arFilterService.getAvailableFilters();
 
     if (availableFilters.isEmpty) {
       return SizedBox.shrink();
@@ -101,7 +95,7 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
                   Icon(Icons.auto_awesome, color: Colors.white, size: 20),
                   SizedBox(width: 8),
                   Text(
-                    'Motivational Filters',
+                    'Fitness Filters',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -234,24 +228,18 @@ class _ARFilterSelectorState extends State<ARFilterSelector>
     );
   }
 
-  IconData _getFilterIcon(FastingARFilterType type) {
+  IconData _getFilterIcon(FitnessARFilterType type) {
     switch (type) {
-      case FastingARFilterType.motivationalText:
-        return Icons.format_quote;
-      case FastingARFilterType.progressRing:
-        return Icons.radio_button_unchecked;
-      case FastingARFilterType.achievement:
-        return Icons.celebration;
-      case FastingARFilterType.strengthAura:
-        return Icons.blur_circular;
-      case FastingARFilterType.timeCounter:
-        return Icons.timer;
-      case FastingARFilterType.willpowerBoost:
-        return Icons.flash_on;
-      case FastingARFilterType.zenMode:
-        return Icons.self_improvement;
-      case FastingARFilterType.challengeMode:
-        return Icons.fitness_center;
+      case FitnessARFilterType.fastingChampion:
+        return Icons.emoji_events; // Trophy/Crown
+      case FitnessARFilterType.calorieCrusher:
+        return Icons.flash_on; // Lightning for energy
+      case FitnessARFilterType.workoutGuide:
+        return Icons.fitness_center; // Workout icon
+      case FitnessARFilterType.progressParty:
+        return Icons.celebration; // Party/Fireworks
+      case FitnessARFilterType.groupStreakSparkler:
+        return Icons.auto_awesome; // Sparkles
     }
   }
 }
@@ -290,33 +278,24 @@ class _ARFilterOverlayWidgetState extends State<ARFilterOverlayWidget> {
   }
 
   /// Get position for different types of overlays
-  Offset _getOverlayPosition(FastingARFilterType type) {
+  Offset _getOverlayPosition(FitnessARFilterType type) {
     final size = widget.screenSize;
 
     switch (type) {
-      case FastingARFilterType.motivationalText:
-        return Offset(size.width * 0.1, size.height * 0.15);
+      case FitnessARFilterType.fastingChampion:
+        return Offset(size.width * 0.5 - 50, size.height * 0.1); // Top center for crown
 
-      case FastingARFilterType.progressRing:
-        return Offset(size.width * 0.5 - 75, size.height * 0.3);
+      case FitnessARFilterType.calorieCrusher:
+        return Offset(size.width * 0.1, size.height * 0.15); // Top left for superhero
 
-      case FastingARFilterType.achievement:
-        return Offset(size.width * 0.5 - 100, size.height * 0.4);
+      case FitnessARFilterType.workoutGuide:
+        return Offset(size.width * 0.5 - 75, size.height * 0.4); // Center for pose
 
-      case FastingARFilterType.strengthAura:
-        return Offset(size.width * 0.5 - 150, size.height * 0.35);
+      case FitnessARFilterType.progressParty:
+        return Offset(size.width * 0.5 - 100, size.height * 0.3); // Center for fireworks
 
-      case FastingARFilterType.timeCounter:
-        return Offset(size.width * 0.5 - 50, size.height * 0.1);
-
-      case FastingARFilterType.willpowerBoost:
-        return Offset(size.width * 0.5 - 75, size.height * 0.45);
-
-      case FastingARFilterType.zenMode:
-        return Offset(size.width * 0.5 - 125, size.height * 0.4);
-
-      case FastingARFilterType.challengeMode:
-        return Offset(size.width * 0.5 - 150, size.height * 0.3);
+      case FitnessARFilterType.groupStreakSparkler:
+        return Offset(size.width * 0.5 - 75, size.height * 0.2); // Top-center for sparkles
     }
   }
 }

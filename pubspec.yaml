@@ -57,6 +57,7 @@ dependencies:
   google_fonts: ^6.2.1
   timeago: ^3.6.1
   intl: ^0.19.0
+  flutter_svg: ^2.0.10
 
   # AI & HTTP Dependencies
   http: ^1.2.1

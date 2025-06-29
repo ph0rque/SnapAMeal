@@ -11,6 +11,7 @@ import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:snapameal/pages/preview_page.dart';
 import '../utils/logger.dart';
+import '../services/ar_filter_service.dart';
 
 class ARCameraPage extends StatefulWidget {
   const ARCameraPage({super.key});
@@ -28,8 +29,10 @@ class _ARCameraPageState extends State<ARCameraPage> {
   final GlobalKey _globalKey = GlobalKey();
   InputImageRotation _rotation = InputImageRotation.rotation270deg;
 
-  final List<String> _filters = ['None', '😎', '🤡', '👹', '👻', '👽'];
+  final ARFilterService _arFilterService = ARFilterService();
+  List<ARFilterConfig> _availableFilters = [];
   int _selectedFilterIndex = 0;
+  FitnessARFilterType? _selectedFilterType;
 
   // Video recording state
   bool _isVideoMode = false;
@@ -42,6 +45,12 @@ class _ARCameraPageState extends State<ARCameraPage> {
   void initState() {
     super.initState();
     _initialize();
+    _initializeFilters();
+  }
+
+  void _initializeFilters() {
+    _availableFilters = _arFilterService.getAvailableFilters();
+    setState(() {});
   }
 
   Future<void> _initialize() async {
@@ -376,7 +385,7 @@ class _ARCameraPageState extends State<ARCameraPage> {
             ),
             // Only show face filters when not recording video and a filter is selected
             if (!_isRecording &&
-                _selectedFilterIndex > 0 &&
+                _selectedFilterType != null &&
                 _faces.isNotEmpty &&
                 _imageSize != null)
               CustomPaint(
@@ -385,8 +394,23 @@ class _ARCameraPageState extends State<ARCameraPage> {
                   faces: _faces,
                   imageSize: _imageSize!,
                   screenSize: MediaQuery.of(context).size,
-                  filter: _filters[_selectedFilterIndex],
+                  filterType: _selectedFilterType,
+                  arFilterService: _arFilterService,
                   rotation: _rotation,
+                ),
+              ),
+            // Show filter overlay when face is detected and filter is selected
+            if (!_isRecording &&
+                _selectedFilterType != null &&
+                _faces.isNotEmpty)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: Center(
+                    child: _arFilterService.generateFilterOverlay(
+                      _selectedFilterType!,
+                      size: Size(200, 150),
+                    ),
+                  ),
                 ),
               ),
             Positioned(
@@ -450,22 +474,27 @@ class _ARCameraPageState extends State<ARCameraPage> {
 
   Widget _buildFilterSelector() {
     return Container(
-      height: 60,
-      color: Colors.black.withValues(alpha: 0.5),
+      height: 80,
+      color: Colors.black.withValues(alpha: 0.7),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: _filters.length,
+        padding: EdgeInsets.symmetric(horizontal: 10),
+        itemCount: _availableFilters.length + 1, // +1 for "None" option
         itemBuilder: (context, index) {
-          final isNoneFilter = _filters[index] == 'None';
+          final isNoneFilter = index == 0;
+          
           return GestureDetector(
             onTap: () {
               setState(() {
                 _selectedFilterIndex = index;
+                _selectedFilterType = isNoneFilter 
+                    ? null 
+                    : _availableFilters[index - 1].type;
               });
             },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              margin: const EdgeInsets.symmetric(horizontal: 5),
+              width: 70,
+              margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
               decoration: BoxDecoration(
                 border: _selectedFilterIndex == index
                     ? Border.all(color: Colors.yellow, width: 3)
@@ -473,27 +502,85 @@ class _ARCameraPageState extends State<ARCameraPage> {
                         color: Colors.white.withValues(alpha: 0.3),
                         width: 1,
                       ),
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(12),
                 color: _selectedFilterIndex == index
                     ? Colors.yellow.withValues(alpha: 0.2)
-                    : Colors.transparent,
+                    : Colors.black.withValues(alpha: 0.3),
               ),
-              alignment: Alignment.center,
-              child: isNoneFilter
-                  ? const Text(
-                      'None',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (isNoneFilter)
+                    Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 24,
                     )
-                  : Text(_filters[index], style: const TextStyle(fontSize: 30)),
+                  else
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: _availableFilters[index - 1].primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _getFilterIcon(_availableFilters[index - 1].type),
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  SizedBox(height: 4),
+                  Text(
+                    isNoneFilter 
+                        ? 'None' 
+                        : _getFilterShortName(_availableFilters[index - 1].type),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           );
         },
       ),
     );
+  }
+
+  IconData _getFilterIcon(FitnessARFilterType type) {
+    switch (type) {
+      case FitnessARFilterType.fastingChampion:
+        return Icons.emoji_events; // Trophy/Crown
+      case FitnessARFilterType.calorieCrusher:
+        return Icons.flash_on; // Lightning for energy
+      case FitnessARFilterType.workoutGuide:
+        return Icons.fitness_center; // Workout icon
+      case FitnessARFilterType.progressParty:
+        return Icons.celebration; // Party/Fireworks
+      case FitnessARFilterType.groupStreakSparkler:
+        return Icons.auto_awesome; // Sparkles
+    }
+  }
+
+  String _getFilterShortName(FitnessARFilterType type) {
+    switch (type) {
+      case FitnessARFilterType.fastingChampion:
+        return 'Fasting\nChamp';
+      case FitnessARFilterType.calorieCrusher:
+        return 'Calorie\nCrusher';
+      case FitnessARFilterType.workoutGuide:
+        return 'Workout\nGuide';
+      case FitnessARFilterType.progressParty:
+        return 'Progress\nParty';
+      case FitnessARFilterType.groupStreakSparkler:
+        return 'Group\nStreak';
+    }
   }
 
   Widget _buildModeToggle() {
@@ -774,14 +861,16 @@ class FacePainter extends CustomPainter {
   final List<Face> faces;
   final Size imageSize;
   final Size screenSize;
-  final String filter;
+  final FitnessARFilterType? filterType;
+  final ARFilterService arFilterService;
   final InputImageRotation rotation;
 
   FacePainter({
     required this.faces,
     required this.imageSize,
     required this.screenSize,
-    required this.filter,
+    required this.filterType,
+    required this.arFilterService,
     required this.rotation,
   });
 
@@ -799,21 +888,32 @@ class FacePainter extends CustomPainter {
   }
 
   void _paintFilter(Canvas canvas, Face face, Rect rect) {
-    // Skip painting if filter is 'None'
-    if (filter == 'None') return;
+    // Skip painting if no filter is selected
+    if (filterType == null) return;
 
-    final fontSize = rect.width * 0.95; // Fine-tuned for optimal proportion
+    // The actual filter rendering is handled by the widget overlay system in the UI
 
+    // For now, we'll render a simple indicator that a filter is active
+    // The actual filter rendering will be handled by the widget overlay system
+    final paint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.3)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+    
+    canvas.drawRect(rect, paint);
+    
+    // Draw filter type indicator
     final textSpan = TextSpan(
-      text: filter,
+      text: _getFilterDisplayName(filterType!),
       style: TextStyle(
-        fontSize: fontSize,
-        color: Colors.white.withValues(alpha: 0.8),
+        fontSize: 12,
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
         shadows: [
           Shadow(
-            offset: const Offset(2.0, 2.0),
-            blurRadius: 4.0,
-            color: Colors.black.withValues(alpha: 0.5),
+            offset: const Offset(1.0, 1.0),
+            blurRadius: 2.0,
+            color: Colors.black.withValues(alpha: 0.7),
           ),
         ],
       ),
@@ -822,13 +922,28 @@ class FacePainter extends CustomPainter {
       text: textSpan,
       textDirection: TextDirection.ltr,
     );
-    textPainter.layout(minWidth: 0, maxWidth: rect.width);
+    textPainter.layout();
 
     final offset = Offset(
       rect.center.dx - (textPainter.width / 2),
-      rect.center.dy - (textPainter.height / 2),
+      rect.bottom + 5,
     );
     textPainter.paint(canvas, offset);
+  }
+
+  String _getFilterDisplayName(FitnessARFilterType type) {
+    switch (type) {
+      case FitnessARFilterType.fastingChampion:
+        return 'Fasting Champion';
+      case FitnessARFilterType.calorieCrusher:
+        return 'Calorie Crusher';
+      case FitnessARFilterType.workoutGuide:
+        return 'Workout Guide';
+      case FitnessARFilterType.progressParty:
+        return 'Progress Party';
+      case FitnessARFilterType.groupStreakSparkler:
+        return 'Group Streak';
+    }
   }
 
   Rect _scaleRect({
@@ -855,7 +970,7 @@ class FacePainter extends CustomPainter {
     return oldDelegate.faces != faces ||
         oldDelegate.imageSize != imageSize ||
         oldDelegate.screenSize != screenSize ||
-        oldDelegate.filter != filter ||
+        oldDelegate.filterType != filterType ||
         oldDelegate.rotation != rotation;
   }
 }

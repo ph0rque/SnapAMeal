@@ -26,7 +26,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
 
   bool _showingARDemo = false;
   bool _showingContentFilterDemo = false;
-  FastingARFilterType? _activeFilter;
+  FitnessARFilterType? _activeFilter;
 
   @override
   void initState() {
@@ -250,18 +250,25 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
             runSpacing: 8,
             children: [
               _buildFilterChip(
-                'Motivational Quotes',
-                FastingARFilterType.motivationalText,
+                'Fasting Champion',
+                FitnessARFilterType.fastingChampion,
               ),
               _buildFilterChip(
-                'Progress Ring',
-                FastingARFilterType.progressRing,
+                'Calorie Crusher',
+                FitnessARFilterType.calorieCrusher,
               ),
               _buildFilterChip(
-                'Strength Aura',
-                FastingARFilterType.strengthAura,
+                'Workout Guide',
+                FitnessARFilterType.workoutGuide,
               ),
-              _buildFilterChip('Zen Mode', FastingARFilterType.zenMode),
+              _buildFilterChip(
+                'Progress Party',
+                FitnessARFilterType.progressParty,
+              ),
+              _buildFilterChip(
+                'Group Streak',
+                FitnessARFilterType.groupStreakSparkler,
+              ),
             ],
           ),
         ],
@@ -386,7 +393,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
     );
   }
 
-  Widget _buildFilterChip(String label, FastingARFilterType filterType) {
+  Widget _buildFilterChip(String label, FitnessARFilterType filterType) {
     final isActive = _activeFilter == filterType;
 
     return GestureDetector(
@@ -496,7 +503,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
     );
   }
 
-  Widget _buildARFilterOverlay(FastingARFilterType filterType) {
+  Widget _buildARFilterOverlay(FitnessARFilterType filterType) {
     return AnimatedBuilder(
       animation: _filterAnimation,
       builder: (context, child) {
@@ -532,33 +539,33 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
     );
   }
 
-  Color _getFilterColor(FastingARFilterType filterType) {
+  Color _getFilterColor(FitnessARFilterType filterType) {
     switch (filterType) {
-      case FastingARFilterType.motivationalText:
-        return Colors.blue;
-      case FastingARFilterType.progressRing:
-        return Colors.green;
-      case FastingARFilterType.strengthAura:
-        return Colors.purple;
-      case FastingARFilterType.zenMode:
-        return Colors.indigo;
-      default:
-        return SnapColors.accentBlue;
+      case FitnessARFilterType.fastingChampion:
+        return Colors.amber; // Crown gold
+      case FitnessARFilterType.calorieCrusher:
+        return Colors.red; // Superhero red
+      case FitnessARFilterType.workoutGuide:
+        return Colors.green; // Workout green
+      case FitnessARFilterType.progressParty:
+        return Colors.orange; // Fireworks orange
+      case FitnessARFilterType.groupStreakSparkler:
+        return Colors.purple; // Sparkles purple
     }
   }
 
-  String _getFilterText(FastingARFilterType filterType) {
+  String _getFilterText(FitnessARFilterType filterType) {
     switch (filterType) {
-      case FastingARFilterType.motivationalText:
-        return 'You\'ve Got This! 💪';
-      case FastingARFilterType.progressRing:
-        return 'Progress Ring Active';
-      case FastingARFilterType.strengthAura:
-        return 'Strength Aura ✨';
-      case FastingARFilterType.zenMode:
-        return 'Zen Mode 🧘‍♀️';
-      default:
-        return 'AR Filter Active';
+      case FitnessARFilterType.fastingChampion:
+        return '16-Hour\nFasting Champ! 👑';
+      case FitnessARFilterType.calorieCrusher:
+        return '300 kcal\nCrusher! ⚡';
+      case FitnessARFilterType.workoutGuide:
+        return 'Keep back\nstraight! 🧘‍♀️';
+      case FitnessARFilterType.progressParty:
+        return '-5 lbs!\nProgress Party! 🎆';
+      case FitnessARFilterType.groupStreakSparkler:
+        return '3-Day Group\nStreak! ✨';
     }
   }
 
@@ -566,7 +573,7 @@ class _DemoFastingShowcaseState extends State<DemoFastingShowcase>
     _highlightController.repeat(reverse: true);
   }
 
-  void _toggleARFilter(FastingARFilterType filterType) {
+  void _toggleARFilter(FitnessARFilterType filterType) {
     setState(() {
       if (_activeFilter == filterType) {
         _activeFilter = null;
