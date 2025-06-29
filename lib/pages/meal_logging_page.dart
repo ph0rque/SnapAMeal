@@ -243,9 +243,36 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnapUI.errorSnackBar('Failed to analyze meal'));
+      
+      String errorMessage;
+      if (e is NonFoodImageException) {
+        // Specific error for non-food images
+        errorMessage = e.message;
+      } else {
+        // Generic error for other issues
+        errorMessage = 'Failed to analyze meal';
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: e is NonFoodImageException ? Colors.orange : Colors.red,
+          duration: const Duration(seconds: 4),
+          action: e is NonFoodImageException
+              ? SnackBarAction(
+                  label: 'Try Again',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    // Clear the current image so user can take a new one
+                    setState(() {
+                      _selectedImagePath = null;
+                      _analysisResult = null;
+                    });
+                  },
+                )
+              : null,
+        ),
+      );
     }
   }
 

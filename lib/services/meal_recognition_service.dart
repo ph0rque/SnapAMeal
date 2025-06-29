@@ -20,6 +20,17 @@ import 'rag_service.dart';
 
 import '../services/usda_nutrition_service.dart';
 
+/// Exception thrown when the image doesn't contain food
+class NonFoodImageException implements Exception {
+  final String message;
+  final String detectedContent;
+  
+  const NonFoodImageException(this.message, this.detectedContent);
+  
+  @override
+  String toString() => 'NonFoodImageException: $message';
+}
+
 /// Comprehensive meal recognition service with AI-powered analysis
 class MealRecognitionService {
   static const int _inputSize = 224;
@@ -315,17 +326,23 @@ class MealRecognitionService {
       // Convert image to base64
       final base64Image = base64Encode(imageBytes);
 
-      // Create enhanced prompt for food detection with meal type classification
+      // Create enhanced prompt for food detection with food validation
       final prompt = '''
-Analyze this food image and provide a comprehensive analysis:
+Analyze this image to determine if it contains food and provide a comprehensive analysis:
 
-1. MEAL TYPE CLASSIFICATION:
+FIRST - FOOD VALIDATION:
+Determine if this image actually contains food items, ingredients, meals, or beverages. 
+If the image contains:
+- People, animals, landscapes, objects, documents, text, screenshots, etc. WITHOUT food → set "contains_food": false
+- Food items, meals, ingredients, beverages, or anything edible → set "contains_food": true
+
+1. MEAL TYPE CLASSIFICATION (only if contains_food is true):
    - "ingredients": Raw/uncooked ingredients that could be used to prepare a meal (raw chicken, vegetables, spices, uncooked pasta, etc.)
    - "ready_made": Fully prepared/cooked dishes ready to eat (pizza, burgers, cooked pasta dishes, sandwiches, etc.)
    - "mixed": Contains both ingredients and prepared items
    - "unknown": Cannot determine meal type
 
-2. FOOD ITEM DETECTION:
+2. FOOD ITEM DETECTION (only if contains_food is true):
    For each visible food item, provide:
    - Name of the food
    - Estimated portion size in grams
@@ -335,6 +352,8 @@ Analyze this food image and provide a comprehensive analysis:
 
 Format the response as JSON with this exact structure:
 {
+  "contains_food": true/false,
+  "detected_content": "Brief description of what you see in the image",
   "meal_type": "ingredients|ready_made|mixed|unknown",
   "meal_type_confidence": 0.85,
   "meal_type_reason": "Brief explanation of why this meal type was chosen",
@@ -348,6 +367,8 @@ Format the response as JSON with this exact structure:
     }
   ]
 }
+
+If contains_food is false, set meal_type to "unknown", meal_type_confidence to 0.0, and foods to an empty array.
 ''';
 
       // Use OpenAI to analyze the image
@@ -374,6 +395,19 @@ Format the response as JSON with this exact structure:
       cleanResponse = cleanResponse.trim();
       
       final analysisResult = jsonDecode(cleanResponse);
+      
+      // Check if the image contains food
+      final containsFood = analysisResult['contains_food'] ?? false;
+      final detectedContent = analysisResult['detected_content'] ?? 'Unknown content';
+      
+      if (!containsFood) {
+        developer.log('Non-food image detected: $detectedContent');
+        throw NonFoodImageException(
+          'This image doesn\'t appear to contain any food items. Please take a photo of your meal, ingredients, or food items.',
+          detectedContent,
+        );
+      }
+      
       final List<FoodItem> detectedFoods = [];
 
       // Store meal type information for later use
