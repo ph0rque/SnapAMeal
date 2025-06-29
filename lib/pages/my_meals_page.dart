@@ -71,6 +71,12 @@ class _MyMealsPageState extends State<MyMealsPage> {
           // Get document data
           final data = doc.data() as Map<String, dynamic>;
           
+          Logger.d('🔍 Raw document data for ${doc.id}:');
+          Logger.d('  image_url: ${data['image_url']}');
+          Logger.d('  image_path: ${data['image_path']}');
+          Logger.d('  user_id: ${data['user_id']}');
+          Logger.d('  timestamp: ${data['timestamp']}');
+          
           // Ensure consistent field names for MealLog.fromFirestore
           final processedData = Map<String, dynamic>.from(data);
           
@@ -90,7 +96,6 @@ class _MyMealsPageState extends State<MyMealsPage> {
           // Provide fallbacks for required fields that might be missing
           processedData['user_id'] ??= user.uid;
           processedData['image_path'] ??= '';
-          processedData['image_url'] ??= '';
           processedData['tags'] ??= <String>[];
           processedData['metadata'] ??= <String, dynamic>{};
           

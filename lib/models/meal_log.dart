@@ -79,8 +79,8 @@ class MealLog {
     return MealLog(
       id: json['id'],
       userId: json['user_id'],
-      imagePath: json['image_path'],
-      imageUrl: json['image_url'],
+      imagePath: json['image_path'] ?? '',
+      imageUrl: json['image_url'] ?? '',
       timestamp: DateTime.fromMillisecondsSinceEpoch(json['timestamp']),
       recognitionResult: MealRecognitionResult.fromJson(
         json['recognition_result'],

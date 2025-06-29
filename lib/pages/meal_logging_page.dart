@@ -327,13 +327,37 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       final randomId = DateTime.now().microsecondsSinceEpoch; // Additional uniqueness
       final fileName = 'meals/${user.uid}/${timestamp}_$randomId.jpg';
 
-      final uploadTask = FirebaseStorage.instance
-          .ref()
-          .child(fileName)
-          .putFile(imageFile);
+      developer.log('🔄 Starting image upload...');
+      developer.log('  File path: $_selectedImagePath');
+      developer.log('  File exists: ${imageFile.existsSync()}');
+      developer.log('  File size: ${imageFile.lengthSync()} bytes');
+      developer.log('  Storage path: $fileName');
+      developer.log('  User ID: ${user.uid}');
 
-      final snapshot = await uploadTask;
-      final imageUrl = await snapshot.ref.getDownloadURL();
+      try {
+        final uploadTask = FirebaseStorage.instance
+            .ref()
+            .child(fileName)
+            .putFile(imageFile);
+
+        developer.log('📤 Upload task created, waiting for completion...');
+        final snapshot = await uploadTask;
+        developer.log('✅ Upload completed successfully');
+        
+        final imageUrl = await snapshot.ref.getDownloadURL();
+        developer.log('🔗 Download URL obtained: $imageUrl');
+
+        if (imageUrl.isEmpty) {
+          throw Exception('Download URL is empty');
+        }
+      } catch (uploadError) {
+        developer.log('❌ Image upload failed: $uploadError');
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnapUI.errorSnackBar('Failed to upload image: $uploadError')
+        );
+        return;
+      }
 
       // Create meal log
       final mealLog = MealLog(
@@ -370,13 +394,22 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         },
       );
 
+      developer.log('📝 Created meal log with imageUrl: $imageUrl');
+      developer.log('   Image path: ${_selectedImagePath}');
+      developer.log('   User ID: ${user.uid}');
+
       // Check if user is a demo user to determine which collection to use
               final collectionName = 'meal_logs'; // All users now use production meal_logs
 
+      developer.log('💾 Saving to Firestore collection: $collectionName');
+
       // Save to Firestore
-      await FirebaseFirestore.instance
+      final docRef = await FirebaseFirestore.instance
           .collection(collectionName)
           .add(mealLog.toJson());
+
+      developer.log('✅ Meal log saved with document ID: ${docRef.id}');
+      developer.log('   Saved imageUrl: ${mealLog.imageUrl}');
 
       // Check for mission auto-completions
       try {
