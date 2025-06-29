@@ -474,9 +474,16 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         developer.log('✅ Image upload and URL validation successful');
         
       } catch (uploadError) {
-        developer.log('❌ Image upload failed: $uploadError');
+        developer.log('❌ CRITICAL: Image upload failed completely!');
+        developer.log('❌ Upload error: $uploadError');
         developer.log('❌ Upload error type: ${uploadError.runtimeType}');
         developer.log('❌ Full error details: ${uploadError.toString()}');
+        developer.log('❌ This is why all meals have null image_url in Firestore!');
+        
+        // STOP THE SAVE PROCESS - don't save corrupted data
+        setState(() {
+          _isSaving = false;
+        });
         
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -491,7 +498,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
             ),
           ),
         );
-        return;
+        return; // EXIT - don't save to Firestore with null imageUrl
       }
 
       // Create meal log
