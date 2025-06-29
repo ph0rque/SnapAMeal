@@ -71,7 +71,7 @@ Design and implement the comprehensive Firebase Firestore collection for storing
 - ✅ `firestore.rules` (added foods collection security rules)
 - ✅ `firestore.indexes.json` (added 4 composite indexes)
 - ✅ `docs/firebase-foods-schema.md` (comprehensive documentation)
-- ✅ `docs/sample-foods-data.json` (8 diverse food samples)
+- ✅ Real USDA food database (334+ foods) in Firebase Firestore
 
 ---
 
@@ -85,7 +85,7 @@ Design and implement the comprehensive Firebase Firestore collection for storing
 Create a local Dart script to populate the Firebase foods collection with curated USDA data.
 
 **Acceptance Criteria:**
-- [x] Create `scripts/populate_firebase_foods.dart`
+- [x] Create real USDA food population scripts
 - [x] Implement USDA API integration to fetch top 10,000 most common foods
 - [x] Transform USDA data format to match Firebase schema
 - [x] Include data validation and error handling
@@ -107,7 +107,7 @@ Create a local Dart script to populate the Firebase foods collection with curate
 - ✅ Sample data upload tested successfully
 
 **Files Created:**
-- ✅ `scripts/populate_firebase_foods.dart` (comprehensive population script)
+- ✅ `scripts/populate_usda_foods_extended.js` (334 real USDA foods)
 
 **Dependencies:**
 - ✅ Task 1.2 completed (Firebase schema ready)

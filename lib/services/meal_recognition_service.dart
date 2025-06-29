@@ -695,49 +695,19 @@ Format the response as JSON with this exact structure:
   }
 
   /// Get nutrition data from local food database (legacy fallback)
+  /// This method is now deprecated and should rarely be used since we have:
+  /// 1. Firebase with 334+ real USDA foods
+  /// 2. USDA FoodData Central API
+  /// 3. AI nutrition estimation
   NutritionInfo? _getNutritionFromDatabase(
     String foodName,
     double weightGrams,
   ) {
-    // This would integrate with a comprehensive food database like USDA FoodData Central
-    // For now, return basic estimates for common foods
-    final commonFoods = {
-      'chicken breast': {
-        'calories': 165,
-        'protein': 31,
-        'carbs': 0,
-        'fat': 3.6,
-      },
-      'banana': {'calories': 89, 'protein': 1.1, 'carbs': 23, 'fat': 0.3},
-      'rice': {'calories': 130, 'protein': 2.7, 'carbs': 28, 'fat': 0.3},
-      'broccoli': {'calories': 34, 'protein': 2.8, 'carbs': 7, 'fat': 0.4},
-      'salmon': {'calories': 208, 'protein': 22, 'carbs': 0, 'fat': 12},
-      'apple': {'calories': 52, 'protein': 0.3, 'carbs': 14, 'fat': 0.2},
-      'bread': {'calories': 265, 'protein': 9, 'carbs': 49, 'fat': 3.2},
-      'egg': {'calories': 155, 'protein': 13, 'carbs': 1.1, 'fat': 11},
-    };
-
-    final lowerFoodName = foodName.toLowerCase();
-    for (final entry in commonFoods.entries) {
-      if (lowerFoodName.contains(entry.key)) {
-        final baseNutrition = entry.value;
-        final scaleFactor = weightGrams / 100.0; // Base values are per 100g
-
-        return NutritionInfo(
-          calories: baseNutrition['calories']! * scaleFactor,
-          protein: baseNutrition['protein']! * scaleFactor,
-          carbs: baseNutrition['carbs']! * scaleFactor,
-          fat: baseNutrition['fat']! * scaleFactor,
-          fiber: (baseNutrition['fiber'] ?? 2.0) * scaleFactor,
-          sugar: (baseNutrition['sugar'] ?? 5.0) * scaleFactor,
-          sodium: (baseNutrition['sodium'] ?? 50.0) * scaleFactor,
-          servingSize: weightGrams,
-          vitamins: {},
-          minerals: {},
-        );
-      }
-    }
-
+    // Log usage to monitor if this legacy fallback is still being used
+    developer.log('⚠️ Using legacy hardcoded database for: $foodName - consider adding to Firebase');
+    
+    // Return null to force the system to use AI estimation instead
+    // This ensures we're not relying on hardcoded sample data
     return null;
   }
 

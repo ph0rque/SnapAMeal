@@ -211,7 +211,7 @@ firebase deploy --only storage
 ### 5. Initialize Food Database and Knowledge Base
 ```bash
 # Populate Firebase foods collection with USDA data
-dart scripts/populate_firebase_foods.dart --limit 10000
+node scripts/populate_usda_foods_extended.js
 
 # Index USDA knowledge for semantic search (optional)
 dart scripts/index_usda_knowledge.dart --limit 1000
@@ -365,7 +365,7 @@ dart scripts/cost_analysis.dart
 ### Meal Analysis V2 Documentation
 - `assets/models/MODEL_INFO.md` - TensorFlow Lite model documentation
 - `docs/firebase-foods-schema.md` - Firebase food database schema
-- `docs/sample-foods-data.json` - Sample nutritional data structure
+- Real USDA food database with 334+ foods in Firebase Firestore
 - `scripts/` - Database population and knowledge indexing scripts
 
 ### Health & Safety
