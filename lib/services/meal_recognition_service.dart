@@ -127,12 +127,7 @@ class MealRecognitionService {
 
   /// Analyze a meal image and return recognition results
   Future<MealRecognitionResult> analyzeMealImage(String imagePath) async {
-    print('=== ANALYZE MEAL IMAGE STARTED ===');
-    print('Image path: $imagePath');
-    print('Service initialized: $_isInitialized');
-    
     if (!_isInitialized) {
-      print('ERROR: MealRecognitionService not initialized');
       throw Exception('MealRecognitionService not initialized');
     }
 
@@ -164,20 +159,12 @@ class MealRecognitionService {
         mealTypeReason = 'Determined from food type analysis';
       } else {
         // Use OpenAI Vision API for advanced analysis
-        print('=== USING OPENAI VISION API ===');
         detectedFoods = await _detectFoodsWithOpenAI(imageBytes);
-        
-        print('=== BACK FROM OPENAI DETECTION ===');
-        print('Detected foods count: ${detectedFoods.length}');
-        print('Detected foods: ${detectedFoods.map((f) => f.name).join(', ')}');
         
         // Use OpenAI's meal type classification
         mealType = _lastMealType ?? MealType.unknown;
         mealTypeConfidence = _lastMealTypeConfidence ?? 0.0;
         mealTypeReason = _lastMealTypeReason;
-        
-        print('Final meal type: ${mealType.value}');
-        print('Final meal type confidence: $mealTypeConfidence');
       }
 
       // Calculate total nutrition (always performed)
@@ -208,12 +195,6 @@ class MealRecognitionService {
         'Meal analysis completed: ${detectedFoods.length} foods detected, '
         'meal type: ${mealType.value} (${(mealTypeConfidence * 100).toInt()}% confidence)',
       );
-      
-      print('=== FINAL MEAL RECOGNITION RESULT ===');
-      print('Foods in result: ${result.detectedFoods.map((f) => f.name).join(', ')}');
-      print('Total nutrition calories: ${result.totalNutrition.calories}');
-      print('Meal type in result: ${result.mealType.value}');
-      print('Should show recipes: ${result.shouldShowRecipeSuggestions}');
       
       return result;
     } catch (e) {
@@ -281,7 +262,6 @@ class MealRecognitionService {
   /// Detect foods using OpenAI Vision API as fallback
   Future<List<FoodItem>> _detectFoodsWithOpenAI(Uint8List imageBytes) async {
     try {
-      print('=== DETECT FOODS WITH OPENAI STARTED ===');
       developer.log('Using OpenAI Vision API for food detection');
 
       // Convert image to base64
@@ -323,24 +303,16 @@ Format the response as JSON with this exact structure:
 ''';
 
       // Use OpenAI to analyze the image
-      print('=== CALLING OPENAI VISION API ===');
       final response = await _openAIService.analyzeImageWithPrompt(
         'data:image/jpeg;base64,$base64Image',
         prompt,
       );
 
-      print('=== OPENAI VISION API RESPONSE RECEIVED ===');
-      print('Response: $response');
-
       if (response == null) {
-        print('ERROR: No response from OpenAI Vision API');
         throw Exception('No response from OpenAI Vision API');
       }
 
-      // Parse the response
-      print('=== PARSING OPENAI RESPONSE ===');
-      
-      // Clean the response - remove markdown code blocks if present
+      // Parse the response - clean markdown code blocks if present
       String cleanResponse = response.trim();
       if (cleanResponse.startsWith('```json')) {
         cleanResponse = cleanResponse.substring(7); // Remove ```json
@@ -353,26 +325,16 @@ Format the response as JSON with this exact structure:
       }
       cleanResponse = cleanResponse.trim();
       
-      print('Cleaned response: $cleanResponse');
-      
       final analysisResult = jsonDecode(cleanResponse);
       final List<FoodItem> detectedFoods = [];
-
-      print('=== JSON PARSING SUCCESSFUL ===');
-      print('Meal type: ${analysisResult['meal_type']}');
-      print('Meal type confidence: ${analysisResult['meal_type_confidence']}');
-      print('Foods detected: ${analysisResult['foods']?.length ?? 0}');
 
       // Store meal type information for later use
       _lastMealType = MealType.fromString(analysisResult['meal_type'] ?? 'unknown');
       _lastMealTypeConfidence = analysisResult['meal_type_confidence']?.toDouble() ?? 0.0;
       _lastMealTypeReason = analysisResult['meal_type_reason'];
 
-      print('=== PROCESSING DETECTED FOODS ===');
       if (analysisResult['foods'] != null) {
         for (final foodData in analysisResult['foods']) {
-          print('Processing food: ${foodData['name']} (${foodData['estimated_weight']}g)');
-          
           final nutrition = await estimateNutrition(
             foodData['name'],
             foodData['estimated_weight']?.toDouble() ?? 100.0,
@@ -389,27 +351,12 @@ Format the response as JSON with this exact structure:
           );
           
           detectedFoods.add(foodItem);
-          print('Added food item: ${foodItem.name}');
         }
       }
-
-      print('=== OPENAI DETECTION COMPLETE ===');
-      print('Total foods detected: ${detectedFoods.length}');
-      print('Food names: ${detectedFoods.map((f) => f.name).join(', ')}');
       
       return detectedFoods;
     } catch (e) {
       developer.log('Error in OpenAI food detection: $e');
-      developer.log('Stack trace: ${StackTrace.current}');
-      
-      // Add more detailed error logging
-      if (e.toString().contains('API')) {
-        developer.log('OpenAI API Error - this should be visible in logs');
-      } else if (e.toString().contains('JSON')) {
-        developer.log('JSON parsing error - response might be malformed');
-      } else {
-        developer.log('Unknown error type: ${e.runtimeType}');
-      }
       
       // Return a generic food item as fallback
       return [await _createGenericFoodItem()];

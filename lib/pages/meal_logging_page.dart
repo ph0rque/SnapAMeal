@@ -131,9 +131,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       );
 
       if (image != null) {
-        print('=== IMAGE CAPTURED SUCCESSFULLY ===');
-        print('Image path: ${image.path}');
-        
         setState(() {
           _selectedImagePath = image.path;
           _analysisResult = null;
@@ -142,11 +139,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         });
 
         _slideAnimationController.forward();
-        
-        print('=== ABOUT TO CALL _analyzeMeal ===');
         await _analyzeMeal(image.path);
-      } else {
-        print('=== NO IMAGE CAPTURED ===');
       }
     } catch (e) {
       developer.log('Error capturing image: $e');
@@ -200,14 +193,8 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     });
 
     try {
-      print('=== CALLING MEAL RECOGNITION SERVICE ===');
-      print('About to analyze image: $imagePath');
-      
       // Analyze the meal image (always performed)
       final result = await _mealRecognitionService.analyzeMealImage(imagePath);
-      
-      print('=== MEAL RECOGNITION RESULT RECEIVED ===');
-      print('Result: ${result.detectedFoods.map((f) => f.name).join(', ')}');
 
       // Generate caption (always performed)
       final caption = await _mealRecognitionService.generateMealCaption(
