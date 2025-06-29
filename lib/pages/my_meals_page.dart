@@ -128,12 +128,22 @@ class _MyMealsPageState extends State<MyMealsPage> {
             ...processedData,
           });
           
+          // Debug what we actually have in the meal object
+          Logger.d('🔍 MEAL CHECK: ${meal.id}');
+          Logger.d('   meal.imageUrl: "${meal.imageUrl}" (length: ${meal.imageUrl.length})');
+          Logger.d('   meal.userId: "${meal.userId}" (length: ${meal.userId.length})');
+          Logger.d('   meal.imageUrl.isEmpty: ${meal.imageUrl.isEmpty}');
+          Logger.d('   meal.userId.isEmpty: ${meal.userId.isEmpty}');
+          
           // Filter out corrupted meals that don't have valid images or user IDs
           // These are likely from when image upload was failing
           if (meal.imageUrl.isEmpty || meal.userId.isEmpty) {
-            Logger.d('⚠️ Skipping corrupted meal: ${meal.id} (missing image_url or user_id)');
+            Logger.d('❌ SKIPPING corrupted meal: ${meal.id}');
+            Logger.d('   Reason: imageUrl.isEmpty=${meal.imageUrl.isEmpty}, userId.isEmpty=${meal.userId.isEmpty}');
             continue;
           }
+          
+          Logger.d('✅ ACCEPTING valid meal: ${meal.id}');
           
           Logger.d('✅ Loaded valid meal: ${meal.id}, imageUrl: present, timestamp: ${meal.timestamp}');
           meals.add(meal);
