@@ -62,7 +62,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   void initState() {
     super.initState();
     print('🚨 BASIC INIT: MealLoggingPage initState() called - THIS SHOULD SHOW!');
-    developer.log('🏁 INIT: MealLoggingPage initState() called');
     _initializeServices();
     _setupAnimations();
   }
@@ -97,52 +96,41 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
   Future<void> _initializeServices() async {
     print('🚨 SERVICE INIT: Starting service initialization...');
-    developer.log('🔧 SERVICE INIT: Starting service initialization...');
     
     try {
       print('🚨 SERVICE INIT: Creating OpenAIService...');
-      developer.log('🔧 SERVICE INIT: Creating OpenAIService...');
       _openAIService = OpenAIService();
       
       print('🚨 SERVICE INIT: Initializing OpenAIService...');
-      developer.log('🔧 SERVICE INIT: Initializing OpenAIService...');
       await _openAIService.initialize();
       print('🚨 SERVICE INIT: OpenAIService initialized successfully!');
-      developer.log('✅ SERVICE INIT: OpenAIService initialized');
       
       print('🚨 SERVICE INIT: Creating RAGService...');
-      developer.log('🔧 SERVICE INIT: Creating RAGService...');
       _ragService = RAGService(_openAIService);
       
       print('🚨 SERVICE INIT: Creating MealRecognitionService...');
-      developer.log('🔧 SERVICE INIT: Creating MealRecognitionService...');
       _mealRecognitionService = MealRecognitionService(
         _openAIService,
         _ragService,
       );
 
       print('🚨 SERVICE INIT: Initializing MealRecognitionService...');
-      developer.log('🔧 SERVICE INIT: Initializing MealRecognitionService...');
       final initialized = await _mealRecognitionService.initialize();
       print('🚨 SERVICE INIT: MealRecognitionService returned: $initialized');
-      developer.log('🔧 SERVICE INIT: MealRecognitionService.initialize() returned: $initialized');
       
       setState(() {
         _isInitialized = initialized;
       });
       print('🚨 SERVICE INIT: _isInitialized set to: $_isInitialized');
-      developer.log('🔧 SERVICE INIT: _isInitialized set to: $_isInitialized');
 
       if (initialized) {
         print('🚨 SERVICE INIT: ✅ ALL SERVICES READY!');
-        developer.log('✅ SERVICE INIT: All meal recognition services initialized successfully');
       } else {
         throw Exception('Failed to initialize meal recognition services');
       }
     } catch (e) {
       print('🚨 SERVICE INIT: ❌ ERROR: $e');
       developer.log('❌ SERVICE INIT: Error initializing services: $e');
-      developer.log('❌ SERVICE INIT: Error type: ${e.runtimeType}');
       
       setState(() {
         _isInitialized = false;
@@ -157,12 +145,10 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
   Future<void> _captureImage(ImageSource source) async {
     print('🚨 IMAGE CAPTURE: Starting image capture from ${source == ImageSource.gallery ? 'GALLERY' : 'CAMERA'}');
-    developer.log('📸 IMAGE CAPTURE: Starting image capture from ${source == ImageSource.gallery ? 'GALLERY' : 'CAMERA'}');
     
     try {
       final picker = ImagePicker();
       print('🚨 IMAGE CAPTURE: Created ImagePicker instance');
-      developer.log('📸 IMAGE CAPTURE: Created ImagePicker instance');
       
       final image = await picker.pickImage(
         source: source,
@@ -172,12 +158,9 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       );
 
       print('🚨 IMAGE CAPTURE: pickImage returned: ${image != null ? 'SUCCESS' : 'NULL'}');
-      developer.log('📸 IMAGE CAPTURE: pickImage returned: ${image != null ? 'SUCCESS' : 'NULL'}');
       if (image != null) {
         print('🚨 IMAGE CAPTURE: Image path: ${image.path}');
         print('🚨 IMAGE CAPTURE: Image file exists: ${File(image.path).existsSync()}');
-        developer.log('📸 IMAGE CAPTURE: Image path: ${image.path}');
-        developer.log('📸 IMAGE CAPTURE: Image file exists: ${File(image.path).existsSync()}');
         
         setState(() {
           _selectedImagePath = image.path;
@@ -187,16 +170,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         });
 
         print('🚨 IMAGE CAPTURE: State updated, starting animation');
-        developer.log('📸 IMAGE CAPTURE: State updated, starting animation');
         _slideAnimationController.forward();
         
         print('🚨 IMAGE CAPTURE: Starting meal analysis...');
-        developer.log('📸 IMAGE CAPTURE: Starting meal analysis...');
         await _analyzeMeal(image.path);
         print('🚨 IMAGE CAPTURE: Meal analysis completed!');
-        developer.log('📸 IMAGE CAPTURE: Meal analysis completed');
       } else {
-        developer.log('❌ IMAGE CAPTURE: User cancelled image selection');
       }
     } catch (e) {
       developer.log('Error capturing image: $e');
@@ -239,8 +218,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   Future<void> _analyzeMeal(String imagePath) async {
     print('🚨 MEAL ANALYSIS: Starting analysis for image: $imagePath');
     print('🚨 MEAL ANALYSIS: _isInitialized = $_isInitialized');
-    developer.log('🔍 MEAL ANALYSIS: Starting analysis for image: $imagePath');
-    developer.log('🔍 MEAL ANALYSIS: _isInitialized = $_isInitialized');
     
     if (!_isInitialized) {
       print('🚨 MEAL ANALYSIS: ❌ Services not initialized!');
@@ -253,45 +230,34 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     }
 
     print('🚨 MEAL ANALYSIS: Setting _isAnalyzing = true');
-    developer.log('🔍 MEAL ANALYSIS: Setting _isAnalyzing = true');
     setState(() {
       _isAnalyzing = true;
     });
 
     try {
       print('🚨 MEAL ANALYSIS: Calling analyzeMealImage...');
-      developer.log('🔍 MEAL ANALYSIS: Calling analyzeMealImage...');
       // Analyze the meal image (always performed)
       final result = await _mealRecognitionService.analyzeMealImage(imagePath);
       print('🚨 MEAL ANALYSIS: ✅ analyzeMealImage completed successfully!');
       print('🚨 MEAL ANALYSIS: Detected foods: ${result.detectedFoods.length}');
       print('🚨 MEAL ANALYSIS: Primary category: ${result.primaryFoodCategory}');
-      developer.log('✅ MEAL ANALYSIS: analyzeMealImage completed successfully');
-      developer.log('   Detected foods: ${result.detectedFoods.length}');
-      developer.log('   Primary category: ${result.primaryFoodCategory}');
 
       print('🚨 MEAL ANALYSIS: Generating caption...');
-      developer.log('🔍 MEAL ANALYSIS: Generating caption...');
       // Generate caption (always performed)
       final caption = await _mealRecognitionService.generateMealCaption(
         result,
         _selectedCaptionType,
       );
       print('🚨 MEAL ANALYSIS: ✅ Caption generated successfully!');
-      developer.log('✅ MEAL ANALYSIS: Caption generated successfully');
 
       // Conditional recipe suggestions based on meal type
       List<RecipeSuggestion> recipes = [];
       if (result.shouldShowRecipeSuggestions) {
-        developer.log('🔍 MEAL ANALYSIS: Generating recipe suggestions for ${result.mealType.value} meal');
         recipes = await _mealRecognitionService.generateRecipeSuggestions(result);
-        developer.log('✅ MEAL ANALYSIS: Recipe suggestions generated: ${recipes.length}');
       } else {
-        developer.log('🔍 MEAL ANALYSIS: Skipping recipe suggestions for ${result.mealType.value} meal');
       }
 
       print('🚨 MEAL ANALYSIS: Setting analysis results in state...');
-      developer.log('🔍 MEAL ANALYSIS: Setting analysis results in state...');
       setState(() {
         _analysisResult = result;
         _generatedCaption = caption;
@@ -299,7 +265,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         _isAnalyzing = false;
       });
       print('🚨 MEAL ANALYSIS: ✅ State updated with results! Save button should now appear.');
-      developer.log('✅ MEAL ANALYSIS: State updated with results');
 
       // Provide haptic feedback
       HapticFeedback.lightImpact();
@@ -313,7 +278,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           ? 'Ready-made meal analyzed!'
           : 'Meal analyzed successfully!';
           
-      developer.log('✅ MEAL ANALYSIS: Showing success message: $message');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnapUI.successSnackBar(message));
@@ -322,8 +286,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       print('🚨 MEAL ANALYSIS: ❌ Error type: ${e.runtimeType}');
       print('🚨 MEAL ANALYSIS: ❌ Full error: ${e.toString()}');
       developer.log('❌ MEAL ANALYSIS: Error analyzing meal: $e');
-      developer.log('❌ MEAL ANALYSIS: Error type: ${e.runtimeType}');
-      developer.log('❌ MEAL ANALYSIS: Full error: ${e.toString()}');
       
       print('🚨 MEAL ANALYSIS: Setting _isAnalyzing = false due to error');
       setState(() {
@@ -334,16 +296,13 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       
       String errorMessage;
       if (e is NonFoodImageException) {
-        developer.log('❌ MEAL ANALYSIS: NonFoodImageException detected');
         // Specific error for non-food images
         errorMessage = e.message;
       } else {
-        developer.log('❌ MEAL ANALYSIS: Generic error occurred');
         // Generic error for other issues
         errorMessage = 'Failed to analyze meal';
       }
       
-      developer.log('❌ MEAL ANALYSIS: Showing error message: $errorMessage');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -392,12 +351,8 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _saveMealLog() async {
-    developer.log('🎯 MEAL SAVE: Starting _saveMealLog() method');
-    developer.log('🔍 MEAL SAVE: _selectedImagePath = $_selectedImagePath');
-    developer.log('🔍 MEAL SAVE: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
     
     if (_selectedImagePath == null || _analysisResult == null) {
-      developer.log('❌ MEAL SAVE: Missing required data - imagePath: $_selectedImagePath, analysisResult: ${_analysisResult != null}');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.errorSnackBar('Please capture and analyze a meal first'),
@@ -407,22 +362,16 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
     // Prevent duplicate uploads
     if (_isSaving) {
-      developer.log('🔵 MEAL SAVE: Already saving, ignoring duplicate call');
       return;
     }
 
-    developer.log('🔵 MEAL SAVE: Setting _isSaving = true');
     setState(() {
       _isSaving = true;
     });
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      developer.log('🔍 MEAL SAVE: User authentication check');
-      developer.log('   User: ${user != null ? 'authenticated' : 'null'}');
       if (user != null) {
-        developer.log('   User ID: ${user.uid}');
-        developer.log('   User email: ${user.email}');
       }
       
       if (user == null) {
@@ -436,12 +385,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       final randomId = DateTime.now().microsecondsSinceEpoch; // Additional uniqueness
       final fileName = 'meals/${user.uid}/${timestamp}_$randomId.jpg';
 
-      developer.log('🔄 Starting image upload...');
-      developer.log('  File path: $_selectedImagePath');
-      developer.log('  File exists: ${imageFile.existsSync()}');
-      developer.log('  File size: ${imageFile.lengthSync()} bytes');
-      developer.log('  Storage path: $fileName');
-      developer.log('  User ID: $user.uid');
 
       String imageUrl = '';
       try {
@@ -459,16 +402,11 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           throw Exception('Image file too large: $fileSize bytes (max 10MB)');
         }
 
-        developer.log('🔄 Pre-upload validation passed');
-        developer.log('  File exists: ${imageFile.existsSync()}');
-        developer.log('  File size: $fileSize bytes');
-        developer.log('  User authenticated: ${user.uid}');
         
         // Test Firebase Storage connectivity
         // Test Firebase Storage connectivity
         try {
           FirebaseStorage.instance.ref();
-          developer.log('✅ Firebase Storage reference created successfully');
         } catch (storageError) {
           throw Exception('Failed to create Firebase Storage reference: $storageError');
         }
@@ -478,26 +416,19 @@ class _MealLoggingPageState extends State<MealLoggingPage>
             .child(fileName)
             .putFile(imageFile);
 
-        developer.log('📤 Upload task created, waiting for completion...');
         
         // Add upload progress monitoring
         uploadTask.snapshotEvents.listen((snapshot) {
           if (snapshot.totalBytes > 0) {
             final progress = snapshot.bytesTransferred / snapshot.totalBytes;
             final progressPercent = (progress * 100).clamp(0.0, 100.0).toInt();
-            developer.log('📊 Upload progress: $progressPercent%');
           } else {
-            developer.log('📊 Upload progress: preparing...');
           }
         });
         
         final snapshot = await uploadTask;
-        developer.log('✅ Upload completed successfully');
-        developer.log('  Bytes transferred: ${snapshot.totalBytes}');
-        developer.log('  Upload state: ${snapshot.state}');
         
         imageUrl = await snapshot.ref.getDownloadURL();
-        developer.log('🔗 Download URL obtained: $imageUrl');
 
         if (imageUrl.isEmpty) {
           throw Exception('Download URL is empty');
@@ -508,14 +439,10 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           throw Exception('Invalid download URL format: $imageUrl');
         }
         
-        developer.log('✅ Image upload and URL validation successful');
         
       } catch (uploadError) {
         developer.log('❌ CRITICAL: Image upload failed completely!');
         developer.log('❌ Upload error: $uploadError');
-        developer.log('❌ Upload error type: ${uploadError.runtimeType}');
-        developer.log('❌ Full error details: ${uploadError.toString()}');
-        developer.log('❌ This is why all meals have null image_url in Firestore!');
         
         // STOP THE SAVE PROCESS - don't save corrupted data
         setState(() {
@@ -573,18 +500,10 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         },
       );
 
-      developer.log('📝 Created meal log with imageUrl: $imageUrl');
-      developer.log('   Image path: $_selectedImagePath');
-      developer.log('   User ID: $user.uid');
 
       // Validate meal log data before saving
       final mealLogJson = mealLog.toJson();
       
-      developer.log('🔍 Meal log JSON data:');
-      developer.log('   image_url: ${mealLogJson['image_url']}');
-      developer.log('   image_path: ${mealLogJson['image_path']}');
-      developer.log('   user_id: ${mealLogJson['user_id']}');
-      developer.log('   timestamp: ${mealLogJson['timestamp']}');
       
       if (mealLogJson['image_url'] == null || mealLogJson['image_url'].toString().isEmpty) {
         throw Exception('Meal log has empty image_url before saving to Firestore');
@@ -592,26 +511,19 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
       // Always save to meal_logs collection for all users (demo and production)
       const collectionName = 'meal_logs';
-      developer.log('💾 FORCE SAVE: All users saving to meal_logs collection');
 
       // Save to Firestore
       final docRef = await FirebaseFirestore.instance
           .collection(collectionName)
           .add(mealLogJson);
 
-      developer.log('✅ Meal log saved with document ID: ${docRef.id}');
-      developer.log('   Saved imageUrl: ${mealLog.imageUrl}');
       
       // Immediately read back the document to verify it was saved correctly
       try {
         final savedDoc = await docRef.get();
         final savedData = savedDoc.data() as Map<String, dynamic>;
-        developer.log('✅ Verification read from Firestore:');
-        developer.log('   Saved image_url: ${savedData['image_url']}');
-        developer.log('   Saved image_path: ${savedData['image_path']}');
         
         if (savedData['image_url'] == null || savedData['image_url'].toString().isEmpty) {
-          developer.log('❌ WARNING: image_url is null/empty in saved Firestore document!');
         }
       } catch (verificationError) {
         developer.log('❌ Failed to verify saved document: $verificationError');
@@ -657,14 +569,11 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         context,
       ).showSnackBar(SnapUI.errorSnackBar('Failed to save meal log'));
     } finally {
-      developer.log('🔵 MEAL SAVE: Finally block - resetting _isSaving to false');
       if (mounted) {
         setState(() {
           _isSaving = false;
         });
-        developer.log('🔵 MEAL SAVE: _isSaving reset to false');
       } else {
-        developer.log('❌ MEAL SAVE: Widget not mounted, cannot reset _isSaving');
       }
     }
   }
@@ -715,10 +624,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
   @override
   Widget build(BuildContext context) {
-    developer.log('🏗️ UI BUILD: Building meal logging page');
-    developer.log('🏗️ UI BUILD: _selectedImagePath = ${_selectedImagePath != null ? 'present' : 'null'}');
-    developer.log('🏗️ UI BUILD: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
-    developer.log('🏗️ UI BUILD: _isAnalyzing = $_isAnalyzing');
     
     return Scaffold(
       backgroundColor: SnapUI.backgroundColor,
@@ -1739,7 +1644,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     return SnapUI.primaryButton(
       _isSaving ? 'Saving...' : 'Save Meal Log',
       () {
-        developer.log('🔵 SAVE BUTTON: Button pressed! _isSaving = $_isSaving');
         _saveMealLog();
       },
       icon: _isSaving ? null : Icons.save,
