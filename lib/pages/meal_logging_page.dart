@@ -61,6 +61,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   @override
   void initState() {
     super.initState();
+    print('🚨 BASIC INIT: MealLoggingPage initState() called - THIS SHOULD SHOW!');
     developer.log('🏁 INIT: MealLoggingPage initState() called');
     _initializeServices();
     _setupAnimations();
@@ -678,10 +679,13 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
   @override
   Widget build(BuildContext context) {
+    print('🚨 BASIC BUILD: Meal logging page build method called');
+    print('🚨 BASIC BUILD: This should ALWAYS show up in console');
     developer.log('🏗️ UI BUILD: Building meal logging page');
     developer.log('🏗️ UI BUILD: _selectedImagePath = ${_selectedImagePath != null ? 'present' : 'null'}');
     developer.log('🏗️ UI BUILD: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
     developer.log('🏗️ UI BUILD: _isAnalyzing = $_isAnalyzing');
+    print('🚨 BASIC BUILD: About to return Scaffold');
     
     return Scaffold(
       backgroundColor: SnapUI.backgroundColor,
@@ -787,7 +791,10 @@ class _MealLoggingPageState extends State<MealLoggingPage>
               Expanded(
                 child: SnapUI.secondaryButton(
                   'From Gallery',
-                  () => _captureImage(ImageSource.gallery),
+                  () {
+                    print('🚨 BUTTON PRESS: From Gallery button clicked!');
+                    _captureImage(ImageSource.gallery);
+                  },
                   icon: Icons.photo_library,
                 ),
               ),
