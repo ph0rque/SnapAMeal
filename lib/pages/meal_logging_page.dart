@@ -314,8 +314,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
     }
 
     // Prevent duplicate uploads
-    if (_isSaving) return;
+    if (_isSaving) {
+      developer.log('🔵 MEAL SAVE: Already saving, ignoring duplicate call');
+      return;
+    }
 
+    developer.log('🔵 MEAL SAVE: Setting _isSaving = true');
     setState(() {
       _isSaving = true;
     });
@@ -485,10 +489,10 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         throw Exception('Meal log has empty image_url before saving to Firestore');
       }
 
-      // Check if user is a demo user to determine which collection to use
-              final collectionName = 'meal_logs'; // All users now use production meal_logs
-
-      developer.log('💾 Saving to Firestore collection: $collectionName');
+      // Always save to meal_logs collection for all users (demo and production)
+      const collectionName = 'meal_logs';
+      developer.log('💾 FORCE SAVE: All users saving to meal_logs collection');
+      developer.log('💾 FORCE SAVE: Collection name = $collectionName');
 
       // Save to Firestore
       final docRef = await FirebaseFirestore.instance
@@ -553,10 +557,14 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         context,
       ).showSnackBar(SnapUI.errorSnackBar('Failed to save meal log'));
     } finally {
+      developer.log('🔵 MEAL SAVE: Finally block - resetting _isSaving to false');
       if (mounted) {
         setState(() {
           _isSaving = false;
         });
+        developer.log('🔵 MEAL SAVE: _isSaving reset to false');
+      } else {
+        developer.log('❌ MEAL SAVE: Widget not mounted, cannot reset _isSaving');
       }
     }
   }
@@ -1621,11 +1629,18 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Widget _buildSaveButton() {
+    developer.log('🔵 SAVE BUTTON: Building save button, _isSaving = $_isSaving');
+    developer.log('🔵 SAVE BUTTON: Button enabled = ${!_isSaving}');
+    
     return SnapUI.primaryButton(
       _isSaving ? 'Saving...' : 'Save Meal Log',
-      () => _saveMealLog(), // Always provide non-null callback
+      () {
+        developer.log('🔵 SAVE BUTTON: Button pressed! _isSaving = $_isSaving');
+        developer.log('🔵 SAVE BUTTON: Calling _saveMealLog()');
+        _saveMealLog();
+      },
       icon: _isSaving ? null : Icons.save,
-      isLoading: _isSaving, // This handles the disabled state
+      isLoading: false, // NEVER disable the button - handle state internally
     );
   }
 
