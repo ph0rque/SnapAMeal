@@ -392,15 +392,11 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _saveMealLog() async {
-    print('🚨 MEAL SAVE: 🎯 Starting _saveMealLog() method');
-    print('🚨 MEAL SAVE: _selectedImagePath = $_selectedImagePath');
-    print('🚨 MEAL SAVE: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
     developer.log('🎯 MEAL SAVE: Starting _saveMealLog() method');
     developer.log('🔍 MEAL SAVE: _selectedImagePath = $_selectedImagePath');
     developer.log('🔍 MEAL SAVE: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
     
     if (_selectedImagePath == null || _analysisResult == null) {
-      print('🚨 MEAL SAVE: ❌ Missing required data!');
       developer.log('❌ MEAL SAVE: Missing required data - imagePath: $_selectedImagePath, analysisResult: ${_analysisResult != null}');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -411,51 +407,35 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
     // Prevent duplicate uploads
     if (_isSaving) {
-      print('🚨 MEAL SAVE: Already saving, ignoring duplicate call');
       developer.log('🔵 MEAL SAVE: Already saving, ignoring duplicate call');
       return;
     }
 
-    print('🚨 MEAL SAVE: Setting _isSaving = true');
     developer.log('🔵 MEAL SAVE: Setting _isSaving = true');
     setState(() {
       _isSaving = true;
     });
 
     try {
-      print('🚨 MEAL SAVE: Getting current user...');
       final user = FirebaseAuth.instance.currentUser;
-      print('🚨 MEAL SAVE: User authentication check complete');
-      print('🚨 MEAL SAVE: User: ${user != null ? 'authenticated' : 'null'}');
       developer.log('🔍 MEAL SAVE: User authentication check');
       developer.log('   User: ${user != null ? 'authenticated' : 'null'}');
       if (user != null) {
-        print('🚨 MEAL SAVE: User ID: ${user.uid}');
-        print('🚨 MEAL SAVE: User email: ${user.email}');
         developer.log('   User ID: ${user.uid}');
         developer.log('   User email: ${user.email}');
       }
       
       if (user == null) {
-        print('🚨 MEAL SAVE: ❌ User not authenticated!');
         developer.log('❌ MEAL SAVE: User not authenticated');
         throw Exception('User not authenticated');
       }
 
       // Upload image to Firebase Storage with unique filename to prevent conflicts
-      print('🚨 MEAL SAVE: Creating image file object...');
       final imageFile = File(_selectedImagePath!);
-      print('🚨 MEAL SAVE: Generating unique filename...');
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final randomId = DateTime.now().microsecondsSinceEpoch; // Additional uniqueness
       final fileName = 'meals/${user.uid}/${timestamp}_$randomId.jpg';
 
-      print('🚨 MEAL SAVE: Starting image upload...');
-      print('🚨 MEAL SAVE: File path: $_selectedImagePath');
-      print('🚨 MEAL SAVE: File exists: ${imageFile.existsSync()}');
-      print('🚨 MEAL SAVE: File size: ${imageFile.lengthSync()} bytes');
-      print('🚨 MEAL SAVE: Storage path: $fileName');
-      print('🚨 MEAL SAVE: User ID: $user.uid');
       developer.log('🔄 Starting image upload...');
       developer.log('  File path: $_selectedImagePath');
       developer.log('  File exists: ${imageFile.existsSync()}');
@@ -466,7 +446,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       String imageUrl = '';
       try {
         // Enhanced validation before upload
-        print('🚨 MEAL SAVE: Validating image file...');
         if (!imageFile.existsSync()) {
           throw Exception('Image file does not exist at path: $_selectedImagePath');
         }
@@ -480,33 +459,25 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           throw Exception('Image file too large: $fileSize bytes (max 10MB)');
         }
 
-        print('🚨 MEAL SAVE: ✅ Pre-upload validation passed');
-        print('🚨 MEAL SAVE: File exists: ${imageFile.existsSync()}');
-        print('🚨 MEAL SAVE: File size: $fileSize bytes');
-        print('🚨 MEAL SAVE: User authenticated: ${user.uid}');
         developer.log('🔄 Pre-upload validation passed');
         developer.log('  File exists: ${imageFile.existsSync()}');
         developer.log('  File size: $fileSize bytes');
         developer.log('  User authenticated: ${user.uid}');
         
         // Test Firebase Storage connectivity
-        print('🚨 MEAL SAVE: Testing Firebase Storage connectivity...');
+        // Test Firebase Storage connectivity
         try {
           FirebaseStorage.instance.ref();
-          print('🚨 MEAL SAVE: ✅ Firebase Storage reference created successfully');
           developer.log('✅ Firebase Storage reference created successfully');
         } catch (storageError) {
-          print('🚨 MEAL SAVE: ❌ Firebase Storage reference failed: $storageError');
           throw Exception('Failed to create Firebase Storage reference: $storageError');
         }
 
-        print('🚨 MEAL SAVE: Creating upload task...');
         final uploadTask = FirebaseStorage.instance
             .ref()
             .child(fileName)
             .putFile(imageFile);
 
-        print('🚨 MEAL SAVE: ✅ Upload task created, waiting for completion...');
         developer.log('📤 Upload task created, waiting for completion...');
         
         // Add upload progress monitoring
@@ -520,35 +491,23 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           }
         });
         
-        print('🚨 MEAL SAVE: Waiting for upload to complete...');
         final snapshot = await uploadTask;
-        print('🚨 MEAL SAVE: ✅ Upload completed successfully!');
-        print('🚨 MEAL SAVE: Bytes transferred: ${snapshot.totalBytes}');
-        print('🚨 MEAL SAVE: Upload state: ${snapshot.state}');
         developer.log('✅ Upload completed successfully');
         developer.log('  Bytes transferred: ${snapshot.totalBytes}');
         developer.log('  Upload state: ${snapshot.state}');
         
-        print('🚨 MEAL SAVE: Getting download URL...');
         imageUrl = await snapshot.ref.getDownloadURL();
-        print('🚨 MEAL SAVE: ✅ Download URL obtained: $imageUrl');
         developer.log('🔗 Download URL obtained: $imageUrl');
 
-        print('🚨 MEAL SAVE: Validating download URL...');
         if (imageUrl.isEmpty) {
-          print('🚨 MEAL SAVE: ❌ Download URL is empty!');
           throw Exception('Download URL is empty');
         }
-        print('🚨 MEAL SAVE: ✅ Download URL not empty');
         
         // Validate the download URL format
         if (!imageUrl.startsWith('https://')) {
-          print('🚨 MEAL SAVE: ❌ Invalid download URL format: $imageUrl');
           throw Exception('Invalid download URL format: $imageUrl');
         }
-        print('🚨 MEAL SAVE: ✅ Download URL format valid');
         
-        print('🚨 MEAL SAVE: ✅ Image upload and URL validation successful');
         developer.log('✅ Image upload and URL validation successful');
         
       } catch (uploadError) {
@@ -580,12 +539,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       }
 
       // Create meal log
-      print('🚨 MEAL SAVE: Creating MealLog object...');
-      print('🚨 MEAL SAVE: Analysis result present: ${_analysisResult != null}');
-      print('🚨 MEAL SAVE: Image path: $_selectedImagePath');
-      print('🚨 MEAL SAVE: Image URL: $imageUrl');
-      print('🚨 MEAL SAVE: User ID: ${user.uid}');
-      
       final mealLog = MealLog(
         id: '', // Firestore will generate
         userId: user.uid,
@@ -619,17 +572,13 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           'primary_category': _analysisResult!.primaryFoodCategory,
         },
       );
-      
-      print('🚨 MEAL SAVE: ✅ MealLog object created successfully');
 
       developer.log('📝 Created meal log with imageUrl: $imageUrl');
       developer.log('   Image path: $_selectedImagePath');
       developer.log('   User ID: $user.uid');
 
       // Validate meal log data before saving
-      print('🚨 MEAL SAVE: Converting MealLog to JSON...');
       final mealLogJson = mealLog.toJson();
-      print('🚨 MEAL SAVE: ✅ JSON conversion complete');
       
       developer.log('🔍 Meal log JSON data:');
       developer.log('   image_url: ${mealLogJson['image_url']}');
@@ -637,57 +586,38 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       developer.log('   user_id: ${mealLogJson['user_id']}');
       developer.log('   timestamp: ${mealLogJson['timestamp']}');
       
-      print('🚨 MEAL SAVE: Validating JSON data...');
       if (mealLogJson['image_url'] == null || mealLogJson['image_url'].toString().isEmpty) {
-        print('🚨 MEAL SAVE: ❌ MealLog has empty image_url!');
         throw Exception('Meal log has empty image_url before saving to Firestore');
       }
-      print('🚨 MEAL SAVE: ✅ JSON validation passed');
 
       // Always save to meal_logs collection for all users (demo and production)
       const collectionName = 'meal_logs';
-      print('🚨 MEAL SAVE: Preparing Firestore save...');
-      print('🚨 MEAL SAVE: Collection name: $collectionName');
       developer.log('💾 FORCE SAVE: All users saving to meal_logs collection');
-      developer.log('💾 FORCE SAVE: Collection name = $collectionName');
 
       // Save to Firestore
-      print('🚨 MEAL SAVE: Starting Firestore save operation...');
-      print('🚨 MEAL SAVE: About to call FirebaseFirestore.instance.collection().add()');
-      
       final docRef = await FirebaseFirestore.instance
           .collection(collectionName)
           .add(mealLogJson);
-          
-      print('🚨 MEAL SAVE: ✅ Firestore save completed successfully!');
 
-      print('🚨 MEAL SAVE: Document saved with ID: ${docRef.id}');
       developer.log('✅ Meal log saved with document ID: ${docRef.id}');
       developer.log('   Saved imageUrl: ${mealLog.imageUrl}');
       
       // Immediately read back the document to verify it was saved correctly
-      print('🚨 MEAL SAVE: Verifying saved document...');
       try {
         final savedDoc = await docRef.get();
         final savedData = savedDoc.data() as Map<String, dynamic>;
-        print('🚨 MEAL SAVE: ✅ Document verification successful');
         developer.log('✅ Verification read from Firestore:');
         developer.log('   Saved image_url: ${savedData['image_url']}');
         developer.log('   Saved image_path: ${savedData['image_path']}');
         
         if (savedData['image_url'] == null || savedData['image_url'].toString().isEmpty) {
-          print('🚨 MEAL SAVE: ❌ WARNING: Saved document has empty image_url!');
           developer.log('❌ WARNING: image_url is null/empty in saved Firestore document!');
-        } else {
-          print('🚨 MEAL SAVE: ✅ Saved document has valid image_url');
         }
       } catch (verificationError) {
-        print('🚨 MEAL SAVE: ❌ Document verification failed: $verificationError');
         developer.log('❌ Failed to verify saved document: $verificationError');
       }
 
       // Check for mission auto-completions
-      print('🚨 MEAL SAVE: Checking mission auto-completions...');
       try {
         await MissionService().checkAutoCompletions(
           user.uid,
@@ -697,15 +627,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
             'meal_time': DateTime.now().hour,
           },
         );
-        print('🚨 MEAL SAVE: ✅ Mission check completed');
       } catch (e) {
-        print('🚨 MEAL SAVE: ⚠️ Mission check failed: $e');
         developer.log('Error checking mission auto-completions: $e');
         // Don't fail the meal logging if mission check fails
       }
 
       // Reset form
-      print('🚨 MEAL SAVE: Resetting form state...');
       setState(() {
         _selectedImagePath = null;
         _analysisResult = null;
@@ -716,48 +643,29 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         _selectedMoodRating = 3;
         _selectedHungerLevel = 3;
       });
-      print('🚨 MEAL SAVE: ✅ Form state reset');
 
-      print('🚨 MEAL SAVE: Resetting slide animation...');
       _slideAnimationController.reset();
-      print('🚨 MEAL SAVE: ✅ Animation reset');
 
-      print('🚨 MEAL SAVE: Showing success message...');
-      if (!mounted) {
-        print('🚨 MEAL SAVE: ❌ Widget not mounted, cannot show snackbar');
-        return;
-      }
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnapUI.successSnackBar('Meal logged successfully!'));
-      print('🚨 MEAL SAVE: ✅ Success message shown');
     } catch (e) {
-      print('🚨 MEAL SAVE: ❌ CRITICAL ERROR in meal save process!');
-      print('🚨 MEAL SAVE: Error: $e');
-      print('🚨 MEAL SAVE: Error type: ${e.runtimeType}');
       developer.log('Error saving meal log: $e');
-      if (!mounted) {
-        print('🚨 MEAL SAVE: ❌ Widget not mounted, cannot show error snackbar');
-        return;
-      }
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnapUI.errorSnackBar('Failed to save meal log'));
-      print('🚨 MEAL SAVE: ✅ Error snackbar shown');
     } finally {
-      print('🚨 MEAL SAVE: 🏁 Finally block - resetting _isSaving to false');
       developer.log('🔵 MEAL SAVE: Finally block - resetting _isSaving to false');
       if (mounted) {
         setState(() {
           _isSaving = false;
         });
-        print('🚨 MEAL SAVE: ✅ _isSaving reset to false');
         developer.log('🔵 MEAL SAVE: _isSaving reset to false');
       } else {
-        print('🚨 MEAL SAVE: ❌ Widget not mounted, cannot reset _isSaving');
         developer.log('❌ MEAL SAVE: Widget not mounted, cannot reset _isSaving');
       }
-      print('🚨 MEAL SAVE: 🏁 Save process COMPLETELY FINISHED');
     }
   }
 
@@ -807,13 +715,10 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
   @override
   Widget build(BuildContext context) {
-    print('🚨 BASIC BUILD: Meal logging page build method called');
-    print('🚨 BASIC BUILD: This should ALWAYS show up in console');
     developer.log('🏗️ UI BUILD: Building meal logging page');
     developer.log('🏗️ UI BUILD: _selectedImagePath = ${_selectedImagePath != null ? 'present' : 'null'}');
     developer.log('🏗️ UI BUILD: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
     developer.log('🏗️ UI BUILD: _isAnalyzing = $_isAnalyzing');
-    print('🚨 BASIC BUILD: About to return Scaffold');
     
     return Scaffold(
       backgroundColor: SnapUI.backgroundColor,
@@ -920,7 +825,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
                 child: SnapUI.secondaryButton(
                   'From Gallery',
                   () {
-                    print('🚨 BUTTON PRESS: From Gallery button clicked!');
                     _captureImage(ImageSource.gallery);
                   },
                   icon: Icons.photo_library,
@@ -1845,18 +1749,10 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Widget _buildSaveButton() {
-    print('🚨 SAVE BUTTON: Building save button, _isSaving = $_isSaving');
-    print('🚨 SAVE BUTTON: Button enabled = ${!_isSaving}');
-    developer.log('🔵 SAVE BUTTON: Building save button, _isSaving = $_isSaving');
-    developer.log('🔵 SAVE BUTTON: Button enabled = ${!_isSaving}');
-    
     return SnapUI.primaryButton(
       _isSaving ? 'Saving...' : 'Save Meal Log',
       () {
-        print('🚨 SAVE BUTTON: 🎯 BUTTON PRESSED! _isSaving = $_isSaving');
-        print('🚨 SAVE BUTTON: Calling _saveMealLog()...');
         developer.log('🔵 SAVE BUTTON: Button pressed! _isSaving = $_isSaving');
-        developer.log('🔵 SAVE BUTTON: Calling _saveMealLog()');
         _saveMealLog();
       },
       icon: _isSaving ? null : Icons.save,
