@@ -153,7 +153,9 @@ class MealRecognitionService {
       double mealTypeConfidence;
       String? mealTypeReason;
 
-      if (_interpreter != null) {
+      // Temporarily disable TensorFlow Lite to use advanced OpenAI Vision API
+      // with meal type classification and USDA nutrition integration
+      if (false && _interpreter != null) {
         // Use TensorFlow Lite model for detection
         detectedFoods = await _detectFoodsWithTFLite(image);
         // Fallback meal type detection for TensorFlow
@@ -161,7 +163,8 @@ class MealRecognitionService {
         mealTypeConfidence = 0.7; // Lower confidence for heuristic-based detection
         mealTypeReason = 'Determined from food type analysis';
       } else {
-        // Fallback to OpenAI Vision API
+        // Use OpenAI Vision API for advanced analysis
+        print('=== USING OPENAI VISION API ===');
         detectedFoods = await _detectFoodsWithOpenAI(imageBytes);
         // Use OpenAI's meal type classification
         mealType = _lastMealType ?? MealType.unknown;
@@ -263,6 +266,7 @@ class MealRecognitionService {
   /// Detect foods using OpenAI Vision API as fallback
   Future<List<FoodItem>> _detectFoodsWithOpenAI(Uint8List imageBytes) async {
     try {
+      print('=== DETECT FOODS WITH OPENAI STARTED ===');
       developer.log('Using OpenAI Vision API for food detection');
 
       // Convert image to base64
@@ -304,16 +308,22 @@ Format the response as JSON with this exact structure:
 ''';
 
       // Use OpenAI to analyze the image
+      print('=== CALLING OPENAI VISION API ===');
       final response = await _openAIService.analyzeImageWithPrompt(
         'data:image/jpeg;base64,$base64Image',
         prompt,
       );
 
+      print('=== OPENAI VISION API RESPONSE RECEIVED ===');
+      print('Response: $response');
+
       if (response == null) {
+        print('ERROR: No response from OpenAI Vision API');
         throw Exception('No response from OpenAI Vision API');
       }
 
       // Parse the response
+      print('=== PARSING OPENAI RESPONSE ===');
       final analysisResult = jsonDecode(response);
       final List<FoodItem> detectedFoods = [];
 
