@@ -39,7 +39,7 @@ class _MyMealsPageState extends State<MyMealsPage> {
       // Check if user is a demo user to determine which collection to use
       final demoService = DemoAccountManagementService();
       final isDemo = await demoService.isCurrentUserDemo();
-      final collectionName = isDemo ? 'demo_meal_logs' : 'meal_logs';
+      final collectionName = 'meal_logs'; // All users now use production meal_logs
       final userIdField = isDemo ? 'userId' : 'userId'; // Both use same field name
 
       QuerySnapshot? querySnapshot;

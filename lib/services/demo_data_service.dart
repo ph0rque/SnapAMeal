@@ -435,7 +435,7 @@ class DemoDataService {
 
   /// Establish friendships in user documents (FriendService compatible format)
   static Future<void> _establishUserDocumentFriendships(Map<String, String> userIds) async {
-    Logger.d('🤝 Establishing friendships in demo_users collection...');
+    Logger.d('🤝 Establishing friendships in users collection...');
     
     final friendships = [
       {'user1': 'alice', 'user2': 'bob'},
@@ -448,17 +448,17 @@ class DemoDataService {
       final user2Id = userIds[friendship['user2']];
 
       if (user1Id != null && user2Id != null) {
-        // Update user1's friends array to include user2
+        // Update user1's friends array to include user2 (using production users collection)
         await _firestore
-            .collection('${_demoPrefix}users')
+            .collection('users')
             .doc(user1Id)
             .update({
               'friends': FieldValue.arrayUnion([user2Id]),
             });
 
-        // Update user2's friends array to include user1
+        // Update user2's friends array to include user1 (using production users collection)
         await _firestore
-            .collection('${_demoPrefix}users')
+            .collection('users')
             .doc(user2Id)
             .update({
               'friends': FieldValue.arrayUnion([user1Id]),
@@ -469,9 +469,9 @@ class DemoDataService {
           DateTime.now().subtract(const Duration(days: 15))
         );
 
-        // Create friend doc in user1's friends subcollection
+        // Create friend doc in user1's friends subcollection (using production users collection)
         await _firestore
-            .collection('${_demoPrefix}users')
+            .collection('users')
             .doc(user1Id)
             .collection('friends')
             .doc(user2Id)
@@ -482,9 +482,9 @@ class DemoDataService {
               'lastSnapTimestamp': null,
             });
 
-        // Create friend doc in user2's friends subcollection  
+        // Create friend doc in user2's friends subcollection (using production users collection)
         await _firestore
-            .collection('${_demoPrefix}users')
+            .collection('users')
             .doc(user2Id)
             .collection('friends')
             .doc(user1Id)
@@ -499,7 +499,7 @@ class DemoDataService {
       }
     }
 
-    Logger.d('✅ Demo user friendships established in demo_users collection');
+    Logger.d('✅ Demo user friendships established in users collection');
   }
 
   /// Create health groups
@@ -523,7 +523,7 @@ class DemoDataService {
 
     for (final group in groups) {
       final groupRef = _firestore
-          .collection('${_demoPrefix}health_groups')
+          .collection('health_groups')
           .doc();
 
       final groupData = {
@@ -547,7 +547,7 @@ class DemoDataService {
         final memberId = userIds[memberPersonaId];
         if (memberId != null) {
           await _firestore
-              .collection('${_demoPrefix}health_groups')
+              .collection('health_groups')
               .doc(groupRef.id)
               .collection('members')
               .doc(memberId)
@@ -572,9 +572,9 @@ class DemoDataService {
   ) async {
     Logger.d('🔄 Creating group chat histories...');
 
-    // Get group IDs that were created
+    // Get group IDs that were created (using production health_groups collection)
     final groupsSnapshot = await _firestore
-        .collection('${_demoPrefix}health_groups')
+        .collection('health_groups')
         .where('isDemo', isEqualTo: true)
         .get();
 
@@ -1181,8 +1181,8 @@ class DemoDataService {
         );
         meal['userId'] = userId;
 
-        final mealRef = _firestore
-            .collection('${_demoPrefix}meal_logs')
+              final mealRef = _firestore
+          .collection('meal_logs')
             .doc('${userId}_${mealDate.millisecondsSinceEpoch}_$mealIndex');
 
         batch.set(mealRef, meal);

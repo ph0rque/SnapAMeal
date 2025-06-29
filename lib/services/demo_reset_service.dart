@@ -10,10 +10,10 @@ class DemoResetService {
   static const List<String> _demoCollections = [
     'demo_health_profiles',
     'demo_fasting_sessions',
-    'demo_meal_logs',
+    // 'demo_meal_logs', // Migrated to production meal_logs
     'demo_progress_stories',
     'demo_friendships',
-    'demo_health_groups',
+    // 'demo_health_groups', // Migrated to production health_groups
     'demo_group_chat_messages',
     'demo_ai_advice_history',
     'demo_health_challenges',

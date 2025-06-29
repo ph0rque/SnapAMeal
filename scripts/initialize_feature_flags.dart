@@ -1,30 +1,116 @@
+#!/usr/bin/env dart
+
+// ignore_for_file: avoid_print
+
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:snapameal/config/feature_flags.dart';
+import 'dart:developer' as developer;
 
 /// Script to initialize feature flags collection in Firestore
 /// This ensures the feature flags are available for the app to read
 ///
 /// Usage: dart run scripts/initialize_feature_flags.dart
 
-void main() async {
-  print('🚩 Initializing feature flags in Firestore...');
+Future<void> main() async {
+  developer.log('🚀 Initializing Feature Flags...');
   
   try {
+    // Initialize Firebase
+    developer.log('🔥 Connecting to Firebase...');
     await Firebase.initializeApp();
-    print('✅ Firebase initialized successfully');
+    developer.log('✅ Firebase connected successfully');
+    
+    final firestore = FirebaseFirestore.instance;
+    
+    // Create feature flags collection
+    developer.log('📝 Creating feature flags in Firestore...');
+    
+    final batch = firestore.batch();
+    
+    // Define feature flags with their default states
+    final featureFlags = {
+      FeatureFlag.hybridProcessing: {
+        'enabled': true,
+        'rolloutPercentage': 100,
+        'description': 'Hybrid processing for meal recognition',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      FeatureFlag.inlineFoodCorrection: {
+        'enabled': true,
+        'rolloutPercentage': 90,
+        'description': 'Inline food correction interface',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      FeatureFlag.nutritionalQueries: {
+        'enabled': true,
+        'rolloutPercentage': 80,
+        'description': 'Natural language nutritional queries',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      FeatureFlag.performanceMonitoring: {
+        'enabled': true,
+        'rolloutPercentage': 100,
+        'description': 'Performance monitoring and metrics',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      FeatureFlag.advancedFirebaseSearch: {
+        'enabled': true,
+        'rolloutPercentage': 100,
+        'description': 'Advanced Firebase search capabilities',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      FeatureFlag.usdaKnowledgeBase: {
+        'enabled': true,
+        'rolloutPercentage': 80,
+        'description': 'USDA knowledge base integration',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      FeatureFlag.circuitBreakers: {
+        'enabled': true,
+        'rolloutPercentage': 100,
+        'description': 'Circuit breakers for service resilience',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      FeatureFlag.costTracking: {
+        'enabled': true,
+        'rolloutPercentage': 100,
+        'description': 'Cost tracking and monitoring',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      FeatureFlag.userFeedbackCollection: {
+        'enabled': true,
+        'rolloutPercentage': 100,
+        'description': 'User feedback collection system',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+      FeatureFlag.enhancedErrorHandling: {
+        'enabled': true,
+        'rolloutPercentage': 100,
+        'description': 'Enhanced error handling and recovery',
+        'lastUpdated': FieldValue.serverTimestamp(),
+      },
+    };
+    
+    // Add each feature flag to the batch
+    for (final entry in featureFlags.entries) {
+      final flagName = entry.key.toString().split('.').last;
+      final flagData = entry.value;
+      
+      final docRef = firestore.collection('feature_flags').doc(flagName);
+      batch.set(docRef, flagData);
+      
+      final isEnabled = flagData['enabled'] as bool;
+      developer.log('  📋 Added: $flagName (${isEnabled ? 'enabled' : 'disabled'})');
+    }
+    
+    // Commit the batch
+    await batch.commit();
+    developer.log('✅ Feature flags initialized successfully!');
+    
   } catch (e) {
-    print('❌ Firebase initialization failed: $e');
-    exit(1);
-  }
-
-  final initializer = FeatureFlagInitializer();
-  
-  try {
-    await initializer.initializeFeatureFlags();
-    print('🎉 Feature flags initialization completed successfully!');
-  } catch (e) {
-    print('❌ Error during initialization: $e');
+    developer.log('❌ Failed to initialize feature flags: $e');
     exit(1);
   }
 }

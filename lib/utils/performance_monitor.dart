@@ -171,6 +171,9 @@ class CircuitBreaker {
     _isOpen = false;
   }
 
+  /// Manually reset the circuit breaker (for external use)
+  void reset() => _reset();
+
   Map<String, dynamic> getStatus() {
     return {
       'service_name': serviceName,
@@ -305,6 +308,23 @@ class PerformanceMonitor {
     _serviceStats.clear();
     _costTracker.reset();
     _circuitBreakers.clear();
+  }
+
+  /// Reset circuit breaker for a specific service
+  void resetCircuitBreaker(String service) {
+    final circuitBreaker = _circuitBreakers[service];
+    if (circuitBreaker != null) {
+      circuitBreaker.reset();
+      Logger.d('🟢 Circuit breaker reset for $service');
+    }
+  }
+
+  /// Reset all circuit breakers
+  void resetAllCircuitBreakers() {
+    for (final circuitBreaker in _circuitBreakers.values) {
+      circuitBreaker.reset();
+    }
+    Logger.d('🟢 All circuit breakers reset');
   }
 }
 

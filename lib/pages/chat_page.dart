@@ -24,14 +24,7 @@ class _ChatPageState extends State<ChatPage> {
 
   // Get the appropriate collection name based on user type
   String _getChatCollectionName() {
-    final userEmail = _auth.currentUser?.email;
-    final isDemoUser = userEmail != null && (
-      userEmail == 'alice.demo@example.com' ||
-      userEmail == 'bob.demo@example.com' ||
-      userEmail == 'charlie.demo@example.com'
-    );
-    
-    return isDemoUser ? 'demo_chat_rooms' : 'chat_rooms';
+    return 'chat_rooms'; // All users now use production chat_rooms
   }
 
   void sendMessage() async {

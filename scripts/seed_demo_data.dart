@@ -196,8 +196,10 @@ void _showSeedingSummary() {
   
   Logger.i('\n🔗 Collections Created:');
   final collections = [
-    'demo_users', 'demo_health_profiles', 'demo_fasting_sessions',
-    'demo_meal_logs', 'demo_stories', 'demo_friendships', 'demo_health_groups',
+          // Migrated to production: 'demo_users', 'demo_health_groups', 'demo_notifications', 'demo_meal_logs'
+      'demo_health_profiles', 'demo_fasting_sessions',
+      // 'demo_meal_logs', // Migrated to production meal_logs
+      'demo_stories', 'demo_friendships',
     'demo_group_messages', 'demo_ai_advice', 'demo_health_challenges',
     'demo_streaks', 'demo_user_preferences'
   ];

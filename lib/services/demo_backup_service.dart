@@ -16,14 +16,18 @@ class DemoBackupService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Collections to backup for demo data
+  // Note: Some collections migrated to production (users, health_groups, chat_rooms, notifications)
   static const List<String> demoCollections = [
-    'demo_users',
-    'demo_meal_logs',
+    // Migrated to production: 'demo_users' → 'users'
+    // Migrated to production: 'demo_health_groups' → 'health_groups'  
+    // Migrated to production: 'demo_chat_rooms' → 'chat_rooms'
+    // Migrated to production: 'demo_notifications' → 'notifications'
+    
+    // Migrated to production: 'demo_meal_logs' → 'meal_logs'
+    // 'demo_meal_logs',
     'demo_fasting_sessions',
-    'demo_health_groups',
     'demo_ai_advice',
     'demo_stories',
-    'demo_chat_rooms',
     'demo_session_data',
   ];
 
@@ -108,24 +112,18 @@ class DemoBackupService {
         Query query = _firestore.collection(collection);
 
         // Add user-specific filters based on collection structure
-        if (collection == 'demo_users') {
-          query = query.where(FieldPath.documentId, isEqualTo: userId);
-        } else if (collection == 'demo_session_data') {
+        if (collection == 'demo_session_data') {
           query = query.where('userId', isEqualTo: userId);
         } else if ([
-          'demo_meal_logs',
+          // 'demo_meal_logs', // Migrated to production meal_logs
           'demo_fasting_sessions',
           'demo_ai_advice',
         ].contains(collection)) {
           query = query.where('user_id', isEqualTo: userId);
-        } else if ([
-          'demo_stories',
-          'demo_health_groups',
-        ].contains(collection)) {
+        } else if (['demo_stories'].contains(collection)) {
           query = query.where('userId', isEqualTo: userId);
-        } else if (collection == 'demo_chat_rooms') {
-          query = query.where('members', arrayContains: userId);
         }
+        // Note: demo_users, demo_health_groups, demo_chat_rooms migrated to production
 
         final snapshot = await query.get();
         final documents = <String, Map<String, dynamic>>{};

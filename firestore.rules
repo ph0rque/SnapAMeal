@@ -508,11 +508,7 @@ service cloud.firestore {
       allow list: if request.auth != null;
     }
 
-    match /demo_meal_logs/{documentId} {
-      allow read, write: if request.auth != null;
-      allow create: if request.auth != null;
-      allow list: if request.auth != null;
-    }
+    // demo_meal_logs migrated to production meal_logs collection
 
     match /demo_fasting_sessions/{documentId} {
       allow read, write: if request.auth != null;
@@ -532,23 +528,7 @@ service cloud.firestore {
       allow list: if request.auth != null;
     }
 
-    match /demo_health_groups/{groupId} {
-      allow read, write: if request.auth != null;
-      allow create: if request.auth != null;
-      allow list: if request.auth != null;
-
-      match /members/{memberId} {
-        allow read, write: if request.auth != null;
-        allow create: if request.auth != null;
-        allow list: if request.auth != null;
-      }
-
-      match /messages/{messageId} {
-        allow read, write: if request.auth != null;
-        allow create: if request.auth != null;
-        allow list: if request.auth != null;
-      }
-    }
+    // demo_health_groups migrated to production health_groups collection
 
     match /demo_group_chat_messages/{messageId} {
       allow read, write: if request.auth != null;
@@ -568,11 +548,7 @@ service cloud.firestore {
       allow list: if request.auth != null;
     }
 
-    match /demo_notifications/{notificationId} {
-      allow read, write: if request.auth != null;
-      allow create: if request.auth != null;
-      allow list: if request.auth != null;
-    }
+    // demo_notifications migrated to production notifications collection
 
     match /demo_friend_requests/{requestId} {
       allow read, write: if request.auth != null;

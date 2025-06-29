@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'package:image/image.dart' as img;
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:flutter/services.dart';
 import '../models/meal_log.dart';
@@ -520,6 +521,12 @@ If contains_food is false, set meal_type to "unknown", meal_type_confidence to 0
     String foodName,
     double weightGrams,
   ) async {
+    // Check if Firebase service is available (circuit breaker)
+    if (!PerformanceMonitor().isServiceAvailable('firebase')) {
+      developer.log('🔴 Firebase circuit breaker is open - skipping Firebase query for: $foodName');
+      return null;
+    }
+    
     final timer = PerformanceMonitor().startTimer('nutrition_lookup', 'firebase', 
         metadata: {'food_name': foodName});
     
@@ -570,8 +577,19 @@ If contains_food is false, set meal_type to "unknown", meal_type_confidence to 0
       timer.complete(additionalMetadata: {'found_match': false});
       return null;
     } catch (e) {
-      developer.log('Error querying Firebase foods: $e');
-      timer.fail(e.toString());
+      final errorMessage = 'Firebase foods query failed: $e';
+      developer.log(errorMessage);
+      
+      // Log authentication status for debugging
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        developer.log('❌ User not authenticated during Firebase query');
+        timer.fail('Authentication required for Firebase access');
+      } else {
+        developer.log('✅ User authenticated: ${user.uid}');
+        timer.fail(errorMessage);
+      }
+      
       return null;
     }
   }

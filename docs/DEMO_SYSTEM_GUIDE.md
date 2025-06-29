@@ -37,18 +37,28 @@ graph TD
     M --> N[Analytics Service]
 ```
 
-### Demo-Specific Collections
+### Demo Collections Structure
 
-- `demo_users` - Demo user profiles and health data
-- `demo_meal_logs` - AI-analyzed meal logs with nutrition data
+**🔄 Migrated to Production Collections:**
+- `demo_users` → `users` (with `migratedFromDemo: true` flag)
+- `demo_health_groups` → `health_groups` (with `migratedFromDemo: true` flag)
+- `demo_chat_rooms` → `chat_rooms` (with `migratedFromDemo: true` flag)
+- `demo_notifications` → `notifications` (with `migratedFromDemo: true` flag)
+- `demo_meal_logs` → `meal_logs` (with `migratedFromDemo: true` flag)
+
+**📦 Still Demo-Only Collections:**
 - `demo_fasting_sessions` - Fasting timer and session history
-- `demo_health_groups` - Social health communities
 - `demo_ai_advice` - RAG-powered personalized recommendations
 - `demo_stories` - Social stories with engagement metrics
-- `demo_chat_rooms` - Group chat conversations
 - `demo_session_data` - Active demo session tracking
 - `demo_analytics` - Usage analytics and metrics
 - `demo_reset_history` - Reset operation audit trail
+
+**✅ Migration Benefits:**
+- Better integration between demo and production features
+- Unified social features (groups, chat, notifications)
+- Simplified codebase with fewer collection-specific logic branches
+- Demo data can interact with production features seamlessly
 
 ## Demo Account Setup
 
