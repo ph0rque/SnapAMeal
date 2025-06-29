@@ -300,7 +300,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _saveMealLog() async {
+    developer.log('🎯 MEAL SAVE: Starting _saveMealLog() method');
+    developer.log('🔍 MEAL SAVE: _selectedImagePath = $_selectedImagePath');
+    developer.log('🔍 MEAL SAVE: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
+    
     if (_selectedImagePath == null || _analysisResult == null) {
+      developer.log('❌ MEAL SAVE: Missing required data - imagePath: $_selectedImagePath, analysisResult: ${_analysisResult != null}');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnapUI.errorSnackBar('Please capture and analyze a meal first'),
@@ -317,7 +322,15 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
     try {
       final user = FirebaseAuth.instance.currentUser;
+      developer.log('🔍 MEAL SAVE: User authentication check');
+      developer.log('   User: ${user != null ? 'authenticated' : 'null'}');
+      if (user != null) {
+        developer.log('   User ID: ${user.uid}');
+        developer.log('   User email: ${user.email}');
+      }
+      
       if (user == null) {
+        developer.log('❌ MEAL SAVE: User not authenticated');
         throw Exception('User not authenticated');
       }
 
