@@ -296,6 +296,12 @@ class FeatureFlagService {
 
       final snapshot = await _firestore.collection('feature_flags').get();
       
+      if (snapshot.docs.isEmpty) {
+        Logger.d('📝 No remote feature flags found, using defaults');
+        _lastCacheUpdate = DateTime.now();
+        return;
+      }
+      
       for (final doc in snapshot.docs) {
         try {
           final config = FeatureFlagConfig.fromJson(doc.data());
@@ -309,7 +315,8 @@ class FeatureFlagService {
       Logger.d('✅ Loaded ${snapshot.docs.length} remote feature flags');
     } catch (e) {
       Logger.d('❌ Error loading remote feature flags: $e');
-      // Continue with cached/default flags
+      // Continue with cached/default flags - this is expected for new installations
+      _lastCacheUpdate = DateTime.now();
     }
   }
 
