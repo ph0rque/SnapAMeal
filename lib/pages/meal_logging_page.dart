@@ -61,6 +61,7 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   @override
   void initState() {
     super.initState();
+    developer.log('🏁 INIT: MealLoggingPage initState() called');
     _initializeServices();
     _setupAnimations();
   }
@@ -94,27 +95,47 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _initializeServices() async {
+    developer.log('🔧 SERVICE INIT: Starting service initialization...');
+    
     try {
+      developer.log('🔧 SERVICE INIT: Creating OpenAIService...');
       _openAIService = OpenAIService();
+      
+      developer.log('🔧 SERVICE INIT: Initializing OpenAIService...');
       await _openAIService.initialize();
+      developer.log('✅ SERVICE INIT: OpenAIService initialized');
+      
+      developer.log('🔧 SERVICE INIT: Creating RAGService...');
       _ragService = RAGService(_openAIService);
+      
+      developer.log('🔧 SERVICE INIT: Creating MealRecognitionService...');
       _mealRecognitionService = MealRecognitionService(
         _openAIService,
         _ragService,
       );
 
+      developer.log('🔧 SERVICE INIT: Initializing MealRecognitionService...');
       final initialized = await _mealRecognitionService.initialize();
+      developer.log('🔧 SERVICE INIT: MealRecognitionService.initialize() returned: $initialized');
+      
       setState(() {
         _isInitialized = initialized;
       });
+      developer.log('🔧 SERVICE INIT: _isInitialized set to: $_isInitialized');
 
       if (initialized) {
-        developer.log('Meal recognition services initialized successfully');
+        developer.log('✅ SERVICE INIT: All meal recognition services initialized successfully');
       } else {
         throw Exception('Failed to initialize meal recognition services');
       }
     } catch (e) {
-      developer.log('Error initializing services: $e');
+      developer.log('❌ SERVICE INIT: Error initializing services: $e');
+      developer.log('❌ SERVICE INIT: Error type: ${e.runtimeType}');
+      
+      setState(() {
+        _isInitialized = false;
+      });
+      
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -123,8 +144,12 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _captureImage(ImageSource source) async {
+    developer.log('📸 IMAGE CAPTURE: Starting image capture from ${source == ImageSource.gallery ? 'GALLERY' : 'CAMERA'}');
+    
     try {
       final picker = ImagePicker();
+      developer.log('📸 IMAGE CAPTURE: Created ImagePicker instance');
+      
       final image = await picker.pickImage(
         source: source,
         imageQuality: 80,
@@ -132,7 +157,11 @@ class _MealLoggingPageState extends State<MealLoggingPage>
         maxHeight: 1024,
       );
 
+      developer.log('📸 IMAGE CAPTURE: pickImage returned: ${image != null ? 'SUCCESS' : 'NULL'}');
       if (image != null) {
+        developer.log('📸 IMAGE CAPTURE: Image path: ${image.path}');
+        developer.log('📸 IMAGE CAPTURE: Image file exists: ${File(image.path).existsSync()}');
+        
         setState(() {
           _selectedImagePath = image.path;
           _analysisResult = null;
@@ -140,8 +169,14 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           _recipeSuggestions = null;
         });
 
+        developer.log('📸 IMAGE CAPTURE: State updated, starting animation');
         _slideAnimationController.forward();
+        
+        developer.log('📸 IMAGE CAPTURE: Starting meal analysis...');
         await _analyzeMeal(image.path);
+        developer.log('📸 IMAGE CAPTURE: Meal analysis completed');
+      } else {
+        developer.log('❌ IMAGE CAPTURE: User cancelled image selection');
       }
     } catch (e) {
       developer.log('Error capturing image: $e');
@@ -182,7 +217,11 @@ class _MealLoggingPageState extends State<MealLoggingPage>
   }
 
   Future<void> _analyzeMeal(String imagePath) async {
+    developer.log('🔍 MEAL ANALYSIS: Starting analysis for image: $imagePath');
+    developer.log('🔍 MEAL ANALYSIS: _isInitialized = $_isInitialized');
+    
     if (!_isInitialized) {
+      developer.log('❌ MEAL ANALYSIS: Services not initialized');
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
@@ -190,35 +229,45 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       return;
     }
 
+    developer.log('🔍 MEAL ANALYSIS: Setting _isAnalyzing = true');
     setState(() {
       _isAnalyzing = true;
     });
 
     try {
+      developer.log('🔍 MEAL ANALYSIS: Calling analyzeMealImage...');
       // Analyze the meal image (always performed)
       final result = await _mealRecognitionService.analyzeMealImage(imagePath);
+      developer.log('✅ MEAL ANALYSIS: analyzeMealImage completed successfully');
+      developer.log('   Detected foods: ${result.detectedFoods.length}');
+      developer.log('   Primary category: ${result.primaryFoodCategory}');
 
+      developer.log('🔍 MEAL ANALYSIS: Generating caption...');
       // Generate caption (always performed)
       final caption = await _mealRecognitionService.generateMealCaption(
         result,
         _selectedCaptionType,
       );
+      developer.log('✅ MEAL ANALYSIS: Caption generated successfully');
 
       // Conditional recipe suggestions based on meal type
       List<RecipeSuggestion> recipes = [];
       if (result.shouldShowRecipeSuggestions) {
-        developer.log('Generating recipe suggestions for ${result.mealType.value} meal');
+        developer.log('🔍 MEAL ANALYSIS: Generating recipe suggestions for ${result.mealType.value} meal');
         recipes = await _mealRecognitionService.generateRecipeSuggestions(result);
+        developer.log('✅ MEAL ANALYSIS: Recipe suggestions generated: ${recipes.length}');
       } else {
-        developer.log('Skipping recipe suggestions for ${result.mealType.value} meal');
+        developer.log('🔍 MEAL ANALYSIS: Skipping recipe suggestions for ${result.mealType.value} meal');
       }
 
+      developer.log('🔍 MEAL ANALYSIS: Setting analysis results in state...');
       setState(() {
         _analysisResult = result;
         _generatedCaption = caption;
         _recipeSuggestions = recipes;
         _isAnalyzing = false;
       });
+      developer.log('✅ MEAL ANALYSIS: State updated with results');
 
       // Provide haptic feedback
       HapticFeedback.lightImpact();
@@ -232,11 +281,15 @@ class _MealLoggingPageState extends State<MealLoggingPage>
           ? 'Ready-made meal analyzed!'
           : 'Meal analyzed successfully!';
           
+      developer.log('✅ MEAL ANALYSIS: Showing success message: $message');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnapUI.successSnackBar(message));
     } catch (e) {
-      developer.log('Error analyzing meal: $e');
+      developer.log('❌ MEAL ANALYSIS: Error analyzing meal: $e');
+      developer.log('❌ MEAL ANALYSIS: Error type: ${e.runtimeType}');
+      developer.log('❌ MEAL ANALYSIS: Full error: ${e.toString()}');
+      
       setState(() {
         _isAnalyzing = false;
       });
@@ -245,13 +298,16 @@ class _MealLoggingPageState extends State<MealLoggingPage>
       
       String errorMessage;
       if (e is NonFoodImageException) {
+        developer.log('❌ MEAL ANALYSIS: NonFoodImageException detected');
         // Specific error for non-food images
         errorMessage = e.message;
       } else {
+        developer.log('❌ MEAL ANALYSIS: Generic error occurred');
         // Generic error for other issues
         errorMessage = 'Failed to analyze meal';
       }
       
+      developer.log('❌ MEAL ANALYSIS: Showing error message: $errorMessage');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -615,6 +671,11 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
   @override
   Widget build(BuildContext context) {
+    developer.log('🏗️ UI BUILD: Building meal logging page');
+    developer.log('🏗️ UI BUILD: _selectedImagePath = ${_selectedImagePath != null ? 'present' : 'null'}');
+    developer.log('🏗️ UI BUILD: _analysisResult = ${_analysisResult != null ? 'present' : 'null'}');
+    developer.log('🏗️ UI BUILD: _isAnalyzing = $_isAnalyzing');
+    
     return Scaffold(
       backgroundColor: SnapUI.backgroundColor,
       appBar: SnapUI.appBar(title: 'AI Meal Logger'),
@@ -664,6 +725,19 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
               // Save Button
               _buildSaveButton(),
+            ] else if (_selectedImagePath != null) ...[
+              SnapUI.verticalSpaceMedium,
+              Container(
+                padding: SnapUI.cardPadding,
+                decoration: SnapUI.cardDecorationWithBorder,
+                child: Column(
+                  children: [
+                    Text('⚠️ ANALYSIS MISSING', style: SnapUI.headingStyle.copyWith(color: Colors.red)),
+                    Text('_analysisResult is null - save button hidden', style: SnapUI.bodyStyle),
+                    Text('_isAnalyzing = $_isAnalyzing', style: SnapUI.captionStyle),
+                  ],
+                ),
+              ),
             ],
           ],
         ),
