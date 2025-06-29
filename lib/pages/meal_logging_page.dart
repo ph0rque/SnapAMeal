@@ -769,19 +769,6 @@ class _MealLoggingPageState extends State<MealLoggingPage>
 
               // Save Button
               _buildSaveButton(),
-            ] else if (_selectedImagePath != null) ...[
-              SnapUI.verticalSpaceMedium,
-              Container(
-                padding: SnapUI.cardPadding,
-                decoration: SnapUI.cardDecorationWithBorder,
-                child: Column(
-                  children: [
-                    Text('⚠️ ANALYSIS MISSING', style: SnapUI.headingStyle.copyWith(color: Colors.red)),
-                    Text('_analysisResult is null - save button hidden', style: SnapUI.bodyStyle),
-                    Text('_isAnalyzing = $_isAnalyzing', style: SnapUI.captionStyle),
-                  ],
-                ),
-              ),
             ],
           ],
         ),
