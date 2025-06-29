@@ -650,6 +650,10 @@ class OpenAIService {
         'prompt': 0.00003,
         'completion': 0.00006,
       }, // $30/$60 per 1M tokens
+      'gpt-4o': {
+        'prompt': 0.000005,
+        'completion': 0.000015,
+      }, // $5/$15 per 1M tokens
       'gpt-3.5-turbo': {
         'prompt': 0.0000015,
         'completion': 0.000002,
@@ -905,7 +909,7 @@ class OpenAIService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'model': 'gpt-4-vision-preview',
+          'model': 'gpt-4o',
           'messages': [
             {
               'role': 'user',
@@ -913,7 +917,10 @@ class OpenAIService {
                 {'type': 'text', 'text': prompt},
                 {
                   'type': 'image_url',
-                  'image_url': {'url': base64Image},
+                  'image_url': {
+                    'url': base64Image,
+                    'detail': 'high',
+                  },
                 },
               ],
             },
@@ -928,7 +935,7 @@ class OpenAIService {
         final chatResponse = ChatCompletionResponse.fromJson(responseData);
 
         await _recordChatUsage(
-          'gpt-4-vision-preview',
+          'gpt-4o',
           chatResponse.promptTokens,
           chatResponse.completionTokens,
         );
